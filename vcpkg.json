@@ -1,0 +1,35 @@
+{
+    "name": "nodefluxengine",
+    "version": "1.0.0",
+    "description": "Modern C++20 procedural mesh generation library",
+    "dependencies": [
+        "eigen3",
+        "fmt"
+    ],
+    "features": {
+        "examples": {
+            "description": "Build example applications",
+            "dependencies": []
+        },
+        "tests": {
+            "description": "Enable unit testing",
+            "dependencies": [
+                "gtest"
+            ]
+        },
+        "ui": {
+            "description": "Enable UI components for visualization",
+            "dependencies": [
+                "glfw3",
+                "glad",
+                {
+                    "name": "imgui",
+                    "features": [
+                        "glfw-binding",
+                        "opengl3-binding"
+                    ]
+                }
+            ]
+        }
+    }
+}

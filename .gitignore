@@ -1,0 +1,153 @@
+# Build directories
+build/
+bin/
+lib/
+dist/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.ninja
+.ninja_deps
+.ninja_log
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# vcpkg
+vcpkg/
+vcpkg_installed/
+.vcpkg-root
+
+# Dependencies
+_deps/
+third_party/*/
+!third_party/README.md
+
+# IDE and editor files
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+.clangd/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Profiler output
+gmon.out
+bb.out
+
+# Core dumps
+core
+core.*
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Package managers
+conan.lock
+conandata.yml
+conaninfo.txt
+conanbuildinfo.*
+
+# Documentation generated
+docs/html/
+docs/latex/
+*.pdf
+
+# Test output
+test_output/
+*.log
+
+# Coverage reports
+*.gcov
+*.gcda
+*.gcno
+coverage/
+coverage.info
+
+# Sanitizer outputs
+*.asan
+*.tsan
+*.msan
+
+# Valgrind outputs
+*.valgrind
+
+# Local configuration
+.env
+config.local.*
+
+# Node modules (if any JS tools are used)
+node_modules/
+
+# Python cache (if any Python tools are used)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Examples output files
+examples/*.obj
+examples/*.stl
+examples/*.ply
+examples/output/
