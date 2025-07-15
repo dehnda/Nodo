@@ -1,0 +1,37 @@
+CompileFlags:
+  Add:
+    - -std=c++20
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+  Remove:
+    - -W*
+    - -w
+
+Index:
+  Background: Build
+  StandardLibrary: Yes
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+
+Hover:
+  ShowAKA: Yes
+
+Diagnostics:
+  Suppress:
+    - unused-parameter
+    - unused-variable
+  ClangTidy:
+    Add:
+      - readability-*
+      - modernize-*
+      - performance-*
+    Remove:
+      - readability-braces-around-statements
+      - modernize-use-trailing-return-type
+
+Completion:
+  AllScopes: Yes

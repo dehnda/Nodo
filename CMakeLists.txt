@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Generate compile_commands.json for IntelliSense
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Build options
 option(NODEFLUX_BUILD_EXAMPLES "Build example applications" ON)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
@@ -33,16 +36,16 @@ add_library(nodeflux_core
     src/geometry/mesh_generator.cpp
 )
 
-target_include_directories(nodeflux_core 
-    PUBLIC 
+target_include_directories(nodeflux_core
+    PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${cgal_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(nodeflux_core 
-    PUBLIC 
-        Eigen3::Eigen 
+target_link_libraries(nodeflux_core
+    PUBLIC
+        Eigen3::Eigen
         fmt::fmt
         gmp
         mpfr
@@ -82,7 +85,7 @@ install(TARGETS nodeflux_core
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/ 
+install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
