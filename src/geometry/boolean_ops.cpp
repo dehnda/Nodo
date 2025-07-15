@@ -4,6 +4,7 @@
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
+#include <CGAL/Polygon_mesh_processing/orientation.h>
 #include <vector>
 #include <array>
 
@@ -130,6 +131,8 @@ std::optional<core::Mesh> BooleanOps::cgal_boolean_operation(
         // Convert mesh B
         std::vector<Point_3> points_b;
         std::vector<std::array<std::size_t, 3>> faces_b;
+        points_b.reserve(b.vertices().rows());
+        faces_b.reserve(b.faces().rows());
         
         for (int i = 0; i < b.vertices().rows(); ++i) {
             points_b.emplace_back(
@@ -150,24 +153,42 @@ std::optional<core::Mesh> BooleanOps::cgal_boolean_operation(
         CGAL::Polygon_mesh_processing::orient_polygon_soup(points_b, faces_b);
         CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points_b, faces_b, cgal_b);
         
-        // Perform boolean operation
+        // Ensure consistent orientation
+        if (!CGAL::Polygon_mesh_processing::is_outward_oriented(cgal_a)) {
+            CGAL::Polygon_mesh_processing::reverse_face_orientations(cgal_a);
+        }
+        if (!CGAL::Polygon_mesh_processing::is_outward_oriented(cgal_b)) {
+            CGAL::Polygon_mesh_processing::reverse_face_orientations(cgal_b);
+        }
+        
+        // Perform boolean operation using visitor pattern for better control
         bool success = false;
+        
         switch (operation_type) {
-            case 0: // Union
+            case 0: { // Union
+                Surface_mesh temp_a = cgal_a;
+                Surface_mesh temp_b = cgal_b;
                 success = CGAL::Polygon_mesh_processing::corefine_and_compute_union(
-                    cgal_a, cgal_b, result
+                    temp_a, temp_b, result
                 );
                 break;
-            case 1: // Intersection
+            }
+            case 1: { // Intersection  
+                Surface_mesh temp_a = cgal_a;
+                Surface_mesh temp_b = cgal_b;
                 success = CGAL::Polygon_mesh_processing::corefine_and_compute_intersection(
-                    cgal_a, cgal_b, result
+                    temp_a, temp_b, result
                 );
                 break;
-            case 2: // Difference
+            }
+            case 2: { // Difference
+                Surface_mesh temp_a = cgal_a;
+                Surface_mesh temp_b = cgal_b;
                 success = CGAL::Polygon_mesh_processing::corefine_and_compute_difference(
-                    cgal_a, cgal_b, result
+                    temp_a, temp_b, result
                 );
                 break;
+            }
             default:
                 set_last_error(core::Error{
                     core::ErrorCategory::CGAL, 
@@ -177,11 +198,11 @@ std::optional<core::Mesh> BooleanOps::cgal_boolean_operation(
                 return std::nullopt;
         }
         
-        if (!success) {
+        if (!success || result.is_empty()) {
             set_last_error(core::Error{
                 core::ErrorCategory::CGAL, 
                 core::ErrorCode::BooleanOperationFailed, 
-                "CGAL boolean operation failed"
+                "CGAL boolean operation failed or returned empty result"
             });
             return std::nullopt;
         }
