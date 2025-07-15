@@ -38,6 +38,8 @@ add_library(nodeflux_core
     src/geometry/cylinder_generator.cpp
     src/geometry/plane_generator.cpp
     src/geometry/box_generator.cpp
+    src/geometry/mesh_validator.cpp
+    src/geometry/mesh_repairer.cpp
     src/io/obj_exporter.cpp
     src/nodes/sphere_node.cpp
     src/nodes/cylinder_node.cpp

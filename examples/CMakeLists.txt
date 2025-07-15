@@ -14,3 +14,6 @@ target_link_libraries(primitive_boolean_test nodeflux_core)
 
 add_executable(complete_node_system complete_node_system.cpp)
 target_link_libraries(complete_node_system nodeflux_core)
+
+add_executable(mesh_validation_demo mesh_validation_demo.cpp)
+target_link_libraries(mesh_validation_demo nodeflux_core)
