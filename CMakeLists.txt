@@ -34,7 +34,11 @@ add_library(nodeflux_core
     src/core/error.cpp
     src/geometry/boolean_ops.cpp
     src/geometry/mesh_generator.cpp
+    src/geometry/sphere_generator.cpp
+    src/geometry/cylinder_generator.cpp
+    src/geometry/plane_generator.cpp
     src/io/obj_exporter.cpp
+    src/nodes/sphere_node.cpp
 )
 
 target_include_directories(nodeflux_core

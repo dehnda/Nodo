@@ -5,3 +5,9 @@ target_link_libraries(basic_union nodeflux_core)
 
 add_executable(debug_boolean debug_boolean.cpp)
 target_link_libraries(debug_boolean nodeflux_core)
+
+add_executable(primitive_generators primitive_generators.cpp)
+target_link_libraries(primitive_generators nodeflux_core)
+
+add_executable(primitive_boolean_test primitive_boolean_test.cpp)
+target_link_libraries(primitive_boolean_test nodeflux_core)
