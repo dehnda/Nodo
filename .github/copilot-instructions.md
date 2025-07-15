@@ -50,9 +50,9 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 ## TODO List - NodeFluxEngine Development Roadmap
 
 ### 🎯 High Priority (Next Sprint)
-- [ ] **Unit Testing Framework**: Enable Google Test and write comprehensive tests
+- [x] **Unit Testing Framework**: Enable Google Test and write comprehensive tests
 - [ ] **Performance Optimization**: Add spatial data structures (BVH/Octree)
-- [ ] **Torus Generator**: Add torus primitive to complete basic geometry set
+- [x] **Torus Generator**: Add torus primitive to complete basic geometry set
 
 ### 🔧 Medium Priority (Current Quarter)
 - [ ] **Additional Primitives**: Torus, Cone, Rounded Box generators
@@ -72,13 +72,14 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 ### ✅ Completed Features
 - [x] **Core Architecture**: C++20 modern design with std::optional error handling
 - [x] **Boolean Operations**: Union, intersection, difference with CGAL
-- [x] **Basic Primitives**: Box, Sphere (UV/Icosphere), Cylinder, Plane generators
-- [x] **Complete Node System**: BoxNode, SphereNode, CylinderNode, PlaneNode with parameter modification
+- [x] **Basic Primitives**: Box, Sphere (UV/Icosphere), Cylinder, Plane, Torus generators
+- [x] **Complete Node System**: BoxNode, SphereNode, CylinderNode, PlaneNode, TorusNode with parameter modification
 - [x] **Mesh Validation Tools**: Comprehensive mesh validation and repair system with manifold checking
 - [x] **OBJ Export**: Wavefront OBJ file format support
 - [x] **Build System**: CMake with vcpkg + FetchContent hybrid approach
 - [x] **Development Environment**: clangd IntelliSense, compile_commands.json
-- [x] **Example Applications**: Basic union, primitive generators, boolean tests, complete node system demo, mesh validation demo
+- [x] **Example Applications**: Basic union, primitive generators, boolean tests, complete node system demo, mesh validation demo, torus demo
+- [x] **Unit Testing Framework**: Comprehensive Google Test suite with 44 passing tests covering all core functionality
 
 ### 📋 Technical Debt & Improvements
 - [ ] **Code Quality**: Address remaining linter warnings (magic numbers, short variable names)
@@ -101,4 +102,4 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 
 ---
 *Last Updated: July 16, 2025*
-*Current Focus: Mesh validation tools and unit testing framework*
+*Current Focus: Performance optimization with spatial data structures*

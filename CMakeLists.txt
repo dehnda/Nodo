@@ -51,6 +51,7 @@ add_library(nodeflux_core
     src/geometry/cylinder_generator.cpp
     src/geometry/plane_generator.cpp
     src/geometry/box_generator.cpp
+    src/geometry/torus_generator.cpp
     src/geometry/mesh_validator.cpp
     src/geometry/mesh_repairer.cpp
     src/io/obj_exporter.cpp
@@ -58,6 +59,7 @@ add_library(nodeflux_core
     src/nodes/cylinder_node.cpp
     src/nodes/plane_node.cpp
     src/nodes/box_node.cpp
+    src/nodes/torus_node.cpp
 )
 
 target_include_directories(nodeflux_core

@@ -3,6 +3,7 @@
 #include <nodeflux/geometry/sphere_generator.hpp>
 #include <nodeflux/geometry/cylinder_generator.hpp>
 #include <nodeflux/geometry/plane_generator.hpp>
+#include <nodeflux/geometry/torus_generator.hpp>
 
 using namespace nodeflux;
 
@@ -178,4 +179,68 @@ TEST_F(MeshGeneratorTest, SubdivisionEffects) {
     // Higher subdivision should result in more vertices and faces
     EXPECT_LT(low_res->vertices().rows(), high_res->vertices().rows());
     EXPECT_LT(low_res->faces().rows(), high_res->faces().rows());
+}
+
+TEST_F(MeshGeneratorTest, TorusGeneration) {
+    auto result = geometry::TorusGenerator::generate();
+    
+    ASSERT_TRUE(result.has_value());
+    EXPECT_GT(result->vertices().rows(), 0);
+    EXPECT_GT(result->faces().rows(), 0);
+    EXPECT_EQ(result->vertices().cols(), 3);
+    EXPECT_EQ(result->faces().cols(), 3);
+    
+    // Check that vertices are distributed around a torus shape
+    // All vertices should be at least minor_radius distance from the origin in XY plane
+    const double major_radius = geometry::TorusGenerator::DEFAULT_MAJOR_RADIUS;
+    const double minor_radius = geometry::TorusGenerator::DEFAULT_MINOR_RADIUS;
+    
+    for (int i = 0; i < result->vertices().rows(); ++i) {
+        const auto& vertex = result->vertices().row(i);
+        const double distance_from_center = std::sqrt(vertex(0) * vertex(0) + vertex(1) * vertex(1));
+        
+        // Should be within the torus bounds
+        EXPECT_GE(distance_from_center, major_radius - minor_radius - 0.01);
+        EXPECT_LE(distance_from_center, major_radius + minor_radius + 0.01);
+        
+        // Z coordinate should be within minor radius bounds
+        EXPECT_GE(vertex(2), -minor_radius - 0.01);
+        EXPECT_LE(vertex(2), minor_radius + 0.01);
+    }
+}
+
+TEST_F(MeshGeneratorTest, TorusParametrization) {
+    const double custom_major = 2.0;
+    const double custom_minor = 0.5;
+    const int custom_major_segments = 24;
+    const int custom_minor_segments = 8;
+    
+    auto result = geometry::TorusGenerator::generate(custom_major, custom_minor, 
+                                                   custom_major_segments, custom_minor_segments);
+    
+    ASSERT_TRUE(result.has_value());
+    
+    // Expected vertex count: major_segments * minor_segments
+    EXPECT_EQ(result->vertices().rows(), custom_major_segments * custom_minor_segments);
+    
+    // Expected face count: 2 * major_segments * minor_segments (2 triangles per quad)
+    EXPECT_EQ(result->faces().rows(), 2 * custom_major_segments * custom_minor_segments);
+}
+
+TEST_F(MeshGeneratorTest, TorusInvalidParameters) {
+    // Test negative major radius
+    auto result1 = geometry::TorusGenerator::generate(-1.0, 0.3, 12, 8);
+    EXPECT_FALSE(result1.has_value());
+    
+    // Test negative minor radius
+    auto result2 = geometry::TorusGenerator::generate(1.0, -0.3, 12, 8);
+    EXPECT_FALSE(result2.has_value());
+    
+    // Test too few major segments
+    auto result3 = geometry::TorusGenerator::generate(1.0, 0.3, 2, 8);
+    EXPECT_FALSE(result3.has_value());
+    
+    // Test too few minor segments
+    auto result4 = geometry::TorusGenerator::generate(1.0, 0.3, 12, 2);
+    EXPECT_FALSE(result4.has_value());
 }

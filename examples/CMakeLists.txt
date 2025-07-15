@@ -17,3 +17,6 @@ target_link_libraries(complete_node_system nodeflux_core)
 
 add_executable(mesh_validation_demo mesh_validation_demo.cpp)
 target_link_libraries(mesh_validation_demo nodeflux_core)
+
+add_executable(torus_demo torus_demo.cpp)
+target_link_libraries(torus_demo nodeflux_core)

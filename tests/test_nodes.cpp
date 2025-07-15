@@ -3,6 +3,7 @@
 #include <nodeflux/nodes/sphere_node.hpp>
 #include <nodeflux/nodes/cylinder_node.hpp>
 #include <nodeflux/nodes/plane_node.hpp>
+#include <nodeflux/nodes/torus_node.hpp>
 
 using namespace nodeflux;
 
@@ -62,4 +63,31 @@ TEST_F(NodesTest, PlaneNodeCreation) {
     ASSERT_TRUE(mesh_result.has_value());
     EXPECT_GT(mesh_result->vertices().rows(), 0);
     EXPECT_GT(mesh_result->faces().rows(), 0);
+}
+
+// Torus Node Tests
+TEST_F(NodesTest, TorusNode) {
+    nodes::TorusNode torus_node(1.0, 0.3, 24, 12);
+    
+    auto mesh_result = torus_node.generate();
+    ASSERT_TRUE(mesh_result.has_value());
+    EXPECT_GT(mesh_result->vertices().rows(), 0);
+    EXPECT_GT(mesh_result->faces().rows(), 0);
+    
+    // Test parameter getters
+    EXPECT_DOUBLE_EQ(torus_node.major_radius(), 1.0);
+    EXPECT_DOUBLE_EQ(torus_node.minor_radius(), 0.3);
+    EXPECT_EQ(torus_node.major_segments(), 24);
+    EXPECT_EQ(torus_node.minor_segments(), 12);
+    
+    // Test parameter setters
+    torus_node.set_major_radius(2.0);
+    torus_node.set_minor_radius(0.5);
+    torus_node.set_major_segments(48);
+    torus_node.set_minor_segments(16);
+    
+    EXPECT_DOUBLE_EQ(torus_node.major_radius(), 2.0);
+    EXPECT_DOUBLE_EQ(torus_node.minor_radius(), 0.5);
+    EXPECT_EQ(torus_node.major_segments(), 48);
+    EXPECT_EQ(torus_node.minor_segments(), 16);
 }
