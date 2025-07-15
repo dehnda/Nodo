@@ -46,3 +46,60 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - Include usage examples in comments
 - Document preconditions and postconditions
 - Explain algorithm choices for complex operations
+
+## TODO List - NodeFluxEngine Development Roadmap
+
+### 🎯 High Priority (Next Sprint)
+- [ ] **Mesh Validation Tools**: Implement manifold checking and mesh repair
+- [ ] **Unit Testing Framework**: Enable Google Test and write comprehensive tests
+- [ ] **STL File Format**: Add STL import/export support (binary and ASCII)
+- [ ] **Performance Optimization**: Add spatial data structures (BVH/Octree)
+- [ ] **Torus Generator**: Add torus primitive to complete basic geometry set
+
+### 🔧 Medium Priority (Current Quarter)
+- [ ] **Additional Primitives**: Torus, Cone, Rounded Box generators
+- [ ] **Subdivision Surfaces**: Catmull-Clark and Loop subdivision algorithms
+- [ ] **Advanced Transformations**: Extrude, Bevel, Inset operations
+- [ ] **Material System**: Basic material/attribute support for meshes
+- [ ] **Mesh Smoothing**: Laplacian and Taubin smoothing algorithms
+
+### 🚀 Future Features (Next Quarter)
+- [ ] **Array/Pattern Nodes**: Linear, radial, and grid array modifiers
+- [ ] **PLY Format Support**: Import/export for point cloud data
+- [ ] **glTF Export**: Modern 3D format for web and real-time applications
+- [ ] **GPU Acceleration**: Compute shaders for mesh operations
+- [ ] **Noise Functions**: Perlin, Simplex noise for procedural texturing
+- [ ] **UV Unwrapping**: Automatic texture coordinate generation
+
+### ✅ Completed Features
+- [x] **Core Architecture**: C++20 modern design with std::optional error handling
+- [x] **Boolean Operations**: Union, intersection, difference with CGAL
+- [x] **Basic Primitives**: Box, Sphere (UV/Icosphere), Cylinder, Plane generators
+- [x] **Complete Node System**: BoxNode, SphereNode, CylinderNode, PlaneNode with parameter modification
+- [x] **OBJ Export**: Wavefront OBJ file format support
+- [x] **Build System**: CMake with vcpkg + FetchContent hybrid approach
+- [x] **Development Environment**: clangd IntelliSense, compile_commands.json
+- [x] **Example Applications**: Basic union, primitive generators, boolean tests, complete node system demo
+
+### 📋 Technical Debt & Improvements
+- [ ] **Code Quality**: Address remaining linter warnings (magic numbers, short variable names)
+- [ ] **Memory Management**: Profile and optimize memory usage for large meshes
+- [ ] **Error Handling**: Expand error codes and improve error context
+- [ ] **Documentation**: Add Doxygen generation and API documentation
+- [ ] **CI/CD Pipeline**: GitHub Actions for automated testing and builds
+
+### 🎨 UI & Visualization (Future)
+- [ ] **Node Graph Editor**: Visual node-based editing interface
+- [ ] **3D Viewport**: Real-time mesh preview and manipulation
+- [ ] **Parameter Widgets**: UI controls for generator parameters
+- [ ] **Export Dialog**: User-friendly file export interface
+
+### 📊 Performance & Scalability
+- [ ] **Benchmarking Suite**: Performance regression testing
+- [ ] **Parallel Processing**: OpenMP for multi-threaded operations
+- [ ] **LOD System**: Level-of-detail for large scene management
+- [ ] **Streaming**: Support for meshes larger than available RAM
+
+---
+*Last Updated: July 16, 2025*
+*Current Focus: Mesh validation tools and unit testing framework*

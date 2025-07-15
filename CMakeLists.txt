@@ -37,8 +37,12 @@ add_library(nodeflux_core
     src/geometry/sphere_generator.cpp
     src/geometry/cylinder_generator.cpp
     src/geometry/plane_generator.cpp
+    src/geometry/box_generator.cpp
     src/io/obj_exporter.cpp
     src/nodes/sphere_node.cpp
+    src/nodes/cylinder_node.cpp
+    src/nodes/plane_node.cpp
+    src/nodes/box_node.cpp
 )
 
 target_include_directories(nodeflux_core

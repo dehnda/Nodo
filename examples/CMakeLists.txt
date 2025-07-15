@@ -11,3 +11,6 @@ target_link_libraries(primitive_generators nodeflux_core)
 
 add_executable(primitive_boolean_test primitive_boolean_test.cpp)
 target_link_libraries(primitive_boolean_test nodeflux_core)
+
+add_executable(complete_node_system complete_node_system.cpp)
+target_link_libraries(complete_node_system nodeflux_core)
