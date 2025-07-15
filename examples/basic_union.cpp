@@ -1,6 +1,7 @@
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/geometry/boolean_ops.hpp"
 #include "nodeflux/geometry/mesh_generator.hpp"
+#include "nodeflux/io/obj_exporter.hpp"
 #include <iostream>
 
 using namespace nodeflux;
@@ -58,6 +59,27 @@ int main() {
             }
             if (result->is_closed()) {
                 std::cout << "✅ Result mesh is closed\n";
+            }
+            
+            // Export meshes to OBJ files
+            std::cout << "\nExporting meshes to OBJ files...\n";
+            
+            if (io::ObjExporter::export_mesh(box1, "examples/output/box1.obj")) {
+                std::cout << "✅ Exported examples/output/box1.obj\n";
+            } else {
+                std::cout << "❌ Failed to export examples/output/box1.obj\n";
+            }
+            
+            if (io::ObjExporter::export_mesh(box2, "examples/output/box2.obj")) {
+                std::cout << "✅ Exported examples/output/box2.obj\n";
+            } else {
+                std::cout << "❌ Failed to export examples/output/box2.obj\n";
+            }
+            
+            if (io::ObjExporter::export_mesh(*result, "examples/output/union_result.obj")) {
+                std::cout << "✅ Exported examples/output/union_result.obj\n";
+            } else {
+                std::cout << "❌ Failed to export examples/output/union_result.obj\n";
             }
             
         } else {

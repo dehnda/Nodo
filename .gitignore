@@ -148,7 +148,6 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Examples output files
-examples/*.obj
-examples/*.stl
-examples/*.ply
-examples/output/
+examples/output/*.obj
+examples/output/*.stl
+examples/output/*.ply
