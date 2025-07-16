@@ -6,13 +6,13 @@ A modern C++20 **GPU-accelerated procedural mesh generation library** with node-
 
 NodeFluxEngine is the **first GPU-native procedural mesh generation system** that combines:
 - **🔥 Houdini-inspired SOP workflow** with visual node-based operations
-- **⚡ Complete GPU acceleration** for real-time performance  
+- **⚡ Complete GPU acceleration** for real-time performance
 - **🧠 Intelligent caching & data flow** for complex procedural workflows
 - **🎯 Modern C++20 architecture** with robust error handling
 
 ## ✅ Current Status (Production Ready)
 
-### **🏗️ Core Infrastructure** 
+### **🏗️ Core Infrastructure**
 - **Core Architecture**: C++20 modern design with std::optional error handling
 - **Build System**: CMake with vcpkg + FetchContent hybrid approach
 - **Unit Testing**: Comprehensive Google Test suite with 44 passing tests
@@ -24,7 +24,7 @@ NodeFluxEngine is the **first GPU-native procedural mesh generation system** tha
 - **Mesh Validation**: Comprehensive validation and repair system
 - **Export System**: Wavefront OBJ file format support
 
-### **🚀 GPU Acceleration** 
+### **🚀 GPU Acceleration**
 - **GPU Mesh Generation**: All primitives working with 10-100x speedups for large meshes
 - **BVH Spatial Acceleration**: 45x speedup over brute-force boolean operations
 - **Hardware Utilization**: Full RTX 5070 Ti support with 1024 work groups
@@ -53,19 +53,19 @@ int main() {
     // Create procedural nodes
     auto sphere = std::make_unique<nodes::SphereNode>(1.0, 32, 16);
     auto box = std::make_unique<nodes::BoxNode>(2.0, 2.0, 2.0);
-    
+
     // Generate meshes
     auto sphere_mesh = sphere->generate();
     auto box_mesh = box->generate();
-    
-    // Boolean operation with BVH acceleration  
+
+    // Boolean operation with BVH acceleration
     if (sphere_mesh && box_mesh) {
         auto result = geometry::BooleanOperations::union_meshes(*sphere_mesh, *box_mesh);
         if (result) {
             io::ObjExporter::export_mesh(*result, "union_result.obj");
         }
     }
-    
+
     return 0;
 }
 ```
@@ -98,7 +98,7 @@ include/nodeflux/
 └── io/             # Import/export functionality (OBJ, future: STL, glTF)
 
 src/
-├── core/           # Core implementations  
+├── core/           # Core implementations
 ├── geometry/       # Geometry processing implementations
 ├── gpu/            # GPU compute implementations
 ├── nodes/          # Node system implementations
@@ -113,7 +113,7 @@ tests/              # Unit tests (44 passing tests)
 See **[UNIFIED_PROCEDURAL_ROADMAP.md](UNIFIED_PROCEDURAL_ROADMAP.md)** for the complete development plan including:
 
 - **Week 1**: Core SOP data flow architecture and GPU primitive completion
-- **Week 2**: Transform & Array nodes with GPU acceleration  
+- **Week 2**: Transform & Array nodes with GPU acceleration
 - **Week 3**: Advanced procedural operations (subdivision, smoothing, noise)
 - **Week 4**: Enhanced export system and production polish
 

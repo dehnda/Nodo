@@ -21,12 +21,12 @@ NodeFluxEngine will be the **first GPU-native procedural mesh generation library
 
 ### **🏗️ Core Infrastructure** ✅
 - **Core Architecture**: C++20 modern design with std::optional error handling
-- **Build System**: CMake with vcpkg + FetchContent hybrid approach  
+- **Build System**: CMake with vcpkg + FetchContent hybrid approach
 - **Unit Testing Framework**: Comprehensive Google Test suite with 44 passing tests
 - **Error Handling**: Thread-local error storage with specific error types
 - **Memory Management**: RAII principles with smart resource management
 
-### **🎨 Mesh Generation Engine** ✅  
+### **🎨 Mesh Generation Engine** ✅
 - **All Primitive Generators**: Box, Sphere (UV/Icosphere), Cylinder, Plane, Torus
 - **Complete Node System**: BoxNode, SphereNode, CylinderNode, PlaneNode, TorusNode with full parameter modification
 - **Mesh Validation Tools**: Comprehensive validation and repair system with manifold checking
@@ -53,7 +53,7 @@ NodeFluxEngine will be the **first GPU-native procedural mesh generation library
 
 ##### ✅ **COMPLETED FROM ROADMAP:**
 - [x] **Unit Testing Framework**: Enable Google Test and write comprehensive tests
-- [x] **Performance Optimization**: Add spatial data structures (BVH/Octree) ✅ 45x speedup achieved  
+- [x] **Performance Optimization**: Add spatial data structures (BVH/Octree) ✅ 45x speedup achieved
 - [x] **Torus Generator**: Add torus primitive to complete basic geometry set
 - [x] **GPU Acceleration**: Compute shaders for mesh operations ✅ Infinite speedup achieved
 
@@ -71,7 +71,7 @@ NodeFluxEngine will be the **first GPU-native procedural mesh generation library
 
 ##### 🌊 **CORE PROCEDURAL FEATURES:**
 - [ ] **Subdivision Surfaces**: Catmull-Clark and Loop subdivision as nodes (Week 3)
-- [ ] **Material System**: Basic material/attribute support for meshes in nodes (Week 3)  
+- [ ] **Material System**: Basic material/attribute support for meshes in nodes (Week 3)
 - [ ] **Mesh Smoothing**: Laplacian and Taubin smoothing as modifier nodes (Week 3)
 
 ##### 🔗 **ENHANCED FROM EXISTING ROADMAP:**
@@ -88,7 +88,7 @@ NodeFluxEngine will be the **first GPU-native procedural mesh generation library
 
 ##### 🎨 **UI & VISUALIZATION (Future):**
 - [ ] **Node Graph Editor**: Visual node-based editing interface
-- [ ] **3D Viewport**: Real-time mesh preview and manipulation  
+- [ ] **3D Viewport**: Real-time mesh preview and manipulation
 - [ ] **Parameter Widgets**: UI controls for generator parameters
 
 ---
@@ -110,7 +110,7 @@ namespace nodeflux::data {
         BoundingBox bounds;                 // Cached bounding box
         uint64_t generation_id;             // For change tracking
     };
-    
+
     // Multi-geometry container for complex operations
     struct GeometryCollection {
         std::vector<GeometryData> geometries;
@@ -125,13 +125,13 @@ namespace nodeflux::nodes {
     enum class PortType {
         Geometry, Transform, Scalar, Vector, Integer, Boolean, String, Material, Collection
     };
-    
+
     class NodePort {
         PortDefinition definition_;
         std::any current_value_;
         std::vector<NodePort*> connected_ports_;
         bool is_dirty_ = true;
-        
+
     public:
         template<typename T> void set_value(const T& value);
         template<typename T> std::optional<T> get_value() const;
@@ -147,23 +147,23 @@ namespace nodeflux::sop {
     enum class SOPCategory {
         Generator, Modifier, Boolean, Transform, Attribute, Export, Utility
     };
-    
+
     class SOPNode : public Node {
     protected:
         SOPCategory category_;
         data::GeometryData cached_output_;
         uint64_t cache_generation_ = 0;
-        
+
     public:
         // Core SOP interface
         virtual std::optional<data::GeometryData> cook(
             const std::vector<data::GeometryData>& inputs) = 0;
-        
+
         virtual std::optional<data::GeometryData> cook_gpu(
-            const std::vector<gpu::GPUBufferSet>& gpu_inputs) { 
-            return std::nullopt; 
+            const std::vector<gpu::GPUBufferSet>& gpu_inputs) {
+            return std::nullopt;
         }
-        
+
         // Metadata & optimization hints
         virtual bool prefers_gpu() const { return false; }
         virtual bool can_process_in_place() const { return false; }
@@ -180,19 +180,19 @@ namespace nodeflux::execution {
         NodeCache cache_;
         DependencyGraph dependency_graph_;
         std::unique_ptr<gpu::ComputeDevice> gpu_device_;
-        
+
     public:
         // Main execution methods
         std::optional<data::GeometryData> execute_graph(
             const NodeGraph& graph, NodeId output_node);
-        
+
         std::optional<data::GeometryData> execute_node(
             NodeId node_id, const ExecutionContext& context);
-        
+
         // Incremental updates (only rebuild changed branches)
         void mark_dirty(NodeId node_id);
         void update_changed_nodes();
-        
+
         // GPU batch processing
         std::vector<data::GeometryData> execute_gpu_batch(
             const std::vector<NodeId>& nodes, const ExecutionContext& context);
@@ -206,17 +206,17 @@ namespace nodeflux::execution {
 ```cpp
 class TransformSOP : public SOPNode {
     Eigen::Matrix4d transform_matrix_;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     std::optional<data::GeometryData> cook_gpu(
         const std::vector<gpu::GPUBufferSet>& gpu_inputs) override;
-    
+
     bool prefers_gpu() const override { return true; }
     bool can_process_in_place() const override { return true; }
-    
+
     // Transform-specific methods
     void set_translation(const Eigen::Vector3d& translation);
     void set_rotation(const Eigen::Vector3d& euler_angles);
@@ -224,17 +224,17 @@ public:
 };
 ```
 
-#### **6. Array & Pattern Nodes** 
+#### **6. Array & Pattern Nodes**
 ```cpp
 class ArraySOP : public SOPNode {
     int count_ = 3;
     Eigen::Vector3d offset_{1, 0, 0};
     ArrayType type_ = ArrayType::Linear;  // Linear, Radial, Grid, Random
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     size_t estimated_memory_usage(
         const std::vector<data::GeometryData>& inputs) const override {
         return inputs.empty() ? 0 : inputs[0].mesh.memory_usage() * count_;
@@ -245,7 +245,7 @@ class MirrorSOP : public SOPNode {
     Eigen::Vector3d plane_normal_{1, 0, 0};
     double plane_distance_ = 0.0;
     bool keep_original_ = true;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
@@ -256,16 +256,16 @@ public:
 ```cpp
 class BooleanSOP : public SOPNode {
     BooleanOperation operation_ = BooleanOperation::Union;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     std::optional<data::GeometryData> cook_gpu(
         const std::vector<gpu::GPUBufferSet>& gpu_inputs) override;
-    
+
     bool prefers_gpu() const override { return true; }
-    
+
     // Uses existing 45x BVH acceleration + future GPU enhancement
 };
 ```
@@ -279,25 +279,25 @@ class NoiseDisplacementSOP : public SOPNode {
     double amplitude_ = 0.1;
     double frequency_ = 1.0;
     int octaves_ = 4;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     std::optional<data::GeometryData> cook_gpu(
         const std::vector<gpu::GPUBufferSet>& gpu_inputs) override;
-    
+
     bool prefers_gpu() const override { return true; }
 };
 
 class SubdivisionSOP : public SOPNode {
     SubdivisionType type_ = SubdivisionType::CatmullClark;
     int levels_ = 1;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     bool prefers_gpu() const override { return true; }
 };
 
@@ -305,7 +305,7 @@ class ExtrudeSOP : public SOPNode {
     double distance_ = 1.0;
     Eigen::Vector3d direction_{0, 0, 1};
     bool cap_ends_ = true;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
@@ -319,11 +319,11 @@ public:
 class ExportSOP : public SOPNode {
     std::string filename_;
     ExportFormat format_ = ExportFormat::OBJ;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     // Support for multiple formats
     enum class ExportFormat {
         OBJ, STL, PLY, glTF, FBX
@@ -332,11 +332,11 @@ public:
 
 class ImportSOP : public SOPNode {
     std::string filename_;
-    
+
 public:
     std::optional<data::GeometryData> cook(
         const std::vector<data::GeometryData>& inputs) override;
-    
+
     // File format auto-detection
     static ExportFormat detect_format(const std::string& filename);
 };
@@ -352,17 +352,17 @@ namespace nodeflux::gpu {
     class GPUDataManager {
         std::unordered_map<NodeId, std::vector<GPUBuffer>> node_buffers_;
         std::unordered_map<NodeId, uint64_t> buffer_generations_;
-        
+
     public:
         // Buffer lifecycle management
         std::optional<GPUBufferSet> upload_geometry(
             NodeId node_id, const data::GeometryData& geometry);
-        
+
         std::optional<data::GeometryData> download_geometry(NodeId node_id) const;
-        
+
         // GPU data flow optimization
         bool can_chain_gpu_operations(const std::vector<NodeId>& node_chain) const;
-        
+
         std::optional<data::GeometryData> execute_gpu_chain(
             const std::vector<NodeId>& node_chain,
             const data::GeometryData& input);
@@ -375,13 +375,13 @@ namespace nodeflux::gpu {
 namespace nodeflux::patterns {
     enum class DataFlowPattern {
         Sequential,         // A → B → C (simple chain)
-        Parallel,          // A → [B, C] → D (parallel branches)  
+        Parallel,          // A → [B, C] → D (parallel branches)
         Merge,             // [A, B] → C (multiple inputs)
         Branch,            // A → [B, C] (multiple outputs)
         Loop,              // A → B → A (iterative processing)
         Conditional        // A → ? → B or C (conditional execution)
     };
-    
+
     class DataFlowAnalyzer {
     public:
         DataFlowPattern analyze_pattern(const std::vector<NodeId>& execution_order) const;
@@ -401,7 +401,7 @@ namespace nodeflux::patterns {
 auto graph = std::make_unique<NodeGraph>();
 
 // Base structure
-auto foundation = graph->add_node<BoxSOP>(20, 2, 15);  
+auto foundation = graph->add_node<BoxSOP>(20, 2, 15);
 auto tower = graph->add_node<CylinderSOP>(3, 25, 16);
 
 // Procedural details
@@ -428,7 +428,7 @@ auto building = engine.execute_graph(*graph, combine_base->id());
 // Data flow optimizations:
 // 1. Foundation & Tower generate in parallel (GPU)
 // 2. Window array operations stay on GPU
-// 3. Boolean operations use BVH + GPU acceleration  
+// 3. Boolean operations use BVH + GPU acceleration
 // 4. Final result downloads once at end
 ```
 
@@ -490,7 +490,7 @@ auto terrain = engine.execute_graph(*graph, export_terrain->id());
 
 **Milestone**: Basic node graph execution with GPU-accelerated primitives
 
-### **🔧 Sprint 2 (Week 2): Core Operations**  
+### **🔧 Sprint 2 (Week 2): Core Operations**
 - [ ] **Day 1-3**: Implement TransformSOP and ArraySOP with GPU acceleration
 - [ ] **Day 4-5**: Create BooleanSOP with enhanced GPU BVH integration
 - [ ] **Day 6-7**: Add MirrorSOP and basic procedural examples
@@ -499,7 +499,7 @@ auto terrain = engine.execute_graph(*graph, export_terrain->id());
 
 ### **🌊 Sprint 3 (Week 3): Advanced Features**
 - [ ] **Day 1-3**: Implement NoiseDisplacementSOP and SubdivisionSOP
-- [ ] **Day 4-5**: Add MeshSmoothingSOP and ExtrudeSOP  
+- [ ] **Day 4-5**: Add MeshSmoothingSOP and ExtrudeSOP
 - [ ] **Day 6-7**: Material system integration and attribute handling
 
 **Milestone**: Advanced procedural operations with material support
@@ -523,11 +523,11 @@ auto terrain = engine.execute_graph(*graph, export_terrain->id());
 
 ### **Market Positioning**
 - **🎨 Houdini-Inspired Workflow**: Professional SOP-based procedural operations
-- **🚀 GPU-Accelerated Performance**: 10-100x faster than CPU-only alternatives  
+- **🚀 GPU-Accelerated Performance**: 10-100x faster than CPU-only alternatives
 - **💼 Library-First Design**: Easy integration into existing pipelines
 - **🎮 Real-time Capable**: Interactive mesh generation for games and visualization
 
-### **Development Advantages** 
+### **Development Advantages**
 - **✅ Proven Foundation**: Building on 44 tested components and working GPU framework
 - **🔄 Incremental Progress**: Each week adds meaningful capability
 - **📈 Clear ROI**: Immediate value from existing completed work
@@ -539,7 +539,7 @@ auto terrain = engine.execute_graph(*graph, export_terrain->id());
 
 ### **Technical Metrics**
 - **Performance**: >10x speedup vs CPU-only alternatives for typical workflows
-- **Memory Efficiency**: <2GB GPU memory usage for complex 1M+ vertex scenes  
+- **Memory Efficiency**: <2GB GPU memory usage for complex 1M+ vertex scenes
 - **Caching Effectiveness**: >90% cache hit rate for iterative parameter changes
 - **GPU Utilization**: >80% compute utilization during complex operations
 

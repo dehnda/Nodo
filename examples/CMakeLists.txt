@@ -47,3 +47,7 @@ target_link_libraries(gpu_performance_scaling_test nodeflux_core)
 # GPU Complete suite test - all primitives
 add_executable(gpu_complete_suite_test gpu_complete_suite_test.cpp)
 target_link_libraries(gpu_complete_suite_test nodeflux_core)
+
+# SOP Procedural System Demo
+add_executable(sop_procedural_demo sop_procedural_demo.cpp)
+target_link_libraries(sop_procedural_demo nodeflux_core)
