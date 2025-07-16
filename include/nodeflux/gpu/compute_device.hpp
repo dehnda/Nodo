@@ -144,72 +144,7 @@ private:
     static bool check_gl_error(const std::string& operation);
 };
 
-/// @brief GPU-accelerated mesh generation
-class GPUMeshGenerator {
-public:
-    /// @brief Generate sphere mesh on GPU
-    /// @param center Sphere center
-    /// @param radius Sphere radius
-    /// @param subdivisions Number of subdivisions
-    /// @return Generated mesh or nullopt on failure
-    static std::optional<core::Mesh> gpu_sphere(
-        const Eigen::Vector3d& center,
-        double radius,
-        int subdivisions
-    );
-    
-    /// @brief Generate box mesh on GPU
-    /// @param min_corner Minimum corner
-    /// @param max_corner Maximum corner
-    /// @return Generated mesh
-    static core::Mesh gpu_box(
-        const Eigen::Vector3d& min_corner,
-        const Eigen::Vector3d& max_corner
-    );
-    
-    /// @brief Generate cylinder mesh on GPU
-    /// @param bottom_center Bottom center
-    /// @param top_center Top center
-    /// @param radius Cylinder radius
-    /// @param segments Number of segments
-    /// @return Generated mesh or nullopt on failure
-    static std::optional<core::Mesh> gpu_cylinder(
-        const Eigen::Vector3d& bottom_center,
-        const Eigen::Vector3d& top_center,
-        double radius,
-        int segments
-    );
-    
-    /// @brief Subdivide mesh on GPU
-    /// @param mesh Input mesh
-    /// @param levels Number of subdivision levels
-    /// @return Subdivided mesh or nullopt on failure
-    static std::optional<core::Mesh> gpu_subdivide(
-        const core::Mesh& mesh,
-        int levels
-    );
-    
-    /// @brief Check if GPU mesh generation is available
-    /// @return True if GPU is available and initialized
-    static bool is_available();
 
-private:
-    static std::unique_ptr<ComputeDevice::ComputeShader> sphere_shader_;
-    static std::unique_ptr<ComputeDevice::ComputeShader> box_shader_;
-    static std::unique_ptr<ComputeDevice::ComputeShader> subdivision_shader_;
-    
-    /// @brief Initialize GPU shaders
-    /// @return True if initialization successful
-    static bool initialize_shaders();
-    
-    /// @brief Get sphere generation compute shader source
-    /// @return GLSL source code
-    static std::string get_sphere_shader_source();
-    
-    /// @brief Get box generation compute shader source
-    /// @return GLSL source code
-    static std::string get_box_shader_source();
-};
 
 /// @brief Performance monitoring for GPU operations
 class GPUProfiler {

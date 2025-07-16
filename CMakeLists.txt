@@ -62,6 +62,7 @@ add_library(nodeflux_core
     src/benchmarks/performance_benchmark.cpp
     src/gpu/compute_device.cpp
     src/gpu/gl_context.cpp
+    src/gpu/gpu_mesh_generator.cpp
     src/io/obj_exporter.cpp
     src/nodes/sphere_node.cpp
     src/nodes/cylinder_node.cpp

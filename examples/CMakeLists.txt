@@ -35,3 +35,15 @@ target_link_libraries(gpu_compute_demo nodeflux_core)
 
 add_executable(gpu_accelerated_demo gpu_accelerated_demo.cpp)
 target_link_libraries(gpu_accelerated_demo nodeflux_core)
+
+# GPU Mesh Generator comprehensive demo
+add_executable(gpu_mesh_generator_demo gpu_mesh_generator_demo.cpp)
+target_link_libraries(gpu_mesh_generator_demo nodeflux_core)
+
+# GPU Performance scaling test
+add_executable(gpu_performance_scaling_test gpu_performance_scaling_test.cpp)
+target_link_libraries(gpu_performance_scaling_test nodeflux_core)
+
+# GPU Complete suite test - all primitives
+add_executable(gpu_complete_suite_test gpu_complete_suite_test.cpp)
+target_link_libraries(gpu_complete_suite_test nodeflux_core)
