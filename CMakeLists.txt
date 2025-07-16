@@ -69,6 +69,10 @@ add_library(nodeflux_core
     src/nodes/plane_node.cpp
     src/nodes/box_node.cpp
     src/nodes/torus_node.cpp
+    # SOP components
+    src/sop/ArraySOP.cpp
+    src/sop/NoiseDisplacementSOP.cpp
+    src/sop/SubdivisionSOP.cpp
 )
 
 target_include_directories(nodeflux_core

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geometry_data.hpp"
+#include "GeometryData.hpp"
 #include <memory>
 #include <string>
 #include <vector>

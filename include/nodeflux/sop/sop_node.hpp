@@ -1,7 +1,9 @@
 #pragma once
 
-#include "geometry_data.hpp"
+#include "GeometryData.hpp"
 #include "node_port.hpp"
+#include <variant>
+#include <Eigen/Dense>
 #include <memory>
 #include <string>
 #include <vector>

@@ -51,3 +51,11 @@ target_link_libraries(gpu_complete_suite_test nodeflux_core)
 # SOP Procedural System Demo
 add_executable(sop_procedural_demo sop_procedural_demo.cpp)
 target_link_libraries(sop_procedural_demo nodeflux_core)
+
+# SOP Material System Demo  
+add_executable(sop_material_demo sop_material_demo.cpp)
+target_link_libraries(sop_material_demo nodeflux_core)
+
+# SOP Header-Based System Demo
+add_executable(sop_header_demo sop_header_demo.cpp)
+target_link_libraries(sop_header_demo nodeflux_core)
