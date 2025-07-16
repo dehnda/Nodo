@@ -23,3 +23,9 @@ target_link_libraries(torus_demo nodeflux_core)
 
 add_executable(bvh_boolean_demo bvh_boolean_demo.cpp)
 target_link_libraries(bvh_boolean_demo nodeflux_core)
+
+add_executable(performance_benchmark performance_benchmark.cpp)
+target_link_libraries(performance_benchmark nodeflux_core)
+
+add_executable(test_mesh_generation test_mesh_generation.cpp)
+target_link_libraries(test_mesh_generation nodeflux_core)
