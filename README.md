@@ -134,6 +134,19 @@ conan install . --output-folder=build --build=missing
 - Ensure graphics drivers are installed
 - For headless systems, use virtual displays or Mesa software rendering
 
+### VS Code Integration
+
+For VS Code users, the project includes pre-configured tasks:
+
+- **Ctrl+Shift+P → "Tasks: Run Task"** to access all build tasks
+- **"NodeFlux Build (Debug)"** - Default build task (Ctrl+Shift+B)
+- **"Run Tests"** - Execute the full test suite
+- **"Conan Install Dependencies"** - Refresh dependencies
+- **"Full Rebuild"** - Clean and rebuild everything
+- **"Run GPU Accelerated Demo"** - Launch GPU examples
+
+The tasks handle the complete Conan workflow automatically.
+
 ## 📁 Architecture
 
 ```
