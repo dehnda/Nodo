@@ -67,3 +67,7 @@ target_link_libraries(simple_sop_test nodeflux_core)
 # Week 2 Working SOP Demo - Focused demo of working implementations
 add_executable(week2_working_sop_demo week2_working_sop_demo.cpp)
 target_link_libraries(week2_working_sop_demo nodeflux_core)
+
+# Week 3 Advanced SOP Demo - ExtrudeSOP, LaplacianSOP, advanced workflows
+add_executable(week3_advanced_sop_demo week3_advanced_sop_demo.cpp)
+target_link_libraries(week3_advanced_sop_demo nodeflux_core)
