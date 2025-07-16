@@ -19,6 +19,7 @@ find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(glfw3 REQUIRED)
 
 # Use FetchContent for CGAL (since vcpkg has issues on Linux)
 include(FetchContent)
@@ -60,6 +61,7 @@ add_library(nodeflux_core
     src/spatial/enhanced_boolean_ops.cpp
     src/benchmarks/performance_benchmark.cpp
     src/gpu/compute_device.cpp
+    src/gpu/gl_context.cpp
     src/io/obj_exporter.cpp
     src/nodes/sphere_node.cpp
     src/nodes/cylinder_node.cpp
@@ -81,6 +83,7 @@ target_link_libraries(nodeflux_core
         fmt::fmt
         OpenGL::GL
         GLEW::GLEW
+        glfw
         gmp
         mpfr
 )

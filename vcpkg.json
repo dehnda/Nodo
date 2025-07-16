@@ -6,7 +6,8 @@
         "eigen3",
         "fmt",
         "opengl",
-        "glew"
+        "glew",
+        "glfw3"
     ],
     "features": {
         "examples": {

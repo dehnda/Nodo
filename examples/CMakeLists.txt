@@ -32,3 +32,6 @@ target_link_libraries(test_mesh_generation nodeflux_core)
 
 add_executable(gpu_compute_demo gpu_compute_demo.cpp)
 target_link_libraries(gpu_compute_demo nodeflux_core)
+
+add_executable(gpu_accelerated_demo gpu_accelerated_demo.cpp)
+target_link_libraries(gpu_accelerated_demo nodeflux_core)
