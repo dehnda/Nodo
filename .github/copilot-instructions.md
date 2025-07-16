@@ -48,29 +48,33 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - Explain algorithm choices for complex operations
 
 ## TODO List - NodeFluxEngine Development Roadmap
+*🎯 STRATEGIC FOCUS: GPU-Accelerated Procedural Node System*
 
-### 🎯 High Priority (Next Sprint)
+### 🎯 High Priority (Next Sprint) - Procedural Foundation
 - [x] **Unit Testing Framework**: Enable Google Test and write comprehensive tests
 - [x] **Performance Optimization**: Add spatial data structures (BVH/Octree) ✅ 45x speedup achieved
 - [x] **Torus Generator**: Add torus primitive to complete basic geometry set
 - [x] **GPU Acceleration**: Compute shaders for mesh operations ✅ Infinite speedup achieved
-- [ ] **GPU-Accelerated BVH**: Parallelize spatial data structures on GPU
-- [ ] **GPU Mesh Primitives**: Box, Cylinder, Plane generators with compute shaders
+- [ ] **GPU-Accelerated BVH**: Parallelize spatial data structures on GPU (Week 1)
+- [ ] **GPU Mesh Primitives**: Complete Box, Cylinder, Plane generators with compute shaders (Week 1)
+- [ ] **SOP Data Flow Architecture**: Core GeometryData containers and NodePort connection system (Week 1)
+- [ ] **Procedural Execution Engine**: Smart caching, dependency resolution, GPU batch processing (Week 1)
 
-### 🔧 Medium Priority (Current Quarter)
-- [ ] **Additional Primitives**: Torus, Cone, Rounded Box generators
-- [ ] **Subdivision Surfaces**: Catmull-Clark and Loop subdivision algorithms
-- [ ] **Advanced Transformations**: Extrude, Bevel, Inset operations
-- [ ] **Material System**: Basic material/attribute support for meshes
-- [ ] **Mesh Smoothing**: Laplacian and Taubin smoothing algorithms
+### 🔧 Medium Priority (Current Quarter) - Core Procedural Operations
+- [ ] **Transform & Array Nodes**: TransformSOP, ArraySOP, MirrorSOP with GPU acceleration (Week 2)
+- [ ] **Enhanced Boolean Nodes**: BooleanSOP with GPU BVH integration (Week 2)
+- [ ] **Advanced Transformations**: ExtrudeSOP, BevelSOP, InsetSOP as procedural nodes (Week 2)
+- [ ] **Subdivision Surfaces**: SubdivisionSOP (Catmull-Clark and Loop) as GPU nodes (Week 3)
+- [ ] **Material System**: Basic material/attribute support for procedural meshes (Week 3)
+- [ ] **Mesh Smoothing**: LaplacianSOP, TaubinSOP as modifier nodes (Week 3)
 
-### 🚀 Future Features (Next Quarter)
-- [ ] **Array/Pattern Nodes**: Linear, radial, and grid array modifiers
-- [ ] **PLY Format Support**: Import/export for point cloud data
+### 🚀 Future Features (Next Quarter) - Advanced Procedural Suite
+- [ ] **Noise Functions**: NoiseDisplacementSOP (Perlin, Simplex) for procedural texturing as GPU nodes
+- [ ] **GPU Boolean Operations**: Full GPU acceleration for complex geometric operations in node graph
+- [ ] **UV Unwrapping**: Automatic texture coordinate generation as procedural node
+- [ ] **PLY Format Support**: Import/export for point cloud data with node integration
 - [ ] **glTF Export**: Modern 3D format for web and real-time applications
-- [ ] **GPU Boolean Operations**: Accelerate complex geometric operations with compute shaders
-- [ ] **Noise Functions**: Perlin, Simplex noise for procedural texturing
-- [ ] **UV Unwrapping**: Automatic texture coordinate generation
+- [ ] **Additional Primitives**: ConeSOP, RoundedBoxSOP generators as procedural nodes
 
 ### ✅ Completed Features
 - [x] **Core Architecture**: C++20 modern design with std::optional error handling
@@ -94,10 +98,21 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - [ ] **Documentation**: Add Doxygen generation and API documentation
 - [ ] **CI/CD Pipeline**: GitHub Actions for automated testing and builds
 
-### 🎨 UI & Visualization (Future)
-- [ ] **Node Graph Editor**: Visual node-based editing interface
+### 🎨 UI & Visualization (Future) - Visual Interface
+- [ ] **Node Graph Editor**: Visual SOP-based editing interface for procedural workflows
 - [ ] **3D Viewport**: Real-time mesh preview and manipulation
 - [ ] **Parameter Widgets**: UI controls for generator parameters
+- [ ] **Export Dialog**: User-friendly file export interface
+
+### 📊 Performance & Scalability - Production Ready
+- [ ] **Benchmarking Suite**: Performance regression testing for procedural workflows
+- [ ] **Parallel Processing**: OpenMP for multi-threaded SOP operations
+- [ ] **LOD System**: Level-of-detail for large procedural scene management
+- [ ] **Streaming**: Support for procedural meshes larger than available RAM
+
+---
+*Last Updated: July 16, 2025*
+*Current Focus: Procedural SOP system with GPU-accelerated data flow architecture*
 - [ ] **Export Dialog**: User-friendly file export interface
 
 ### 📊 Performance & Scalability
