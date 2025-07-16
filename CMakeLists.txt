@@ -14,40 +14,29 @@ option(NODEFLUX_BUILD_EXAMPLES "Build example applications" ON)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
 option(NODEFLUX_BUILD_UI "Build UI components" OFF)
 
-# Find packages via vcpkg
+# Conan dependencies
 find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
-
-# Use FetchContent for CGAL (since vcpkg has issues on Linux)
-include(FetchContent)
-FetchContent_Declare(
-    CGAL
-    GIT_REPOSITORY https://github.com/CGAL/cgal.git
-    GIT_TAG v5.6
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(CGAL)
-
-# Use FetchContent for Google Test
+find_package(GLEW REQUIRED)
+find_package(opengl_system REQUIRED)
+find_package(gmp REQUIRED)
+find_package(mpfr REQUIRED)
+find_package(cgal REQUIRED)
 if(NODEFLUX_BUILD_TESTS)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.14.0
-        GIT_SHALLOW TRUE
-    )
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
+    find_package(GTest REQUIRED)
 endif()
+
+# All dependencies now managed by Conan - see conanfile.txt
+# No more FetchContent needed for external libraries
 
 # Core library
 add_library(nodeflux_core
+    # Core system files
     src/core/mesh.cpp
     src/core/error.cpp
+
+    # Geometry generators
     src/geometry/boolean_ops.cpp
     src/geometry/mesh_generator.cpp
     src/geometry/sphere_generator.cpp
@@ -57,18 +46,29 @@ add_library(nodeflux_core
     src/geometry/torus_generator.cpp
     src/geometry/mesh_validator.cpp
     src/geometry/mesh_repairer.cpp
+
+    # Spatial data structures
     src/spatial/bvh.cpp
     src/spatial/enhanced_boolean_ops.cpp
+
+    # Performance and benchmarking
     src/benchmarks/performance_benchmark.cpp
+
+    # GPU acceleration
     src/gpu/compute_device.cpp
     src/gpu/gl_context.cpp
     src/gpu/gpu_mesh_generator.cpp
+
+    # I/O operations
     src/io/obj_exporter.cpp
+
+    # Node system
     src/nodes/sphere_node.cpp
     src/nodes/cylinder_node.cpp
     src/nodes/plane_node.cpp
     src/nodes/box_node.cpp
     src/nodes/torus_node.cpp
+
     # SOP components
     src/sop/ArraySOP.cpp
     src/sop/NoiseDisplacementSOP.cpp
@@ -78,7 +78,6 @@ add_library(nodeflux_core
 target_include_directories(nodeflux_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${cgal_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -86,11 +85,12 @@ target_link_libraries(nodeflux_core
     PUBLIC
         Eigen3::Eigen
         fmt::fmt
-        OpenGL::GL
-        GLEW::GLEW
         glfw
-        gmp
-        mpfr
+        GLEW::GLEW
+        opengl::opengl
+        gmp::gmp
+        mpfr::mpfr
+        CGAL::CGAL
 )
 
 # Compiler features and warnings

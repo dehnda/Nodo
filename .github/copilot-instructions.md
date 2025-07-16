@@ -12,6 +12,75 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - Prefer value semantics over reference semantics where possible
 - Use snake_case for variables and functions, PascalCase for types
 
+## Detailed Coding Style Guide
+
+### Naming Conventions
+- **Variables & Functions**: snake_case (e.g., `vertex_count`, `calculate_bounds()`)
+- **Types & Classes**: PascalCase (e.g., `GeometryData`, `ArraySOP`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `DEFAULT_RADIUS`, `MAX_VERTICES`)
+- **Private Members**: trailing underscore (e.g., `vertex_count_`, `last_error_`)
+- **Template Parameters**: PascalCase (e.g., `template<typename DataType>`)
+
+### Literals & Constants
+- **Magic Numbers**: Replace with named constants
+  ```cpp
+  // Bad
+  auto sphere = generate_sphere(1.0f, 32, 16);
+
+  // Good
+  constexpr float DEFAULT_RADIUS = 1.0F;
+  constexpr int DEFAULT_SUBDIVISIONS = 32;
+  constexpr int DEFAULT_RINGS = 16;
+  auto sphere = generate_sphere(DEFAULT_RADIUS, DEFAULT_SUBDIVISIONS, DEFAULT_RINGS);
+  ```
+- **Float Literals**: Use uppercase 'F' suffix (e.g., `2.0F` not `2.0f`)
+- **Constants**: Prefer `constexpr` over `const` for compile-time constants
+
+### Pointer & Reference Safety
+- **Explicit Null Checks**: Always check pointers explicitly
+  ```cpp
+  // Bad
+  return port ? port->get_data() : nullptr;
+
+  // Good
+  return (port != nullptr) ? port->get_data() : nullptr;
+  ```
+- **Smart Pointers**: Prefer `std::unique_ptr` and `std::shared_ptr` over raw pointers
+- **Reference Parameters**: Use const references for input parameters when possible
+
+### Include Management
+- **Remove Unused Includes**: Only include headers that are directly used
+- **Forward Declarations**: Use forward declarations in headers when possible
+- **Include Order**: System headers first, then project headers, alphabetically within groups
+
+### Static Members
+- **Access through Class**: Use `ClassName::static_member()` not `instance.static_member()`
+  ```cpp
+  // Bad
+  exporter.export_mesh(*mesh, "output.obj");
+
+  // Good
+  ObjExporter::export_mesh(*mesh, "output.obj");
+  ```
+
+### Error Handling
+- **Explicit Error Checking**: Always check return values and optional types
+- **RAII**: Use destructors for cleanup, avoid manual resource management
+- **Exception Safety**: Provide at least basic exception guarantee
+
+### Performance Guidelines
+- **Move Semantics**: Use `std::move` for expensive-to-copy objects
+- **const Correctness**: Mark methods const when they don't modify state
+- **Reserve Containers**: Pre-allocate container capacity when size is known
+- **Avoid Copies**: Pass large objects by const reference
+
+### Documentation Standards
+- **Doxygen Comments**: Use `/**` style for public APIs
+- **Brief Descriptions**: Start with `@brief` for one-line summaries
+- **Parameter Documentation**: Use `@param` for all parameters
+- **Return Value Documentation**: Use `@return` for non-void functions
+- **Examples**: Include `@code` blocks for complex APIs
+
 ## Architecture Guidelines
 - **Core module**: Fundamental data structures (Mesh, Point, Vector)
 - **Geometry module**: Mesh generation, transformations, boolean operations

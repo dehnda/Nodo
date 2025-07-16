@@ -16,8 +16,8 @@ add_executable(nodeflux_tests
 target_link_libraries(nodeflux_tests
     PRIVATE
         nodeflux_core
-        gtest_main
-        gtest
+        GTest::gtest_main
+        GTest::gtest
 )
 
 target_compile_features(nodeflux_tests PRIVATE cxx_std_20)
