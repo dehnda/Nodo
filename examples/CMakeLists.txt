@@ -29,3 +29,6 @@ target_link_libraries(performance_benchmark nodeflux_core)
 
 add_executable(test_mesh_generation test_mesh_generation.cpp)
 target_link_libraries(test_mesh_generation nodeflux_core)
+
+add_executable(gpu_compute_demo gpu_compute_demo.cpp)
+target_link_libraries(gpu_compute_demo nodeflux_core)

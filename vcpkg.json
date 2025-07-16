@@ -4,12 +4,21 @@
     "description": "Modern C++20 procedural mesh generation library",
     "dependencies": [
         "eigen3",
-        "fmt"
+        "fmt",
+        "opengl",
+        "glew"
     ],
     "features": {
         "examples": {
             "description": "Build example applications",
             "dependencies": []
+        },
+        "gpu": {
+            "description": "Enable GPU acceleration with compute shaders",
+            "dependencies": [
+                "opengl",
+                "glew"
+            ]
         },
         "tests": {
             "description": "Enable unit testing",
