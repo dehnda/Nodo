@@ -59,3 +59,11 @@ target_link_libraries(sop_material_demo nodeflux_core)
 # SOP Header-Based System Demo
 add_executable(sop_header_demo sop_header_demo.cpp)
 target_link_libraries(sop_header_demo nodeflux_core)
+
+# Week 2 Complete SOP Demo - All procedural operations
+add_executable(week2_complete_sop_demo week2_complete_sop_demo.cpp)
+target_link_libraries(week2_complete_sop_demo nodeflux_core)
+
+# Simple SOP Test - Quick test of new SOP implementations
+add_executable(simple_sop_test simple_sop_test.cpp)
+target_link_libraries(simple_sop_test nodeflux_core)

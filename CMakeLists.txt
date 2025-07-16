@@ -71,6 +71,8 @@ add_library(nodeflux_core
 
     # SOP components
     src/sop/ArraySOP.cpp
+    src/sop/BooleanSOP.cpp
+    src/sop/MirrorSOP.cpp
     src/sop/NoiseDisplacementSOP.cpp
     src/sop/SubdivisionSOP.cpp
 )
