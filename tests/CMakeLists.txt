@@ -10,6 +10,7 @@ add_executable(nodeflux_tests
     test_mesh_validator.cpp
     test_mesh_repairer.cpp
     test_nodes.cpp
+    test_bvh.cpp
 )
 
 target_link_libraries(nodeflux_tests

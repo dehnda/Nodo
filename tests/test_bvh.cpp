@@ -1,0 +1,164 @@
+#include <gtest/gtest.h>
+#include <nodeflux/spatial/bvh.hpp>
+#include <nodeflux/geometry/sphere_generator.hpp>
+#include <nodeflux/geometry/box_generator.hpp>
+
+using namespace nodeflux;
+
+class BVHTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Create a simple sphere for testing
+        auto sphere_result = geometry::SphereGenerator::generate_icosphere(1.0, 2);
+        ASSERT_TRUE(sphere_result.has_value());
+        sphere_mesh_ = *sphere_result;
+        
+        // Create a simple box for testing
+        auto box_result = geometry::BoxGenerator::generate(2.0, 2.0, 2.0);
+        ASSERT_TRUE(box_result.has_value());
+        box_mesh_ = *box_result;
+    }
+    
+    core::Mesh sphere_mesh_;
+    core::Mesh box_mesh_;
+};
+
+TEST_F(BVHTest, AABBConstruction) {
+    // Test AABB from mesh
+    auto aabb = spatial::AABB::from_mesh(sphere_mesh_);
+    
+    EXPECT_TRUE(aabb.is_valid());
+    EXPECT_GT(aabb.volume(), 0.0);
+    EXPECT_GT(aabb.surface_area(), 0.0);
+    
+    // Check that sphere is roughly contained
+    auto center = aabb.center();
+    auto size = aabb.size();
+    
+    // For a unit sphere, AABB should be approximately 2x2x2
+    EXPECT_NEAR(size.x(), 2.0, 0.5);
+    EXPECT_NEAR(size.y(), 2.0, 0.5);
+    EXPECT_NEAR(size.z(), 2.0, 0.5);
+}
+
+TEST_F(BVHTest, AABBIntersection) {
+    auto sphere_aabb = spatial::AABB::from_mesh(sphere_mesh_);
+    auto box_aabb = spatial::AABB::from_mesh(box_mesh_);
+    
+    // Both centered at origin, should intersect
+    EXPECT_TRUE(sphere_aabb.intersects(box_aabb));
+    EXPECT_TRUE(box_aabb.intersects(sphere_aabb));
+    
+    // Test point containment
+    EXPECT_TRUE(sphere_aabb.contains(Eigen::Vector3d(0, 0, 0)));
+    EXPECT_TRUE(box_aabb.contains(Eigen::Vector3d(0, 0, 0)));
+}
+
+TEST_F(BVHTest, BVHConstruction) {
+    spatial::BVH bvh;
+    spatial::BVH::BuildParams params;
+    
+    bool success = bvh.build(sphere_mesh_, params);
+    EXPECT_TRUE(success);
+    EXPECT_TRUE(bvh.is_built());
+    
+    // Check statistics
+    const auto& stats = bvh.stats();
+    EXPECT_GT(stats.total_nodes, 0);
+    EXPECT_GT(stats.leaf_nodes, 0);
+    EXPECT_GE(stats.max_depth, 0);
+    EXPECT_GT(stats.build_time_ms, 0.0);
+}
+
+TEST_F(BVHTest, BVHRayIntersection) {
+    spatial::BVH bvh;
+    spatial::BVH::BuildParams params;
+    
+    bool success = bvh.build(sphere_mesh_, params);
+    ASSERT_TRUE(success);
+    
+    // Ray through center should hit
+    spatial::BVH::Ray ray(Eigen::Vector3d(-2, 0, 0), Eigen::Vector3d(1, 0, 0));
+    auto hit = bvh.intersect_ray(ray);
+    
+    EXPECT_TRUE(hit.has_value());
+    if (hit) {
+        EXPECT_GT(hit->t, 0.0);
+        EXPECT_GE(hit->triangle_index, 0);
+        EXPECT_LT(hit->triangle_index, sphere_mesh_.faces().rows());
+    }
+    
+    // Ray missing sphere should not hit
+    spatial::BVH::Ray miss_ray(Eigen::Vector3d(-2, 10, 0), Eigen::Vector3d(1, 0, 0));
+    auto miss_hit = bvh.intersect_ray(miss_ray);
+    EXPECT_FALSE(miss_hit.has_value());
+}
+
+TEST_F(BVHTest, BVHAABBQuery) {
+    spatial::BVH bvh;
+    spatial::BVH::BuildParams params;
+    
+    bool success = bvh.build(sphere_mesh_, params);
+    ASSERT_TRUE(success);
+    
+    // Query with sphere's bounding box should return triangles
+    auto sphere_aabb = spatial::AABB::from_mesh(sphere_mesh_);
+    auto triangles = bvh.query_aabb(sphere_aabb);
+    
+    EXPECT_GT(triangles.size(), 0);
+    
+    // All returned triangle indices should be valid
+    for (int tri_idx : triangles) {
+        EXPECT_GE(tri_idx, 0);
+        EXPECT_LT(tri_idx, sphere_mesh_.faces().rows());
+    }
+    
+    // Query with empty AABB should return fewer or no triangles
+    spatial::AABB empty_aabb(Eigen::Vector3d(10, 10, 10), Eigen::Vector3d(11, 11, 11));
+    auto empty_triangles = bvh.query_aabb(empty_aabb);
+    EXPECT_LE(empty_triangles.size(), triangles.size());
+}
+
+TEST_F(BVHTest, BVHClosestPoint) {
+    spatial::BVH bvh;
+    spatial::BVH::BuildParams params;
+    
+    bool success = bvh.build(sphere_mesh_, params);
+    ASSERT_TRUE(success);
+    
+    // Find closest point to origin
+    Eigen::Vector3d query_point(0, 0, 0);
+    auto closest = bvh.closest_point(query_point);
+    
+    EXPECT_TRUE(closest.has_value());
+    if (closest) {
+        EXPECT_GE(closest->second, 0);  // Valid triangle index
+        EXPECT_LT(closest->second, sphere_mesh_.faces().rows());
+    }
+}
+
+TEST_F(BVHTest, EmptyMeshHandling) {
+    spatial::BVH bvh;
+    spatial::BVH::BuildParams params;
+    
+    core::Mesh empty_mesh;
+    bool success = bvh.build(empty_mesh, params);
+    EXPECT_FALSE(success);
+    EXPECT_FALSE(bvh.is_built());
+}
+
+TEST_F(BVHTest, BuildParameters) {
+    spatial::BVH bvh;
+    
+    // Test with different parameters
+    spatial::BVH::BuildParams params;
+    params.max_triangles_per_leaf = 5;
+    params.max_depth = 10;
+    params.use_sah = false;
+    
+    bool success = bvh.build(sphere_mesh_, params);
+    EXPECT_TRUE(success);
+    
+    const auto& stats = bvh.stats();
+    EXPECT_LE(stats.max_depth, 10);
+}

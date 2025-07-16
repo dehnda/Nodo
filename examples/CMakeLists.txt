@@ -20,3 +20,6 @@ target_link_libraries(mesh_validation_demo nodeflux_core)
 
 add_executable(torus_demo torus_demo.cpp)
 target_link_libraries(torus_demo nodeflux_core)
+
+add_executable(bvh_boolean_demo bvh_boolean_demo.cpp)
+target_link_libraries(bvh_boolean_demo nodeflux_core)

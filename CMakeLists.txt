@@ -54,6 +54,8 @@ add_library(nodeflux_core
     src/geometry/torus_generator.cpp
     src/geometry/mesh_validator.cpp
     src/geometry/mesh_repairer.cpp
+    src/spatial/bvh.cpp
+    src/spatial/enhanced_boolean_ops.cpp
     src/io/obj_exporter.cpp
     src/nodes/sphere_node.cpp
     src/nodes/cylinder_node.cpp
