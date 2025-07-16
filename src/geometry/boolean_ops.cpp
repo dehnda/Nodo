@@ -1,4 +1,4 @@
-#include "../../include/nodeflux/geometry/boolean_ops.hpp"
+#include "nodeflux/geometry/boolean_ops.hpp"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
