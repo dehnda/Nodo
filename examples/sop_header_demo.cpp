@@ -3,9 +3,9 @@
 #include "nodeflux/gpu/gl_context.hpp"
 #include "nodeflux/gpu/gpu_mesh_generator.hpp"
 #include "nodeflux/io/obj_exporter.hpp"
-#include "nodeflux/sop/ArraySOP.hpp"
-#include "nodeflux/sop/NoiseDisplacementSOP.hpp"
-#include "nodeflux/sop/SubdivisionSOP.hpp"
+#include "nodeflux/sop/array_sop.hpp"
+#include "nodeflux/sop/noise_displacement_sop.hpp"
+#include "nodeflux/sop/subdivisions_sop.hpp"
 #include <iostream>
 
 using namespace nodeflux;

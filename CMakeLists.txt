@@ -70,11 +70,11 @@ add_library(nodeflux_core
     src/nodes/torus_node.cpp
 
     # SOP components
-    src/sop/ArraySOP.cpp
-    src/sop/BooleanSOP.cpp
-    src/sop/MirrorSOP.cpp
-    src/sop/NoiseDisplacementSOP.cpp
-    src/sop/SubdivisionSOP.cpp
+    src/sop/array_sop.cpp
+    src/sop/boolean_sop.cpp
+    src/sop/mirror_sop.cpp
+    src/sop/noise_displacement_sop.cpp
+    src/sop/subdivision_sop.cpp
 )
 
 target_include_directories(nodeflux_core

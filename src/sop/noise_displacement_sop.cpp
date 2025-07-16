@@ -1,4 +1,4 @@
-#include "nodeflux/sop/NoiseDisplacementSOP.hpp"
+#include "nodeflux/sop/noise_displacement_sop.hpp"
 #include <algorithm>
 #include <cmath>
 

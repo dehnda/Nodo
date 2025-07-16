@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../geometry/sphere_generator.hpp"
-#include "../../gpu/gpu_mesh_generator.hpp"
-#include "../sop_node.hpp"
+#include "../geometry/sphere_generator.hpp"
+#include "../gpu/gpu_mesh_generator.hpp"
+#include "sop_node.hpp"
 
 namespace nodeflux {
 namespace sop {
