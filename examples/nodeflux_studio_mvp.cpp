@@ -94,6 +94,16 @@ public:
 
         ImGui::StyleColorsDark();
         
+        // Setup ImNodes styling for better visibility
+        ImNodes::StyleColorsDark();
+        ImNodesStyle& style = ImNodes::GetStyle();
+        style.Colors[ImNodesCol_Pin] = IM_COL32(53, 150, 250, 255);           // Blue pins
+        style.Colors[ImNodesCol_PinHovered] = IM_COL32(53, 150, 250, 255);    // Blue when hovered
+        style.Colors[ImNodesCol_Link] = IM_COL32(61, 133, 224, 255);          // Blue connections
+        style.Colors[ImNodesCol_LinkHovered] = IM_COL32(66, 150, 250, 255);   // Brighter blue when hovered
+        style.Colors[ImNodesCol_LinkSelected] = IM_COL32(68, 206, 246, 255);  // Cyan when selected
+        style.PinCircleRadius = 6.0F;                                        // Larger pin circles
+        
         // Setup platform/renderer backends
         ImGui_ImplGlfw_InitForOpenGL(window_, true);
         ImGui_ImplOpenGL3_Init("#version 330");
@@ -269,6 +279,10 @@ private:
                 if (ImGui::MenuItem("Redo", "Ctrl+Y")) {
                     // TODO: Implement redo
                 }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Delete Node", "Delete", false, selected_node_id_ != -1)) {
+                    delete_selected_node();
+                }
                 ImGui::EndMenu();
             }
 
@@ -317,9 +331,11 @@ private:
 
         // Render connections
         for (const auto& connection : node_graph_->get_connections()) {
-            ImNodes::Link(connection.id, 
-                         connection.source_node_id * 1000 + connection.source_pin_index,
-                         connection.target_node_id * 1000 + connection.target_pin_index);
+            // Convert pin indices to proper pin IDs
+            int source_pin_id = connection.source_node_id * 1000 + 100 + connection.source_pin_index; // Output pins
+            int target_pin_id = connection.target_node_id * 1000 + connection.target_pin_index;      // Input pins
+            
+            ImNodes::Link(connection.id, source_pin_id, target_pin_id);
         }
 
         ImNodes::EndNodeEditor();
@@ -337,23 +353,31 @@ private:
         ImGui::TextUnformatted(node.get_name().c_str());
         ImNodes::EndNodeTitleBar();
 
-        // Input pins
+        // Input pins - make sure they're rendered with proper pin IDs
         const auto& input_pins = node.get_input_pins();
         for (size_t i = 0; i < input_pins.size(); ++i) {
-            ImNodes::BeginInputAttribute(node.get_id() * 1000 + static_cast<int>(i));
-            ImGui::Text("%s", input_pins[i].name.c_str());
+            // Use separate ID space for input pins to avoid conflicts
+            int input_pin_id = node.get_id() * 1000 + static_cast<int>(i);
+            ImNodes::BeginInputAttribute(input_pin_id);
+            ImGui::TextUnformatted("●");
+            ImGui::SameLine();
+            ImGui::TextUnformatted(input_pins[i].name.c_str());
             ImNodes::EndInputAttribute();
         }
 
         // Parameters as sliders
         render_node_parameters(node);
 
-        // Output pins
+        // Output pins - use separate ID space for output pins
         const auto& output_pins = node.get_output_pins();
         for (size_t i = 0; i < output_pins.size(); ++i) {
-            ImNodes::BeginOutputAttribute(node.get_id() * 1000 + static_cast<int>(i));
+            // Use higher ID range for output pins to avoid conflicts
+            int output_pin_id = node.get_id() * 1000 + 100 + static_cast<int>(i);
+            ImNodes::BeginOutputAttribute(output_pin_id);
             ImGui::Indent(40);
-            ImGui::Text("%s", output_pins[i].name.c_str());
+            ImGui::TextUnformatted(output_pins[i].name.c_str());
+            ImGui::SameLine();
+            ImGui::TextUnformatted("●");
             ImNodes::EndOutputAttribute();
         }
 
@@ -507,8 +531,11 @@ private:
 
     void handle_node_editor_events() {
         // Handle node selection
-        if (ImNodes::IsNodeHovered(&selected_node_id_)) {
-            // Node is being hovered
+        int hovered_node_id;
+        if (ImNodes::IsNodeHovered(&hovered_node_id)) {
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                selected_node_id_ = hovered_node_id;
+            }
         }
 
         // Handle connection creation
@@ -516,13 +543,16 @@ private:
         int end_attr;
         if (ImNodes::IsLinkCreated(&start_attr, &end_attr)) {
             const int source_node_id = start_attr / 1000;
-            const int source_pin = start_attr % 1000;
+            const int source_pin_index = (start_attr % 1000) - 100; // Remove output pin offset
             const int target_node_id = end_attr / 1000;
-            const int target_pin = end_attr % 1000;
+            const int target_pin_index = end_attr % 1000; // Input pins have no offset
             
-            node_graph_->add_connection(source_node_id, source_pin, target_node_id, target_pin);
-            execute_graph();
-            project_modified_ = true;
+            // Make sure the pin indices are valid
+            if (source_pin_index >= 0 && target_pin_index >= 0) {
+                node_graph_->add_connection(source_node_id, source_pin_index, target_node_id, target_pin_index);
+                execute_graph();
+                project_modified_ = true;
+            }
         }
 
         // Handle connection deletion
@@ -557,8 +587,12 @@ private:
         // Create a simple default scene
         const int sphere_id = node_graph_->add_node(graph::NodeType::Sphere, "Default Sphere");
         
-        // Position the node in the editor
+        // Create a Transform node for testing
+        const int transform_id = node_graph_->add_node(graph::NodeType::Transform, "Test Transform");
+        
+        // Position the nodes in the editor
         node_positions_[sphere_id] = ImVec2(100, 100);
+        node_positions_[transform_id] = ImVec2(100, 300);
         
         execute_graph();
     }
@@ -575,20 +609,25 @@ private:
         project_modified_ = true;
     }
 
+    void delete_selected_node() {
+        if (selected_node_id_ != -1) {
+            node_graph_->remove_node(selected_node_id_);
+            node_positions_.erase(selected_node_id_);
+            mesh_id_mapping_.erase(selected_node_id_);
+            selected_node_id_ = -1;
+            execute_graph();
+            project_modified_ = true;
+        }
+    }
+
     void execute_graph() {
-        std::cout << "🔄 Executing graph..." << std::endl;
         if (execution_engine_->execute_graph(*node_graph_)) {
-            std::cout << "✅ Graph execution successful" << std::endl;
             update_renderer_from_results();
-        } else {
-            std::cout << "❌ Graph execution failed" << std::endl;
         }
     }
 
     void update_renderer_from_results() {
         const auto& results = execution_engine_->get_all_results();
-        
-        std::cout << "🎨 Updating renderer with " << results.size() << " results" << std::endl;
         
         // Clear existing meshes
         renderer_->clear_meshes();
@@ -597,16 +636,10 @@ private:
         // Add new meshes
         for (const auto& [node_id, mesh] : results) {
             if (mesh != nullptr) {
-                std::cout << "📐 Adding mesh for node " << node_id 
-                         << " with " << mesh->vertices().rows() << " vertices" << std::endl;
                 const int mesh_id = renderer_->add_mesh(*mesh, "Node " + std::to_string(node_id));
                 mesh_id_mapping_[node_id] = mesh_id;
-            } else {
-                std::cout << "⚠️ Node " << node_id << " has null mesh" << std::endl;
             }
         }
-        
-        std::cout << "🎯 Total meshes in renderer: " << mesh_id_mapping_.size() << std::endl;
     }
 
     void new_project() {
@@ -622,22 +655,36 @@ private:
 
     void refresh_project() {
         // Refresh all existing nodes to update their pin configurations
-        std::cout << "🔄 Refreshing project - updating node configurations..." << std::endl;
-        for (auto& node : node_graph_->get_nodes()) {
-            // Force re-setup of pins for each node
-            auto node_type = node->get_type();
-            auto node_id = node->get_id();
-            auto node_name = node->get_name();
-            auto parameters = node->get_parameters();
-            
-            // Remove and recreate the node with updated pin configuration
-            node_graph_->remove_node(node_id);
-            auto new_node_id = node_graph_->add_node(node_type, node_name);
+        
+        // First, collect all node information
+        struct NodeInfo {
+            graph::NodeType type;
+            int id;
+            std::string name;
+            std::vector<graph::NodeParameter> parameters;
+        };
+        
+        std::vector<NodeInfo> node_infos;
+        for (const auto& node : node_graph_->get_nodes()) {
+            NodeInfo info;
+            info.type = node->get_type();
+            info.id = node->get_id();
+            info.name = node->get_name();
+            info.parameters = node->get_parameters();
+            node_infos.push_back(info);
+        }
+        
+        // Clear all nodes
+        node_graph_->clear();
+        
+        // Recreate all nodes with updated pin configurations
+        for (const auto& info : node_infos) {
+            auto new_node_id = node_graph_->add_node(info.type, info.name);
             
             // Restore parameters
             auto* new_node = node_graph_->get_node(new_node_id);
             if (new_node != nullptr) {
-                for (const auto& param : parameters) {
+                for (const auto& param : info.parameters) {
                     new_node->set_parameter(param.name, param);
                 }
             }
@@ -645,7 +692,6 @@ private:
         
         execute_graph();
         project_modified_ = true;
-        std::cout << "✅ Project refreshed successfully!" << std::endl;
     }
 
     void open_project() {
@@ -692,24 +738,22 @@ private:
     }
 
     void on_node_changed(int node_id) {
-        std::cout << "📢 Node " << node_id << " changed" << std::endl;
         project_modified_ = true;
     }
 
     void on_connection_changed(int connection_id) {
-        std::cout << "🔗 Connection " << connection_id << " changed" << std::endl;
         project_modified_ = true;
     }
 
     // Input callbacks
     void on_key_callback(int key, int /* scancode */, int action, int mods) {
         if (action == GLFW_PRESS) {
-            if (mods & GLFW_MOD_CONTROL) {
+            if ((mods & GLFW_MOD_CONTROL) != 0) {
                 switch (key) {
                     case GLFW_KEY_N: new_project(); break;
                     case GLFW_KEY_O: open_project(); break;
                     case GLFW_KEY_S: 
-                        if (mods & GLFW_MOD_SHIFT) {
+                        if ((mods & GLFW_MOD_SHIFT) != 0) {
                             save_project_as();
                         } else {
                             save_project();
@@ -720,6 +764,7 @@ private:
             } else {
                 switch (key) {
                     case GLFW_KEY_F5: refresh_project(); break;
+                    case GLFW_KEY_DELETE: delete_selected_node(); break;
                 }
             }
         }
