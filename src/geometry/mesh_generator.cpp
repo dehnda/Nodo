@@ -1,4 +1,5 @@
 #include "../../include/nodeflux/geometry/mesh_generator.hpp"
+#include "../../include/nodeflux/geometry/sphere_generator.hpp"
 #include <array>
 #include <cmath>
 
@@ -63,9 +64,22 @@ std::optional<core::Mesh> MeshGenerator::sphere(const Eigen::Vector3d& center,
         return std::nullopt;
     }
     
-    // Simple sphere approximation using an icosphere approach
-    // For now, create a simple octahedron and project to sphere
-    return generate_icosphere(center, radius, subdivisions);
+    // Use the proper SphereGenerator for icosphere generation
+    auto result = SphereGenerator::generate_icosphere(radius, subdivisions);
+    if (!result.has_value()) {
+        return std::nullopt;
+    }
+    
+    // Translate the sphere to the desired center if needed
+    if (center != Eigen::Vector3d::Zero()) {
+        core::Mesh mesh = result.value();
+        for (int i = 0; i < mesh.vertices().rows(); ++i) {
+            mesh.vertices().row(i) += center.transpose();
+        }
+        return mesh;
+    }
+    
+    return result;
 }
 
 std::optional<core::Mesh> MeshGenerator::cylinder(const Eigen::Vector3d& bottom_center,

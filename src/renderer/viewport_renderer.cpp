@@ -328,6 +328,13 @@ bool ViewportRenderer::initialize() {
         return false;
     }
     
+    // Create framebuffer for ImGui integration
+    if (!create_framebuffer()) {
+        std::cerr << "Failed to create framebuffer" << std::endl;
+        cleanup_shaders();
+        return false;
+    }
+    
     is_initialized_ = true;
     return true;
 }
@@ -338,6 +345,7 @@ void ViewportRenderer::shutdown() {
     }
     
     clear_meshes();
+    cleanup_framebuffer();
     cleanup_shaders();
     is_initialized_ = false;
 }
@@ -415,12 +423,19 @@ GLuint ViewportRenderer::link_program(GLuint vertex_shader, GLuint fragment_shad
 }
 
 void ViewportRenderer::begin_frame(int width, int height) {
-    set_viewport_size(width, height);
+    if (width != viewport_width_ || height != viewport_height_) {
+        resize_framebuffer(width, height);
+    }
+    
+    // Bind framebuffer for rendering
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glViewport(0, 0, width, height);
     glUseProgram(shader_program_);
 }
 
 void ViewportRenderer::end_frame() {
+    // Unbind framebuffer to restore default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
 }
 
@@ -487,6 +502,76 @@ void ViewportRenderer::upload_matrices(const Eigen::Matrix4f& model,
     glUniformMatrix4fv(uniform_model_, 1, GL_FALSE, model.data());
     glUniformMatrix4fv(uniform_view_, 1, GL_FALSE, view.data());
     glUniformMatrix4fv(uniform_projection_, 1, GL_FALSE, projection.data());
+}
+
+bool ViewportRenderer::create_framebuffer() {
+    // Generate framebuffer
+    glGenFramebuffers(1, &framebuffer_);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    
+    // Create color texture
+    glGenTextures(1, &color_texture_);
+    glBindTexture(GL_TEXTURE_2D, color_texture_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, viewport_width_, viewport_height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    // Attach color texture to framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_texture_, 0);
+    
+    // Create depth renderbuffer
+    glGenRenderbuffers(1, &depth_renderbuffer_);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_renderbuffer_);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, viewport_width_, viewport_height_);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_renderbuffer_);
+    
+    // Check framebuffer completeness
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "❌ Framebuffer not complete!" << std::endl;
+        cleanup_framebuffer();
+        return false;
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    std::cout << "✅ Framebuffer created successfully (" << viewport_width_ << "x" << viewport_height_ << ")" << std::endl;
+    return true;
+}
+
+void ViewportRenderer::cleanup_framebuffer() {
+    if (depth_renderbuffer_ != 0) {
+        glDeleteRenderbuffers(1, &depth_renderbuffer_);
+        depth_renderbuffer_ = 0;
+    }
+    
+    if (color_texture_ != 0) {
+        glDeleteTextures(1, &color_texture_);
+        color_texture_ = 0;
+    }
+    
+    if (framebuffer_ != 0) {
+        glDeleteFramebuffers(1, &framebuffer_);
+        framebuffer_ = 0;
+    }
+}
+
+void ViewportRenderer::resize_framebuffer(int width, int height) {
+    viewport_width_ = width;
+    viewport_height_ = height;
+    
+    if (framebuffer_ == 0) return;
+    
+    // Resize color texture
+    glBindTexture(GL_TEXTURE_2D, color_texture_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    
+    // Resize depth renderbuffer
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_renderbuffer_);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
 } // namespace nodeflux::renderer

@@ -6,12 +6,15 @@
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/geometry/mesh_generator.hpp"
 #include <memory>
+#include <iostream>
 
 namespace nodeflux::graph {
 
 bool ExecutionEngine::execute_graph(NodeGraph& graph) {
     // Get execution order (topological sort)
     auto execution_order = graph.get_execution_order();
+    
+    std::cout << "🔄 Executing " << execution_order.size() << " nodes" << std::endl;
     
     // Clear previous results
     result_cache_.clear();
@@ -20,8 +23,11 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
     for (int node_id : execution_order) {
         auto* node = graph.get_node(node_id);
         if (!node) {
+            std::cout << "❌ Node " << node_id << " not found" << std::endl;
             return false;
         }
+        
+        std::cout << "🎯 Executing node " << node_id << " (" << static_cast<int>(node->get_type()) << ")" << std::endl;
         
         std::shared_ptr<core::Mesh> result = nullptr;
         
@@ -38,6 +44,16 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
                 result = execute_cylinder_node(*node);
                 break;
             }
+            case NodeType::Transform: {
+                auto inputs = gather_input_meshes(graph, node_id);
+                result = execute_transform_node(*node, inputs);
+                break;
+            }
+            case NodeType::Boolean: {
+                auto inputs = gather_input_meshes(graph, node_id);
+                result = execute_boolean_node(*node, inputs);
+                break;
+            }
             default: {
                 // For now, skip unimplemented node types
                 continue;
@@ -46,9 +62,11 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
         
         // Store the result
         if (result) {
+            std::cout << "✅ Node " << node_id << " executed successfully" << std::endl;
             result_cache_[node_id] = result;
             node->set_output_mesh(result);
         } else {
+            std::cout << "❌ Node " << node_id << " execution failed - no result generated" << std::endl;
             return false;
         }
     }
@@ -72,11 +90,16 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_sphere_node(const GraphNode
     const float radius = radius_param.has_value() ? radius_param->float_value : 1.0F;
     const int subdivisions = subdivisions_param.has_value() ? subdivisions_param->int_value : 3;
     
+    std::cout << "🌐 Creating sphere with radius=" << radius << ", subdivisions=" << subdivisions << std::endl;
+    
     auto sphere_result = geometry::MeshGenerator::sphere(
         Eigen::Vector3d(0, 0, 0), static_cast<double>(radius), subdivisions);
     
     if (sphere_result.has_value()) {
+        std::cout << "✅ Sphere generated successfully" << std::endl;
         return std::make_shared<core::Mesh>(sphere_result.value());
+    } else {
+        std::cout << "❌ Sphere generation failed" << std::endl;
     }
     
     return nullptr;
@@ -117,6 +140,20 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_cylinder_node(const GraphNo
     return nullptr;
 }
 
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(const GraphNode& node,
+                                                                const std::vector<std::shared_ptr<core::Mesh>>& inputs) {
+    if (inputs.empty()) {
+        std::cout << "⚠️ Transform node has no input mesh" << std::endl;
+        return nullptr;
+    }
+    
+    std::cout << "🔄 Transform node executing with " << inputs.size() << " inputs" << std::endl;
+    
+    // TODO: Implement transform operation (translation, rotation, scale)
+    // For now, just return the input mesh unchanged
+    return inputs[0];
+}
+
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_extrude_node(const GraphNode& node,
                                                                 const std::vector<std::shared_ptr<core::Mesh>>& inputs) {
     if (inputs.empty()) {
@@ -153,8 +190,18 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(const GraphNod
 std::vector<std::shared_ptr<core::Mesh>> ExecutionEngine::gather_input_meshes(const NodeGraph& graph, int node_id) {
     std::vector<std::shared_ptr<core::Mesh>> input_meshes;
     
-    // TODO: Implement connection-based input gathering
-    // For now, return empty vector
+    // Get all connections that target this node
+    const auto& connections = graph.get_connections();
+    
+    for (const auto& connection : connections) {
+        if (connection.target_node_id == node_id) {
+            // Find the mesh from the source node
+            auto mesh_iterator = result_cache_.find(connection.source_node_id);
+            if (mesh_iterator != result_cache_.end() && mesh_iterator->second != nullptr) {
+                input_meshes.push_back(mesh_iterator->second);
+            }
+        }
+    }
     
     return input_meshes;
 }

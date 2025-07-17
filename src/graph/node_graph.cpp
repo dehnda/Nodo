@@ -45,7 +45,7 @@ void GraphNode::setup_pins_for_type() {
     switch (type_) {
         case NodeType::Sphere:
             parameters_.emplace_back("radius", 1.0F);
-            parameters_.emplace_back("subdivisions", 16);
+            parameters_.emplace_back("subdivisions", 3);
             output_pins_.push_back({NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
             break;
             
@@ -57,7 +57,7 @@ void GraphNode::setup_pins_for_type() {
         case NodeType::Cylinder:
             parameters_.emplace_back("radius", 1.0F);
             parameters_.emplace_back("height", 2.0F);
-            parameters_.emplace_back("subdivisions", 16);
+            parameters_.emplace_back("subdivisions", 8);
             output_pins_.push_back({NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
             break;
             
@@ -79,6 +79,14 @@ void GraphNode::setup_pins_for_type() {
             input_pins_.push_back({NodePin::Type::Input, NodePin::DataType::Mesh, "A", 0});
             input_pins_.push_back({NodePin::Type::Input, NodePin::DataType::Mesh, "B", 1});
             output_pins_.push_back({NodePin::Type::Output, NodePin::DataType::Mesh, "Result", 0});
+            break;
+            
+        case NodeType::Transform:
+            parameters_.emplace_back("translate_x", 0.0F);
+            parameters_.emplace_back("translate_y", 0.0F);
+            parameters_.emplace_back("translate_z", 0.0F);
+            input_pins_.push_back({NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+            output_pins_.push_back({NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
             break;
             
         default:

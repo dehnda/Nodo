@@ -113,6 +113,9 @@ public:
     void end_frame();
     void clear(const Eigen::Vector3f& color = Eigen::Vector3f(DEFAULT_CLEAR_R, DEFAULT_CLEAR_G, DEFAULT_CLEAR_B));
     
+    // Framebuffer rendering for ImGui integration
+    GLuint get_color_texture() const { return color_texture_; }
+    
     // Mesh management
     int add_mesh(const core::Mesh& mesh, const std::string& name = "");
     bool update_mesh(int mesh_id, const core::Mesh& mesh);
@@ -151,6 +154,11 @@ private:
     GLint uniform_projection_ = -1;
     GLint uniform_color_ = -1;
     
+    // Framebuffer for ImGui integration
+    GLuint framebuffer_ = 0;
+    GLuint color_texture_ = 0;
+    GLuint depth_renderbuffer_ = 0;
+    
     int viewport_width_ = DEFAULT_VIEWPORT_WIDTH;
     int viewport_height_ = DEFAULT_VIEWPORT_HEIGHT;
     
@@ -159,6 +167,11 @@ private:
     void cleanup_shaders();
     GLuint compile_shader(const char* source, GLenum type);
     GLuint link_program(GLuint vertex_shader, GLuint fragment_shader);
+    
+    // Framebuffer management
+    bool create_framebuffer();
+    void cleanup_framebuffer();
+    void resize_framebuffer(int width, int height);
     
     // Matrix uploads
     void upload_matrices(const Eigen::Matrix4f& model,

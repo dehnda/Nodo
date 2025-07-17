@@ -111,3 +111,13 @@ if(NODEFLUX_BUILD_UI)
     add_executable(real_time_renderer_demo real_time_renderer_demo.cpp)
     target_link_libraries(real_time_renderer_demo nodeflux_core)
 endif()
+
+# NodeFlux Studio MVP - Complete procedural modeling application
+if(NODEFLUX_BUILD_UI)
+    add_executable(nodeflux_studio_mvp nodeflux_studio_mvp.cpp)
+    target_link_libraries(nodeflux_studio_mvp nodeflux_core)
+    set_target_properties(nodeflux_studio_mvp PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+    )
+endif()
