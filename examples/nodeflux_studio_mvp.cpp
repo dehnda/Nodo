@@ -349,8 +349,8 @@ private:
         ImGui::Begin("Node Editor");
         
         // Show zoom help text
-        ImGui::TextDisabled("Controls: Middle Mouse = Pan, Ctrl+Wheel = Zoom, Right Click = Context Menu");
-        ImGui::TextDisabled("Zoom: Hold Ctrl and scroll mouse wheel to zoom in/out");
+        ImGui::TextDisabled("Controls: Middle Mouse = Pan, Mouse Wheel = Zoom, Right Click = Context Menu");
+        ImGui::TextDisabled("Tip: Right-click in empty space to create new nodes");
         ImGui::Separator();
         
         // Get available space for the node editor
@@ -362,6 +362,9 @@ private:
                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
         
         ImNodes::BeginNodeEditor();
+
+        // Handle zoom inside the node editor context
+        handle_node_editor_zoom();
 
         // Render nodes
         for (const auto& node : node_graph_->get_nodes()) {
@@ -387,11 +390,8 @@ private:
         // Handle node editor interactions
         handle_node_editor_events();
 
-        // Handle context menu
+        // Handle context menu outside of ImNodes context
         handle_node_editor_context_menu();
-
-        // Handle zoom in node editor
-        handle_node_editor_zoom();
 
         ImGui::End();
     }
@@ -644,28 +644,42 @@ private:
     }
 
     void handle_node_editor_context_menu() {
-        // Handle right-click context menu in the node editor
-        if (ImGui::BeginPopupContextWindow("NodeEditorContextMenu")) {
+        // Handle right-click context menu for empty space in node editor
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && ImGui::IsWindowHovered()) {
+            // Check if we're not hovering over a node
+            int hovered_node = -1;
+            if (!ImNodes::IsNodeHovered(&hovered_node)) {
+                ImGui::OpenPopup("NodeEditorContextMenu");
+            }
+        }
+        
+        if (ImGui::BeginPopup("NodeEditorContextMenu")) {
             ImGui::Text("Create Node");
             ImGui::Separator();
             
             if (ImGui::MenuItem("Sphere")) {
-                create_node(graph::NodeType::Sphere);
+                create_node_at_cursor(graph::NodeType::Sphere);
             }
             if (ImGui::MenuItem("Box")) {
-                create_node(graph::NodeType::Box);
+                create_node_at_cursor(graph::NodeType::Box);
             }
             if (ImGui::MenuItem("Cylinder")) {
-                create_node(graph::NodeType::Cylinder);
+                create_node_at_cursor(graph::NodeType::Cylinder);
+            }
+            if (ImGui::MenuItem("Plane")) {
+                create_node_at_cursor(graph::NodeType::Plane);
+            }
+            if (ImGui::MenuItem("Torus")) {
+                create_node_at_cursor(graph::NodeType::Torus);
             }
             
             ImGui::Separator();
             
             if (ImGui::MenuItem("Boolean")) {
-                create_node(graph::NodeType::Boolean);
+                create_node_at_cursor(graph::NodeType::Boolean);
             }
             if (ImGui::MenuItem("Transform")) {
-                create_node(graph::NodeType::Transform);
+                create_node_at_cursor(graph::NodeType::Transform);
             }
             
             ImGui::Separator();
@@ -680,75 +694,74 @@ private:
         // Handle node-specific context menu
         int hovered_node_id = -1;
         if (ImNodes::IsNodeHovered(&hovered_node_id)) {
-            if (ImGui::BeginPopupContextItem(("NodeContextMenu" + std::to_string(hovered_node_id)).c_str())) {
-                auto* node = node_graph_->get_node(hovered_node_id);
-                if (node != nullptr) {
-                    ImGui::Text("Node: %s", node->get_name().c_str());
-                    ImGui::Separator();
-                    
-                    if (ImGui::MenuItem("Delete Node", "Delete")) {
-                        selected_node_id_ = hovered_node_id;
-                        delete_selected_node();
-                    }
-                    
-                    if (ImGui::MenuItem("Duplicate Node")) {
-                        // TODO: Implement node duplication
-                        ImGui::SetTooltip("Not yet implemented");
-                    }
-                    
-                    ImGui::Separator();
-                    
-                    if (ImGui::MenuItem("Reset Parameters")) {
-                        // TODO: Implement parameter reset
-                        ImGui::SetTooltip("Not yet implemented");
-                    }
+            if (ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+                selected_node_id_ = hovered_node_id;
+                ImGui::OpenPopup("NodeContextMenu");
+            }
+        }
+        
+        if (ImGui::BeginPopup("NodeContextMenu")) {
+            auto* node = node_graph_->get_node(selected_node_id_);
+            if (node != nullptr) {
+                ImGui::Text("Node: %s", node->get_name().c_str());
+                ImGui::Separator();
+                
+                if (ImGui::MenuItem("Delete Node", "Delete")) {
+                    delete_selected_node();
                 }
                 
-                ImGui::EndPopup();
+                if (ImGui::MenuItem("Duplicate Node")) {
+                    // TODO: Implement node duplication
+                    ImGui::SetTooltip("Not yet implemented");
+                }
+                
+                ImGui::Separator();
+                
+                if (ImGui::MenuItem("Reset Parameters")) {
+                    // TODO: Implement parameter reset
+                    ImGui::SetTooltip("Not yet implemented");
+                }
             }
+            
+            ImGui::EndPopup();
         }
     }
 
     void handle_node_editor_zoom() {
-        // Handle zoom manually since ImNodes built-in zoom might not be working
-        if (ImGui::IsWindowHovered()) {
-            const float wheel = ImGui::GetIO().MouseWheel;
-            const bool ctrl_held = ImGui::GetIO().KeyCtrl;
+        // Handle zoom with mouse wheel
+        const float wheel = ImGui::GetIO().MouseWheel;
+        
+        if (wheel != 0.0F) {
+            // Get current mouse position in ImNodes space
+            ImVec2 mouse_pos = ImGui::GetMousePos();
+            ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+            ImVec2 mouse_canvas_pos = ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
             
-            // Manual zoom implementation
-            if (wheel != 0.0F && ctrl_held) {
-                // Get current mouse position in screen space
-                ImVec2 mouse_pos = ImGui::GetMousePos();
+            // Calculate zoom factor
+            const float zoom_speed = 0.1F;
+            float zoom_factor = 1.0F + (wheel * zoom_speed);
+            
+            // Apply zoom by scaling all node positions relative to mouse cursor
+            for (const auto& node : node_graph_->get_nodes()) {
+                ImVec2 node_pos = ImNodes::GetNodeGridSpacePos(node->get_id());
                 
-                // Calculate zoom factor
-                float zoom_factor = 1.0F + (wheel * 0.1F); // 10% zoom per wheel step
+                // Scale position relative to mouse cursor
+                ImVec2 relative_pos = ImVec2(node_pos.x - mouse_canvas_pos.x, node_pos.y - mouse_canvas_pos.y);
+                relative_pos.x *= zoom_factor;
+                relative_pos.y *= zoom_factor;
                 
-                // Get current canvas position and size
-                ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
-                ImVec2 canvas_size = ImGui::GetContentRegionAvail();
-                
-                // Calculate mouse position relative to canvas
-                ImVec2 mouse_canvas_pos = ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
-                
-                // Apply zoom by scaling node positions relative to mouse cursor
-                for (const auto& node : node_graph_->get_nodes()) {
-                    ImVec2 node_pos = ImNodes::GetNodeGridSpacePos(node->get_id());
-                    
-                    // Scale position relative to mouse cursor
-                    ImVec2 relative_pos = ImVec2(node_pos.x - mouse_canvas_pos.x, node_pos.y - mouse_canvas_pos.y);
-                    relative_pos.x *= zoom_factor;
-                    relative_pos.y *= zoom_factor;
-                    
-                    ImVec2 new_pos = ImVec2(mouse_canvas_pos.x + relative_pos.x, mouse_canvas_pos.y + relative_pos.y);
-                    ImNodes::SetNodeGridSpacePos(node->get_id(), new_pos);
-                }
-                
-                // Visual feedback
-                if (wheel > 0.0F) {
-                    ImGui::SetTooltip("Zoom In (%.1f%%)", zoom_factor * 100.0F);
-                } else {
-                    ImGui::SetTooltip("Zoom Out (%.1f%%)", zoom_factor * 100.0F);
-                }
+                ImVec2 new_pos = ImVec2(mouse_canvas_pos.x + relative_pos.x, mouse_canvas_pos.y + relative_pos.y);
+                ImNodes::SetNodeGridSpacePos(node->get_id(), new_pos);
+            }
+            
+            // Update stored positions
+            update_node_positions();
+            
+            // Visual feedback
+            if (wheel > 0.0F) {
+                ImGui::SetTooltip("Zoom In");
+            } else {
+                ImGui::SetTooltip("Zoom Out");
             }
         }
     }
@@ -820,6 +833,26 @@ private:
         // Store both current and stable positions
         node_positions_[node_id] = canvas_center;
         stable_node_positions_[node_id] = canvas_center;
+        
+        selected_node_id_ = node_id;
+        execute_graph();
+        project_modified_ = true;
+    }
+
+    void create_node_at_cursor(graph::NodeType type) {
+        const int node_id = node_graph_->add_node(type);
+        
+        // Get current mouse position in ImNodes space
+        ImVec2 mouse_pos = ImGui::GetMousePos();
+        ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+        ImVec2 node_pos = ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+        
+        // Set node position at cursor location
+        ImNodes::SetNodeGridSpacePos(node_id, node_pos);
+        
+        // Store both current and stable positions
+        node_positions_[node_id] = node_pos;
+        stable_node_positions_[node_id] = node_pos;
         
         selected_node_id_ = node_id;
         execute_graph();
