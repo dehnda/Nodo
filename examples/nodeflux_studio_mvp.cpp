@@ -88,13 +88,17 @@ public:
         ImGui::CreateContext();
         ImNodes::CreateContext();
         
+        // Create and set a dedicated editor context for consistent canvas behavior
+        editor_context_ = ImNodes::EditorContextCreate();
+        ImNodes::EditorContextSet(editor_context_);
+        
         ImGuiIO& imgui_io = ImGui::GetIO();
         imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         // Note: Advanced docking features disabled for compatibility
 
         ImGui::StyleColorsDark();
         
-        // Setup ImNodes styling for better visibility
+        // Setup ImNodes styling for better visibility and consistent sizing
         ImNodes::StyleColorsDark();
         ImNodesStyle& style = ImNodes::GetStyle();
         style.Colors[ImNodesCol_Pin] = IM_COL32(53, 150, 250, 255);           // Blue pins
@@ -102,7 +106,14 @@ public:
         style.Colors[ImNodesCol_Link] = IM_COL32(61, 133, 224, 255);          // Blue connections
         style.Colors[ImNodesCol_LinkHovered] = IM_COL32(66, 150, 250, 255);   // Brighter blue when hovered
         style.Colors[ImNodesCol_LinkSelected] = IM_COL32(68, 206, 246, 255);  // Cyan when selected
-        style.PinCircleRadius = 6.0F;                                        // Larger pin circles
+        style.PinCircleRadius = 4.0F;                                        // Smaller pin circles
+        
+        // Set compact node sizing with 2:1 ratio maximum (narrow width)
+        style.NodePadding = ImVec2(4.0F, 8.0F);        // Reduced horizontal padding
+        style.NodeCornerRounding = 3.0F;               // Smaller corner rounding
+        style.GridSpacing = 24.0F;                     // Tighter grid spacing
+        style.PinQuadSideLength = 5.0F;                // Smaller pin quad size
+        style.LinkThickness = 2.0F;                    // Thinner links
         
         // Setup platform/renderer backends
         ImGui_ImplGlfw_InitForOpenGL(window_, true);
@@ -169,6 +180,13 @@ public:
         
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
+        
+        // Clean up ImNodes editor context
+        if (editor_context_ != nullptr) {
+            ImNodes::EditorContextFree(editor_context_);
+            editor_context_ = nullptr;
+        }
+        
         ImNodes::DestroyContext();
         ImGui::DestroyContext();
 
@@ -194,6 +212,14 @@ private:
     // Node editor state
     std::unordered_map<int, ImVec2> node_positions_;
     std::unordered_map<int, int> mesh_id_mapping_; // node_id -> mesh_id in renderer
+    ImNodesEditorContext* editor_context_ = nullptr;
+    
+    // Stable positions for consistent node placement
+    std::unordered_map<int, ImVec2> stable_node_positions_;
+    
+    // Reference window size for coordinate scaling
+    ImVec2 reference_window_size_ = ImVec2(800.0F, 600.0F);
+    bool coordinate_scaling_enabled_ = true;
 
     void setup_input_callbacks() {
         glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -322,6 +348,14 @@ private:
     void render_node_editor() {
         ImGui::Begin("Node Editor");
         
+        // Get available space for the node editor
+        ImVec2 available_size = ImGui::GetContentRegionAvail();
+        
+        // Create a child window with a fixed size to prevent coordinate system scaling
+        const ImVec2 fixed_editor_size = ImVec2(800.0F, 600.0F);
+        ImGui::BeginChild("NodeEditorCanvas", fixed_editor_size, 0, 
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
+        
         ImNodes::BeginNodeEditor();
 
         // Render nodes
@@ -339,6 +373,11 @@ private:
         }
 
         ImNodes::EndNodeEditor();
+        
+        ImGui::EndChild();
+
+        // Update stored node positions after any changes
+        update_node_positions();
 
         // Handle node editor interactions
         handle_node_editor_events();
@@ -365,8 +404,10 @@ private:
             ImNodes::EndInputAttribute();
         }
 
-        // Parameters as sliders
+        // Parameters as sliders (compact layout)
+        ImGui::PushItemWidth(120.0F); // Narrow parameter controls
         render_node_parameters(node);
+        ImGui::PopItemWidth();
 
         // Output pins - use separate ID space for output pins
         const auto& output_pins = node.get_output_pins();
@@ -374,12 +415,19 @@ private:
             // Use higher ID range for output pins to avoid conflicts
             int output_pin_id = node.get_id() * 1000 + 100 + static_cast<int>(i);
             ImNodes::BeginOutputAttribute(output_pin_id);
-            ImGui::Indent(40);
+            ImGui::Indent(20.0F); // Reduced indent for compactness
             ImGui::TextUnformatted(output_pins[i].name.c_str());
             ImGui::SameLine();
             ImGui::TextUnformatted("●");
             ImNodes::EndOutputAttribute();
         }
+
+        // NOTE: Temporarily disable automatic position setting to let ImNodes handle positioning naturally
+        // The issue is that constantly setting positions fights ImNodes' internal coordinate system
+        // auto pos_it = node_positions_.find(node.get_id());
+        // if (pos_it != node_positions_.end()) {
+        //     ImNodes::SetNodeGridSpacePos(node.get_id(), pos_it->second);
+        // }
 
         ImNodes::EndNode();
     }
@@ -584,6 +632,21 @@ private:
         }
     }
 
+    void update_node_positions() {
+        // Update all stored node positions with current ImNodes positions
+        for (const auto& node : node_graph_->get_nodes()) {
+            ImVec2 old_pos = node_positions_[node->get_id()];
+            ImVec2 new_pos = ImNodes::GetNodeGridSpacePos(node->get_id());
+            
+            node_positions_[node->get_id()] = new_pos;
+            
+            // Update stable positions for any user-initiated moves
+            if (abs(old_pos.x - new_pos.x) > 1.0F || abs(old_pos.y - new_pos.y) > 1.0F) {
+                stable_node_positions_[node->get_id()] = new_pos;
+            }
+        }
+    }
+
     void handle_viewport_interactions() {
         if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
             const ImVec2 delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
@@ -610,9 +673,18 @@ private:
         // Create a Transform node for testing
         const int transform_id = node_graph_->add_node(graph::NodeType::Transform, "Test Transform");
         
-        // Position the nodes in the editor
-        node_positions_[sphere_id] = ImVec2(100, 100);
-        node_positions_[transform_id] = ImVec2(100, 300);
+        // Set initial positions once - ImNodes will handle them naturally after this
+        ImVec2 sphere_pos = ImVec2(100, 100);
+        ImVec2 transform_pos = ImVec2(100, 300);
+        
+        ImNodes::SetNodeGridSpacePos(sphere_id, sphere_pos);
+        ImNodes::SetNodeGridSpacePos(transform_id, transform_pos);
+        
+        // Store both current and stable positions
+        node_positions_[sphere_id] = sphere_pos;
+        node_positions_[transform_id] = transform_pos;
+        stable_node_positions_[sphere_id] = sphere_pos;
+        stable_node_positions_[transform_id] = transform_pos;
         
         execute_graph();
     }
@@ -620,9 +692,13 @@ private:
     void create_node(graph::NodeType type) {
         const int node_id = node_graph_->add_node(type);
         
-        // Position the new node
+        // Set initial position once - ImNodes will handle it naturally after this
         const ImVec2 canvas_center = ImVec2(400, 300);
+        ImNodes::SetNodeGridSpacePos(node_id, canvas_center);
+        
+        // Store both current and stable positions
         node_positions_[node_id] = canvas_center;
+        stable_node_positions_[node_id] = canvas_center;
         
         selected_node_id_ = node_id;
         execute_graph();
@@ -633,6 +709,7 @@ private:
         if (selected_node_id_ != -1) {
             node_graph_->remove_node(selected_node_id_);
             node_positions_.erase(selected_node_id_);
+            stable_node_positions_.erase(selected_node_id_);
             mesh_id_mapping_.erase(selected_node_id_);
             selected_node_id_ = -1;
             execute_graph();
@@ -653,11 +730,23 @@ private:
         renderer_->clear_meshes();
         mesh_id_mapping_.clear();
 
-        // Add new meshes
+        // Only render final output nodes (nodes without outgoing connections)
         for (const auto& [node_id, mesh] : results) {
             if (mesh != nullptr) {
-                const int mesh_id = renderer_->add_mesh(*mesh, "Node " + std::to_string(node_id));
-                mesh_id_mapping_[node_id] = mesh_id;
+                // Check if this node has any outgoing connections
+                bool has_outgoing_connections = false;
+                for (const auto& connection : node_graph_->get_connections()) {
+                    if (connection.source_node_id == node_id) {
+                        has_outgoing_connections = true;
+                        break;
+                    }
+                }
+                
+                // Only render nodes that don't have outgoing connections (final outputs)
+                if (!has_outgoing_connections) {
+                    const int mesh_id = renderer_->add_mesh(*mesh, "Node " + std::to_string(node_id));
+                    mesh_id_mapping_[node_id] = mesh_id;
+                }
             }
         }
     }
