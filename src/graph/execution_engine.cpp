@@ -143,15 +143,32 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_cylinder_node(const GraphNo
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(const GraphNode& node,
                                                                 const std::vector<std::shared_ptr<core::Mesh>>& inputs) {
     if (inputs.empty()) {
-        std::cout << "⚠️ Transform node has no input mesh" << std::endl;
         return nullptr;
     }
     
-    std::cout << "🔄 Transform node executing with " << inputs.size() << " inputs" << std::endl;
+    // Get transform parameters
+    auto translate_x_param = node.get_parameter("translate_x");
+    auto translate_y_param = node.get_parameter("translate_y");
+    auto translate_z_param = node.get_parameter("translate_z");
     
-    // TODO: Implement transform operation (translation, rotation, scale)
-    // For now, just return the input mesh unchanged
-    return inputs[0];
+    const float translate_x = translate_x_param.has_value() ? translate_x_param->float_value : 0.0F;
+    const float translate_y = translate_y_param.has_value() ? translate_y_param->float_value : 0.0F;
+    const float translate_z = translate_z_param.has_value() ? translate_z_param->float_value : 0.0F;
+    
+    // Create a copy of the input mesh
+    auto transformed_mesh = std::make_shared<core::Mesh>(*inputs[0]);
+    
+    // Apply translation to all vertices
+    auto& vertices = transformed_mesh->vertices();
+    const Eigen::Vector3d translation(static_cast<double>(translate_x), 
+                                     static_cast<double>(translate_y), 
+                                     static_cast<double>(translate_z));
+    
+    for (int i = 0; i < vertices.rows(); ++i) {
+        vertices.row(i) += translation.transpose();
+    }
+    
+    return transformed_mesh;
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_extrude_node(const GraphNode& node,

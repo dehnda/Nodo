@@ -394,9 +394,19 @@ private:
             switch (param.type) {
                 case graph::NodeParameter::Type::Float: {
                     float value = param.float_value;
-                    if (ImGui::SliderFloat(param.name.c_str(), &value, 0.1F, 5.0F)) {
-                        mutable_node->set_parameter(param.name, graph::NodeParameter(param.name, value));
-                        parameters_changed = true;
+                    // Use different ranges for different parameter types
+                    if (param.name.find("translate") != std::string::npos) {
+                        // Translation parameters: -10.0 to 10.0
+                        if (ImGui::SliderFloat(param.name.c_str(), &value, -10.0F, 10.0F)) {
+                            mutable_node->set_parameter(param.name, graph::NodeParameter(param.name, value));
+                            parameters_changed = true;
+                        }
+                    } else {
+                        // Other parameters: 0.1 to 5.0
+                        if (ImGui::SliderFloat(param.name.c_str(), &value, 0.1F, 5.0F)) {
+                            mutable_node->set_parameter(param.name, graph::NodeParameter(param.name, value));
+                            parameters_changed = true;
+                        }
                     }
                     break;
                 }
@@ -491,9 +501,19 @@ private:
             switch (param.type) {
                 case graph::NodeParameter::Type::Float: {
                     float value = param.float_value;
-                    if (ImGui::DragFloat(param.name.c_str(), &value, 0.01F, 0.0F, 10.0F)) {
-                        mutable_node->set_parameter(param.name, graph::NodeParameter(param.name, value));
-                        parameters_changed = true;
+                    // Use different ranges for different parameter types
+                    if (param.name.find("translate") != std::string::npos) {
+                        // Translation parameters: -10.0 to 10.0
+                        if (ImGui::DragFloat(param.name.c_str(), &value, 0.1F, -10.0F, 10.0F)) {
+                            mutable_node->set_parameter(param.name, graph::NodeParameter(param.name, value));
+                            parameters_changed = true;
+                        }
+                    } else {
+                        // Other parameters: 0.0 to 10.0
+                        if (ImGui::DragFloat(param.name.c_str(), &value, 0.01F, 0.0F, 10.0F)) {
+                            mutable_node->set_parameter(param.name, graph::NodeParameter(param.name, value));
+                            parameters_changed = true;
+                        }
                     }
                     break;
                 }
