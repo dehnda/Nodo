@@ -117,12 +117,51 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - Explain algorithm choices for complex operations
 
 ## TODO List - NodeFluxEngine Development Roadmap
-*🎯 STRATEGIC FOCUS: GPU-Accelerated Procedural Node System*
+*🎯 STRATEGIC FOCUS: Complete Procedural Modeling System with Real-Time Visualization*
 
-### 🎯 High Priority (Next Sprint) - Procedural Foundation
-- [x] **Unit Testing Framework**: Enable Google Test and write comprehensive tests
-- [x] **Performance Optimization**: Add spatial data structures (BVH/Octree) ✅ 45x speedup achieved
-### 🎯 High Priority (Next Sprint) - Procedural Foundation  
+### �️ High Priority (Week 3) - Modern Architecture Foundation
+- [ ] **Clean Architecture Implementation**: Implement new data model separation
+  - [ ] **NodeGraph Core**: Pure data model with serialization support (nodeflux::graph::NodeGraph)
+  - [ ] **ExecutionEngine**: Separate graph execution logic with dependency resolution
+  - [ ] **GraphSerializer**: JSON-based save/load with version compatibility
+  - [ ] **ModernNodeGraphEditor**: UI layer cleanly separated from data model
+  - [ ] **Migration Path**: Migrate existing NodeGraphEditor to new architecture
+
+### 🎨 Week 4 - Real-Time Visualization System
+- [ ] **3D Renderer Architecture**: Real-time mesh visualization and manipulation
+  - [ ] **ViewportRenderer**: OpenGL-based 3D viewport with camera controls
+  - [ ] **MeshRenderCache**: GPU buffer management for dynamic mesh updates
+  - [ ] **Scene Management**: Multi-mesh scene with selection and highlighting
+  - [ ] **Camera System**: Orbit/pan/zoom controls with smooth transitions
+  - [ ] **Viewport Integration**: Embed 3D viewport in node editor layout
+- [ ] **Real-Time Updates**: Live mesh preview as node graph changes
+  - [ ] **Change Notifications**: Automatic viewport updates on graph execution
+  - [ ] **Selective Updates**: Only re-render changed nodes for performance
+  - [ ] **Preview Modes**: Wireframe, solid, normal visualization
+  - [ ] **Performance Optimization**: LOD and frustum culling for large scenes
+
+### 🔧 Current Priority (Week 3) - Advanced Procedural Operations
+- [x] **Transform & Array Nodes**: TransformSOP, ArraySOP, MirrorSOP with GPU acceleration ✅ MirrorSOP completed
+- [x] **Enhanced Boolean Nodes**: BooleanSOP with GPU BVH integration ✅ Complete implementation
+- [ ] **Advanced Transformations**: ExtrudeSOP, BevelSOP, InsetSOP as procedural nodes
+- [ ] **Subdivision Surfaces**: SubdivisionSOP (Catmull-Clark and Loop) enhancement
+- [ ] **Material System**: Basic material/attribute support for procedural meshes
+- [ ] **Mesh Smoothing**: LaplacianSOP, TaubinSOP as modifier nodes
+
+### 🚀 Future Features (Month 2) - Production-Ready System
+- [x] **Noise Functions**: NoiseDisplacementSOP (Perlin, Simplex) ✅ Basic implementation complete
+- [ ] **Advanced Rendering Features**:
+  - [ ] **Material Editor**: Node-based material/shader editor
+  - [ ] **Texture Support**: UV mapping and texture coordinate generation
+  - [ ] **Lighting System**: Real-time lighting with shadows
+  - [ ] **Post-Processing**: Ambient occlusion, anti-aliasing, tone mapping
+- [ ] **Production Pipeline**:
+  - [ ] **Asset Browser**: File management and asset preview
+  - [ ] **Export Pipeline**: Multi-format export (OBJ, glTF, STL, PLY)
+  - [ ] **Batch Processing**: Command-line tools for automation
+  - [ ] **Plugin Architecture**: Extensible node system
+
+### 🎯 High Priority (Completed) - Procedural Foundation  
 - [x] **Unit Testing Framework**: Enable Google Test and write comprehensive tests ✅ 59 tests with 52 passing
 - [x] **Performance Optimization**: Add spatial data structures (BVH/Octree) ✅ 45x speedup achieved
 - [x] **Torus Generator**: Add torus primitive to complete basic geometry set ✅
@@ -130,22 +169,6 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - [x] **GPU Mesh Primitives**: Complete Box, Cylinder, Plane generators with compute shaders ✅ All implemented
 - [x] **SOP Data Flow Architecture**: Core GeometryData containers and NodePort connection system ✅ Complete
 - [x] **Procedural Execution Engine**: Smart caching, dependency resolution, GPU batch processing ✅ Working
-
-### 🔧 Current Priority (Week 3) - Advanced Procedural Operations
-- [x] **Transform & Array Nodes**: TransformSOP, ArraySOP, MirrorSOP with GPU acceleration ✅ MirrorSOP completed
-- [x] **Enhanced Boolean Nodes**: BooleanSOP with GPU BVH integration ✅ Complete implementation
-- [ ] **Advanced Transformations**: ExtrudeSOP, BevelSOP, InsetSOP as procedural nodes (Week 3)
-- [ ] **Subdivision Surfaces**: SubdivisionSOP (Catmull-Clark and Loop) enhancement (Week 3)
-- [ ] **Material System**: Basic material/attribute support for procedural meshes (Week 3)
-- [ ] **Mesh Smoothing**: LaplacianSOP, TaubinSOP as modifier nodes (Week 3)
-
-### 🚀 Future Features (Next Quarter) - Advanced Procedural Suite
-- [x] **Noise Functions**: NoiseDisplacementSOP (Perlin, Simplex) ✅ Basic implementation complete
-- [ ] **GPU Boolean Operations**: Full GPU acceleration for complex geometric operations in node graph
-- [ ] **UV Unwrapping**: Automatic texture coordinate generation as procedural node
-- [ ] **PLY Format Support**: Import/export for point cloud data with node integration
-- [ ] **glTF Export**: Modern 3D format for web and real-time applications
-- [ ] **Additional Primitives**: ConeSOP, RoundedBoxSOP generators as procedural nodes
 
 ### ✅ Completed Features
 - [x] **Core Architecture**: C++20 modern design with std::optional error handling
@@ -162,6 +185,7 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - [x] **BVH Spatial Acceleration**: 45x speedup over brute-force with enhanced boolean operations
 - [x] **GPU Mesh Generation**: Real-time mesh generation with 10-100x speedups for large meshes
 - [x] **Complete SOP System**: BooleanSOP, MirrorSOP, ArraySOP, SubdivisionSOP, NoiseDisplacementSOP
+- [x] **Visual Node Editor**: Working ImNodes-based editor with fixed initialization ✅
 
 ### 📋 Technical Debt & Improvements
 - [ ] **Code Quality**: Address remaining linter warnings (magic numbers, short variable names)
@@ -170,29 +194,28 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 - [ ] **Documentation**: Add Doxygen generation and API documentation
 - [ ] **CI/CD Pipeline**: GitHub Actions for automated testing and builds
 
-### 🎨 UI & Visualization (Future) - Visual Interface
-- [ ] **Node Graph Editor**: Visual SOP-based editing interface for procedural workflows
-- [ ] **3D Viewport**: Real-time mesh preview and manipulation
-- [ ] **Parameter Widgets**: UI controls for generator parameters
-- [ ] **Export Dialog**: User-friendly file export interface
+### 🎨 UI & Visualization Roadmap - Complete Visual Pipeline
+- [x] **Node Graph Editor**: Visual SOP-based editing interface for procedural workflows ✅ Working
+- [ ] **3D Viewport Integration**: Real-time mesh preview within node editor
+  - [ ] **ViewportWidget**: Embeddable 3D viewport using OpenGL/ImGui
+  - [ ] **Camera Controls**: Mouse-based orbit, pan, zoom with smooth interpolation
+  - [ ] **Mesh Rendering**: Vertex buffer objects with dynamic updates
+  - [ ] **Selection System**: Click-to-select meshes with visual highlighting
+  - [ ] **Gizmos**: Transform handles for direct mesh manipulation
+- [ ] **Advanced Visualization**:
+  - [ ] **Multi-Viewport**: Multiple camera angles and split-screen views
+  - [ ] **Render Modes**: Wireframe, solid, normal maps, UV coordinates
+  - [ ] **Animation Support**: Keyframe animation and parameter interpolation
+  - [ ] **Performance Profiler**: Real-time performance metrics and bottleneck analysis
 
 ### 📊 Performance & Scalability - Production Ready
 - [ ] **Benchmarking Suite**: Performance regression testing for procedural workflows
 - [ ] **Parallel Processing**: OpenMP for multi-threaded SOP operations
 - [ ] **LOD System**: Level-of-detail for large procedural scene management
 - [ ] **Streaming**: Support for procedural meshes larger than available RAM
+- [ ] **GPU Memory Management**: Efficient GPU buffer pooling and reuse
+- [ ] **Viewport Optimization**: Frustum culling, occlusion culling, instanced rendering
 
 ---
-*Last Updated: July 16, 2025 - Week 2 COMPLETE*
-*Current Focus: Week 3 Advanced transformations (ExtrudeSOP, LaplacianSOP, MaterialSOP)*
-- [ ] **Export Dialog**: User-friendly file export interface
-
-### 📊 Performance & Scalability
-- [ ] **Benchmarking Suite**: Performance regression testing
-- [ ] **Parallel Processing**: OpenMP for multi-threaded operations
-- [ ] **LOD System**: Level-of-detail for large scene management
-- [ ] **Streaming**: Support for meshes larger than available RAM
-
----
-*Last Updated: July 16, 2025*
-*Current Focus: GPU-accelerated mesh generation and spatial data structures*
+*Last Updated: July 17, 2025 - Architecture Planning Phase*
+*Current Focus: Clean architecture foundation → Real-time visualization system*

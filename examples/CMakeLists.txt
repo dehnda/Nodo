@@ -1,5 +1,11 @@
 # Examples
 
+add_executable(debug_mesh_generation debug_mesh_generation.cpp)
+target_link_libraries(debug_mesh_generation nodeflux_core)
+
+add_executable(clean_architecture_demo clean_architecture_demo.cpp)
+target_link_libraries(clean_architecture_demo nodeflux_core)
+
 add_executable(basic_union basic_union.cpp)
 target_link_libraries(basic_union nodeflux_core)
 

@@ -89,6 +89,10 @@ add_library(nodeflux_core
     src/sop/noise_displacement_sop.cpp
     src/sop/subdivision_sop.cpp
 
+    # Graph system (clean architecture)
+    src/graph/node_graph.cpp
+    src/graph/execution_engine.cpp
+
     # UI components (conditional)
     $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/node_graph_editor.cpp>
     
