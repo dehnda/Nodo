@@ -12,7 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Build options
 option(NODEFLUX_BUILD_EXAMPLES "Build example applications" ON)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
-option(NODEFLUX_BUILD_UI "Build UI components" OFF)
+option(NODEFLUX_BUILD_UI "Build UI components" ON)
 
 # Conan dependencies
 find_package(Eigen3 REQUIRED)
@@ -25,6 +25,17 @@ find_package(mpfr REQUIRED)
 find_package(cgal REQUIRED)
 if(NODEFLUX_BUILD_TESTS)
     find_package(GTest REQUIRED)
+endif()
+if(NODEFLUX_BUILD_UI)
+    find_package(imgui REQUIRED)
+    # ImNodes from source
+    add_library(imnodes STATIC
+        third_party/imnodes/imnodes.cpp
+    )
+    target_include_directories(imnodes PUBLIC
+        third_party/imnodes
+    )
+    target_link_libraries(imnodes PUBLIC imgui::imgui)
 endif()
 
 # All dependencies now managed by Conan - see conanfile.txt
@@ -77,11 +88,18 @@ add_library(nodeflux_core
     src/sop/mirror_sop.cpp
     src/sop/noise_displacement_sop.cpp
     src/sop/subdivision_sop.cpp
+
+    # UI components (conditional)
+    $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/node_graph_editor.cpp>
+    
+    # ImNodes source (conditional)
+    $<$<BOOL:${NODEFLUX_BUILD_UI}>:third_party/imnodes/imnodes.cpp>
 )
 
 target_include_directories(nodeflux_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -95,6 +113,8 @@ target_link_libraries(nodeflux_core
         gmp::gmp
         mpfr::mpfr
         CGAL::CGAL
+        $<$<BOOL:${NODEFLUX_BUILD_UI}>:imgui::imgui>
+        $<$<BOOL:${NODEFLUX_BUILD_UI}>:imnodes>
 )
 
 # Compiler features and warnings
@@ -119,7 +139,31 @@ endif()
 
 # UI components (optional)
 if(NODEFLUX_BUILD_UI)
-    add_subdirectory(ui)
+    find_package(imgui REQUIRED)
+    find_package(glfw3 REQUIRED)
+    find_package(GLEW REQUIRED)
+    
+    # Add compile definition for ImNodes math operators
+    target_compile_definitions(nodeflux_core PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
+    
+    # Add backend sources to core library
+    target_sources(nodeflux_core PRIVATE
+        src/backends/imgui_impl_glfw.cpp
+        src/backends/imgui_impl_opengl3.cpp
+    )
+    
+    # Add UI and backends include directories
+    target_include_directories(nodeflux_core PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/ui>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/backends>
+        $<INSTALL_INTERFACE:include>
+    )
+    # Link ImGui, GLFW, and OpenGL to core library
+    target_link_libraries(nodeflux_core PUBLIC 
+        imgui::imgui 
+        glfw 
+        GLEW::GLEW
+    )
 endif()
 
 # Installation

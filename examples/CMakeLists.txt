@@ -71,3 +71,31 @@ target_link_libraries(week2_working_sop_demo nodeflux_core)
 # Week 3 Advanced SOP Demo - ExtrudeSOP, LaplacianSOP, advanced workflows
 add_executable(week3_advanced_sop_demo week3_advanced_sop_demo.cpp)
 target_link_libraries(week3_advanced_sop_demo nodeflux_core)
+
+# Simple Node Editor Demo - Console-based procedural workflow demonstration
+add_executable(simple_node_editor simple_node_editor.cpp)
+target_link_libraries(simple_node_editor nodeflux_core)
+
+# ImNodes Visual Editor Demo - Demonstrates the visual node editor with ImNodes integration
+if(NODEFLUX_BUILD_UI)
+    add_executable(imnodes_visual_editor imnodes_visual_editor.cpp)
+    target_link_libraries(imnodes_visual_editor nodeflux_core)
+endif()
+
+# Visual Node Editor App - Full ImGui/ImNodes procedural modeling interface
+if(NODEFLUX_BUILD_UI)
+    add_executable(visual_node_editor visual_node_editor.cpp)
+    target_link_libraries(visual_node_editor nodeflux_core)
+endif()
+
+# Node Graph Editor App - Visual interface for procedural modeling (requires UI)
+if(NODEFLUX_BUILD_UI)
+    add_executable(node_graph_editor_app node_graph_editor_app.cpp)
+    target_link_libraries(node_graph_editor_app nodeflux_core imgui::imgui)
+endif()
+
+# Fixed Visual Node Editor - Working ImNodes integration
+if(NODEFLUX_BUILD_UI)
+    add_executable(fixed_visual_node_editor fixed_visual_node_editor.cpp)
+    target_link_libraries(fixed_visual_node_editor nodeflux_core)
+endif()
