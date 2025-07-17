@@ -4,6 +4,28 @@
 
 This is a modern C++20 procedural mesh generation library project. Please follow these guidelines:
 
+## 🎯 **MENTORING MODE - PRIMARY DIRECTIVE**
+**Act as a coding mentor and guide, NOT an implementer. Focus on:**
+- **Teaching through questions**: Ask guiding questions to help me discover solutions
+- **Code review & feedback**: Analyze my code and suggest improvements with explanations
+- **Architecture guidance**: Help me think through design decisions and trade-offs
+- **Best practices coaching**: Explain WHY certain approaches are better
+- **Problem-solving methodology**: Guide me through debugging and optimization strategies
+- **Learning resources**: Suggest documentation, patterns, and techniques to study
+
+**DO NOT:**
+- Write complete implementations for me
+- Directly solve problems without letting me work through them
+- Make file changes unless specifically requested for setup/configuration
+- Rush to solutions - prioritize understanding over speed
+
+**INSTEAD:**
+- Point me toward the right direction with hints and questions
+- Help me break down complex problems into manageable steps  
+- Review my code and explain improvements
+- Suggest what to research or study next
+- Help me understand error messages and debugging approaches
+
 ## Code Style & Standards
 - Use C++20 features: concepts, ranges, std::optional, modules where appropriate
 - **Avoid C++23 features**: Do not use std::expected - use std::optional<T> instead
@@ -119,7 +141,140 @@ This is a modern C++20 procedural mesh generation library project. Please follow
 ## TODO List - NodeFluxEngine Development Roadmap
 *🎯 STRATEGIC FOCUS: Complete Procedural Modeling System with Real-Time Visualization*
 
-### �️ High Priority (Week 3) - Modern Architecture Foundation
+### 🔥 **PHASE 1: Core Procedural Data Architecture (Week 4)**
+*Foundation for Professional Procedural Modeling*
+
+#### **🎯 1.1 Attribute System - Most Critical**
+- [ ] **GeometryAttributes Class**: Core attribute storage and management
+  - [ ] **Per-vertex attributes**: Position, normal, color, UV, custom data
+  - [ ] **Per-face attributes**: Material ID, group ID, custom face data
+  - [ ] **Per-primitive attributes**: Object-level metadata
+  - [ ] **Attribute promotion/demotion**: Convert between vertex/face/primitive levels
+  - [ ] **Attribute transfer**: Copy attributes between geometries
+  - [ ] **Attribute interpolation**: Smooth attribute transitions during operations
+
+#### **🎯 1.2 Enhanced Data Types**
+- [ ] **Extend NodePin::DataType**: Add UV, Color, Vector, Float, Integer types
+- [ ] **Multi-output nodes**: Support nodes with multiple data streams
+- [ ] **Data type validation**: Ensure compatible connections
+- [ ] **Automatic type conversion**: Smart casting between compatible types
+
+#### **🎯 1.3 Selection & Grouping System**
+- [ ] **Selection API**: Point, edge, face, primitive selection
+- [ ] **Group management**: Named groups with add/remove operations
+- [ ] **Pattern-based selection**: Select by attribute values, patterns
+- [ ] **Selection visualization**: Highlight selected components in viewport
+
+### 🎨 **PHASE 2: Essential Procedural Operations (Week 5)**
+*Core Modeling Tools for Professional Workflows*
+
+#### **🎨 2.1 UV Mapping & Texture Coordinates**
+- [ ] **UV Generator Nodes**: Planar, cylindrical, spherical projection
+- [ ] **UV Layout Tools**: Automatic unwrapping and seam detection
+- [ ] **UV Attribute Integration**: Store UV coordinates in attribute system
+- [ ] **Multi-layer UV support**: Multiple UV sets per geometry
+
+#### **🎨 2.2 Advanced Deformation Tools**
+- [ ] **Bend SOP**: Bend geometry along axis with falloff
+- [ ] **Twist SOP**: Twist geometry around axis
+- [ ] **Taper SOP**: Scale geometry along axis
+- [ ] **Lattice SOP**: Lattice-based deformation
+- [ ] **Path Deform SOP**: Deform along curve path
+
+#### **🎨 2.3 Curve & Surface Foundation**
+- [ ] **Curve primitive**: NURBS/Bezier curve support
+- [ ] **Curve generators**: Line, circle, arc, spiral
+- [ ] **Sweep SOP**: Sweep profile along curve
+- [ ] **Extrude SOP**: Extrude face along normal/direction
+- [ ] **Revolve SOP**: Revolve profile around axis
+
+### 🔧 **PHASE 3: Advanced Mesh Operations (Week 6)**
+*Professional Topology & Mesh Editing*
+
+#### **🔧 3.1 Topology Operations**
+- [ ] **Edge operations**: Split, collapse, flip edges
+- [ ] **Face operations**: Inset, outset, bridge faces
+- [ ] **Vertex operations**: Merge, split, slide vertices
+- [ ] **Topology validation**: Manifold checking and repair
+
+#### **🔧 3.2 Measurement & Analysis**
+- [ ] **Measure SOP**: Distance, area, volume calculations
+- [ ] **Connectivity analysis**: Connected components, boundaries
+- [ ] **Geometric analysis**: Curvature, normal computation
+- [ ] **Quality metrics**: Aspect ratio, skewness analysis
+
+#### **🔧 3.3 Instancing & Copying**
+- [ ] **Copy to Points SOP**: Instance geometry at point locations
+- [ ] **Scatter SOP**: Randomly distribute points on surfaces
+- [ ] **Instance management**: Efficient instancing system
+- [ ] **Packed geometry**: Memory-efficient instance storage
+
+### 🚀 **PHASE 4: Production Features (Month 2)**
+*Complete Professional Toolset*
+
+#### **🚀 4.1 Material & Rendering**
+- [ ] **Material attributes**: Diffuse, specular, roughness, metallic
+- [ ] **Shader assignment**: Per-face material assignment
+- [ ] **Texture mapping**: Image texture support with UV coordinates
+- [ ] **Material editor**: Node-based material creation
+
+#### **🚀 4.2 Import/Export Pipeline**
+- [ ] **Enhanced OBJ**: Material (MTL) support
+- [ ] **glTF export**: PBR material support
+- [ ] **STL export**: 3D printing format
+- [ ] **PLY format**: Point cloud and mesh data
+- [ ] **Alembic support**: Animation cache format
+
+#### **🚀 4.3 Advanced Procedural Features**
+- [ ] **Procedural animation**: Time-based parameter animation
+- [ ] **Scripting interface**: Python/VEX-like expression system
+- [ ] **Volume operations**: Voxel-based modeling
+- [ ] **Particle systems**: Point cloud operations
+- [ ] **Simulation integration**: Physics-based modeling
+
+### 🏗️ **ARCHITECTURE DESIGN PRINCIPLES**
+
+#### **🎯 Modular Node System**
+```cpp
+// Example extensible node architecture
+class ProceduralNode {
+    virtual std::vector<NodePin> get_input_pins() const = 0;
+    virtual std::vector<NodePin> get_output_pins() const = 0;
+    virtual void execute(const NodeContext& context) = 0;
+    virtual NodeMetadata get_metadata() const = 0;
+};
+
+// Specialized node types
+class AttributeNode : public ProceduralNode { /* ... */ };
+class DeformationNode : public ProceduralNode { /* ... */ };
+class GeneratorNode : public ProceduralNode { /* ... */ };
+```
+
+#### **🎯 Extensible Data System**
+```cpp
+// Flexible attribute system
+class GeometryAttributes {
+    template<typename T>
+    void add_attribute(const std::string& name, AttributeClass class_type);
+    
+    template<typename T>
+    std::optional<T> get_attribute(const std::string& name, int index) const;
+    
+    void transfer_attributes(const GeometryAttributes& source, const std::vector<int>& mapping);
+};
+```
+
+#### **🎯 Plugin Architecture**
+```cpp
+// Extensible node registration
+class NodeRegistry {
+    static void register_node<T>(const std::string& category, const std::string& name);
+    static std::unique_ptr<ProceduralNode> create_node(const std::string& type);
+    static std::vector<NodeMetadata> get_available_nodes();
+};
+```
+
+### 🎯 High Priority (Week 3) - Modern Architecture Foundation
 - [ ] **Clean Architecture Implementation**: Implement new data model separation
   - [ ] **NodeGraph Core**: Pure data model with serialization support (nodeflux::graph::NodeGraph)
   - [ ] **ExecutionEngine**: Separate graph execution logic with dependency resolution
