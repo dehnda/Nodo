@@ -105,3 +105,9 @@ if(NODEFLUX_BUILD_UI)
     add_executable(fixed_visual_node_editor fixed_visual_node_editor.cpp)
     target_link_libraries(fixed_visual_node_editor nodeflux_core)
 endif()
+
+# Real-Time Renderer Demo - 3D viewport with live procedural mesh updates
+if(NODEFLUX_BUILD_UI)
+    add_executable(real_time_renderer_demo real_time_renderer_demo.cpp)
+    target_link_libraries(real_time_renderer_demo nodeflux_core)
+endif()

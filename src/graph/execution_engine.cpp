@@ -159,4 +159,8 @@ std::vector<std::shared_ptr<core::Mesh>> ExecutionEngine::gather_input_meshes(co
     return input_meshes;
 }
 
+std::unordered_map<int, std::shared_ptr<core::Mesh>> ExecutionEngine::get_all_results() const {
+    return result_cache_;
+}
+
 } // namespace nodeflux::graph

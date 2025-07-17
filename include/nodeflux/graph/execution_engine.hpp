@@ -59,6 +59,12 @@ public:
     std::shared_ptr<core::Mesh> get_node_result(int node_id) const;
     
     /**
+     * @brief Get all cached results
+     * @return Map of node_id -> mesh for all cached results
+     */
+    std::unordered_map<int, std::shared_ptr<core::Mesh>> get_all_results() const;
+    
+    /**
      * @brief Clear execution cache
      */
     void clear_cache();

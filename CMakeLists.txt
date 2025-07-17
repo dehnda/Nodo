@@ -93,8 +93,13 @@ add_library(nodeflux_core
     src/graph/node_graph.cpp
     src/graph/execution_engine.cpp
 
+    # Renderer system (real-time visualization)
+    src/renderer/viewport_renderer.cpp
+    src/renderer/mesh_render_cache.cpp
+
     # UI components (conditional)
     $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/node_graph_editor.cpp>
+    $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/viewport_widget.cpp>
     
     # ImNodes source (conditional)
     $<$<BOOL:${NODEFLUX_BUILD_UI}>:third_party/imnodes/imnodes.cpp>
