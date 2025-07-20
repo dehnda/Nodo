@@ -79,7 +79,6 @@ private:
     void render_properties_panel();
     void render_3d_viewport();
     void render_node_editor();
-    void render_status_bar();
     
     // Project management
     bool create_new_project();

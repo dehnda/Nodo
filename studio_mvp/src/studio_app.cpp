@@ -132,31 +132,27 @@ void StudioApp::run() {
         render_main_menu();
         render_toolbar();
         
-        // Main content area with docking
-        if (ImGui::Begin("NodeFlux Workspace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse)) {
-            
-            // Asset browser (left panel)
-            if (show_asset_browser_) {
-                render_asset_browser();
-            }
-            
-            // 3D Viewport (center)
-            if (show_viewport_) {
-                render_3d_viewport();
-            }
-            
-            // Properties panel (right)
-            if (show_properties_) {
-                render_properties_panel();
-            }
-            
-            // Node editor (bottom area)
-            render_node_editor();
-        }
-        ImGui::End();
+        // Independent dockable panels (no container window needed)
         
-        // Status bar
-        render_status_bar();
+        // Asset browser (dockable panel)
+        if (show_asset_browser_) {
+            render_asset_browser();
+        }
+        
+        // 3D Viewport (dockable panel)
+        if (show_viewport_) {
+            render_3d_viewport();
+        }
+        
+        // Properties panel (dockable panel)
+        if (show_properties_) {
+            render_properties_panel();
+        }
+        
+        // Node editor (dockable panel)
+        render_node_editor();
+        
+        // Status bar removed - information is available in toolbar
         
         // Render ImGui
         ImGui::Render();
@@ -231,7 +227,8 @@ void StudioApp::render_main_menu() {
 }
 
 void StudioApp::render_toolbar() {
-    if (ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+    // Make toolbar dockable by removing restrictive flags
+    if (ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_None)) {
         if (ImGui::Button("🏠 New")) {
             create_new_project();
         }
@@ -434,15 +431,6 @@ void StudioApp::render_node_editor() {
         } else {
             ImGui::Text("Node editor not available");
         }
-    }
-    ImGui::End();
-}
-
-void StudioApp::render_status_bar() {
-    if (ImGui::Begin("Status", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::Text("Status: Ready | GPU: ON | Nodes: %d | Modified: %s", 
-            node_count_,
-            project_modified_ ? "Yes" : "No");
     }
     ImGui::End();
 }
