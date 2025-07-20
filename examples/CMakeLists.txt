@@ -82,6 +82,10 @@ target_link_libraries(week3_advanced_sop_demo nodeflux_core)
 add_executable(geometry_attributes_demo geometry_attributes_demo.cpp)
 target_link_libraries(geometry_attributes_demo nodeflux_core)
 
+# Node Graph Data Flow Demo - Shows integration between node graph and attribute systems
+add_executable(node_graph_data_flow_demo node_graph_data_flow_demo.cpp)
+target_link_libraries(node_graph_data_flow_demo nodeflux_core)
+
 # Simple Node Editor Demo - Console-based procedural workflow demonstration
 add_executable(simple_node_editor simple_node_editor.cpp)
 target_link_libraries(simple_node_editor nodeflux_core)
