@@ -47,6 +47,7 @@ add_library(nodeflux_core
     src/core/mesh.cpp
     src/core/error.cpp
     src/core/math.cpp
+    src/core/geometry_attributes.cpp
 
     # Geometry generators
     src/geometry/boolean_ops.cpp

@@ -78,6 +78,10 @@ target_link_libraries(week2_working_sop_demo nodeflux_core)
 add_executable(week3_advanced_sop_demo week3_advanced_sop_demo.cpp)
 target_link_libraries(week3_advanced_sop_demo nodeflux_core)
 
+# GeometryAttributes System Demo - Comprehensive attribute management
+add_executable(geometry_attributes_demo geometry_attributes_demo.cpp)
+target_link_libraries(geometry_attributes_demo nodeflux_core)
+
 # Simple Node Editor Demo - Console-based procedural workflow demonstration
 add_executable(simple_node_editor simple_node_editor.cpp)
 target_link_libraries(simple_node_editor nodeflux_core)
