@@ -58,9 +58,9 @@ void transform_vertices_range(
     double *output_vertices, int vertex_count, const Matrix3 &rotation,
     const Vector3 &offset) {
   for (int v = 0; v < vertex_count; ++v) {
-    Vector3 input_point = Eigen::Map<const Vector3>(input_vertices + v * 3);
+    ConstVector3Map input_point(input_vertices + v * 3);
     Vector3 transformed = apply_transform(input_point, rotation, offset);
-    Eigen::Map<Vector3>(output_vertices + v * 3) = transformed;
+    Vector3Map(output_vertices + v * 3) = transformed;
   }
 }
 

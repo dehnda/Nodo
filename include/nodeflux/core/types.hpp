@@ -11,6 +11,10 @@ using Vector3i = Eigen::Vector3i; // For face indices, grid coordinates, etc.
 using Matrix3 = Eigen::Matrix3d;
 using Matrix4 = Eigen::Matrix4d;
 
+// Memory mapping types for efficient array access
+using Vector3Map = Eigen::Map<Vector3>;
+using ConstVector3Map = Eigen::Map<const Vector3>;
+
 // Index and counting types
 using Index = std::size_t;
 using Count = std::size_t;
