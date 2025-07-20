@@ -1,6 +1,6 @@
+#include "nodeflux/sop/boolean_sop.hpp"
 #include "nodeflux/core/error.hpp"
 #include "nodeflux/geometry/boolean_ops.hpp"
-#include "nodeflux/sop/boolean_sop.hpp"
 #include <chrono>
 #include <iostream>
 
