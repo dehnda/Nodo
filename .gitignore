@@ -25,6 +25,7 @@ vcpkg_installed/
 _deps/
 third_party/*/
 !third_party/README.md
+!third_party/imgui/
 
 # IDE and editor files
 .vscode/

@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build options
-option(NODEFLUX_BUILD_EXAMPLES "Build example applications" ON)
+option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
 option(NODEFLUX_BUILD_UI "Build UI components" ON)
 
@@ -28,15 +28,49 @@ if(NODEFLUX_BUILD_TESTS)
     find_package(GTest REQUIRED)
 endif()
 if(NODEFLUX_BUILD_UI)
-    find_package(imgui REQUIRED)
-    # ImNodes from source
+    # Find GLFW and OpenGL for ImGui backends
+    find_package(glfw3 REQUIRED)
+    find_package(GLEW REQUIRED)
+    find_package(OpenGL REQUIRED)
+
+    # Build ImGui from docking branch source
+    add_library(imgui STATIC
+        third_party/imgui/imgui.cpp
+        third_party/imgui/imgui_demo.cpp
+        third_party/imgui/imgui_draw.cpp
+        third_party/imgui/imgui_tables.cpp
+        third_party/imgui/imgui_widgets.cpp
+        third_party/imgui/backends/imgui_impl_glfw.cpp
+        third_party/imgui/backends/imgui_impl_opengl3.cpp
+    )
+
+    target_include_directories(imgui PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends>
+        $<INSTALL_INTERFACE:include/imgui>
+    )
+
+    # Enable docking support and link to required libraries
+    target_compile_definitions(imgui PUBLIC
+        IMGUI_DEFINE_MATH_OPERATORS
+        IMGUI_ENABLE_DOCKING
+    )
+
+    target_link_libraries(imgui PUBLIC
+        glfw
+        GLEW::GLEW
+        OpenGL::GL
+    )
+
+    # ImNodes from source - depends on ImGui
     add_library(imnodes STATIC
         third_party/imnodes/imnodes.cpp
     )
     target_include_directories(imnodes PUBLIC
-        third_party/imnodes
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imnodes>
+        $<INSTALL_INTERFACE:include/imnodes>
     )
-    target_link_libraries(imnodes PUBLIC imgui::imgui)
+    target_link_libraries(imnodes PUBLIC imgui)
 endif()
 
 # All dependencies now managed by Conan - see conanfile.txt
@@ -127,7 +161,7 @@ target_link_libraries(nodeflux_core
         gmp::gmp
         mpfr::mpfr
         CGAL::CGAL
-        $<$<BOOL:${NODEFLUX_BUILD_UI}>:imgui::imgui>
+        $<$<BOOL:${NODEFLUX_BUILD_UI}>:imgui>
         $<$<BOOL:${NODEFLUX_BUILD_UI}>:imnodes>
 )
 
@@ -142,7 +176,6 @@ endif()
 
 # Studio MVP Application - Integrated directly
 # Find required UI packages
-find_package(imgui REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -152,7 +185,7 @@ set(STUDIO_MVP_SOURCES
     studio_mvp/src/main.cpp
 )
 
-add_executable(nodeflux_studio_mvp 
+add_executable(nodeflux_studio_mvp
     ${STUDIO_MVP_SOURCES}
 )
 
@@ -165,7 +198,7 @@ target_include_directories(nodeflux_studio_mvp PRIVATE
 target_link_libraries(nodeflux_studio_mvp PRIVATE
     nodeflux_core
     imnodes
-    imgui::imgui
+    imgui
     glfw
     GLEW::GLEW
     OpenGL::GL
@@ -176,10 +209,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(nodeflux_studio_mvp PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Examples
-if(NODEFLUX_BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
 
 # Tests
 if(NODEFLUX_BUILD_TESTS)
@@ -189,20 +218,10 @@ endif()
 
 # UI components (optional)
 if(NODEFLUX_BUILD_UI)
-    find_package(imgui REQUIRED)
     find_package(glfw3 REQUIRED)
     find_package(GLEW REQUIRED)
 
-    # Add compile definition for ImNodes math operators
-    target_compile_definitions(nodeflux_core PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
-
-    # Add backend sources to core library
-    target_sources(nodeflux_core PRIVATE
-        src/backends/imgui_impl_glfw.cpp
-        src/backends/imgui_impl_opengl3.cpp
-    )
-
-    # Add UI and backends include directories
+    # UI and backends include directories
     target_include_directories(nodeflux_core PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/ui>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/backends>
@@ -210,7 +229,7 @@ if(NODEFLUX_BUILD_UI)
     )
     # Link ImGui, GLFW, and OpenGL to core library
     target_link_libraries(nodeflux_core PUBLIC
-        imgui::imgui
+        imgui
         glfw
         GLEW::GLEW
     )
@@ -218,7 +237,7 @@ endif()
 
 # Installation
 include(GNUInstallDirs)
-install(TARGETS nodeflux_core
+install(TARGETS nodeflux_core imgui imnodes
     EXPORT NodeFluxEngineTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

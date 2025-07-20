@@ -5,6 +5,7 @@
 
 #include "studio_app.hpp"
 #include "nodeflux/ui/node_graph_editor.hpp"
+#include "nodeflux/core/mesh.hpp"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <iostream>
@@ -90,9 +91,18 @@ bool StudioApp::initialize_imgui() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // Note: Docking not available in this ImGui version, using basic windowing for MVP
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard navigation
+    
+    // Enable docking and viewports
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        style.WindowRounding = 0.0F;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0F;
+    }
     
     // Setup style
     apply_dark_theme();
@@ -156,6 +166,15 @@ void StudioApp::run() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        
+        // Update and render additional platform windows (for multi-viewport support)
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
         
         glfwSwapBuffers(window_);
     }
@@ -300,10 +319,9 @@ void StudioApp::render_3d_viewport() {
         ImGui::Text("🎯 Real-time Mesh Preview");
         ImGui::Separator();
         
-        // Placeholder for 3D rendering
+        // Get viewport size
         ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         if (viewport_size.x > 0 && viewport_size.y > 0) {
-            // Draw a simple placeholder
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
             ImVec2 canvas_size = viewport_size;
@@ -312,28 +330,99 @@ void StudioApp::render_3d_viewport() {
             draw_list->AddRectFilled(canvas_pos, 
                 ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), 
                 IM_COL32(50, 50, 50, 255));
-                
-            // Placeholder mesh wireframe
-            ImVec2 center = ImVec2(canvas_pos.x + canvas_size.x * 0.5f, canvas_pos.y + canvas_size.y * 0.5f);
-            float radius = 50.0f;
-            draw_list->AddCircle(center, radius, IM_COL32(100, 150, 255, 255), 32, 2.0f);
-            draw_list->AddLine(
-                ImVec2(center.x - radius, center.y), 
-                ImVec2(center.x + radius, center.y), 
-                IM_COL32(100, 150, 255, 255), 1.0f);
-            draw_list->AddLine(
-                ImVec2(center.x, center.y - radius), 
-                ImVec2(center.x, center.y + radius), 
-                IM_COL32(100, 150, 255, 255), 1.0f);
-                
-            ImGui::SetCursorScreenPos(ImVec2(center.x - 30, center.y + 60));
-            ImGui::Text("3D Mesh Preview");
-            ImGui::SetCursorScreenPos(ImVec2(center.x - 40, center.y + 80));
-            ImGui::Text("(Placeholder)");
+            
+            // Try to get mesh from node editor
+            bool has_mesh = false;
+            int vertex_count = 0;
+            
+            if (node_editor_ && node_count_ > 0) {
+                // Try to get output from the first node (or last executed node)
+                auto mesh = node_editor_->get_node_output(0); // Get first node's output
+                if (mesh && mesh->vertices().rows() > 0) {
+                    has_mesh = true;
+                    vertex_count = static_cast<int>(mesh->vertices().rows());
+                    
+                    // Draw actual mesh wireframe representation
+                    ImVec2 center = ImVec2(canvas_pos.x + canvas_size.x * 0.5F, canvas_pos.y + canvas_size.y * 0.5F);
+                    
+                    // Draw a more complex wireframe based on actual mesh data
+                    const auto& vertices = mesh->vertices();
+                    const auto& faces = mesh->faces();
+                    
+                    // Simple 2D projection of 3D mesh for preview
+                    float scale = std::min(canvas_size.x, canvas_size.y) * 0.3F;
+                    
+                    // Draw edges of faces
+                    for (int i = 0; i < faces.rows(); ++i) {
+                        // Draw triangle edges (assuming triangular faces)
+                        for (int j = 0; j < 3; ++j) {
+                            int v1_idx = faces(i, j);
+                            int v2_idx = faces(i, (j + 1) % 3);
+                            
+                            if (v1_idx >= 0 && v1_idx < vertices.rows() && 
+                                v2_idx >= 0 && v2_idx < vertices.rows()) {
+                                
+                                // Get 3D vertices
+                                auto v1 = vertices.row(v1_idx);
+                                auto v2 = vertices.row(v2_idx);
+                                
+                                // Simple orthographic projection (ignore Z for 2D preview)
+                                ImVec2 p1(center.x + static_cast<float>(v1(0)) * scale, 
+                                         center.y - static_cast<float>(v1(1)) * scale);
+                                ImVec2 p2(center.x + static_cast<float>(v2(0)) * scale, 
+                                         center.y - static_cast<float>(v2(1)) * scale);
+                                
+                                draw_list->AddLine(p1, p2, IM_COL32(100, 255, 150, 255), 1.0F);
+                            }
+                        }
+                    }
+                    
+                    // Draw vertices as small dots
+                    for (int i = 0; i < vertices.rows(); ++i) {
+                        auto vertex = vertices.row(i);
+                        ImVec2 point(center.x + static_cast<float>(vertex(0)) * scale, 
+                                    center.y - static_cast<float>(vertex(1)) * scale);
+                        draw_list->AddCircleFilled(point, 2.0F, IM_COL32(255, 255, 100, 255));
+                    }
+                }
+            }
+            
+            if (!has_mesh) {
+                // Draw placeholder if no mesh available
+                ImVec2 center = ImVec2(canvas_pos.x + canvas_size.x * 0.5F, canvas_pos.y + canvas_size.y * 0.5F);
+                float radius = 50.0F;
+                draw_list->AddCircle(center, radius, IM_COL32(100, 150, 255, 255), 32, 2.0F);
+                draw_list->AddLine(
+                    ImVec2(center.x - radius, center.y), 
+                    ImVec2(center.x + radius, center.y), 
+                    IM_COL32(100, 150, 255, 255), 1.0F);
+                draw_list->AddLine(
+                    ImVec2(center.x, center.y - radius), 
+                    ImVec2(center.x, center.y + radius), 
+                    IM_COL32(100, 150, 255, 255), 1.0F);
+                    
+                ImGui::SetCursorScreenPos(ImVec2(center.x - 30, center.y + 60));
+                ImGui::Text("No Mesh");
+                ImGui::SetCursorScreenPos(ImVec2(center.x - 40, center.y + 80));
+                ImGui::Text("(Execute Graph)");
+                vertex_count = 0;
+            }
         }
         
         ImGui::Separator();
-        ImGui::Text("Camera: Orbit | FPS: 60 | Vertices: 1,024");
+        int vertex_count = 0;
+        if (node_count_ > 0) {
+            // Try to get vertex count from first node if available
+            if (node_editor_) {
+                auto mesh = node_editor_->get_node_output(0);
+                if (mesh) {
+                    vertex_count = static_cast<int>(mesh->vertices().rows());
+                }
+            }
+            ImGui::Text("Camera: Orbit | FPS: 60 | Vertices: %d | Nodes: %d", vertex_count, node_count_);
+        } else {
+            ImGui::Text("Camera: Orbit | FPS: 60 | No mesh loaded");
+        }
     }
     ImGui::End();
 }
@@ -429,18 +518,18 @@ bool StudioApp::save_project_as(const std::string& path) {
 }
 
 void StudioApp::setup_docking() {
-    // Simple dockspace setup without advanced DockBuilder APIs
-    // This should work with ImGui 1.92.0 basic docking
-    
+    // Enable dockspace over the entire window
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
     
-    // Use basic window flags (without advanced docking flags that might not be available)
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
+    // Make the dockspace window transparent and take up the full viewport
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     
+    // Remove window decoration and padding for full-screen dockspace
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -450,13 +539,9 @@ void StudioApp::setup_docking() {
     if (ImGui::Begin("NodeFluxStudio Dockspace", &open, window_flags)) {
         ImGui::PopStyleVar(3);
         
-        // Create dockspace if the function exists
+        // Create the main dockspace that covers the entire window
         ImGuiID dockspace_id = ImGui::GetID("NodeFluxStudioDockspace");
-        
-        // Try to create dockspace - this might not work if API is not available
-        // For MVP, we'll use manual window positioning instead
-        ImGui::Text("NodeFluxStudio MVP - Manual Panel Layout");
-        ImGui::Text("(Docking will be added when ImGui API is confirmed)");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
         
         ImGui::End();
     } else {
