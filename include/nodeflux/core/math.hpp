@@ -14,9 +14,9 @@ namespace nodeflux::core::math {
 // Mathematical Constants
 // ============================================================================
 
-constexpr double MATH_PI = 3.14159265358979323846;
-constexpr double DEGREES_TO_RADIANS_FACTOR = MATH_PI / 180.0;
-constexpr double RADIANS_TO_DEGREES_FACTOR = 180.0 / MATH_PI;
+constexpr double PI = 3.14159265358979323846;
+constexpr double DEGREES_TO_RADIANS_FACTOR = PI / 180.0;
+constexpr double RADIANS_TO_DEGREES_FACTOR = 180.0 / PI;
 
 // ============================================================================
 // Angle Conversion
@@ -46,6 +46,11 @@ Vector3 apply_rotation(const Vector3 &point, const Matrix3 &rotation);
 Vector3 apply_translation(const Vector3 &point, const Vector3 &offset);
 Vector3 apply_transform(const Vector3 &point, const Matrix3 &rotation,
                         const Vector3 &offset);
+
+// Mirror/Reflection operations
+Vector3 mirror_point_across_plane(const Vector3 &point,
+                                  const Vector3 &plane_point,
+                                  const Vector3 &plane_normal);
 
 // ============================================================================
 // High-Level Mesh Operations (forward declaration to avoid circular dependency)

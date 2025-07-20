@@ -1,10 +1,9 @@
 #include "nodeflux/sop/mirror_sop.hpp"
+#include "nodeflux/core/math.hpp"
 #include <chrono>
 #include <iostream>
 
 namespace nodeflux::sop {
-
-constexpr double REFLECTION_FACTOR = 2.0;
 
 MirrorSOP::MirrorSOP(std::string name) : name_(std::move(name)) {}
 
@@ -15,8 +14,8 @@ void MirrorSOP::set_plane(MirrorPlane plane) {
   }
 }
 
-void MirrorSOP::set_custom_plane(const Eigen::Vector3d &point,
-                                 const Eigen::Vector3d &normal) {
+void MirrorSOP::set_custom_plane(const core::Vector3 &point,
+                                 const core::Vector3 &normal) {
   if (custom_point_ != point || custom_normal_ != normal) {
     custom_point_ = point;
     custom_normal_ = normal.normalized();
@@ -48,21 +47,21 @@ std::optional<core::Mesh> MirrorSOP::execute() {
     const auto &original_faces = input_mesh_->faces();
 
     // Determine mirror plane
-    Eigen::Vector3d plane_point;
-    Eigen::Vector3d plane_normal;
+    core::Vector3 plane_point;
+    core::Vector3 plane_normal;
 
     switch (plane_) {
     case MirrorPlane::XY:
-      plane_point = Eigen::Vector3d::Zero();
-      plane_normal = Eigen::Vector3d::UnitZ();
+      plane_point = core::Vector3::Zero();
+      plane_normal = core::Vector3::UnitZ();
       break;
     case MirrorPlane::XZ:
-      plane_point = Eigen::Vector3d::Zero();
-      plane_normal = Eigen::Vector3d::UnitY();
+      plane_point = core::Vector3::Zero();
+      plane_normal = core::Vector3::UnitY();
       break;
     case MirrorPlane::YZ:
-      plane_point = Eigen::Vector3d::Zero();
-      plane_normal = Eigen::Vector3d::UnitX();
+      plane_point = core::Vector3::Zero();
+      plane_normal = core::Vector3::UnitX();
       break;
     case MirrorPlane::CUSTOM:
       plane_point = custom_point_;
@@ -76,11 +75,9 @@ std::optional<core::Mesh> MirrorSOP::execute() {
     core::Mesh::Vertices mirrored_vertices(original_vertices.rows(), 3);
 
     for (int i = 0; i < original_vertices.rows(); ++i) {
-      Eigen::Vector3d vertex = original_vertices.row(i);
-      Eigen::Vector3d to_vertex = vertex - plane_point;
-      double distance = to_vertex.dot(plane_normal);
-      Eigen::Vector3d mirrored =
-          vertex - REFLECTION_FACTOR * distance * plane_normal;
+      core::Vector3 vertex = original_vertices.row(i);
+      core::Vector3 mirrored = core::math::mirror_point_across_plane(
+          vertex, plane_point, plane_normal);
       mirrored_vertices.row(i) = mirrored;
     }
 
@@ -176,24 +173,18 @@ std::string MirrorSOP::plane_to_string(MirrorPlane plane) {
   }
 }
 
-std::vector<Eigen::Vector3d>
-MirrorSOP::mirror_vertices(const std::vector<Eigen::Vector3d> &vertices,
-                           const Eigen::Vector3d &plane_point,
-                           const Eigen::Vector3d &plane_normal) const {
+std::vector<core::Vector3>
+MirrorSOP::mirror_vertices(const std::vector<core::Vector3> &vertices,
+                           const core::Vector3 &plane_point,
+                           const core::Vector3 &plane_normal) const {
 
-  std::vector<Eigen::Vector3d> mirrored_vertices;
+  std::vector<core::Vector3> mirrored_vertices;
   mirrored_vertices.reserve(vertices.size());
 
   for (const auto &vertex : vertices) {
-    // Vector from plane point to vertex
-    Eigen::Vector3d to_vertex = vertex - plane_point;
-
-    // Project onto plane normal to get distance
-    double distance = to_vertex.dot(plane_normal);
-
-    // Mirror by reflecting across the plane
-    Eigen::Vector3d mirrored =
-        vertex - REFLECTION_FACTOR * distance * plane_normal;
+    // Use the new math utility function
+    core::Vector3 mirrored = core::math::mirror_point_across_plane(
+        vertex, plane_point, plane_normal);
     mirrored_vertices.push_back(mirrored);
   }
 

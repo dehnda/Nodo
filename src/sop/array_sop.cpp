@@ -1,4 +1,7 @@
 #include "nodeflux/sop/array_sop.hpp"
+#include "nodeflux/core/math.hpp"
+#include "nodeflux/core/types.hpp"
+
 #include <cmath>
 #include <iostream>
 
@@ -72,14 +75,10 @@ ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
   // Copy geometry for each array element
   for (int i = 0; i < count_; ++i) {
     // Calculate rotation angle
-    double angle_rad = (angle_step_ * static_cast<double>(i)) * M_PI / 180.0;
+    double angle_rad = core::math::degrees_to_radians(angle_step_ * i);
+    auto rotation = core::math::rotation_z(angle_rad);
 
-    // Create rotation matrix around Z-axis
-    core::Matrix3 rotation;
-    rotation << std::cos(angle_rad), -std::sin(angle_rad), 0,
-        std::sin(angle_rad), std::cos(angle_rad), 0, 0, 0, 1;
-
-    // Position offset (if radius > 0)
+    // Calculate position offset (radial positioning)
     core::Vector3 position_offset = radial_center_.cast<double>();
     if (radial_radius_ > 0.0F) {
       position_offset +=
@@ -90,10 +89,11 @@ ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
     // Copy vertices with rotation and translation
     int vertex_start = i * input_vertices.rows();
     for (int v = 0; v < input_vertices.rows(); ++v) {
-      core::Vector3 rotated_vertex =
-          rotation * input_vertices.row(v).transpose();
-      output_vertices.row(vertex_start + v) =
-          (rotated_vertex + position_offset).transpose();
+      // Get the original vertex and transform it
+      core::Vector3 original_vertex = input_vertices.row(v).transpose();
+      core::Vector3 transformed_vertex = core::math::apply_transform(
+          original_vertex, rotation, position_offset);
+      output_vertices.row(vertex_start + v) = transformed_vertex.transpose();
     }
 
     // Copy faces with vertex index offset

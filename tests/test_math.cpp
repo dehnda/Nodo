@@ -17,7 +17,7 @@ TEST(MathTest, rotation_x_with_zero_radians_returns_identity) {
 }
 
 TEST(MathTest, rotation_x_with_pi_radians_returns_correct_matrix) {
-  auto result = ::math::rotation_x(::math::MATH_PI);
+  auto result = ::math::rotation_x(::math::PI);
   ::Matrix3 expected;
   // clang-format off
     expected << 1,  0,  0,
@@ -29,7 +29,7 @@ TEST(MathTest, rotation_x_with_pi_radians_returns_correct_matrix) {
 }
 
 TEST(MathTest, rotation_x_with_pi_over_two_radians_returns_correct_matrix) {
-  auto result = ::math::rotation_x(::math::MATH_PI / 2);
+  auto result = ::math::rotation_x(::math::PI / 2);
   ::Matrix3 expected;
   // clang-format off
     expected << 1,  0,  0,
@@ -41,7 +41,7 @@ TEST(MathTest, rotation_x_with_pi_over_two_radians_returns_correct_matrix) {
 }
 
 TEST(MathTest, rotation_x_actually_rotates_points) {
-  auto rotation = ::math::rotation_x(::math::MATH_PI / 2);
+  auto rotation = ::math::rotation_x(::math::PI / 2);
 
   // Test Y-axis point
   ::Vector3 point_y(0, 1, 0);
@@ -69,7 +69,7 @@ TEST(MathTest, rotation_y_with_zero_radians_returns_identity) {
 }
 
 TEST(MathTest, rotation_y_with_pi_radians_returns_correct_matrix) {
-  auto result = ::math::rotation_y(::math::MATH_PI);
+  auto result = ::math::rotation_y(::math::PI);
   ::Matrix3 expected;
   // clang-format off
     expected << -1, 0, 0,
@@ -81,7 +81,7 @@ TEST(MathTest, rotation_y_with_pi_radians_returns_correct_matrix) {
 }
 
 TEST(MathTest, rotation_y_with_pi_over_two_radians_returns_correct_matrix) {
-  auto result = ::math::rotation_y(::math::MATH_PI / 2);
+  auto result = ::math::rotation_y(::math::PI / 2);
   ::Matrix3 expected;
   // clang-format off
     expected << 0, 0, 1,
@@ -93,7 +93,7 @@ TEST(MathTest, rotation_y_with_pi_over_two_radians_returns_correct_matrix) {
 }
 
 TEST(MathTest, rotation_y_actually_rotates_points) {
-  auto rotation = ::math::rotation_y(::math::MATH_PI / 2);
+  auto rotation = ::math::rotation_y(::math::PI / 2);
 
   // Test X-axis point
   ::Vector3 point_x(1, 0, 0);
@@ -121,7 +121,7 @@ TEST(MathTest, rotation_z_with_zero_radians_returns_identity) {
 }
 
 TEST(MathTest, rotation_z_with_pi_radians_returns_correct_matrix) {
-  auto result = ::math::rotation_z(::math::MATH_PI);
+  auto result = ::math::rotation_z(::math::PI);
   ::Matrix3 expected;
   // clang-format off
     expected << -1, 0, 0,
@@ -133,7 +133,7 @@ TEST(MathTest, rotation_z_with_pi_radians_returns_correct_matrix) {
 }
 
 TEST(MathTest, rotation_z_with_pi_over_two_radians_returns_correct_matrix) {
-  auto result = ::math::rotation_z(::math::MATH_PI / 2);
+  auto result = ::math::rotation_z(::math::PI / 2);
   ::Matrix3 expected;
   // clang-format off
     expected << 0, -1, 0,
@@ -145,7 +145,7 @@ TEST(MathTest, rotation_z_with_pi_over_two_radians_returns_correct_matrix) {
 }
 
 TEST(MathTest, rotation_z_actually_rotates_points) {
-  auto rotation = ::math::rotation_z(::math::MATH_PI / 2);
+  auto rotation = ::math::rotation_z(::math::PI / 2);
 
   // Test X-axis point
   ::Vector3 point_x(1, 0, 0);
@@ -165,7 +165,7 @@ TEST(MathTest, transform_vertices_range_gives_same_result_as_apply_transform) {
   std::vector<double> input_vertices = {1, 0, 0, 0, 1, 0, 0, 0, 1};
   std::vector<double> output_vertices(9);
 
-  Matrix3 rotation = ::math::rotation_z(math::MATH_PI / 2);
+  Matrix3 rotation = ::math::rotation_z(math::PI / 2);
   Vector3 offset(10, 20, 30);
 
   // Test bulk operation

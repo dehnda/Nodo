@@ -2,6 +2,9 @@
 
 namespace nodeflux::core::math {
 
+// Mirror reflection constants
+constexpr double MIRROR_REFLECTION_FACTOR = 2.0;
+
 Matrix3 rotation_x(double radians) {
   double c = std::cos(radians);
   double s = std::sin(radians);
@@ -51,6 +54,20 @@ Vector3 apply_translation(const Vector3 &point, const Vector3 &offset) {
 Vector3 apply_transform(const Vector3 &point, const Matrix3 &rotation,
                         const Vector3 &offset) {
   return apply_translation(apply_rotation(point, rotation), offset);
+}
+
+Vector3 mirror_point_across_plane(const Vector3 &point,
+                                  const Vector3 &plane_point,
+                                  const Vector3 &plane_normal) {
+  // Vector from plane point to the point being mirrored
+  Vector3 to_point = point - plane_point;
+  
+  // Distance from point to plane (signed distance along normal)
+  double distance = to_point.dot(plane_normal);
+  
+  // Mirror by reflecting across the plane
+  // Formula: mirrored = point - 2 * distance * normal
+  return point - MIRROR_REFLECTION_FACTOR * distance * plane_normal;
 }
 
 void transform_vertices_range(
