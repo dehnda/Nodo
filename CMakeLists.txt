@@ -46,6 +46,7 @@ add_library(nodeflux_core
     # Core system files
     src/core/mesh.cpp
     src/core/error.cpp
+    src/core/math.cpp
 
     # Geometry generators
     src/geometry/boolean_ops.cpp
@@ -100,7 +101,7 @@ add_library(nodeflux_core
     # UI components (conditional)
     $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/node_graph_editor.cpp>
     $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/viewport_widget.cpp>
-    
+
     # ImNodes source (conditional)
     $<$<BOOL:${NODEFLUX_BUILD_UI}>:third_party/imnodes/imnodes.cpp>
 )
@@ -151,16 +152,16 @@ if(NODEFLUX_BUILD_UI)
     find_package(imgui REQUIRED)
     find_package(glfw3 REQUIRED)
     find_package(GLEW REQUIRED)
-    
+
     # Add compile definition for ImNodes math operators
     target_compile_definitions(nodeflux_core PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
-    
+
     # Add backend sources to core library
     target_sources(nodeflux_core PRIVATE
         src/backends/imgui_impl_glfw.cpp
         src/backends/imgui_impl_opengl3.cpp
     )
-    
+
     # Add UI and backends include directories
     target_include_directories(nodeflux_core PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/ui>
@@ -168,9 +169,9 @@ if(NODEFLUX_BUILD_UI)
         $<INSTALL_INTERFACE:include>
     )
     # Link ImGui, GLFW, and OpenGL to core library
-    target_link_libraries(nodeflux_core PUBLIC 
-        imgui::imgui 
-        glfw 
+    target_link_libraries(nodeflux_core PUBLIC
+        imgui::imgui
+        glfw
         GLEW::GLEW
     )
 endif()
