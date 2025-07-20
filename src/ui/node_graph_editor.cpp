@@ -50,6 +50,13 @@ void NodeGraphEditor::initialize() {
     style.Colors[ImNodesCol_TitleBar] = IM_COL32(41, 74, 122, 255);
     style.Colors[ImNodesCol_TitleBarHovered] = IM_COL32(66, 150, 250, 255);
     style.Colors[ImNodesCol_TitleBarSelected] = IM_COL32(81, 148, 204, 255);
+    
+    // Set fixed grid spacing to prevent stretching when window is resized
+    constexpr float FIXED_GRID_SPACING = 24.0F;
+    style.GridSpacing = FIXED_GRID_SPACING;
+    
+    // Enable grid lines for better visual feedback
+    style.Flags |= ImNodesStyleFlags_GridLines;
 
     is_initialized_ = true;
   }

@@ -426,11 +426,18 @@ void StudioApp::render_3d_viewport() {
 
 void StudioApp::render_node_editor() {
     if (ImGui::Begin("Node Graph Editor")) {
-        if (node_editor_) {
-            node_editor_->render();
-        } else {
-            ImGui::Text("Node editor not available");
+        // Get the available content region for proper ImNodes scaling
+        ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+        
+        // Set up a child window to contain the node editor with proper sizing
+        if (ImGui::BeginChild("NodeEditorCanvas", canvas_size, ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar)) {
+            if (node_editor_) {
+                node_editor_->render();
+            } else {
+                ImGui::Text("Node editor not available");
+            }
         }
+        ImGui::EndChild();
     }
     ImGui::End();
 }
