@@ -140,6 +140,42 @@ else()
     target_compile_options(nodeflux_core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+# Studio MVP Application - Integrated directly
+# Find required UI packages
+find_package(imgui REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
+
+set(STUDIO_MVP_SOURCES
+    studio_mvp/src/studio_app.cpp
+    studio_mvp/src/main.cpp
+)
+
+add_executable(nodeflux_studio_mvp 
+    ${STUDIO_MVP_SOURCES}
+)
+
+target_include_directories(nodeflux_studio_mvp PRIVATE
+    studio_mvp/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imnodes
+)
+
+target_link_libraries(nodeflux_studio_mvp PRIVATE
+    nodeflux_core
+    imnodes
+    imgui::imgui
+    glfw
+    GLEW::GLEW
+    OpenGL::GL
+    ${CMAKE_DL_LIBS}
+)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(nodeflux_studio_mvp PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 # Examples
 if(NODEFLUX_BUILD_EXAMPLES)
     add_subdirectory(examples)
