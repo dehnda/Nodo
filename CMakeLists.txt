@@ -23,6 +23,7 @@ find_package(opengl_system REQUIRED)
 find_package(gmp REQUIRED)
 find_package(mpfr REQUIRED)
 find_package(cgal REQUIRED)
+find_package(nlohmann_json REQUIRED)
 if(NODEFLUX_BUILD_TESTS)
     find_package(GTest REQUIRED)
 endif()
@@ -94,6 +95,7 @@ add_library(nodeflux_core
     # Graph system (clean architecture)
     src/graph/node_graph.cpp
     src/graph/execution_engine.cpp
+    src/graph/graph_serializer.cpp
 
     # Renderer system (real-time visualization)
     src/renderer/viewport_renderer.cpp
@@ -118,6 +120,7 @@ target_link_libraries(nodeflux_core
     PUBLIC
         Eigen3::Eigen
         fmt::fmt
+        nlohmann_json::nlohmann_json
         glfw
         GLEW::GLEW
         opengl::opengl

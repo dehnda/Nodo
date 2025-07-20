@@ -86,6 +86,18 @@ target_link_libraries(geometry_attributes_demo nodeflux_core)
 add_executable(node_graph_data_flow_demo node_graph_data_flow_demo.cpp)
 target_link_libraries(node_graph_data_flow_demo nodeflux_core)
 
+# JSON Graph Creation Demo - Easy graph creation and serialization with JSON
+add_executable(json_graph_creation_demo json_graph_creation_demo.cpp)
+target_link_libraries(json_graph_creation_demo nodeflux_core)
+
+# Simple JSON Test - Basic test of JSON serialization functionality
+add_executable(simple_json_test simple_json_test.cpp)
+target_link_libraries(simple_json_test nodeflux_core)
+
+# JSON Template Loader - Shows how to load and use JSON graph templates
+add_executable(json_template_loader json_template_loader.cpp)
+target_link_libraries(json_template_loader nodeflux_core)
+
 # Simple Node Editor Demo - Console-based procedural workflow demonstration
 add_executable(simple_node_editor simple_node_editor.cpp)
 target_link_libraries(simple_node_editor nodeflux_core)

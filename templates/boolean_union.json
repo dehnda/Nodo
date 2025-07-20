@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "description": "Boolean union of two primitives - common workflow",
+  "nodes": [
+    {
+      "id": 0,
+      "type": "Sphere",
+      "name": "Sphere_A",
+      "position": [-150.0, 0.0],
+      "parameters": [
+        {"name": "radius", "type": "float", "value": 1.0},
+        {"name": "segments", "type": "int", "value": 16}
+      ]
+    },
+    {
+      "id": 1,
+      "type": "Box",
+      "name": "Box_B",
+      "position": [-150.0, 100.0],
+      "parameters": [
+        {"name": "width", "type": "float", "value": 1.5},
+        {"name": "height", "type": "float", "value": 1.5},
+        {"name": "depth", "type": "float", "value": 1.5}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "Boolean",
+      "name": "Union_Result",
+      "position": [100.0, 50.0],
+      "parameters": [
+        {"name": "operation", "type": "string", "value": "union"}
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": 0,
+      "source_node": 0,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    },
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 1
+    }
+  ]
+}

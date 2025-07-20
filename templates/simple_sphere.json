@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "description": "Simple sphere generator - basic primitive",
+  "nodes": [
+    {
+      "id": 0,
+      "type": "Sphere",
+      "name": "Basic_Sphere",
+      "position": [0.0, 0.0],
+      "parameters": [
+        {"name": "radius", "type": "float", "value": 1.0},
+        {"name": "segments", "type": "int", "value": 16}
+      ]
+    }
+  ],
+  "connections": []
+}

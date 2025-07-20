@@ -9,6 +9,7 @@ mpfr/4.2.1
 cgal/5.6.1
 gtest/1.14.0
 imgui/1.90.1
+nlohmann_json/3.12.0
 
 [generators]
 CMakeDeps
