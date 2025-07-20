@@ -6,10 +6,13 @@
 #include "nodeflux/ui/node_graph_editor.hpp"
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/geometry/mesh_generator.hpp"
+#include "nodeflux/graph/graph_serializer.hpp"
+#include "nodeflux/graph/node_graph.hpp"
 #include "nodeflux/sop/boolean_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
 #include "nodeflux/sop/laplacian_sop.hpp"
 #include <algorithm>
+#include <fstream>
 
 namespace nodeflux::ui {
 
@@ -405,6 +408,234 @@ std::shared_ptr<core::Mesh>
 NodeGraphEditor::get_node_output(int node_id) const {
   auto it = node_cache_.find(node_id);
   return (it != node_cache_.end()) ? it->second : nullptr;
+}
+
+// JSON Integration Implementation
+std::string NodeGraphEditor::serialize_to_json() const {
+  // Convert UI nodes to graph format
+  graph::NodeGraph graph;
+
+  // Convert nodes
+  for (const auto &ui_node : nodes_) {
+    // Convert UI NodeType to graph NodeType
+    graph::NodeType graph_type;
+    switch (ui_node.type) {
+    case ui::NodeType::Sphere:
+      graph_type = graph::NodeType::Sphere;
+      break;
+    case ui::NodeType::Box:
+      graph_type = graph::NodeType::Box;
+      break;
+    case ui::NodeType::Cylinder:
+      graph_type = graph::NodeType::Cylinder;
+      break;
+    case ui::NodeType::Plane:
+      graph_type = graph::NodeType::Plane;
+      break;
+    case ui::NodeType::Torus:
+      graph_type = graph::NodeType::Torus;
+      break;
+    case ui::NodeType::Extrude:
+      graph_type = graph::NodeType::Extrude;
+      break;
+    case ui::NodeType::Smooth:
+      graph_type = graph::NodeType::Smooth;
+      break;
+    case ui::NodeType::Boolean:
+      graph_type = graph::NodeType::Boolean;
+      break;
+    case ui::NodeType::Transform:
+      graph_type = graph::NodeType::Transform;
+      break;
+    case ui::NodeType::Array:
+      graph_type = graph::NodeType::Array;
+      break;
+    case ui::NodeType::Mirror:
+      graph_type = graph::NodeType::Mirror;
+      break;
+    default:
+      graph_type = graph::NodeType::Sphere;
+      break;
+    }
+
+    // Add node to graph
+    int new_id = graph.add_node(graph_type, ui_node.name);
+    auto *graph_node = graph.get_node(new_id);
+    if (graph_node) {
+      // Set position
+      graph_node->set_position(ui_node.position.x, ui_node.position.y);
+
+      // Add parameters based on node type
+      switch (ui_node.type) {
+      case ui::NodeType::Sphere:
+        graph_node->add_parameter(
+            graph::NodeParameter("radius", ui_node.radius));
+        graph_node->add_parameter(
+            graph::NodeParameter("subdivisions", ui_node.subdivisions));
+        break;
+      case ui::NodeType::Box:
+        graph_node->add_parameter(graph::NodeParameter("size", ui_node.radius));
+        break;
+      case ui::NodeType::Cylinder:
+        graph_node->add_parameter(
+            graph::NodeParameter("radius", ui_node.radius));
+        graph_node->add_parameter(
+            graph::NodeParameter("subdivisions", ui_node.subdivisions));
+        break;
+      case ui::NodeType::Extrude:
+        graph_node->add_parameter(
+            graph::NodeParameter("distance", ui_node.distance));
+        break;
+      case ui::NodeType::Smooth:
+        graph_node->add_parameter(
+            graph::NodeParameter("iterations", ui_node.iterations));
+        break;
+      // Add more parameter mappings as needed
+      default:
+        break;
+      }
+    }
+  }
+
+  // Convert connections
+  for (const auto &ui_link : links_) {
+    int source_node = ui_link.get_start_node_id();
+    int target_node = ui_link.get_end_node_id();
+    graph.add_connection(source_node, 0, target_node,
+                         0); // Simplified pin mapping
+  }
+
+  return graph::GraphSerializer::serialize_to_json(graph);
+}
+
+bool NodeGraphEditor::load_from_json(const std::string &json_str) {
+  auto graph_opt = graph::GraphSerializer::deserialize_from_json(json_str);
+  if (!graph_opt) {
+    return false;
+  }
+
+  const auto &graph = *graph_opt;
+
+  // Clear current graph
+  clear_graph();
+
+  // Convert graph nodes to UI nodes
+  const auto &graph_nodes = graph.get_nodes();
+  for (const auto &graph_node : graph_nodes) {
+    // Convert graph NodeType to UI NodeType
+    ui::NodeType ui_type;
+    switch (graph_node->get_type()) {
+    case graph::NodeType::Sphere:
+      ui_type = ui::NodeType::Sphere;
+      break;
+    case graph::NodeType::Box:
+      ui_type = ui::NodeType::Box;
+      break;
+    case graph::NodeType::Cylinder:
+      ui_type = ui::NodeType::Cylinder;
+      break;
+    case graph::NodeType::Plane:
+      ui_type = ui::NodeType::Plane;
+      break;
+    case graph::NodeType::Torus:
+      ui_type = ui::NodeType::Torus;
+      break;
+    case graph::NodeType::Extrude:
+      ui_type = ui::NodeType::Extrude;
+      break;
+    case graph::NodeType::Smooth:
+      ui_type = ui::NodeType::Smooth;
+      break;
+    case graph::NodeType::Boolean:
+      ui_type = ui::NodeType::Boolean;
+      break;
+    case graph::NodeType::Transform:
+      ui_type = ui::NodeType::Transform;
+      break;
+    case graph::NodeType::Array:
+      ui_type = ui::NodeType::Array;
+      break;
+    case graph::NodeType::Mirror:
+      ui_type = ui::NodeType::Mirror;
+      break;
+    default:
+      ui_type = ui::NodeType::Sphere;
+      break;
+    }
+
+    // Get position
+    auto position = graph_node->get_position();
+    ImVec2 ui_position(static_cast<float>(position.first),
+                       static_cast<float>(position.second));
+
+    // Add node to UI
+    int ui_node_id = add_node(ui_type, ui_position);
+
+    // Find the UI node and update parameters
+    auto ui_node_it = std::find_if(
+        nodes_.begin(), nodes_.end(),
+        [ui_node_id](const GraphNode &node) { return node.id == ui_node_id; });
+
+    if (ui_node_it != nodes_.end()) {
+      ui_node_it->name = graph_node->get_name();
+
+      // Update parameters from graph node
+      const auto &parameters = graph_node->get_parameters();
+      for (const auto &param : parameters) {
+        if (param.name == "radius" &&
+            param.type == graph::NodeParameter::Type::Float) {
+          ui_node_it->radius = param.float_value;
+        } else if (param.name == "size" &&
+                   param.type == graph::NodeParameter::Type::Float) {
+          ui_node_it->radius = param.float_value; // UI uses radius for size
+        } else if (param.name == "subdivisions" &&
+                   param.type == graph::NodeParameter::Type::Int) {
+          ui_node_it->subdivisions = param.int_value;
+        } else if (param.name == "distance" &&
+                   param.type == graph::NodeParameter::Type::Float) {
+          ui_node_it->distance = param.float_value;
+        } else if (param.name == "iterations" &&
+                   param.type == graph::NodeParameter::Type::Int) {
+          ui_node_it->iterations = param.int_value;
+        }
+      }
+    }
+  }
+
+  // Convert connections
+  const auto &graph_connections = graph.get_connections();
+  for (const auto &conn : graph_connections) {
+    // Create UI link
+    NodeLink ui_link;
+    ui_link.id = next_link_id_++;
+    ui_link.start_pin_id = get_output_pin_id(conn.source_node_id);
+    ui_link.end_pin_id = get_input_pin_id(conn.target_node_id);
+    links_.push_back(ui_link);
+  }
+
+  return true;
+}
+
+bool NodeGraphEditor::save_to_file(const std::string &filename) {
+  std::string json_str = serialize_to_json();
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    return false;
+  }
+  file << json_str;
+  return true;
+}
+
+bool NodeGraphEditor::load_from_file(const std::string &filename) {
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    return false;
+  }
+
+  std::string json_str((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
+
+  return load_from_json(json_str);
 }
 
 } // namespace nodeflux::ui
