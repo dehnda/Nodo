@@ -73,7 +73,7 @@ int main() {
     linear_array.set_array_type(sop::ArraySOP::ArrayType::LINEAR);
     linear_array.set_count(4);
     linear_array.set_linear_offset(
-        Eigen::Vector3f(LINEAR_ARRAY_OFFSET, 0.0F, 0.0F));
+        core::Vector3(LINEAR_ARRAY_OFFSET, 0.0F, 0.0F));
 
     auto linear_result = linear_array.process(sphere_mesh);
     if (linear_result) {

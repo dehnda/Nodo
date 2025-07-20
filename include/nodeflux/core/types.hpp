@@ -6,6 +6,8 @@
 namespace nodeflux::core {
 
 // Basic mathematical types for procedural modeling
+using Vector2i = Eigen::Vector2i;
+using Vector2f = Eigen::Vector2f;
 using Vector3 = Eigen::Vector3d;
 using Vector3i = Eigen::Vector3i; // For face indices, grid coordinates, etc.
 using Matrix3 = Eigen::Matrix3d;

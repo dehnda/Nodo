@@ -34,7 +34,7 @@ ArraySOP::create_linear_array(const core::Mesh &input_mesh) {
   // Copy geometry for each array element
   for (int i = 0; i < count_; ++i) {
     // Calculate offset for this copy
-    Eigen::Vector3d current_offset =
+    core::Vector3 current_offset =
         (linear_offset_ * static_cast<float>(i)).cast<double>();
 
     // Copy vertices with offset
@@ -75,22 +75,22 @@ ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
     double angle_rad = (angle_step_ * static_cast<double>(i)) * M_PI / 180.0;
 
     // Create rotation matrix around Z-axis
-    Eigen::Matrix3d rotation;
+    core::Matrix3 rotation;
     rotation << std::cos(angle_rad), -std::sin(angle_rad), 0,
         std::sin(angle_rad), std::cos(angle_rad), 0, 0, 0, 1;
 
     // Position offset (if radius > 0)
-    Eigen::Vector3d position_offset = radial_center_.cast<double>();
+    core::Vector3 position_offset = radial_center_.cast<double>();
     if (radial_radius_ > 0.0F) {
       position_offset +=
-          Eigen::Vector3d(radial_radius_ * std::cos(angle_rad),
-                          radial_radius_ * std::sin(angle_rad), 0.0);
+          core::Vector3(radial_radius_ * std::cos(angle_rad),
+                        radial_radius_ * std::sin(angle_rad), 0.0);
     }
 
     // Copy vertices with rotation and translation
     int vertex_start = i * input_vertices.rows();
     for (int v = 0; v < input_vertices.rows(); ++v) {
-      Eigen::Vector3d rotated_vertex =
+      core::Vector3 rotated_vertex =
           rotation * input_vertices.row(v).transpose();
       output_vertices.row(vertex_start + v) =
           (rotated_vertex + position_offset).transpose();
@@ -129,8 +129,8 @@ ArraySOP::create_grid_array(const core::Mesh &input_mesh) {
   for (int y = 0; y < grid_size_.y(); ++y) {
     for (int x = 0; x < grid_size_.x(); ++x) {
       // Calculate grid position offset
-      Eigen::Vector3d grid_offset(x * grid_spacing_.x(), y * grid_spacing_.y(),
-                                  0.0);
+      core::Vector3 grid_offset(x * grid_spacing_.x(), y * grid_spacing_.y(),
+                                0.0);
 
       // Copy vertices with offset
       int vertex_start = copy_index * input_vertices.rows();

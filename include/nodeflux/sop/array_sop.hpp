@@ -1,6 +1,8 @@
 #pragma once
 
 #include "nodeflux/core/mesh.hpp"
+#include "nodeflux/core/types.hpp"
+
 #include <Eigen/Dense>
 #include <optional>
 #include <string>
@@ -32,15 +34,15 @@ private:
   int count_ = 3;
 
   // Linear array parameters
-  Eigen::Vector3f linear_offset_{1.0F, 0.0F, 0.0F};
+  core::Vector3 linear_offset_{1.0F, 0.0F, 0.0F};
 
   // Radial array parameters
-  Eigen::Vector3f radial_center_{0.0F, 0.0F, 0.0F};
+  core::Vector3 radial_center_{0.0F, 0.0F, 0.0F};
   float radial_radius_ = DEFAULT_RADIAL_RADIUS;
   float angle_step_ = DEFAULT_ANGLE_STEP; // degrees
 
   // Grid array parameters
-  Eigen::Vector2i grid_size_{3, 3};
+  core::Vector2i grid_size_{3, 3};
   Eigen::Vector2f grid_spacing_{1.0F, 1.0F};
 
 public:
@@ -53,12 +55,12 @@ public:
   void set_count(int count) { count_ = std::max(1, count); }
 
   // Linear array configuration
-  void set_linear_offset(const Eigen::Vector3f &offset) {
+  void set_linear_offset(const core::Vector3 &offset) {
     linear_offset_ = offset;
   }
 
   // Radial array configuration
-  void set_radial_center(const Eigen::Vector3f &center) {
+  void set_radial_center(const core::Vector3 &center) {
     radial_center_ = center;
   }
   void set_radial_radius(float radius) { radial_radius_ = radius; }
@@ -66,7 +68,7 @@ public:
 
   // Grid array configuration
   void set_grid_size(int width, int height) {
-    grid_size_ = Eigen::Vector2i(width, height);
+    grid_size_ = core::Vector2i(width, height);
   }
   void set_grid_spacing(float x_spacing, float y_spacing) {
     grid_spacing_ = Eigen::Vector2f(x_spacing, y_spacing);
@@ -75,12 +77,12 @@ public:
   // Getters
   ArrayType get_array_type() const { return array_type_; }
   int get_count() const { return count_; }
-  const Eigen::Vector3f &get_linear_offset() const { return linear_offset_; }
-  const Eigen::Vector3f &get_radial_center() const { return radial_center_; }
+  const core::Vector3 &get_linear_offset() const { return linear_offset_; }
+  const core::Vector3 &get_radial_center() const { return radial_center_; }
   float get_radial_radius() const { return radial_radius_; }
   float get_angle_step() const { return angle_step_; }
-  const Eigen::Vector2i &get_grid_size() const { return grid_size_; }
-  const Eigen::Vector2f &get_grid_spacing() const { return grid_spacing_; }
+  const core::Vector2i &get_grid_size() const { return grid_size_; }
+  const core::Vector2f &get_grid_spacing() const { return grid_spacing_; }
 
   /**
    * @brief Apply array operation to input mesh
