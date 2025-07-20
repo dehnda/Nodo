@@ -336,8 +336,8 @@ void StudioApp::render_3d_viewport() {
             int vertex_count = 0;
             
             if (node_editor_ && node_count_ > 0) {
-                // Try to get output from the first node (or last executed node)
-                auto mesh = node_editor_->get_node_output(0); // Get first node's output
+                // Try to get mesh from any available node
+                auto mesh = node_editor_->get_first_available_mesh();
                 if (mesh && mesh->vertices().rows() > 0) {
                     has_mesh = true;
                     vertex_count = static_cast<int>(mesh->vertices().rows());
@@ -412,9 +412,9 @@ void StudioApp::render_3d_viewport() {
         ImGui::Separator();
         int vertex_count = 0;
         if (node_count_ > 0) {
-            // Try to get vertex count from first node if available
+            // Try to get vertex count from any available mesh
             if (node_editor_) {
-                auto mesh = node_editor_->get_node_output(0);
+                auto mesh = node_editor_->get_first_available_mesh();
                 if (mesh) {
                     vertex_count = static_cast<int>(mesh->vertices().rows());
                 }

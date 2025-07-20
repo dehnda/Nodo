@@ -41,7 +41,7 @@ struct GraphNode {
 
   // Node parameters (simplified for demo)
   float radius = 1.0f;
-  int subdivisions = 32;
+  int subdivisions = 3;  // Valid range for icosphere is 0-5
   float distance = 0.5f;
   int iterations = 3;
 
@@ -131,6 +131,12 @@ public:
    * @return Shared pointer to the output mesh, or nullptr if not available
    */
   std::shared_ptr<nodeflux::core::Mesh> get_node_output(int node_id) const;
+
+  /**
+   * @brief Get the first available mesh output from any node
+   * @return Shared pointer to the first available mesh, or nullptr if none available
+   */
+  std::shared_ptr<nodeflux::core::Mesh> get_first_available_mesh() const;
 
   /**
    * @brief Enable/disable automatic graph execution on parameter changes

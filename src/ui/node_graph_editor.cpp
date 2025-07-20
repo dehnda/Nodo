@@ -8,6 +8,7 @@
 #include "nodeflux/geometry/mesh_generator.hpp"
 #include "nodeflux/graph/graph_serializer.hpp"
 #include "nodeflux/graph/node_graph.hpp"
+#include <iostream>
 #include "nodeflux/sop/boolean_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
 #include "nodeflux/sop/laplacian_sop.hpp"
@@ -133,7 +134,7 @@ void NodeGraphEditor::render_node_parameters(GraphNode &node) {
   switch (node.type) {
   case NodeType::Sphere:
     changed |= ImGui::SliderFloat("Radius", &node.radius, 0.1F, 5.0F);
-    changed |= ImGui::SliderInt("Subdivisions", &node.subdivisions, 4, 64);
+    changed |= ImGui::SliderInt("Subdivisions", &node.subdivisions, 0, 5);  // Valid range for icosphere
     break;
 
   case NodeType::Box:
@@ -142,7 +143,7 @@ void NodeGraphEditor::render_node_parameters(GraphNode &node) {
 
   case NodeType::Cylinder:
     changed |= ImGui::SliderFloat("Radius", &node.radius, 0.1F, 5.0F);
-    changed |= ImGui::SliderInt("Subdivisions", &node.subdivisions, 8, 64);
+    changed |= ImGui::SliderInt("Subdivisions", &node.subdivisions, 3, 32);  // Reasonable range for cylinder segments
     break;
 
   case NodeType::Extrude:
@@ -408,6 +409,18 @@ std::shared_ptr<core::Mesh>
 NodeGraphEditor::get_node_output(int node_id) const {
   auto it = node_cache_.find(node_id);
   return (it != node_cache_.end()) ? it->second : nullptr;
+}
+
+std::shared_ptr<core::Mesh>
+NodeGraphEditor::get_first_available_mesh() const {
+  // Try to get the first available mesh from any node
+  for (const auto& [node_id, mesh] : node_cache_) {
+    if (mesh && mesh->vertices().rows() > 0) {
+      return mesh;
+    }
+  }
+  
+  return nullptr;
 }
 
 // JSON Integration Implementation
