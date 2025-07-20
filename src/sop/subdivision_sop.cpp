@@ -1,4 +1,5 @@
 #include "nodeflux/sop/subdivisions_sop.hpp"
+#include "nodeflux/core/types.hpp"
 #include <vector>
 
 namespace nodeflux::sop {
@@ -28,8 +29,8 @@ SubdivisionSOP::apply_catmull_clark_subdivision(const core::Mesh &mesh) {
   const auto &faces = mesh.faces();
 
   // Simple approach: refine each triangle by adding midpoints and face center
-  std::vector<Eigen::Vector3d> new_vertices;
-  std::vector<Eigen::Vector3i> new_faces;
+  std::vector<core::Vector3> new_vertices;
+  std::vector<core::Vector3i> new_faces;
 
   // Add original vertices
   for (int i = 0; i < vertices.rows(); ++i) {
@@ -41,19 +42,21 @@ SubdivisionSOP::apply_catmull_clark_subdivision(const core::Mesh &mesh) {
     const auto &face = faces.row(face_idx);
 
     // Get face vertices
-    Eigen::Vector3d v0 = vertices.row(face(0));
-    Eigen::Vector3d v1 = vertices.row(face(1));
-    Eigen::Vector3d v2 = vertices.row(face(2));
+    core::Vector3 vertex_0 = vertices.row(face(0));
+    core::Vector3 vertex_1 = vertices.row(face(1));
+    core::Vector3 vertex_2 = vertices.row(face(2));
 
     // Calculate face center
-    Eigen::Vector3d face_center = (v0 + v1 + v2) / 3.0;
+    constexpr double TRIANGLE_VERTEX_COUNT = 3.0;
+    core::Vector3 face_center = (vertex_0 + vertex_1 + vertex_2) / TRIANGLE_VERTEX_COUNT;
     int face_center_idx = static_cast<int>(new_vertices.size());
     new_vertices.push_back(face_center);
 
     // Calculate edge midpoints
-    Eigen::Vector3d edge01_mid = (v0 + v1) / 2.0;
-    Eigen::Vector3d edge12_mid = (v1 + v2) / 2.0;
-    Eigen::Vector3d edge20_mid = (v2 + v0) / 2.0;
+    constexpr double EDGE_MIDPOINT_FACTOR = 2.0;
+    core::Vector3 edge01_mid = (vertex_0 + vertex_1) / EDGE_MIDPOINT_FACTOR;
+    core::Vector3 edge12_mid = (vertex_1 + vertex_2) / EDGE_MIDPOINT_FACTOR;
+    core::Vector3 edge20_mid = (vertex_2 + vertex_0) / EDGE_MIDPOINT_FACTOR;
 
     int edge01_idx = static_cast<int>(new_vertices.size());
     int edge12_idx = static_cast<int>(new_vertices.size() + 1);

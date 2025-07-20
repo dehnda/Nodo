@@ -1,4 +1,5 @@
 #include "nodeflux/sop/noise_displacement_sop.hpp"
+#include "nodeflux/core/types.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -25,7 +26,7 @@ NoiseDisplacementSOP::process(const core::Mesh &input_mesh) {
   auto &vertices = result.vertices();
 
   for (int i = 0; i < vertices.rows(); ++i) {
-    Eigen::Vector3d vertex = vertices.row(i);
+    core::Vector3 vertex = vertices.row(i);
 
     // Generate noise value at vertex position
     float noise_value =
@@ -34,8 +35,8 @@ NoiseDisplacementSOP::process(const core::Mesh &input_mesh) {
 
     // Calculate displacement direction (outward from origin for sphere-like
     // shapes)
-    Eigen::Vector3d displacement_direction =
-        Eigen::Vector3d(0, 0, 1); // Default upward
+    core::Vector3 displacement_direction =
+        core::Vector3(0, 0, 1); // Default upward
 
     // Use position-based normal for sphere-like shapes
     if (vertex.norm() > VERTEX_NORMAL_THRESHOLD) {
@@ -43,7 +44,7 @@ NoiseDisplacementSOP::process(const core::Mesh &input_mesh) {
     }
 
     // Apply displacement
-    Eigen::Vector3d displacement =
+    core::Vector3 displacement =
         displacement_direction * (noise_value * amplitude_);
     vertices.row(i) = vertex + displacement;
   }

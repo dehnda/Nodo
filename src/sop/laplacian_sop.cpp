@@ -1,4 +1,5 @@
 #include "nodeflux/sop/laplacian_sop.hpp"
+#include "nodeflux/core/types.hpp"
 #include <cmath>
 #include <functional>
 #include <iostream>
