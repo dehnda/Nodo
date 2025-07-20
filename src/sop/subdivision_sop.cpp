@@ -1,5 +1,6 @@
 #include "nodeflux/sop/subdivisions_sop.hpp"
 #include "nodeflux/core/types.hpp"
+#include "nodeflux/core/math.hpp"
 #include <vector>
 
 namespace nodeflux::sop {
@@ -46,17 +47,15 @@ SubdivisionSOP::apply_catmull_clark_subdivision(const core::Mesh &mesh) {
     core::Vector3 vertex_1 = vertices.row(face(1));
     core::Vector3 vertex_2 = vertices.row(face(2));
 
-    // Calculate face center
-    constexpr double TRIANGLE_VERTEX_COUNT = 3.0;
-    core::Vector3 face_center = (vertex_0 + vertex_1 + vertex_2) / TRIANGLE_VERTEX_COUNT;
+    // Calculate face center using utility function
+    core::Vector3 face_center = core::math::triangle_centroid(vertex_0, vertex_1, vertex_2);
     int face_center_idx = static_cast<int>(new_vertices.size());
     new_vertices.push_back(face_center);
 
-    // Calculate edge midpoints
-    constexpr double EDGE_MIDPOINT_FACTOR = 2.0;
-    core::Vector3 edge01_mid = (vertex_0 + vertex_1) / EDGE_MIDPOINT_FACTOR;
-    core::Vector3 edge12_mid = (vertex_1 + vertex_2) / EDGE_MIDPOINT_FACTOR;
-    core::Vector3 edge20_mid = (vertex_2 + vertex_0) / EDGE_MIDPOINT_FACTOR;
+    // Calculate edge midpoints using utility function
+    core::Vector3 edge01_mid = core::math::midpoint(vertex_0, vertex_1);
+    core::Vector3 edge12_mid = core::math::midpoint(vertex_1, vertex_2);
+    core::Vector3 edge20_mid = core::math::midpoint(vertex_2, vertex_0);
 
     int edge01_idx = static_cast<int>(new_vertices.size());
     int edge12_idx = static_cast<int>(new_vertices.size() + 1);

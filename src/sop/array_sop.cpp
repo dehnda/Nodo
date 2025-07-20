@@ -81,9 +81,7 @@ ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
     // Calculate position offset (radial positioning)
     core::Vector3 position_offset = radial_center_.cast<double>();
     if (radial_radius_ > 0.0F) {
-      position_offset +=
-          core::Vector3(radial_radius_ * std::cos(angle_rad),
-                        radial_radius_ * std::sin(angle_rad), 0.0);
+      position_offset += core::math::circular_offset_2d(radial_radius_, angle_rad);
     }
 
     // Copy vertices with rotation and translation

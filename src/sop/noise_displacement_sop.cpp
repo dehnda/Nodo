@@ -1,6 +1,6 @@
 #include "nodeflux/sop/noise_displacement_sop.hpp"
 #include "nodeflux/core/types.hpp"
-#include <algorithm>
+#include "nodeflux/core/math.hpp"
 #include <cmath>
 
 namespace nodeflux::sop {
@@ -43,10 +43,10 @@ NoiseDisplacementSOP::process(const core::Mesh &input_mesh) {
       displacement_direction = vertex.normalized();
     }
 
-    // Apply displacement
-    core::Vector3 displacement =
-        displacement_direction * (noise_value * amplitude_);
-    vertices.row(i) = vertex + displacement;
+    // Apply displacement using utility function
+    core::Vector3 displaced_vertex = core::math::displace_along_direction(
+        vertex, displacement_direction, noise_value * amplitude_);
+    vertices.row(i) = displaced_vertex;
   }
 
   return result;
