@@ -9,7 +9,6 @@ mpfr/4.2.1
 cgal/5.6.1
 gtest/1.14.0
 imgui/1.90.1
-nativefiledialog-extended/1.1.0
 
 [generators]
 CMakeDeps
