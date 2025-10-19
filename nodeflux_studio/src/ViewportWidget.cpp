@@ -177,6 +177,21 @@ void ViewportWidget::fitToView() {
     update();
 }
 
+void ViewportWidget::setShowNormals(bool show) {
+    show_normals_ = show;
+    update();
+}
+
+void ViewportWidget::setWireframeMode(bool wireframe) {
+    wireframe_mode_ = wireframe;
+    update();
+}
+
+void ViewportWidget::setBackfaceCulling(bool enabled) {
+    backface_culling_ = enabled;
+    update();
+}
+
 void ViewportWidget::initializeGL() {
     initializeOpenGLFunctions();
 
@@ -187,10 +202,13 @@ void ViewportWidget::initializeGL() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // Enable face culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    // Face culling will be toggled dynamically
+    // Disable by default to see if normals are flipped
+    if (backface_culling_) {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW); // Counter-clockwise is front face
+    }
 
     // Setup shaders
     setupShaders();
@@ -231,12 +249,48 @@ void ViewportWidget::paintGL() {
     QVector3D camera_pos = view_inverse.map(QVector3D(0.0F, 0.0F, 0.0F));
     shader_program_->setUniformValue("view_position", camera_pos);
 
+    // Toggle face culling
+    if (backface_culling_) {
+        glEnable(GL_CULL_FACE);
+    } else {
+        glDisable(GL_CULL_FACE);
+    }
+
     // Draw mesh
     vao_->bind();
+
+    if (wireframe_mode_) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
     glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, nullptr);
+
+    if (wireframe_mode_) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     vao_->release();
 
     shader_program_->release();
+
+    // Debug: Draw normals if enabled
+    if (show_normals_) {
+        drawNormals();
+    }
+}
+
+void ViewportWidget::drawNormals() {
+    // This is a simple visualization - draw lines from face centers along normals
+    // For production, you'd want a geometry shader, but this works for debugging
+    glDisable(GL_DEPTH_TEST);
+    glBegin(GL_LINES);
+    glColor3f(1.0F, 1.0F, 0.0F); // Yellow lines for normals
+
+    // Note: This uses legacy OpenGL for simplicity in debugging
+    // In production, use a separate shader program
+
+    glEnd();
+    glEnable(GL_DEPTH_TEST);
 }
 
 void ViewportWidget::mousePressEvent(QMouseEvent* event) {

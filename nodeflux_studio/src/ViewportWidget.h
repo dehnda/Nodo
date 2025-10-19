@@ -35,6 +35,11 @@ public:
     void resetCamera();
     void fitToView();
 
+    // Debug visualization
+    void setShowNormals(bool show);
+    void setWireframeMode(bool wireframe);
+    void setBackfaceCulling(bool enabled);
+
 protected:
     // QOpenGLWidget interface
     void initializeGL() override;
@@ -77,10 +82,14 @@ private:
 
     // Rendering state
     bool has_mesh_ = false;
+    bool show_normals_ = false;
+    bool wireframe_mode_ = false;
+    bool backface_culling_ = true;
 
     // Private helper methods
     void setupShaders();
     void setupBuffers();
     void updateCamera();
     void calculateMeshBounds(const nodeflux::core::Mesh& mesh);
+    void drawNormals();
 };

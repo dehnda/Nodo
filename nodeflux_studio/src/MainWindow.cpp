@@ -63,11 +63,24 @@ auto MainWindow::setupMenuBar() -> void {
   viewMenu->addSeparator();
   QAction *clearAction = viewMenu->addAction("&Clear Viewport");
 
+  viewMenu->addSeparator();
+
+  // Debug visualization options
+  QAction *wireframeAction = viewMenu->addAction("Show &Wireframe");
+  wireframeAction->setCheckable(true);
+  wireframeAction->setChecked(false);
+
+  QAction *cullingAction = viewMenu->addAction("Backface C&ulling");
+  cullingAction->setCheckable(true);
+  cullingAction->setChecked(true); // Enabled by default
+
   // Connect view actions
   connect(sphereAction, &QAction::triggered, this, &MainWindow::onLoadTestSphere);
   connect(boxAction, &QAction::triggered, this, &MainWindow::onLoadTestBox);
   connect(cylinderAction, &QAction::triggered, this, &MainWindow::onLoadTestCylinder);
   connect(clearAction, &QAction::triggered, this, &MainWindow::onClearViewport);
+  connect(wireframeAction, &QAction::toggled, this, &MainWindow::onToggleWireframe);
+  connect(cullingAction, &QAction::toggled, this, &MainWindow::onToggleBackfaceCulling);
 }
 
 auto MainWindow::setupDockWidgets() -> void {
@@ -236,4 +249,19 @@ void MainWindow::onClearViewport() {
   delete test_cylinder_node_;
   test_cylinder_node_ = nullptr;
   statusBar()->showMessage("Viewport cleared", STATUS_MSG_DURATION);
+}
+
+void MainWindow::onToggleWireframe(bool enabled) {
+  viewport_widget_->setWireframeMode(enabled);
+  constexpr int STATUS_MSG_DURATION = 1000;
+  statusBar()->showMessage(enabled ? "Wireframe mode enabled" : "Wireframe mode disabled",
+                          STATUS_MSG_DURATION);
+}
+
+void MainWindow::onToggleBackfaceCulling(bool enabled) {
+  viewport_widget_->setBackfaceCulling(enabled);
+  constexpr int STATUS_MSG_DURATION = 1000;
+  statusBar()->showMessage(enabled ? "Backface culling enabled - inverted faces hidden" :
+                                    "Backface culling disabled - see all faces",
+                          STATUS_MSG_DURATION);
 }

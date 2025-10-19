@@ -51,6 +51,10 @@ private slots:
     void onLoadTestCylinder();
     void onClearViewport();
 
+    // Debug visualization
+    void onToggleWireframe(bool enabled);
+    void onToggleBackfaceCulling(bool enabled);
+
     // Property panel callback
     void onParameterChanged();
 };
