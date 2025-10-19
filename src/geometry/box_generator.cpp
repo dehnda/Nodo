@@ -91,30 +91,30 @@ std::optional<core::Mesh> BoxGenerator::generate_from_bounds(
       {min_corner.x(), max_corner.y(), max_corner.z()}  // 7: +Y+Z
   };
 
-  // Generate 6 faces
-  // Front face (Z = min_corner.z)
+  // Generate 6 faces (flip_normal=true for outward-facing normals)
+  // Front face (Z = min_corner.z) - faces toward -Z
   generate_face(mesh, vertex_index, face_index, corners[0], corners[1],
-                corners[2], corners[3], width_segments, height_segments, false);
+                corners[2], corners[3], width_segments, height_segments, true);
 
-  // Back face (Z = max_corner.z)
+  // Back face (Z = max_corner.z) - faces toward +Z
   generate_face(mesh, vertex_index, face_index, corners[5], corners[4],
-                corners[7], corners[6], width_segments, height_segments, false);
+                corners[7], corners[6], width_segments, height_segments, true);
 
-  // Left face (X = min_corner.x)
+  // Left face (X = min_corner.x) - faces toward -X
   generate_face(mesh, vertex_index, face_index, corners[4], corners[0],
-                corners[3], corners[7], depth_segments, height_segments, false);
+                corners[3], corners[7], depth_segments, height_segments, true);
 
-  // Right face (X = max_corner.x)
+  // Right face (X = max_corner.x) - faces toward +X
   generate_face(mesh, vertex_index, face_index, corners[1], corners[5],
-                corners[6], corners[2], depth_segments, height_segments, false);
+                corners[6], corners[2], depth_segments, height_segments, true);
 
-  // Bottom face (Y = min_corner.y)
+  // Bottom face (Y = min_corner.y) - faces toward -Y
   generate_face(mesh, vertex_index, face_index, corners[4], corners[5],
-                corners[1], corners[0], width_segments, depth_segments, false);
+                corners[1], corners[0], width_segments, depth_segments, true);
 
-  // Top face (Y = max_corner.y)
+  // Top face (Y = max_corner.y) - faces toward +Y
   generate_face(mesh, vertex_index, face_index, corners[3], corners[2],
-                corners[6], corners[7], width_segments, depth_segments, false);
+                corners[6], corners[7], width_segments, depth_segments, true);
 
   return mesh;
 }

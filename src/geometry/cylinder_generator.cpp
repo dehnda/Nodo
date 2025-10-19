@@ -130,28 +130,30 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
     }
   }
 
-  // Top cap faces
+  // Top cap faces (fixed winding order for outward normal)
   if (top_cap) {
     const int top_ring_base = height_segments * radial_segments;
     for (int segment = 0; segment < radial_segments; ++segment) {
       const int next_segment = (segment + 1) % radial_segments;
 
+      // Reversed winding: center, next, current (CCW from top view)
       mesh.faces()(face_index, 0) = top_center;
-      mesh.faces()(face_index, 1) = top_ring_base + segment;
-      mesh.faces()(face_index, 2) = top_ring_base + next_segment;
+      mesh.faces()(face_index, 1) = top_ring_base + next_segment;
+      mesh.faces()(face_index, 2) = top_ring_base + segment;
       ++face_index;
     }
   }
 
-  // Bottom cap faces
+  // Bottom cap faces (fixed winding order for outward normal)
   if (bottom_cap) {
     const int bottom_ring_base = 0; // First ring
     for (int segment = 0; segment < radial_segments; ++segment) {
       const int next_segment = (segment + 1) % radial_segments;
 
+      // Reversed winding: center, current, next (CCW from bottom view)
       mesh.faces()(face_index, 0) = bottom_center;
-      mesh.faces()(face_index, 1) = bottom_ring_base + next_segment;
-      mesh.faces()(face_index, 2) = bottom_ring_base + segment;
+      mesh.faces()(face_index, 1) = bottom_ring_base + segment;
+      mesh.faces()(face_index, 2) = bottom_ring_base + next_segment;
       ++face_index;
     }
   }
