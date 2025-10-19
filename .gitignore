@@ -149,3 +149,13 @@ __pycache__/
 examples/output/*.obj
 examples/output/*.stl
 examples/output/*.ply
+
+# Qt generated files
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+*.qm
+.qmake.stash
+*.pro.user
+*.pro.user.*

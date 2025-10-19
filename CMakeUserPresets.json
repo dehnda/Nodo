@@ -4,7 +4,6 @@
         "conan": {}
     },
     "include": [
-        "X:\\google_drive\\projects\\Seasick_Games\\NodeFluxEngine\\build\\CMakePresets.json",
-        "x:\\google_drive\\projects\\Seasick_Games\\NodeFluxEngine\\build\\CMakePresets.json"
+        "\\\\wsl.localhost\\Ubuntu\\home\\daniel\\projects\\NodeFluxEngine\\build\\build\\generators\\CMakePresets.json"
     ]
 }
