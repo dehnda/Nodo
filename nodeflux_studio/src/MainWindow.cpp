@@ -2,8 +2,9 @@
 #include "ViewportWidget.h"
 #include "PropertyPanel.h"
 
-#include <nodeflux/geometry/mesh_generator.hpp>
 #include <nodeflux/nodes/sphere_node.hpp>
+#include <nodeflux/nodes/box_node.hpp>
+#include <nodeflux/nodes/cylinder_node.hpp>
 
 #include <QAction>
 #include <QDockWidget>
@@ -12,7 +13,10 @@
 #include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), test_sphere_node_(nullptr) {
+    : QMainWindow(parent),
+      test_sphere_node_(nullptr),
+      test_box_node_(nullptr),
+      test_cylinder_node_(nullptr) {
   // Setup UI components in order
   setupMenuBar();
   setupDockWidgets();
@@ -24,8 +28,10 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
-  // Clean up test node
+  // Clean up test nodes
   delete test_sphere_node_;
+  delete test_box_node_;
+  delete test_cylinder_node_;
 }
 
 auto MainWindow::setupMenuBar() -> void {
@@ -103,6 +109,16 @@ void MainWindow::onParameterChanged() {
     if (mesh) {
       viewport_widget_->setMesh(*mesh);
     }
+  } else if (test_box_node_ != nullptr) {
+    auto mesh = test_box_node_->generate();
+    if (mesh) {
+      viewport_widget_->setMesh(*mesh);
+    }
+  } else if (test_cylinder_node_ != nullptr) {
+    auto mesh = test_cylinder_node_->generate();
+    if (mesh) {
+      viewport_widget_->setMesh(*mesh);
+    }
   }
 }
 
@@ -157,36 +173,53 @@ void MainWindow::onLoadTestSphere() {
 
 void MainWindow::onLoadTestBox() {
   constexpr int STATUS_MSG_DURATION = 2000;
-  using namespace nodeflux::geometry;
+  using namespace nodeflux::nodes;
 
-  // Clear property panel (box editing not yet implemented)
-  property_panel_->clearProperties();
+  // Clean up old nodes
   delete test_sphere_node_;
   test_sphere_node_ = nullptr;
+  delete test_cylinder_node_;
+  test_cylinder_node_ = nullptr;
+  delete test_box_node_;
 
-  Eigen::Vector3d min_corner(-1.0, -0.75, -0.5);
-  Eigen::Vector3d max_corner(1.0, 0.75, 0.5);
-  auto mesh = MeshGenerator::box(min_corner, max_corner);
-  viewport_widget_->setMesh(mesh);
-  statusBar()->showMessage("Loaded test box (2.0 x 1.5 x 1.0)", STATUS_MSG_DURATION);
+  // Create a box node for editing
+  test_box_node_ = new BoxNode(2.0, 1.5, 1.0);
+
+  // Set it in the property panel
+  property_panel_->setBoxNode(test_box_node_);
+
+  // Generate and display initial mesh
+  auto mesh = test_box_node_->generate();
+  if (mesh) {
+    viewport_widget_->setMesh(*mesh);
+    statusBar()->showMessage("Loaded editable box - adjust parameters in property panel", STATUS_MSG_DURATION);
+  } else {
+    statusBar()->showMessage("Failed to generate box", STATUS_MSG_DURATION);
+  }
 }
 
 void MainWindow::onLoadTestCylinder() {
   constexpr int STATUS_MSG_DURATION = 2000;
-  constexpr int CYLINDER_SEGMENTS = 32;
-  using namespace nodeflux::geometry;
+  using namespace nodeflux::nodes;
 
-  // Clear property panel (cylinder editing not yet implemented)
-  property_panel_->clearProperties();
+  // Clean up old nodes
   delete test_sphere_node_;
   test_sphere_node_ = nullptr;
+  delete test_box_node_;
+  test_box_node_ = nullptr;
+  delete test_cylinder_node_;
 
-  Eigen::Vector3d bottom_center(0.0, -1.0, 0.0);
-  Eigen::Vector3d top_center(0.0, 1.0, 0.0);
-  auto mesh = MeshGenerator::cylinder(bottom_center, top_center, 0.5, CYLINDER_SEGMENTS);
+  // Create a cylinder node for editing
+  test_cylinder_node_ = new CylinderNode(0.5, 2.0, 32);
+
+  // Set it in the property panel
+  property_panel_->setCylinderNode(test_cylinder_node_);
+
+  // Generate and display initial mesh
+  auto mesh = test_cylinder_node_->generate();
   if (mesh) {
     viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage("Loaded test cylinder (r=0.5, h=2.0, 32 segments)", STATUS_MSG_DURATION);
+    statusBar()->showMessage("Loaded editable cylinder - adjust parameters in property panel", STATUS_MSG_DURATION);
   } else {
     statusBar()->showMessage("Failed to generate cylinder", STATUS_MSG_DURATION);
   }
@@ -198,5 +231,9 @@ void MainWindow::onClearViewport() {
   property_panel_->clearProperties();
   delete test_sphere_node_;
   test_sphere_node_ = nullptr;
+  delete test_box_node_;
+  test_box_node_ = nullptr;
+  delete test_cylinder_node_;
+  test_cylinder_node_ = nullptr;
   statusBar()->showMessage("Viewport cleared", STATUS_MSG_DURATION);
 }

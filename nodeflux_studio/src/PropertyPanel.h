@@ -28,6 +28,8 @@ public:
 
     // Set which node to display/edit
     void setSphereNode(nodeflux::nodes::SphereNode* node);
+    void setBoxNode(nodeflux::nodes::BoxNode* node);
+    void setCylinderNode(nodeflux::nodes::CylinderNode* node);
     void clearProperties();
 
 signals:

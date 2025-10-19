@@ -1,5 +1,7 @@
 #include "PropertyPanel.h"
 #include <nodeflux/nodes/sphere_node.hpp>
+#include <nodeflux/nodes/box_node.hpp>
+#include <nodeflux/nodes/cylinder_node.hpp>
 
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -100,6 +102,116 @@ void PropertyPanel::setSphereNode(nodeflux::nodes::SphereNode* node) {
                 emit parameterChanged();
             });
     }
+}
+
+void PropertyPanel::setBoxNode(nodeflux::nodes::BoxNode* node) {
+    if (node == nullptr) {
+        clearProperties();
+        return;
+    }
+
+    clearLayout();
+    current_node_ = node;
+    current_node_type_ = "Box";
+
+    title_label_->setText("Box Properties");
+
+    // Add box parameters
+    addHeader("Dimensions");
+
+    addDoubleParameter("Width", node->width(), 0.01, 100.0,
+        [this, node](double value) {
+            node->set_width(value);
+            emit parameterChanged();
+        });
+
+    addDoubleParameter("Height", node->height(), 0.01, 100.0,
+        [this, node](double value) {
+            node->set_height(value);
+            emit parameterChanged();
+        });
+
+    addDoubleParameter("Depth", node->depth(), 0.01, 100.0,
+        [this, node](double value) {
+            node->set_depth(value);
+            emit parameterChanged();
+        });
+
+    addHeader("Subdivisions");
+
+    addIntParameter("Width Segments", node->width_segments(), 1, 32,
+        [this, node](int value) {
+            node->set_width_segments(value);
+            emit parameterChanged();
+        });
+
+    addIntParameter("Height Segments", node->height_segments(), 1, 32,
+        [this, node](int value) {
+            node->set_height_segments(value);
+            emit parameterChanged();
+        });
+
+    addIntParameter("Depth Segments", node->depth_segments(), 1, 32,
+        [this, node](int value) {
+            node->set_depth_segments(value);
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::setCylinderNode(nodeflux::nodes::CylinderNode* node) {
+    if (node == nullptr) {
+        clearProperties();
+        return;
+    }
+
+    clearLayout();
+    current_node_ = node;
+    current_node_type_ = "Cylinder";
+
+    title_label_->setText("Cylinder Properties");
+
+    // Add cylinder parameters
+    addHeader("Geometry");
+
+    addDoubleParameter("Radius", node->radius(), 0.01, 100.0,
+        [this, node](double value) {
+            node->set_radius(value);
+            emit parameterChanged();
+        });
+
+    addDoubleParameter("Height", node->height(), 0.01, 100.0,
+        [this, node](double value) {
+            node->set_height(value);
+            emit parameterChanged();
+        });
+
+    addHeader("Detail");
+
+    addIntParameter("Radial Segments", node->radial_segments(), 3, 128,
+        [this, node](int value) {
+            node->set_radial_segments(value);
+            emit parameterChanged();
+        });
+
+    addIntParameter("Height Segments", node->height_segments(), 1, 32,
+        [this, node](int value) {
+            node->set_height_segments(value);
+            emit parameterChanged();
+        });
+
+    addHeader("Caps");
+
+    addBoolParameter("Top Cap", node->top_cap(),
+        [this, node](bool value) {
+            node->set_top_cap(value);
+            emit parameterChanged();
+        });
+
+    addBoolParameter("Bottom Cap", node->bottom_cap(),
+        [this, node](bool value) {
+            node->set_bottom_cap(value);
+            emit parameterChanged();
+        });
 }
 
 void PropertyPanel::clearProperties() {

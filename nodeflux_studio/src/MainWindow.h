@@ -8,9 +8,11 @@ class ViewportWidget;
 class PropertyPanel;
 class QDockWidget;
 
-// Forward declare node type
+// Forward declare node types
 namespace nodeflux::nodes {
     class SphereNode;
+    class BoxNode;
+    class CylinderNode;
 }
 
 class MainWindow : public QMainWindow {
@@ -31,8 +33,10 @@ private:
     PropertyPanel* property_panel_;
     QDockWidget* property_dock_;
 
-    // Test node for property panel demo (owned pointer, deleted in destructor)
+    // Test nodes for property panel demo (owned pointers, deleted in destructor)
     nodeflux::nodes::SphereNode* test_sphere_node_;
+    nodeflux::nodes::BoxNode* test_box_node_;
+    nodeflux::nodes::CylinderNode* test_cylinder_node_;
 
 private slots:
     // File menu actions
