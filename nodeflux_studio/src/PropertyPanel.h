@@ -1,0 +1,60 @@
+#pragma once
+
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QScrollArea>
+#include <memory>
+
+// Forward declare node classes
+namespace nodeflux::nodes {
+class SphereNode;
+class BoxNode;
+class CylinderNode;
+}
+
+/**
+ * @brief Property panel for editing node parameters
+ *
+ * Displays a dynamic set of parameter widgets based on the selected node.
+ * Supports different parameter types: int, float, double, bool, etc.
+ */
+class PropertyPanel : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit PropertyPanel(QWidget* parent = nullptr);
+    ~PropertyPanel() override = default;
+
+    // Set which node to display/edit
+    void setSphereNode(nodeflux::nodes::SphereNode* node);
+    void clearProperties();
+
+signals:
+    // Emitted when a parameter changes
+    void parameterChanged();
+
+private:
+    // UI components
+    QScrollArea* scroll_area_;
+    QWidget* content_widget_;
+    QVBoxLayout* content_layout_;
+    QLabel* title_label_;
+
+    // Current node being edited (using void* for now, will improve later)
+    void* current_node_ = nullptr;
+    QString current_node_type_;
+
+    // Helper methods for building UI
+    void clearLayout();
+    void addSeparator();
+    void addHeader(const QString& text);
+
+    // Parameter widget builders
+    void addIntParameter(const QString& label, int value, int min, int max,
+                        std::function<void(int)> callback);
+    void addDoubleParameter(const QString& label, double value, double min, double max,
+                           std::function<void(double)> callback);
+    void addBoolParameter(const QString& label, bool value,
+                         std::function<void(bool)> callback);
+};

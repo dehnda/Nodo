@@ -1,0 +1,86 @@
+#pragma once
+
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QMatrix4x4>
+#include <QVector3D>
+#include <memory>
+
+// Forward declare Mesh class
+namespace nodeflux::core {
+class Mesh;
+}
+
+/**
+ * @brief OpenGL viewport widget for rendering 3D meshes
+ *
+ * This widget provides a real-time 3D view of procedural meshes
+ * with camera controls for orbit, pan, and zoom.
+ */
+class ViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
+    Q_OBJECT
+
+public:
+    explicit ViewportWidget(QWidget* parent = nullptr);
+    ~ViewportWidget() override;
+
+    // Set the mesh to display
+    void setMesh(const nodeflux::core::Mesh& mesh);
+    void clearMesh();
+
+    // Camera controls
+    void resetCamera();
+    void fitToView();
+
+protected:
+    // QOpenGLWidget interface
+    void initializeGL() override;
+    void resizeGL(int width, int height) override;
+    void paintGL() override;
+
+    // Mouse events for camera control
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+
+private:
+    // OpenGL resources
+    std::unique_ptr<QOpenGLShaderProgram> shader_program_;
+    std::unique_ptr<QOpenGLVertexArrayObject> vao_;
+    std::unique_ptr<QOpenGLBuffer> vertex_buffer_;
+    std::unique_ptr<QOpenGLBuffer> normal_buffer_;
+    std::unique_ptr<QOpenGLBuffer> index_buffer_;
+
+    // Mesh data
+    int vertex_count_ = 0;
+    int index_count_ = 0;
+    QVector3D mesh_center_;
+    float mesh_radius_ = 1.0F;
+
+    // Camera state
+    QMatrix4x4 projection_matrix_;
+    QMatrix4x4 view_matrix_;
+    QMatrix4x4 model_matrix_;
+
+    float camera_distance_ = 5.0F;
+    QVector3D camera_rotation_{-30.0F, 45.0F, 0.0F}; // pitch, yaw, roll
+    QVector3D camera_target_{0.0F, 0.0F, 0.0F};
+
+    // Mouse interaction state
+    QPoint last_mouse_pos_;
+    bool is_rotating_ = false;
+    bool is_panning_ = false;
+
+    // Rendering state
+    bool has_mesh_ = false;
+
+    // Private helper methods
+    void setupShaders();
+    void setupBuffers();
+    void updateCamera();
+    void calculateMeshBounds(const nodeflux::core::Mesh& mesh);
+};

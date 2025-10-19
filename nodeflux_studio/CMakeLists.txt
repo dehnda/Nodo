@@ -17,12 +17,14 @@ find_package(Qt6 REQUIRED COMPONENTS
 set(STUDIO_SOURCES
     src/main.cpp
     src/MainWindow.cpp
-    # src/ViewportWidget.cpp
+    src/ViewportWidget.cpp
+    src/PropertyPanel.cpp
 )
 
 set(STUDIO_HEADERS
     src/MainWindow.h
-    # src/ViewportWidget.h
+    src/ViewportWidget.h
+    src/PropertyPanel.h
 )
 
 # Create the executable
