@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmake --build --preset debug)",
+      "Bash(cmake --build --preset conan-release)",
+      "Bash(cmake --preset conan-release)",
+      "Bash(dir build)",
+      "Bash(conan install . --output-folder=build --build=missing)",
+      "Bash(cmake --preset conan-default)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -8,7 +8,7 @@ gmp/6.3.0
 mpfr/4.2.1
 cgal/5.6.1
 gtest/1.14.0
-nlohmann_json/3.12.0
+nlohmann_json/3.11.3
 
 [generators]
 CMakeDeps

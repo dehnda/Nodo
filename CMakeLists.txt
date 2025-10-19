@@ -12,7 +12,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Build options
 option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
-option(NODEFLUX_BUILD_UI "Build UI components" ON)
 
 # Conan dependencies
 find_package(Eigen3 REQUIRED)
@@ -27,51 +26,51 @@ find_package(nlohmann_json REQUIRED)
 if(NODEFLUX_BUILD_TESTS)
     find_package(GTest REQUIRED)
 endif()
-if(NODEFLUX_BUILD_UI)
-    # Find GLFW and OpenGL for ImGui backends
-    find_package(glfw3 REQUIRED)
-    find_package(GLEW REQUIRED)
-    find_package(OpenGL REQUIRED)
+# if(NODEFLUX_BUILD_UI)
+#     # Find GLFW and OpenGL for ImGui backends
+#     find_package(glfw3 REQUIRED)
+#     find_package(GLEW REQUIRED)
+#     find_package(OpenGL REQUIRED)
 
-    # Build ImGui from docking branch source
-    add_library(imgui STATIC
-        third_party/imgui/imgui.cpp
-        third_party/imgui/imgui_demo.cpp
-        third_party/imgui/imgui_draw.cpp
-        third_party/imgui/imgui_tables.cpp
-        third_party/imgui/imgui_widgets.cpp
-        third_party/imgui/backends/imgui_impl_glfw.cpp
-        third_party/imgui/backends/imgui_impl_opengl3.cpp
-    )
+#     # Build ImGui from docking branch source
+#     add_library(imgui STATIC
+#         third_party/imgui/imgui.cpp
+#         third_party/imgui/imgui_demo.cpp
+#         third_party/imgui/imgui_draw.cpp
+#         third_party/imgui/imgui_tables.cpp
+#         third_party/imgui/imgui_widgets.cpp
+#         third_party/imgui/backends/imgui_impl_glfw.cpp
+#         third_party/imgui/backends/imgui_impl_opengl3.cpp
+#     )
 
-    target_include_directories(imgui PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends>
-        $<INSTALL_INTERFACE:include/imgui>
-    )
+#     target_include_directories(imgui PUBLIC
+#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui>
+#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends>
+#         $<INSTALL_INTERFACE:include/imgui>
+#     )
 
-    # Enable docking support and link to required libraries
-    target_compile_definitions(imgui PUBLIC
-        IMGUI_DEFINE_MATH_OPERATORS
-        IMGUI_ENABLE_DOCKING
-    )
+#     # Enable docking support and link to required libraries
+#     target_compile_definitions(imgui PUBLIC
+#         IMGUI_DEFINE_MATH_OPERATORS
+#         IMGUI_ENABLE_DOCKING
+#     )
 
-    target_link_libraries(imgui PUBLIC
-        glfw
-        GLEW::GLEW
-        OpenGL::GL
-    )
+#     target_link_libraries(imgui PUBLIC
+#         glfw
+#         GLEW::GLEW
+#         OpenGL::GL
+#     )
 
-    # ImNodes from source - depends on ImGui
-    add_library(imnodes STATIC
-        third_party/imnodes/imnodes.cpp
-    )
-    target_include_directories(imnodes PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imnodes>
-        $<INSTALL_INTERFACE:include/imnodes>
-    )
-    target_link_libraries(imnodes PUBLIC imgui)
-endif()
+#     # ImNodes from source - depends on ImGui
+#     add_library(imnodes STATIC
+#         third_party/imnodes/imnodes.cpp
+#     )
+#     target_include_directories(imnodes PUBLIC
+#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/imnodes>
+#         $<INSTALL_INTERFACE:include/imnodes>
+#     )
+#     target_link_libraries(imnodes PUBLIC imgui)
+# endif()
 
 # All dependencies now managed by Conan - see conanfile.txt
 # No more FetchContent needed for external libraries
@@ -135,12 +134,6 @@ add_library(nodeflux_core
     src/renderer/viewport_renderer.cpp
     src/renderer/mesh_render_cache.cpp
 
-    # UI components (conditional)
-    $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/node_graph_editor.cpp>
-    $<$<BOOL:${NODEFLUX_BUILD_UI}>:src/ui/viewport_widget.cpp>
-
-    # ImNodes source (conditional)
-    $<$<BOOL:${NODEFLUX_BUILD_UI}>:third_party/imnodes/imnodes.cpp>
 )
 
 target_include_directories(nodeflux_core
@@ -161,8 +154,6 @@ target_link_libraries(nodeflux_core
         gmp::gmp
         mpfr::mpfr
         CGAL::CGAL
-        $<$<BOOL:${NODEFLUX_BUILD_UI}>:imgui>
-        $<$<BOOL:${NODEFLUX_BUILD_UI}>:imnodes>
 )
 
 # Compiler features and warnings
@@ -174,40 +165,7 @@ else()
     target_compile_options(nodeflux_core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Studio MVP Application - Integrated directly
-# Find required UI packages
-find_package(glfw3 REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(OpenGL REQUIRED)
-
-set(STUDIO_MVP_SOURCES
-    studio_mvp/src/studio_app.cpp
-    studio_mvp/src/main.cpp
-)
-
-add_executable(nodeflux_studio_mvp
-    ${STUDIO_MVP_SOURCES}
-)
-
-target_include_directories(nodeflux_studio_mvp PRIVATE
-    studio_mvp/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imnodes
-)
-
-target_link_libraries(nodeflux_studio_mvp PRIVATE
-    nodeflux_core
-    imnodes
-    imgui
-    glfw
-    GLEW::GLEW
-    OpenGL::GL
-    ${CMAKE_DL_LIBS}
-)
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(nodeflux_studio_mvp PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+# Studio MVP Application removed - ImGui dependency eliminated
 
 
 # Tests
@@ -216,28 +174,11 @@ if(NODEFLUX_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-# UI components (optional)
-if(NODEFLUX_BUILD_UI)
-    find_package(glfw3 REQUIRED)
-    find_package(GLEW REQUIRED)
-
-    # UI and backends include directories
-    target_include_directories(nodeflux_core PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/ui>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/backends>
-        $<INSTALL_INTERFACE:include>
-    )
-    # Link ImGui, GLFW, and OpenGL to core library
-    target_link_libraries(nodeflux_core PUBLIC
-        imgui
-        glfw
-        GLEW::GLEW
-    )
-endif()
+# UI components removed - ImGui dependency eliminated
 
 # Installation
 include(GNUInstallDirs)
-install(TARGETS nodeflux_core imgui imnodes
+install(TARGETS nodeflux_core
     EXPORT NodeFluxEngineTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
