@@ -25,10 +25,17 @@ class NodeFluxEngineConan(ConanFile):
     def generate(self):
         from conan.tools.cmake import CMakeToolchain
         tc = CMakeToolchain(self)
-        tc.generator = "Ninja"
-        # Set MSVC compiler paths for Ninja
-        tc.variables["CMAKE_C_COMPILER"] = "cl.exe"
-        tc.variables["CMAKE_CXX_COMPILER"] = "cl.exe"
+
+        # Use Ninja on Windows, Unix Makefiles on Linux/Mac
+        if self.settings.os == "Windows":
+            tc.generator = "Ninja"
+            tc.variables["CMAKE_C_COMPILER"] = "cl.exe"
+            tc.variables["CMAKE_CXX_COMPILER"] = "cl.exe"
+        else:
+            # Let CMake choose the default generator on Linux/Mac
+            # or explicitly use Unix Makefiles or Ninja if installed
+            pass
+
         tc.generate()
 
     def requirements(self):
