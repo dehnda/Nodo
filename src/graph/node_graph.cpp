@@ -143,6 +143,25 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Merged", 0});
     break;
 
+  case NodeType::Array:
+    // Array node creates copies in linear, grid, or radial patterns
+    parameters_.emplace_back("mode", 0); // 0=Linear, 1=Grid, 2=Radial
+    parameters_.emplace_back("count", 5);
+    parameters_.emplace_back("offset_x", 2.0F);
+    parameters_.emplace_back("offset_y", 2.0F);  // Changed from 0.0F to 2.0F for grid mode
+    parameters_.emplace_back("offset_z", 0.0F);
+    // Grid-specific parameters
+    parameters_.emplace_back("grid_rows", 3);
+    parameters_.emplace_back("grid_cols", 3);
+    // Radial-specific parameters
+    parameters_.emplace_back("radius", 5.0F);
+    parameters_.emplace_back("angle", 360.0F); // Total angle to span
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Array", 0});
+    break;
+
   default:
     // Default: single input/output
     input_pins_.push_back(

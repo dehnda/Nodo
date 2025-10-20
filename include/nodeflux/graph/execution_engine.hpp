@@ -103,6 +103,8 @@ private:
                                                      const std::vector<std::shared_ptr<core::Mesh>>& inputs);
     std::shared_ptr<core::Mesh> execute_merge_node(const GraphNode& node,
                                                    const std::vector<std::shared_ptr<core::Mesh>>& inputs);
+    std::shared_ptr<core::Mesh> execute_array_node(const GraphNode& node,
+                                                   const std::vector<std::shared_ptr<core::Mesh>>& inputs);
 
     // Helper methods
     std::vector<std::shared_ptr<core::Mesh>> gather_input_meshes(const NodeGraph& graph, int node_id);

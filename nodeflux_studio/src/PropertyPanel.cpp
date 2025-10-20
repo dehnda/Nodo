@@ -398,6 +398,9 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode* node, nodeflux::gra
         case NodeType::Transform:
             buildTransformParameters(node);
             break;
+        case NodeType::Array:
+            buildArrayParameters(node);
+            break;
         default:
             // For other node types, show generic message
             auto* label = new QLabel("Parameters not yet implemented for this node type", content_widget_);
@@ -702,6 +705,119 @@ void PropertyPanel::buildTransformParameters(nodeflux::graph::GraphNode* node) {
     addDoubleParameter("Scale Z", scale_z, 0.01, 10.0,
         [this, node](double value) {
             node->set_parameter("scale_z", NodeParameter("scale_z", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::buildArrayParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Array Mode");
+
+    // Mode (0=Linear, 1=Grid, 2=Radial)
+    auto mode_param = node->get_parameter("mode");
+    int mode = (mode_param.has_value() && mode_param->type == NodeParameter::Type::Int)
+        ? mode_param->int_value : 0;
+
+    addIntParameter("Mode (0=Linear,1=Grid,2=Radial)", mode, 0, 2,
+        [this, node](int value) {
+            node->set_parameter("mode", NodeParameter("mode", value));
+            emit parameterChanged();
+        });
+
+    addHeader("Linear/Radial Settings");
+
+    // Count (for Linear and Radial modes)
+    auto count_param = node->get_parameter("count");
+    int count = (count_param.has_value() && count_param->type == NodeParameter::Type::Int)
+        ? count_param->int_value : 5;
+
+    addIntParameter("Count", count, 1, 100,
+        [this, node](int value) {
+            node->set_parameter("count", NodeParameter("count", value));
+            emit parameterChanged();
+        });
+
+    addHeader("Offset (Linear/Grid)");
+
+    // Offset X
+    auto offset_x_param = node->get_parameter("offset_x");
+    double offset_x = (offset_x_param.has_value() && offset_x_param->type == NodeParameter::Type::Float)
+        ? offset_x_param->float_value : 2.0;
+
+    addDoubleParameter("Offset X", offset_x, -100.0, 100.0,
+        [this, node](double value) {
+            node->set_parameter("offset_x", NodeParameter("offset_x", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Offset Y
+    auto offset_y_param = node->get_parameter("offset_y");
+    double offset_y = (offset_y_param.has_value() && offset_y_param->type == NodeParameter::Type::Float)
+        ? offset_y_param->float_value : 2.0;
+
+    addDoubleParameter("Offset Y", offset_y, -100.0, 100.0,
+        [this, node](double value) {
+            node->set_parameter("offset_y", NodeParameter("offset_y", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Offset Z
+    auto offset_z_param = node->get_parameter("offset_z");
+    double offset_z = (offset_z_param.has_value() && offset_z_param->type == NodeParameter::Type::Float)
+        ? offset_z_param->float_value : 0.0;
+
+    addDoubleParameter("Offset Z", offset_z, -100.0, 100.0,
+        [this, node](double value) {
+            node->set_parameter("offset_z", NodeParameter("offset_z", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    addHeader("Grid Settings");
+
+    // Grid Rows
+    auto grid_rows_param = node->get_parameter("grid_rows");
+    int grid_rows = (grid_rows_param.has_value() && grid_rows_param->type == NodeParameter::Type::Int)
+        ? grid_rows_param->int_value : 3;
+
+    addIntParameter("Grid Rows", grid_rows, 1, 20,
+        [this, node](int value) {
+            node->set_parameter("grid_rows", NodeParameter("grid_rows", value));
+            emit parameterChanged();
+        });
+
+    // Grid Columns
+    auto grid_cols_param = node->get_parameter("grid_cols");
+    int grid_cols = (grid_cols_param.has_value() && grid_cols_param->type == NodeParameter::Type::Int)
+        ? grid_cols_param->int_value : 3;
+
+    addIntParameter("Grid Cols", grid_cols, 1, 20,
+        [this, node](int value) {
+            node->set_parameter("grid_cols", NodeParameter("grid_cols", value));
+            emit parameterChanged();
+        });
+
+    addHeader("Radial Settings");
+
+    // Radius
+    auto radius_param = node->get_parameter("radius");
+    double radius = (radius_param.has_value() && radius_param->type == NodeParameter::Type::Float)
+        ? radius_param->float_value : 5.0;
+
+    addDoubleParameter("Radius", radius, 0.1, 100.0,
+        [this, node](double value) {
+            node->set_parameter("radius", NodeParameter("radius", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Angle
+    auto angle_param = node->get_parameter("angle");
+    double angle = (angle_param.has_value() && angle_param->type == NodeParameter::Type::Float)
+        ? angle_param->float_value : 360.0;
+
+    addDoubleParameter("Angle (degrees)", angle, 0.0, 360.0,
+        [this, node](double value) {
+            node->set_parameter("angle", NodeParameter("angle", static_cast<float>(value)));
             emit parameterChanged();
         });
 }

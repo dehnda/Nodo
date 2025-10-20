@@ -80,4 +80,5 @@ private:
     void buildPlaneParameters(nodeflux::graph::GraphNode* node);
     void buildTorusParameters(nodeflux::graph::GraphNode* node);
     void buildTransformParameters(nodeflux::graph::GraphNode* node);
+    void buildArrayParameters(nodeflux::graph::GraphNode* node);
 };

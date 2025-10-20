@@ -77,6 +77,11 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       result = execute_merge_node(*node, inputs);
       break;
     }
+    case NodeType::Array: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_array_node(*node, inputs);
+      break;
+    }
     default: {
       // For now, skip unimplemented node types
       continue;
@@ -430,6 +435,147 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_merge_node(
 
   std::cout << "✅ Merged mesh: " << total_vertex_count << " vertices, "
             << total_face_count << " faces" << std::endl;
+
+  return result;
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+  if (inputs.empty()) {
+    return nullptr;
+  }
+
+  const auto& input_mesh = inputs[0];
+
+  // Get parameters
+  auto mode_param = node.get_parameter("mode");
+  auto count_param = node.get_parameter("count");
+  auto offset_x_param = node.get_parameter("offset_x");
+  auto offset_y_param = node.get_parameter("offset_y");
+  auto offset_z_param = node.get_parameter("offset_z");
+  auto grid_rows_param = node.get_parameter("grid_rows");
+  auto grid_cols_param = node.get_parameter("grid_cols");
+  auto radius_param = node.get_parameter("radius");
+  auto angle_param = node.get_parameter("angle");
+
+  const int mode = mode_param.has_value() ? mode_param->int_value : 0;
+  const int count = count_param.has_value() ? count_param->int_value : 5;
+  const float offset_x = offset_x_param.has_value() ? offset_x_param->float_value : 2.0F;
+  const float offset_y = offset_y_param.has_value() ? offset_y_param->float_value : 0.0F;
+  const float offset_z = offset_z_param.has_value() ? offset_z_param->float_value : 0.0F;
+  const int grid_rows = grid_rows_param.has_value() ? grid_rows_param->int_value : 3;
+  const int grid_cols = grid_cols_param.has_value() ? grid_cols_param->int_value : 3;
+  const float radius = radius_param.has_value() ? radius_param->float_value : 5.0F;
+  const float angle = angle_param.has_value() ? angle_param->float_value : 360.0F;
+
+  std::vector<std::shared_ptr<core::Mesh>> array_meshes;
+
+  if (mode == 0) {
+    // Linear array
+    std::cout << "📏 Creating linear array: " << count << " copies" << std::endl;
+
+    for (int i = 0; i < count; ++i) {
+      auto copy = std::make_shared<core::Mesh>(*input_mesh);
+      auto& vertices = copy->vertices();
+
+      // Apply offset
+      const Eigen::Vector3d offset(
+          static_cast<double>(offset_x * static_cast<float>(i)),
+          static_cast<double>(offset_y * static_cast<float>(i)),
+          static_cast<double>(offset_z * static_cast<float>(i))
+      );
+
+      vertices.rowwise() += offset.transpose();
+      array_meshes.push_back(copy);
+    }
+  } else if (mode == 1) {
+    // Grid array
+    std::cout << "⊞ Creating grid array: " << grid_rows << "x" << grid_cols << std::endl;
+
+    for (int row = 0; row < grid_rows; ++row) {
+      for (int col = 0; col < grid_cols; ++col) {
+        auto copy = std::make_shared<core::Mesh>(*input_mesh);
+        auto& vertices = copy->vertices();
+
+        const Eigen::Vector3d offset(
+            static_cast<double>(offset_x * static_cast<float>(col)),
+            static_cast<double>(offset_y * static_cast<float>(row)),
+            static_cast<double>(offset_z)
+        );
+
+        vertices.rowwise() += offset.transpose();
+        array_meshes.push_back(copy);
+      }
+    }
+  } else if (mode == 2) {
+    // Radial array
+    std::cout << "○ Creating radial array: " << count << " copies around radius "
+              << radius << std::endl;
+
+    constexpr double DEG_TO_RAD = M_PI / 180.0;
+    const double angle_step = (static_cast<double>(angle) * DEG_TO_RAD) / static_cast<double>(count);
+
+    for (int i = 0; i < count; ++i) {
+      auto copy = std::make_shared<core::Mesh>(*input_mesh);
+      auto& vertices = copy->vertices();
+
+      const double current_angle = angle_step * static_cast<double>(i);
+      const double x_offset = static_cast<double>(radius) * std::cos(current_angle);
+      const double y_offset = static_cast<double>(radius) * std::sin(current_angle);
+
+      const Eigen::Vector3d offset(x_offset, y_offset, 0.0);
+      vertices.rowwise() += offset.transpose();
+
+      array_meshes.push_back(copy);
+    }
+  }
+
+  // Merge all array copies into one mesh
+  if (array_meshes.empty()) {
+    return nullptr;
+  }
+
+  if (array_meshes.size() == 1) {
+    return array_meshes[0];
+  }
+
+  // Calculate total size
+  int total_vertices = 0;
+  int total_faces = 0;
+  for (const auto& mesh : array_meshes) {
+    total_vertices += mesh->vertex_count();
+    total_faces += mesh->face_count();
+  }
+
+  // Pre-allocate result matrices
+  Eigen::MatrixXd result_vertices(total_vertices, 3);
+  Eigen::MatrixXi result_faces(total_faces, 3);
+
+  int vertex_offset = 0;
+  int face_offset = 0;
+
+  // Merge all meshes
+  for (const auto& mesh : array_meshes) {
+    const int vcount = mesh->vertex_count();
+    const int fcount = mesh->face_count();
+
+    // Copy vertices
+    result_vertices.block(vertex_offset, 0, vcount, 3) = mesh->vertices();
+
+    // Copy faces with offset
+    Eigen::MatrixXi offset_faces = mesh->faces();
+    offset_faces.array() += vertex_offset;
+    result_faces.block(face_offset, 0, fcount, 3) = offset_faces;
+
+    vertex_offset += vcount;
+    face_offset += fcount;
+  }
+
+  auto result = std::make_shared<core::Mesh>(result_vertices, result_faces);
+
+  std::cout << "✅ Array created: " << total_vertices << " vertices, "
+            << total_faces << " faces" << std::endl;
 
   return result;
 }
