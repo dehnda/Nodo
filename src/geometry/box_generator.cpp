@@ -113,8 +113,8 @@ std::optional<core::Mesh> BoxGenerator::generate_from_bounds(
                 corners[1], corners[0], width_segments, depth_segments, true);
 
   // Top face (Y = max_corner.y) - faces toward +Y
-  generate_face(mesh, vertex_index, face_index, corners[3], corners[2],
-                corners[6], corners[7], width_segments, depth_segments, true);
+  generate_face(mesh, vertex_index, face_index, corners[3], corners[7],
+                corners[6], corners[2], width_segments, depth_segments, true);
 
   return mesh;
 }
@@ -157,24 +157,12 @@ void BoxGenerator::generate_face(core::Mesh &mesh, int &vertex_index,
 
   for (int v_idx = 0; v_idx < v_segments; ++v_idx) {
     for (int u_idx = 0; u_idx < u_segments; ++u_idx) {
-      const int bottom_left = start_vertex + v_idx * vertices_per_row + u_idx;
+      const int bottom_left = start_vertex + (v_idx * vertices_per_row) + u_idx;
       const int bottom_right = bottom_left + 1;
       const int top_left = bottom_left + vertices_per_row;
       const int top_right = top_left + 1;
 
       if (flip_normal) {
-        // First triangle
-        mesh.faces()(face_index, 0) = bottom_left;
-        mesh.faces()(face_index, 1) = top_left;
-        mesh.faces()(face_index, 2) = bottom_right;
-        ++face_index;
-
-        // Second triangle
-        mesh.faces()(face_index, 0) = bottom_right;
-        mesh.faces()(face_index, 1) = top_left;
-        mesh.faces()(face_index, 2) = top_right;
-        ++face_index;
-      } else {
         // First triangle
         mesh.faces()(face_index, 0) = bottom_left;
         mesh.faces()(face_index, 1) = bottom_right;
@@ -185,6 +173,18 @@ void BoxGenerator::generate_face(core::Mesh &mesh, int &vertex_index,
         mesh.faces()(face_index, 0) = bottom_right;
         mesh.faces()(face_index, 1) = top_right;
         mesh.faces()(face_index, 2) = top_left;
+        ++face_index;
+      } else {
+        // First triangle
+        mesh.faces()(face_index, 0) = bottom_left;
+        mesh.faces()(face_index, 1) = top_left;
+        mesh.faces()(face_index, 2) = bottom_right;
+        ++face_index;
+
+        // Second triangle
+        mesh.faces()(face_index, 0) = bottom_right;
+        mesh.faces()(face_index, 1) = top_left;
+        mesh.faces()(face_index, 2) = top_right;
         ++face_index;
       }
     }

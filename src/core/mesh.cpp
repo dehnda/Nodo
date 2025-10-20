@@ -157,7 +157,7 @@ void Mesh::compute_face_normals() const {
     const Vector3d v1 = vertices_.row(faces_(i, 1));
     const Vector3d v2 = vertices_.row(faces_(i, 2));
 
-    const Vector3d normal = (v1 - v0).cross(v2 - v0).normalized();
+    const Vector3d normal = (v2 - v0).cross(v1 - v0).normalized();
     face_normals_->row(i) = normal;
   }
 }
