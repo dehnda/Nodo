@@ -72,6 +72,11 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       result = execute_boolean_node(*node, inputs);
       break;
     }
+    case NodeType::Merge: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_merge_node(*node, inputs);
+      break;
+    }
     default: {
       // For now, skip unimplemented node types
       continue;
@@ -362,6 +367,71 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(
   // TODO: Implement boolean operation
   // For now, just return the first input mesh
   return inputs[0];
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_merge_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+  if (inputs.empty()) {
+    return nullptr;
+  }
+
+  if (inputs.size() == 1) {
+    // Only one input - just return a copy
+    return std::make_shared<core::Mesh>(*inputs[0]);
+  }
+
+  std::cout << "🔗 Merging " << inputs.size() << " meshes" << std::endl;
+
+  // Start with a copy of the first mesh
+  auto merged_mesh = std::make_shared<core::Mesh>(*inputs[0]);
+
+  int total_vertex_count = merged_mesh->vertex_count();
+  int total_face_count = merged_mesh->face_count();
+
+  // Count total vertices and faces for pre-allocation
+  for (size_t i = 1; i < inputs.size(); ++i) {
+    total_vertex_count += inputs[i]->vertex_count();
+    total_face_count += inputs[i]->face_count();
+  }
+
+  // Pre-allocate matrices for better performance
+  Eigen::MatrixXd merged_vertices(total_vertex_count, 3);
+  Eigen::MatrixXi merged_faces(total_face_count, 3);
+
+  // Copy first mesh data
+  merged_vertices.topRows(merged_mesh->vertex_count()) = merged_mesh->vertices();
+  merged_faces.topRows(merged_mesh->face_count()) = merged_mesh->faces();
+
+  int current_vertex_offset = merged_mesh->vertex_count();
+  int current_face_offset = merged_mesh->face_count();
+
+  // Merge remaining meshes
+  for (size_t i = 1; i < inputs.size(); ++i) {
+    const auto& input_mesh = inputs[i];
+    const int vertex_count = input_mesh->vertex_count();
+    const int face_count = input_mesh->face_count();
+
+    // Copy vertices
+    merged_vertices.block(current_vertex_offset, 0, vertex_count, 3) =
+        input_mesh->vertices();
+
+    // Copy faces with offset vertex indices
+    Eigen::MatrixXi offset_faces = input_mesh->faces();
+    offset_faces.array() += current_vertex_offset;
+    merged_faces.block(current_face_offset, 0, face_count, 3) = offset_faces;
+
+    current_vertex_offset += vertex_count;
+    current_face_offset += face_count;
+  }
+
+  // Create the final merged mesh
+  auto result = std::make_shared<core::Mesh>(merged_vertices, merged_faces);
+
+  std::cout << "✅ Merged mesh: " << total_vertex_count << " vertices, "
+            << total_face_count << " faces" << std::endl;
+
+  return result;
 }
 
 std::vector<std::shared_ptr<core::Mesh>>

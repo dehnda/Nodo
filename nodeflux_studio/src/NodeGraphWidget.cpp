@@ -850,6 +850,12 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
       create_node_at_position(nodeflux::graph::NodeType::Boolean,
                               context_menu_scene_pos_);
     });
+
+    // Utility nodes
+    createMenu->addAction("Merge", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::Merge,
+                              context_menu_scene_pos_);
+    });
   }
 
   menu.exec(event->globalPos());

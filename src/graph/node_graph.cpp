@@ -132,6 +132,17 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
+  case NodeType::Merge:
+    // Merge node combines multiple meshes into one
+    // Start with 2 inputs, but can accept any number via multiple connections
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 1", 0});
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 2", 1});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Merged", 0});
+    break;
+
   default:
     // Default: single input/output
     input_pins_.push_back(
