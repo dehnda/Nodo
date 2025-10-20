@@ -305,6 +305,7 @@ void ViewportWidget::paintGL() {
   QMatrix4x4 view_inverse = view_matrix_.inverted();
   QVector3D camera_pos = view_inverse.map(QVector3D(0.0F, 0.0F, 0.0F));
   shader_program_->setUniformValue("view_position", camera_pos);
+  shader_program_->setUniformValue("object_color", QVector3D(0.7F, 0.7F, 0.7F));
 
   // Toggle face culling
   if (backface_culling_) {
