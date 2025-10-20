@@ -1,0 +1,465 @@
+#include "NodeGraphWidget.h"
+#include <nodeflux/graph/node_graph.hpp>
+#include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
+#include <QWheelEvent>
+#include <QPainterPath>
+#include <cmath>
+
+// ============================================================================
+// NodeGraphicsItem Implementation
+// ============================================================================
+
+NodeGraphicsItem::NodeGraphicsItem(int node_id, const QString& node_name,
+                                 int input_count, int output_count)
+    : node_id_(node_id)
+    , node_name_(node_name)
+    , input_count_(input_count)
+    , output_count_(output_count) {
+
+    setFlag(QGraphicsItem::ItemIsMovable);
+    setFlag(QGraphicsItem::ItemIsSelectable);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges);
+    setAcceptHoverEvents(true);
+    setZValue(1.0);
+}
+
+QRectF NodeGraphicsItem::boundingRect() const {
+    // Add some padding for selection outline
+    constexpr float PADDING = 4.0F;
+    return QRectF(-PADDING, -PADDING,
+                  NODE_WIDTH + 2.0F * PADDING,
+                  NODE_HEIGHT + 2.0F * PADDING);
+}
+
+void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
+                             QWidget* /*widget*/) {
+    painter->setRenderHint(QPainter::Antialiasing);
+
+    // Node body
+    QRectF rect(0, 0, NODE_WIDTH, NODE_HEIGHT);
+
+    // Colors based on state
+    QColor body_color = QColor(60, 60, 70);
+    QColor header_color = QColor(80, 80, 100);
+    QColor outline_color = QColor(100, 100, 120);
+
+    if (selected_) {
+        outline_color = QColor(255, 150, 50);
+    } else if (hovered_) {
+        body_color = body_color.lighter(110);
+        header_color = header_color.lighter(110);
+    }
+
+    // Draw node body
+    painter->setPen(QPen(outline_color, 2.0F));
+    painter->setBrush(body_color);
+    painter->drawRoundedRect(rect, 5.0, 5.0);
+
+    // Draw header
+    QRectF header_rect(0, 0, NODE_WIDTH, 25);
+    painter->setBrush(header_color);
+    painter->drawRoundedRect(header_rect, 5.0, 5.0);
+    painter->drawRect(0, 20, NODE_WIDTH, 5); // Square off bottom of header
+
+    // Draw node name
+    painter->setPen(Qt::white);
+    QFont font = painter->font();
+    font.setPointSize(9);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->drawText(header_rect, Qt::AlignCenter, node_name_);
+
+    // Draw input pins
+    painter->setBrush(QColor(100, 200, 100));
+    for (int i = 0; i < input_count_; ++i) {
+        QPointF pin_pos = get_input_pin_pos(i);
+        painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
+    }
+
+    // Draw output pins
+    painter->setBrush(QColor(200, 100, 100));
+    for (int i = 0; i < output_count_; ++i) {
+        QPointF pin_pos = get_output_pin_pos(i);
+        painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
+    }
+}
+
+QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
+    float y = 25.0F + PIN_SPACING + static_cast<float>(index) * PIN_SPACING;
+    return QPointF(0, y);
+}
+
+QPointF NodeGraphicsItem::get_output_pin_pos(int index) const {
+    float y = 25.0F + PIN_SPACING + static_cast<float>(index) * PIN_SPACING;
+    return QPointF(NODE_WIDTH, y);
+}
+
+void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    QGraphicsItem::mousePressEvent(event);
+}
+
+void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    QGraphicsItem::mouseMoveEvent(event);
+}
+
+void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+    QGraphicsItem::mouseReleaseEvent(event);
+}
+
+void NodeGraphicsItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
+    set_hovered(true);
+    QGraphicsItem::hoverEnterEvent(event);
+}
+
+void NodeGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
+    set_hovered(false);
+    QGraphicsItem::hoverLeaveEvent(event);
+}
+
+// ============================================================================
+// ConnectionGraphicsItem Implementation
+// ============================================================================
+
+ConnectionGraphicsItem::ConnectionGraphicsItem(int connection_id,
+                                             NodeGraphicsItem* source_node, int source_pin,
+                                             NodeGraphicsItem* target_node, int target_pin)
+    : connection_id_(connection_id)
+    , source_node_(source_node)
+    , source_pin_(source_pin)
+    , target_node_(target_node)
+    , target_pin_(target_pin) {
+
+    setZValue(0.0);
+    update_path();
+}
+
+QRectF ConnectionGraphicsItem::boundingRect() const {
+    return path_.boundingRect();
+}
+
+void ConnectionGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
+                                  QWidget* /*widget*/) {
+    painter->setRenderHint(QPainter::Antialiasing);
+
+    QPen pen(QColor(180, 180, 200), 2.5F);
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawPath(path_);
+}
+
+void ConnectionGraphicsItem::update_path() {
+    if ((source_node_ == nullptr) || (target_node_ == nullptr)) {
+        return;
+    }
+
+    // Get pin positions in scene coordinates
+    QPointF start = source_node_->mapToScene(source_node_->get_output_pin_pos(source_pin_));
+    QPointF end = target_node_->mapToScene(target_node_->get_input_pin_pos(target_pin_));
+
+    // Create bezier curve for connection
+    path_ = QPainterPath();
+    path_.moveTo(start);
+
+    // Control points for smooth curve
+    float distance = std::abs(end.x() - start.x());
+    float offset = std::min(distance * 0.5F, 100.0F);
+
+    QPointF ctrl1(start.x() + offset, start.y());
+    QPointF ctrl2(end.x() - offset, end.y());
+
+    path_.cubicTo(ctrl1, ctrl2, end);
+
+    prepareGeometryChange();
+}
+
+// ============================================================================
+// NodeGraphWidget Implementation
+// ============================================================================
+
+NodeGraphWidget::NodeGraphWidget(QWidget* parent)
+    : QGraphicsView(parent)
+    , scene_(new QGraphicsScene(this)) {
+
+    setScene(scene_);
+    setRenderHint(QPainter::Antialiasing);
+    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setDragMode(QGraphicsView::NoDrag);
+
+    // Set scene rect to large area
+    scene_->setSceneRect(-5000, -5000, 10000, 10000);
+
+    // Center view
+    centerOn(0, 0);
+}
+
+NodeGraphWidget::~NodeGraphWidget() = default;
+
+void NodeGraphWidget::set_graph(nodeflux::graph::NodeGraph* graph) {
+    graph_ = graph;
+    rebuild_from_graph();
+}
+
+void NodeGraphWidget::rebuild_from_graph() {
+    // Clear existing visual items
+    scene_->clear();
+    node_items_.clear();
+    connection_items_.clear();
+    selected_nodes_.clear();
+
+    if (graph_ == nullptr) {
+        return;
+    }
+
+    // Create visual items for all nodes
+    for (const auto& node : graph_->get_nodes()) {
+        create_node_item(node->get_id());
+    }
+
+    // Create visual items for all connections
+    for (const auto& connection : graph_->get_connections()) {
+        create_connection_item(connection.id);
+    }
+}
+
+void NodeGraphWidget::create_node_item(int node_id) {
+    if (graph_ == nullptr) {
+        return;
+    }
+
+    const auto* node = graph_->get_node(node_id);
+    if (node == nullptr) {
+        return;
+    }
+
+    // Get node info
+    QString name = QString::fromStdString(node->get_name());
+    int input_count = static_cast<int>(node->get_input_pins().size());
+    int output_count = static_cast<int>(node->get_output_pins().size());
+
+    // Create graphics item
+    auto* item = new NodeGraphicsItem(node_id, name, input_count, output_count);
+
+    // Set position from backend
+    auto [x, y] = node->get_position();
+    item->setPos(x, y);
+
+    // Add to scene and tracking
+    scene_->addItem(item);
+    node_items_[node_id] = item;
+}
+
+void NodeGraphWidget::create_connection_item(int connection_id) {
+    if (graph_ == nullptr) {
+        return;
+    }
+
+    // Find connection in backend
+    const auto& connections = graph_->get_connections();
+    auto conn_it = std::find_if(connections.begin(), connections.end(),
+                                [connection_id](const auto& conn) {
+                                    return conn.id == connection_id;
+                                });
+
+    if (conn_it == connections.end()) {
+        return;
+    }
+
+    // Get source and target graphics items
+    auto source_it = node_items_.find(conn_it->source_node_id);
+    auto target_it = node_items_.find(conn_it->target_node_id);
+
+    if (source_it == node_items_.end() || target_it == node_items_.end()) {
+        return;
+    }
+
+    // Create connection graphics item
+    auto* item = new ConnectionGraphicsItem(
+        connection_id,
+        source_it->second, conn_it->source_pin_index,
+        target_it->second, conn_it->target_pin_index
+    );
+
+    scene_->addItem(item);
+    connection_items_[connection_id] = item;
+}
+
+void NodeGraphWidget::remove_node_item(int node_id) {
+    auto node_it = node_items_.find(node_id);
+    if (node_it != node_items_.end()) {
+        scene_->removeItem(node_it->second);
+        delete node_it->second;
+        node_items_.erase(node_it);
+    }
+}
+
+void NodeGraphWidget::remove_connection_item(int connection_id) {
+    auto conn_it = connection_items_.find(connection_id);
+    if (conn_it != connection_items_.end()) {
+        scene_->removeItem(conn_it->second);
+        delete conn_it->second;
+        connection_items_.erase(conn_it);
+    }
+}
+
+void NodeGraphWidget::update_all_connections() {
+    for (auto& [id, connection_item] : connection_items_) {
+        connection_item->update_path();
+    }
+}
+
+QVector<int> NodeGraphWidget::get_selected_node_ids() const {
+    QVector<int> result;
+    for (int node_id : selected_nodes_) {
+        result.push_back(node_id);
+    }
+    return result;
+}
+
+void NodeGraphWidget::clear_selection() {
+    for (int node_id : selected_nodes_) {
+        auto node_it = node_items_.find(node_id);
+        if (node_it != node_items_.end()) {
+            node_it->second->set_selected(false);
+        }
+    }
+    selected_nodes_.clear();
+    emit selection_changed();
+}
+
+void NodeGraphWidget::wheelEvent(QWheelEvent* event) {
+    // Zoom with mouse wheel
+    float delta = event->angleDelta().y() / 120.0F;
+    float factor = 1.0F + delta * ZOOM_STEP;
+
+    zoom_factor_ *= factor;
+    zoom_factor_ = std::clamp(zoom_factor_, ZOOM_MIN, ZOOM_MAX);
+
+    scale(factor, factor);
+    event->accept();
+}
+
+void NodeGraphWidget::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::MiddleButton) {
+        // Start panning
+        mode_ = InteractionMode::Panning;
+        last_mouse_pos_ = event->pos();
+        setCursor(Qt::ClosedHandCursor);
+        event->accept();
+        return;
+    }
+
+    QGraphicsView::mousePressEvent(event);
+}
+
+void NodeGraphWidget::mouseMoveEvent(QMouseEvent* event) {
+    if (mode_ == InteractionMode::Panning) {
+        // Pan the view
+        QPointF delta = mapToScene(event->pos()) - mapToScene(last_mouse_pos_);
+        setSceneRect(sceneRect().translated(-delta.x(), -delta.y()));
+        last_mouse_pos_ = event->pos();
+        event->accept();
+
+        // Update connections as view pans
+        update_all_connections();
+        return;
+    }
+
+    QGraphicsView::mouseMoveEvent(event);
+
+    // Update connections when nodes move
+    update_all_connections();
+}
+
+void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
+    if (mode_ == InteractionMode::Panning) {
+        mode_ = InteractionMode::None;
+        setCursor(Qt::ArrowCursor);
+        event->accept();
+        return;
+    }
+
+    QGraphicsView::mouseReleaseEvent(event);
+}
+
+void NodeGraphWidget::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
+        // Delete selected nodes
+        if (!selected_nodes_.isEmpty()) {
+            emit nodes_deleted(get_selected_node_ids());
+        }
+        event->accept();
+        return;
+    }
+
+    if (event->key() == Qt::Key_F) {
+        // Frame all nodes
+        if (!node_items_.empty()) {
+            scene_->setSceneRect(scene_->itemsBoundingRect());
+            fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+        }
+        event->accept();
+        return;
+    }
+
+    QGraphicsView::keyPressEvent(event);
+}
+
+void NodeGraphWidget::drawBackground(QPainter* painter, const QRectF& rect) {
+    // Dark background
+    painter->fillRect(rect, QColor(40, 40, 45));
+
+    // Draw grid
+    draw_grid(painter, rect);
+}
+
+void NodeGraphWidget::draw_grid(QPainter* painter, const QRectF& rect) {
+    constexpr float GRID_SIZE = 20.0F;
+    constexpr float GRID_SIZE_LARGE = 100.0F;
+
+    painter->setPen(QPen(QColor(50, 50, 55), 1.0F));
+
+    // Fine grid
+    float left = static_cast<int>(rect.left()) - (static_cast<int>(rect.left()) % static_cast<int>(GRID_SIZE));
+    float top = static_cast<int>(rect.top()) - (static_cast<int>(rect.top()) % static_cast<int>(GRID_SIZE));
+
+    for (float x = left; x < rect.right(); x += GRID_SIZE) {
+        painter->drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()));
+    }
+
+    for (float y = top; y < rect.bottom(); y += GRID_SIZE) {
+        painter->drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y));
+    }
+
+    // Coarse grid
+    painter->setPen(QPen(QColor(60, 60, 65), 1.5F));
+
+    left = static_cast<int>(rect.left()) - (static_cast<int>(rect.left()) % static_cast<int>(GRID_SIZE_LARGE));
+    top = static_cast<int>(rect.top()) - (static_cast<int>(rect.top()) % static_cast<int>(GRID_SIZE_LARGE));
+
+    for (float x = left; x < rect.right(); x += GRID_SIZE_LARGE) {
+        painter->drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()));
+    }
+
+    for (float y = top; y < rect.bottom(); y += GRID_SIZE_LARGE) {
+        painter->drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y));
+    }
+}
+
+void NodeGraphWidget::on_node_moved(NodeGraphicsItem* node) {
+    // Sync position back to backend graph
+    if (graph_ != nullptr) {
+        auto* backend_node = graph_->get_node(node->get_node_id());
+        if (backend_node != nullptr) {
+            QPointF pos = node->pos();
+            backend_node->set_position(static_cast<float>(pos.x()),
+                                      static_cast<float>(pos.y()));
+        }
+    }
+
+    // Update connections
+    update_all_connections();
+}

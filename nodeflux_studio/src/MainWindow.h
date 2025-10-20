@@ -6,13 +6,20 @@
 // Forward declarations
 class ViewportWidget;
 class PropertyPanel;
+class NodeGraphWidget;
 class QDockWidget;
 
 // Forward declare node types
-namespace nodeflux::nodes {
-    class SphereNode;
-    class BoxNode;
-    class CylinderNode;
+namespace nodeflux {
+    namespace nodes {
+        class SphereNode;
+        class BoxNode;
+        class CylinderNode;
+    }
+    namespace graph {
+        class NodeGraph;
+        class ExecutionEngine;
+    }
 }
 
 class MainWindow : public QMainWindow {
@@ -31,7 +38,13 @@ private:
     // UI components (these will be pointers to our widgets)
     ViewportWidget* viewport_widget_;
     PropertyPanel* property_panel_;
+    NodeGraphWidget* node_graph_widget_;
     QDockWidget* property_dock_;
+    QDockWidget* node_graph_dock_;
+
+    // Backend graph system
+    std::unique_ptr<nodeflux::graph::NodeGraph> node_graph_;
+    std::unique_ptr<nodeflux::graph::ExecutionEngine> execution_engine_;
 
     // Test nodes for property panel demo (owned pointers, deleted in destructor)
     nodeflux::nodes::SphereNode* test_sphere_node_;
@@ -54,6 +67,9 @@ private slots:
     // Debug visualization
     void onToggleWireframe(bool enabled);
     void onToggleBackfaceCulling(bool enabled);
+
+    // Node graph actions
+    void onCreateTestGraph();
 
     // Property panel callback
     void onParameterChanged();

@@ -19,12 +19,14 @@ set(STUDIO_SOURCES
     src/MainWindow.cpp
     src/ViewportWidget.cpp
     src/PropertyPanel.cpp
+    src/NodeGraphWidget.cpp
 )
 
 set(STUDIO_HEADERS
     src/MainWindow.h
     src/ViewportWidget.h
     src/PropertyPanel.h
+    src/NodeGraphWidget.h
 )
 
 # Create the executable

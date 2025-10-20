@@ -1,10 +1,13 @@
 #include "MainWindow.h"
 #include "ViewportWidget.h"
 #include "PropertyPanel.h"
+#include "NodeGraphWidget.h"
 
 #include <nodeflux/nodes/sphere_node.hpp>
 #include <nodeflux/nodes/box_node.hpp>
 #include <nodeflux/nodes/cylinder_node.hpp>
+#include <nodeflux/graph/node_graph.hpp>
+#include <nodeflux/graph/execution_engine.hpp>
 
 #include <QAction>
 #include <QDockWidget>
@@ -17,6 +20,11 @@ MainWindow::MainWindow(QWidget *parent)
       test_sphere_node_(nullptr),
       test_box_node_(nullptr),
       test_cylinder_node_(nullptr) {
+
+  // Initialize backend graph system
+  node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>();
+  execution_engine_ = std::make_unique<nodeflux::graph::ExecutionEngine>();
+
   // Setup UI components in order
   setupMenuBar();
   setupDockWidgets();
@@ -81,6 +89,11 @@ auto MainWindow::setupMenuBar() -> void {
   connect(clearAction, &QAction::triggered, this, &MainWindow::onClearViewport);
   connect(wireframeAction, &QAction::toggled, this, &MainWindow::onToggleWireframe);
   connect(cullingAction, &QAction::toggled, this, &MainWindow::onToggleBackfaceCulling);
+
+  // Create a Graph menu for node graph operations
+  QMenu *graphMenu = menuBar->addMenu("&Graph");
+  QAction *testGraphAction = graphMenu->addAction("Create &Test Graph");
+  connect(testGraphAction, &QAction::triggered, this, &MainWindow::onCreateTestGraph);
 }
 
 auto MainWindow::setupDockWidgets() -> void {
@@ -88,17 +101,16 @@ auto MainWindow::setupDockWidgets() -> void {
   viewport_widget_ = new ViewportWidget(this);
   setCentralWidget(viewport_widget_);
 
-  // Create dock widget for node graph (right side)
-  QDockWidget* nodegraph_dock = new QDockWidget("Node Graph", this);
-  nodegraph_dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+  // Create dock widget for node graph (bottom area)
+  node_graph_dock_ = new QDockWidget("Node Graph", this);
+  node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
 
-  // Placeholder widget for node graph (we'll implement this later)
-  QWidget* nodegraph_placeholder = new QWidget();
-  QLabel* nodegraph_label = new QLabel("Node Graph\n(Coming Soon)", nodegraph_placeholder);
-  nodegraph_label->setAlignment(Qt::AlignCenter);
-  nodegraph_dock->setWidget(nodegraph_placeholder);
+  // Create node graph widget and connect to backend
+  node_graph_widget_ = new NodeGraphWidget(this);
+  node_graph_widget_->set_graph(node_graph_.get());
+  node_graph_dock_->setWidget(node_graph_widget_);
 
-  addDockWidget(Qt::RightDockWidgetArea, nodegraph_dock);
+  addDockWidget(Qt::BottomDockWidgetArea, node_graph_dock_);
 
   // Create dock widget for properties (left side)
   property_dock_ = new QDockWidget("Properties", this);
@@ -264,4 +276,33 @@ void MainWindow::onToggleBackfaceCulling(bool enabled) {
   statusBar()->showMessage(enabled ? "Backface culling enabled - inverted faces hidden" :
                                     "Backface culling disabled - see all faces",
                           STATUS_MSG_DURATION);
+}
+
+void MainWindow::onCreateTestGraph() {
+  using namespace nodeflux::graph;
+
+  // Clear existing graph
+  node_graph_->clear();
+
+  // Create some test nodes
+  int sphere_id = node_graph_->add_node(NodeType::Sphere, "Test Sphere");
+  int box_id = node_graph_->add_node(NodeType::Box, "Test Box");
+  int cylinder_id = node_graph_->add_node(NodeType::Cylinder, "Test Cylinder");
+
+  // Set positions for nice layout
+  if (auto* sphere_node = node_graph_->get_node(sphere_id)) {
+    sphere_node->set_position(50.0F, 100.0F);
+  }
+  if (auto* box_node = node_graph_->get_node(box_id)) {
+    box_node->set_position(250.0F, 100.0F);
+  }
+  if (auto* cylinder_node = node_graph_->get_node(cylinder_id)) {
+    cylinder_node->set_position(450.0F, 100.0F);
+  }
+
+  // Rebuild the visual representation
+  node_graph_widget_->rebuild_from_graph();
+
+  constexpr int STATUS_MSG_DURATION = 2000;
+  statusBar()->showMessage("Test graph created with 3 nodes", STATUS_MSG_DURATION);
 }
