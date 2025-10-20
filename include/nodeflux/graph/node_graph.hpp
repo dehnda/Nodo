@@ -133,7 +133,17 @@ public:
     bool needs_update() const { return needs_update_; }
     void mark_for_update() { needs_update_ = true; }
     void mark_updated() { needs_update_ = false; }
-    
+
+    // Flags (Houdini-style)
+    bool has_display_flag() const { return display_flag_; }
+    void set_display_flag(bool flag) { display_flag_ = flag; }
+
+    bool has_render_flag() const { return render_flag_; }
+    void set_render_flag(bool flag) { render_flag_ = flag; }
+
+    bool is_bypassed() const { return bypass_flag_; }
+    void set_bypass(bool bypass) { bypass_flag_ = bypass; }
+
     // Result cache
     void set_output_mesh(std::shared_ptr<core::Mesh> mesh) { output_mesh_ = mesh; }
     std::shared_ptr<core::Mesh> get_output_mesh() const { return output_mesh_; }
@@ -148,10 +158,15 @@ private:
     std::vector<NodeParameter> parameters_;
     std::vector<NodePin> input_pins_;
     std::vector<NodePin> output_pins_;
-    
+
     bool needs_update_ = true;
     std::shared_ptr<core::Mesh> output_mesh_;
-    
+
+    // Houdini-style flags
+    bool display_flag_ = false;
+    bool render_flag_ = false;
+    bool bypass_flag_ = false;
+
     void setup_pins_for_type();
 };
 
@@ -191,11 +206,15 @@ public:
     void clear();
     bool is_valid() const;
     bool has_cycles() const;
-    
+
+    // Display flag management (only one node can have display flag)
+    void set_display_node(int node_id);
+    int get_display_node() const;
+
     // Events
     using NodeChangedCallback = std::function<void(int node_id)>;
     using ConnectionChangedCallback = std::function<void(int connection_id)>;
-    
+
     void set_node_changed_callback(NodeChangedCallback callback) { node_changed_callback_ = callback; }
     void set_connection_changed_callback(ConnectionChangedCallback callback) { connection_changed_callback_ = callback; }
 

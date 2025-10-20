@@ -37,6 +37,7 @@ private:
 
     // Execution helper
     void executeAndDisplayNode(int node_id);
+    void updateDisplayFlagVisuals();
 
     // UI components (these will be pointers to our widgets)
     ViewportWidget* viewport_widget_;

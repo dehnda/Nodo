@@ -85,6 +85,14 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
         QPointF pin_pos = get_output_pin_pos(i);
         painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
     }
+
+    // Draw display flag (blue dot in top-right corner, Houdini-style)
+    if (has_display_flag_) {
+        painter->setBrush(QColor(80, 150, 255)); // Blue
+        painter->setPen(QPen(Qt::white, 1.5F));
+        const QPointF flag_pos(NODE_WIDTH - 12.0F, 12.0F);
+        painter->drawEllipse(flag_pos, 6.0F, 6.0F);
+    }
 }
 
 QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
@@ -248,6 +256,20 @@ void NodeGraphWidget::set_graph(nodeflux::graph::NodeGraph* graph) {
     rebuild_from_graph();
 }
 
+void NodeGraphWidget::update_display_flags_from_graph() {
+    if (graph_ == nullptr) {
+        return;
+    }
+
+    // Update each node item's display flag from the backend
+    for (auto& [node_id, node_item] : node_items_) {
+        const auto* node = graph_->get_node(node_id);
+        if (node != nullptr) {
+            node_item->set_display_flag(node->has_display_flag());
+        }
+    }
+}
+
 void NodeGraphWidget::rebuild_from_graph() {
     // Clear existing visual items
     scene_->clear();
@@ -291,6 +313,9 @@ void NodeGraphWidget::create_node_item(int node_id) {
     // Set position from backend
     auto [x, y] = node->get_position();
     item->setPos(x, y);
+
+    // Sync display flag from backend
+    item->set_display_flag(node->has_display_flag());
 
     // Add to scene and tracking
     scene_->addItem(item);

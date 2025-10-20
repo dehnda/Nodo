@@ -372,4 +372,27 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
   return "Unknown";
 }
 
+void NodeGraph::set_display_node(int node_id) {
+  // Clear display flag from all nodes
+  for (auto &node : nodes_) {
+    node->set_display_flag(false);
+  }
+
+  // Set display flag on the specified node
+  auto *node = get_node(node_id);
+  if (node != nullptr) {
+    node->set_display_flag(true);
+    notify_node_changed(node_id);
+  }
+}
+
+int NodeGraph::get_display_node() const {
+  for (const auto &node : nodes_) {
+    if (node->has_display_flag()) {
+      return node->get_id();
+    }
+  }
+  return -1; // No display node set
+}
+
 } // namespace nodeflux::graph

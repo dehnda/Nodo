@@ -45,6 +45,10 @@ public:
     bool is_selected() const { return selected_; }
     void set_hovered(bool hovered) { hovered_ = hovered; update(); }
 
+    // Flags
+    void set_display_flag(bool flag) { has_display_flag_ = flag; update(); }
+    bool has_display_flag() const { return has_display_flag_; }
+
     // Pin hit detection
     int get_pin_at_position(const QPointF& pos, bool& is_input) const;
 
@@ -62,6 +66,7 @@ private:
     int output_count_;
     bool selected_ = false;
     bool hovered_ = false;
+    bool has_display_flag_ = false;
 
     // Visual constants
     static constexpr float NODE_WIDTH = 140.0F;
@@ -115,6 +120,9 @@ public:
 
     // Rebuild visual representation from backend graph
     void rebuild_from_graph();
+
+    // Update display flags without rebuilding
+    void update_display_flags_from_graph();
 
     // Node selection
     QVector<int> get_selected_node_ids() const;

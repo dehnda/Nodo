@@ -383,10 +383,22 @@ void MainWindow::onNodeSelectionChanged() {
   }
 }
 
+void MainWindow::updateDisplayFlagVisuals() {
+  if (node_graph_widget_ != nullptr) {
+    node_graph_widget_->update_display_flags_from_graph();
+  }
+}
+
 void MainWindow::executeAndDisplayNode(int node_id) {
   if (node_graph_ == nullptr || execution_engine_ == nullptr) {
     return;
   }
+
+  // Set display flag on this node (clears it from all others)
+  node_graph_->set_display_node(node_id);
+
+  // Update display flag visuals without rebuilding everything
+  updateDisplayFlagVisuals();
 
   // Execute the entire graph up to this node
   bool success = execution_engine_->execute_graph(*node_graph_);
