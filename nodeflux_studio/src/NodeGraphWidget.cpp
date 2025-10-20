@@ -88,13 +88,19 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 }
 
 QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
-    float y = 25.0F + PIN_SPACING + static_cast<float>(index) * PIN_SPACING;
-    return QPointF(0, y);
+    // Vertical flow: input pins at TOP
+    const float center_x = NODE_WIDTH / 2.0F;
+    const float offset = static_cast<float>(index) - static_cast<float>(input_count_ - 1) / 2.0F;
+    const float x = center_x + offset * PIN_SPACING;
+    return QPointF(x, 0);
 }
 
 QPointF NodeGraphicsItem::get_output_pin_pos(int index) const {
-    float y = 25.0F + PIN_SPACING + static_cast<float>(index) * PIN_SPACING;
-    return QPointF(NODE_WIDTH, y);
+    // Vertical flow: output pins at BOTTOM
+    const float center_x = NODE_WIDTH / 2.0F;
+    const float offset = static_cast<float>(index) - static_cast<float>(output_count_ - 1) / 2.0F;
+    const float x = center_x + offset * PIN_SPACING;
+    return QPointF(x, NODE_HEIGHT);
 }
 
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
@@ -192,16 +198,16 @@ void ConnectionGraphicsItem::update_path() {
     QPointF start = source_node_->mapToScene(source_node_->get_output_pin_pos(source_pin_));
     QPointF end = target_node_->mapToScene(target_node_->get_input_pin_pos(target_pin_));
 
-    // Create bezier curve for connection
+    // Create bezier curve for connection (VERTICAL flow: top-to-bottom)
     path_ = QPainterPath();
     path_.moveTo(start);
 
-    // Control points for smooth curve
-    float distance = std::abs(end.x() - start.x());
-    float offset = std::min(distance * 0.5F, 100.0F);
+    // Control points for smooth vertical curve
+    const float distance = std::abs(end.y() - start.y());
+    const float offset = std::min(distance * 0.5F, 100.0F);
 
-    QPointF ctrl1(start.x() + offset, start.y());
-    QPointF ctrl2(end.x() - offset, end.y());
+    QPointF ctrl1(start.x(), start.y() + offset);
+    QPointF ctrl2(end.x(), end.y() - offset);
 
     path_.cubicTo(ctrl1, ctrl2, end);
 

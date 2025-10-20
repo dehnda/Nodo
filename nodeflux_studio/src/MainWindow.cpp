@@ -97,13 +97,17 @@ auto MainWindow::setupMenuBar() -> void {
 }
 
 auto MainWindow::setupDockWidgets() -> void {
-  // Create the 3D viewport widget as the central widget
+  // Create the 3D viewport widget on the LEFT (takes most space)
+  // We'll make it a dock widget so we can control its size
+  QDockWidget* viewport_dock = new QDockWidget("Viewport", this);
+  viewport_dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
   viewport_widget_ = new ViewportWidget(this);
-  setCentralWidget(viewport_widget_);
+  viewport_dock->setWidget(viewport_widget_);
+  addDockWidget(Qt::LeftDockWidgetArea, viewport_dock);
 
-  // Create dock widget for node graph (bottom area)
+  // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
-  node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+  node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
   // Create node graph widget and connect to backend
   node_graph_widget_ = new NodeGraphWidget(this);
@@ -120,9 +124,10 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(node_graph_widget_, &NodeGraphWidget::selection_changed,
           this, &MainWindow::onNodeSelectionChanged);
 
-  addDockWidget(Qt::BottomDockWidgetArea, node_graph_dock_);
+  // Add node graph to the right of viewport
+  splitDockWidget(viewport_dock, node_graph_dock_, Qt::Horizontal);
 
-  // Create dock widget for properties (left side)
+  // Create dock widget for properties (FAR RIGHT)
   property_dock_ = new QDockWidget("Properties", this);
   property_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
@@ -130,7 +135,11 @@ auto MainWindow::setupDockWidgets() -> void {
   property_panel_ = new PropertyPanel(this);
   property_dock_->setWidget(property_panel_);
 
-  addDockWidget(Qt::LeftDockWidgetArea, property_dock_);
+  // Add properties to the right of node graph
+  splitDockWidget(node_graph_dock_, property_dock_, Qt::Horizontal);
+
+  // Set initial sizes: Viewport (500px), Node Graph (400px), Properties (300px)
+  resizeDocks({viewport_dock, node_graph_dock_, property_dock_}, {500, 400, 300}, Qt::Horizontal);
 
   // Connect property changes to viewport updates
   connect(property_panel_, &PropertyPanel::parameterChanged,
