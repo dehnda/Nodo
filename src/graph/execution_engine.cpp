@@ -9,9 +9,10 @@
 #include "nodeflux/geometry/sphere_generator.hpp"
 #include "nodeflux/geometry/torus_generator.hpp"
 #include "nodeflux/sop/boolean_sop.hpp"
+#include "nodeflux/sop/line_sop.hpp"
+#include "nodeflux/sop/resample_sop.hpp"
 #include <iostream>
 #include <memory>
-
 
 namespace nodeflux::graph {
 
@@ -64,6 +65,10 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       result = execute_torus_node(*node);
       break;
     }
+    case NodeType::Line: {
+      result = execute_line_node(*node);
+      break;
+    }
     case NodeType::Transform: {
       auto inputs = gather_input_meshes(graph, node_id);
       result = execute_transform_node(*node, inputs);
@@ -82,6 +87,11 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     case NodeType::Array: {
       auto inputs = gather_input_meshes(graph, node_id);
       result = execute_array_node(*node, inputs);
+      break;
+    }
+    case NodeType::Resample: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_resample_node(*node, inputs);
       break;
     }
     default: {
@@ -250,6 +260,58 @@ ExecutionEngine::execute_torus_node(const GraphNode &node) {
   }
 
   return nullptr;
+}
+
+std::shared_ptr<core::Mesh>
+ExecutionEngine::execute_line_node(const GraphNode &node) {
+  // Get line parameters
+  auto start_x_param = node.get_parameter("start_x");
+  auto start_y_param = node.get_parameter("start_y");
+  auto start_z_param = node.get_parameter("start_z");
+  auto end_x_param = node.get_parameter("end_x");
+  auto end_y_param = node.get_parameter("end_y");
+  auto end_z_param = node.get_parameter("end_z");
+  auto segments_param = node.get_parameter("segments");
+
+  const float start_x = (start_x_param.has_value() &&
+                         start_x_param->type == NodeParameter::Type::Float)
+                            ? start_x_param->float_value
+                            : 0.0F;
+  const float start_y = (start_y_param.has_value() &&
+                         start_y_param->type == NodeParameter::Type::Float)
+                            ? start_y_param->float_value
+                            : 0.0F;
+  const float start_z = (start_z_param.has_value() &&
+                         start_z_param->type == NodeParameter::Type::Float)
+                            ? start_z_param->float_value
+                            : 0.0F;
+  const float end_x = (end_x_param.has_value() &&
+                       end_x_param->type == NodeParameter::Type::Float)
+                          ? end_x_param->float_value
+                          : 1.0F;
+  const float end_y = (end_y_param.has_value() &&
+                       end_y_param->type == NodeParameter::Type::Float)
+                          ? end_y_param->float_value
+                          : 0.0F;
+  const float end_z = (end_z_param.has_value() &&
+                       end_z_param->type == NodeParameter::Type::Float)
+                          ? end_z_param->float_value
+                          : 0.0F;
+  const int segments = (segments_param.has_value() &&
+                        segments_param->type == NodeParameter::Type::Int)
+                           ? segments_param->int_value
+                           : 10;
+
+  std::cout << "📏 Creating line from (" << start_x << ", " << start_y << ", "
+            << start_z << ") to (" << end_x << ", " << end_y << ", " << end_z
+            << ") with " << segments << " segments\n";
+
+  sop::LineSOP line_sop("LineNode");
+  line_sop.set_start_point(start_x, start_y, start_z);
+  line_sop.set_end_point(end_x, end_y, end_z);
+  line_sop.set_segments(segments);
+
+  return line_sop.cook();
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
@@ -642,6 +704,46 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
             << total_faces << " faces" << std::endl;
 
   return result;
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+  if (inputs.empty()) {
+    std::cout << "⚠️ Resample node needs input geometry\n";
+    return nullptr;
+  }
+
+  // Get resample parameters
+  auto mode_param = node.get_parameter("mode");
+  auto point_count_param = node.get_parameter("point_count");
+  auto segment_length_param = node.get_parameter("segment_length");
+
+  const int mode =
+      (mode_param.has_value() && mode_param->type == NodeParameter::Type::Int)
+          ? mode_param->int_value
+          : 0;
+  const int point_count = (point_count_param.has_value() &&
+                           point_count_param->type == NodeParameter::Type::Int)
+                              ? point_count_param->int_value
+                              : 20;
+  const float segment_length =
+      (segment_length_param.has_value() &&
+       segment_length_param->type == NodeParameter::Type::Float)
+          ? segment_length_param->float_value
+          : 0.1F;
+
+  const char *mode_name = (mode == 0) ? "BY_COUNT" : "BY_LENGTH";
+  std::cout << "🔄 Resampling geometry (mode: " << mode_name << ")\n";
+
+  sop::ResampleSOP resample_sop("ResampleNode");
+  resample_sop.set_mode(mode == 0 ? sop::ResampleSOP::Mode::BY_COUNT
+                                  : sop::ResampleSOP::Mode::BY_LENGTH);
+  resample_sop.set_point_count(point_count);
+  resample_sop.set_segment_length(segment_length);
+  resample_sop.set_input_mesh(inputs[0]);
+
+  return resample_sop.cook();
 }
 
 std::vector<std::shared_ptr<core::Mesh>>

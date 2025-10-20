@@ -44,6 +44,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Cylinder:
   case NodeType::Plane:
   case NodeType::Torus:
+  case NodeType::Line:
     return QColor(200, 120, 60); // Orange
 
   // Modifiers - Blue
@@ -53,6 +54,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Subdivide:
   case NodeType::Array:
   case NodeType::Mirror:
+  case NodeType::Resample:
     return QColor(60, 120, 200); // Blue
 
   // Boolean/Combine - Purple
@@ -829,6 +831,11 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
                               context_menu_scene_pos_);
     });
 
+    generatorsMenu->addAction("Line", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::Line,
+                              context_menu_scene_pos_);
+    });
+
     // Modifier nodes
     QMenu *modifiersMenu = createMenu->addMenu("Modifiers");
     modifiersMenu->addAction("Transform", [this]() {
@@ -848,6 +855,11 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
 
     modifiersMenu->addAction("Boolean", [this]() {
       create_node_at_position(nodeflux::graph::NodeType::Boolean,
+                              context_menu_scene_pos_);
+    });
+
+    modifiersMenu->addAction("Resample", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::Resample,
                               context_menu_scene_pos_);
     });
 

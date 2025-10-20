@@ -4,7 +4,6 @@
 #include <nodeflux/nodes/cylinder_node.hpp>
 #include <nodeflux/nodes/sphere_node.hpp>
 
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -13,7 +12,6 @@
 #include <QHBoxLayout>
 #include <QSlider>
 #include <QSpinBox>
-
 
 PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
 
@@ -429,6 +427,12 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
     break;
   case NodeType::Boolean:
     buildBooleanParameters(node);
+    break;
+  case NodeType::Line:
+    buildLineParameters(node);
+    break;
+  case NodeType::Resample:
+    buildResampleParameters(node);
     break;
   default:
     // For other node types, show generic message
@@ -951,6 +955,153 @@ void PropertyPanel::buildBooleanParameters(nodeflux::graph::GraphNode *node) {
   addComboParameter(
       "Operation", operation, operations, [this, node](int value) {
         node->set_parameter("operation", NodeParameter("operation", value));
+        emit parameterChanged();
+      });
+}
+
+void PropertyPanel::buildLineParameters(nodeflux::graph::GraphNode *node) {
+  using namespace nodeflux::graph;
+
+  addHeader("Line Geometry");
+
+  // Start point parameters
+  auto start_x_param = node->get_parameter("start_x");
+  double start_x = (start_x_param.has_value() &&
+                    start_x_param->type == NodeParameter::Type::Float)
+                       ? start_x_param->float_value
+                       : 0.0;
+
+  auto start_y_param = node->get_parameter("start_y");
+  double start_y = (start_y_param.has_value() &&
+                    start_y_param->type == NodeParameter::Type::Float)
+                       ? start_y_param->float_value
+                       : 0.0;
+
+  auto start_z_param = node->get_parameter("start_z");
+  double start_z = (start_z_param.has_value() &&
+                    start_z_param->type == NodeParameter::Type::Float)
+                       ? start_z_param->float_value
+                       : 0.0;
+
+  // End point parameters
+  auto end_x_param = node->get_parameter("end_x");
+  double end_x = (end_x_param.has_value() &&
+                  end_x_param->type == NodeParameter::Type::Float)
+                     ? end_x_param->float_value
+                     : 1.0;
+
+  auto end_y_param = node->get_parameter("end_y");
+  double end_y = (end_y_param.has_value() &&
+                  end_y_param->type == NodeParameter::Type::Float)
+                     ? end_y_param->float_value
+                     : 0.0;
+
+  auto end_z_param = node->get_parameter("end_z");
+  double end_z = (end_z_param.has_value() &&
+                  end_z_param->type == NodeParameter::Type::Float)
+                     ? end_z_param->float_value
+                     : 0.0;
+
+  // Segments parameter
+  auto segments_param = node->get_parameter("segments");
+  int segments = (segments_param.has_value() &&
+                  segments_param->type == NodeParameter::Type::Int)
+                     ? segments_param->int_value
+                     : 10;
+
+  // Add UI controls
+  addDoubleParameter(
+      "Start X", start_x, -100.0, 100.0, [this, node](double value) {
+        node->set_parameter(
+            "start_x", NodeParameter("start_x", static_cast<float>(value)));
+        emit parameterChanged();
+      });
+
+  addDoubleParameter(
+      "Start Y", start_y, -100.0, 100.0, [this, node](double value) {
+        node->set_parameter(
+            "start_y", NodeParameter("start_y", static_cast<float>(value)));
+        emit parameterChanged();
+      });
+
+  addDoubleParameter(
+      "Start Z", start_z, -100.0, 100.0, [this, node](double value) {
+        node->set_parameter(
+            "start_z", NodeParameter("start_z", static_cast<float>(value)));
+        emit parameterChanged();
+      });
+
+  addDoubleParameter("End X", end_x, -100.0, 100.0, [this, node](double value) {
+    node->set_parameter("end_x",
+                        NodeParameter("end_x", static_cast<float>(value)));
+    emit parameterChanged();
+  });
+
+  addDoubleParameter("End Y", end_y, -100.0, 100.0, [this, node](double value) {
+    node->set_parameter("end_y",
+                        NodeParameter("end_y", static_cast<float>(value)));
+    emit parameterChanged();
+  });
+
+  addDoubleParameter("End Z", end_z, -100.0, 100.0, [this, node](double value) {
+    node->set_parameter("end_z",
+                        NodeParameter("end_z", static_cast<float>(value)));
+    emit parameterChanged();
+  });
+
+  addIntParameter("Segments", segments, 2, 1000, [this, node](int value) {
+    node->set_parameter("segments", NodeParameter("segments", value));
+    emit parameterChanged();
+  });
+}
+
+void PropertyPanel::buildResampleParameters(nodeflux::graph::GraphNode *node) {
+  using namespace nodeflux::graph;
+
+  addHeader("Resample Curve");
+
+  // Mode parameter
+  auto mode_param = node->get_parameter("mode");
+  int mode =
+      (mode_param.has_value() && mode_param->type == NodeParameter::Type::Int)
+          ? mode_param->int_value
+          : 0;
+
+  // Point count parameter
+  auto point_count_param = node->get_parameter("point_count");
+  int point_count = (point_count_param.has_value() &&
+                     point_count_param->type == NodeParameter::Type::Int)
+                        ? point_count_param->int_value
+                        : 20;
+
+  // Segment length parameter
+  auto segment_length_param = node->get_parameter("segment_length");
+  double segment_length =
+      (segment_length_param.has_value() &&
+       segment_length_param->type == NodeParameter::Type::Float)
+          ? segment_length_param->float_value
+          : 0.1;
+
+  // Add UI controls
+  QStringList modes = {"By Count", "By Length"};
+
+  addComboParameter("Mode", mode, modes, [this, node](int value) {
+    node->set_parameter("mode", NodeParameter("mode", value));
+    emit parameterChanged();
+  });
+
+  addIntParameter(
+      "Point Count", point_count, 2, 10000, [this, node](int value) {
+        node->set_parameter("point_count", NodeParameter("point_count", value));
+        emit parameterChanged();
+      });
+
+  addDoubleParameter(
+      "Segment Length", segment_length, 0.001, 100.0,
+      [this, node](double value) {
+        node->set_parameter(
+            "segment_length",
+            NodeParameter("segment_length", static_cast<float>(value)));
         emit parameterChanged();
       });
 }

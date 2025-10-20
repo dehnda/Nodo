@@ -6,7 +6,6 @@
 #include <QWidget>
 #include <memory>
 
-
 // Forward declare node classes
 namespace nodeflux::nodes {
 class SphereNode;
@@ -87,4 +86,6 @@ private:
   void buildTransformParameters(nodeflux::graph::GraphNode *node);
   void buildArrayParameters(nodeflux::graph::GraphNode *node);
   void buildBooleanParameters(nodeflux::graph::GraphNode *node);
+  void buildLineParameters(nodeflux::graph::GraphNode *node);
+  void buildResampleParameters(nodeflux::graph::GraphNode *node);
 };

@@ -52,14 +52,15 @@ std::optional<core::Mesh> LineSOP::execute() {
     vertices(i, 2) = start_point_[2] + t * (end_point_[2] - start_point_[2]);
   }
 
-  // Create edges as degenerate triangles (line segments)
-  // Each segment is represented as a face with indices [i, i+1, i+1]
+  // Create edges as line segments (store as degenerate triangles for
+  // compatibility) Face format: [i, i+1, i+1] indicates this is a line edge
+  // from i to i+1
   Eigen::MatrixXi faces(segments_, 3);
 
   for (int i = 0; i < segments_; ++i) {
     faces(i, 0) = i;
     faces(i, 1) = i + 1;
-    faces(i, 2) = i + 1; // Degenerate triangle to represent line
+    faces(i, 2) = i + 1; // Degenerate triangle marker for line edge
   }
 
   core::Mesh result(std::move(vertices), std::move(faces));

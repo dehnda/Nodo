@@ -413,9 +413,9 @@ void NodeGraph::notify_connection_changed(int connection_id) {
 
 std::string NodeGraph::generate_node_name(NodeType type) const {
   constexpr const char *TYPE_NAMES[] = {
-      "Sphere",  "Box",     "Cylinder",  "Plane",     "Torus",
-      "Extrude", "Smooth",  "Subdivide", "Transform", "Array",
-      "Mirror",  "Boolean", "Merge",     "Switch"};
+      "Sphere",   "Box",     "Cylinder",  "Plane",     "Torus", "Line",
+      "Extrude",  "Smooth",  "Subdivide", "Transform", "Array", "Mirror",
+      "Resample", "Boolean", "Merge",     "Switch"};
 
   const int type_index = static_cast<int>(type);
   if (type_index >= 0 && type_index < static_cast<int>(std::size(TYPE_NAMES))) {
