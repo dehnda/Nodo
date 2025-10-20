@@ -448,14 +448,37 @@ void NodeGraph::notify_connection_changed(int connection_id) {
 }
 
 std::string NodeGraph::generate_node_name(NodeType type) const {
-  constexpr const char *TYPE_NAMES[] = {
-      "Sphere",  "Box",         "Cylinder", "Plane",     "Torus",     "Line",
-      "Extrude", "PolyExtrude", "Smooth",   "Subdivide", "Transform", "Array",
-      "Mirror",  "Resample",    "Boolean",  "Merge",     "Switch"};
+  // Use switch statement to keep names in sync with enum
+  // Compiler will warn if we miss a case with -Wswitch-enum
+  switch (type) {
+    // Generators
+    case NodeType::Sphere:       return "Sphere";
+    case NodeType::Box:          return "Box";
+    case NodeType::Cylinder:     return "Cylinder";
+    case NodeType::Plane:        return "Plane";
+    case NodeType::Torus:        return "Torus";
+    case NodeType::Line:         return "Line";
 
-  const int type_index = static_cast<int>(type);
-  if (type_index >= 0 && type_index < static_cast<int>(std::size(TYPE_NAMES))) {
-    return TYPE_NAMES[type_index];
+    // Modifiers
+    case NodeType::Extrude:      return "Extrude";
+    case NodeType::PolyExtrude:  return "PolyExtrude";
+    case NodeType::Smooth:       return "Smooth";
+    case NodeType::Subdivide:    return "Subdivide";
+    case NodeType::Transform:    return "Transform";
+    case NodeType::Array:        return "Array";
+    case NodeType::Mirror:       return "Mirror";
+    case NodeType::Resample:     return "Resample";
+
+    // Boolean Operations
+    case NodeType::Boolean:      return "Boolean";
+
+    // Point Operations
+    case NodeType::Scatter:      return "Scatter";
+    case NodeType::CopyToPoints: return "CopyToPoints";
+
+    // Utilities
+    case NodeType::Merge:        return "Merge";
+    case NodeType::Switch:       return "Switch";
   }
 
   return "Unknown";

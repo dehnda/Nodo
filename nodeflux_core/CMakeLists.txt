@@ -105,7 +105,12 @@ target_link_libraries(nodeflux_core
 if(MSVC)
     target_compile_options(nodeflux_core PRIVATE /W4)
 else()
-    target_compile_options(nodeflux_core PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(nodeflux_core PRIVATE
+        -Wall
+        -Wextra
+        -pedantic
+        -Wswitch-enum  # Warn if switch on enum misses cases
+    )
 endif()
 
 # Export compile commands for clangd/IDE support
