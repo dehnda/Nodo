@@ -14,97 +14,12 @@ option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
 option(NODEFLUX_BUILD_STUDIO "Build Qt Studio application" ON)
 
-# Conan dependencies
-find_package(Eigen3 REQUIRED)
-find_package(fmt REQUIRED)
-find_package(manifold REQUIRED)
-find_package(libigl REQUIRED)
-find_package(nlohmann_json REQUIRED)
-if(NODEFLUX_BUILD_TESTS)
-    find_package(GTest REQUIRED)
-endif()
-
-# Core library
-add_library(nodeflux_core
-    # Core system files
-    src/core/mesh.cpp
-    src/core/error.cpp
-    src/core/math.cpp
-    src/core/geometry_attributes.cpp
-
-    # Geometry generators
-    src/geometry/boolean_ops.cpp
-    src/geometry/mesh_generator.cpp
-    src/geometry/sphere_generator.cpp
-    src/geometry/cylinder_generator.cpp
-    src/geometry/plane_generator.cpp
-    src/geometry/box_generator.cpp
-    src/geometry/torus_generator.cpp
-    src/geometry/mesh_validator.cpp
-    src/geometry/mesh_repairer.cpp
-
-    # Spatial data structures
-    src/spatial/bvh.cpp
-    src/spatial/enhanced_boolean_ops.cpp
-
-    # Performance and benchmarking
-    src/benchmarks/performance_benchmark.cpp
-
-    # I/O operations
-    src/io/obj_exporter.cpp
-
-    # Node system
-    src/nodes/sphere_node.cpp
-    src/nodes/cylinder_node.cpp
-    src/nodes/plane_node.cpp
-    src/nodes/box_node.cpp
-    src/nodes/torus_node.cpp
-
-    # SOP components
-    src/sop/array_sop.cpp
-    src/sop/boolean_sop.cpp
-    src/sop/extrude_sop.cpp
-    src/sop/laplacian_sop.cpp
-    src/sop/line_sop.cpp
-    src/sop/mirror_sop.cpp
-    src/sop/noise_displacement_sop.cpp
-    src/sop/polyextrude_sop.cpp
-    src/sop/resample_sop.cpp
-    src/sop/subdivision_sop.cpp
-
-    # Graph system (clean architecture)
-    src/graph/node_graph.cpp
-    src/graph/execution_engine.cpp
-    src/graph/graph_serializer.cpp
-)
-
-target_include_directories(nodeflux_core
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party>
-        $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(nodeflux_core
-    PUBLIC
-        Eigen3::Eigen
-        fmt::fmt
-        nlohmann_json::nlohmann_json
-        igl::igl
-        manifold::manifold
-)
-
-# Compiler features and warnings
-target_compile_features(nodeflux_core PUBLIC cxx_std_20)
-
-if(MSVC)
-    target_compile_options(nodeflux_core PRIVATE /W4)
-else()
-    target_compile_options(nodeflux_core PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+# Add subdirectories
+add_subdirectory(nodeflux_core)
 
 # Tests
 if(NODEFLUX_BUILD_TESTS)
+    find_package(GTest REQUIRED)
     enable_testing()
     add_subdirectory(tests)
 endif()
@@ -123,7 +38,7 @@ install(TARGETS nodeflux_core
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/
+install(DIRECTORY nodeflux_core/include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
