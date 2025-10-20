@@ -8,12 +8,15 @@
 #include <nodeflux/nodes/cylinder_node.hpp>
 #include <nodeflux/graph/node_graph.hpp>
 #include <nodeflux/graph/execution_engine.hpp>
+#include <nodeflux/graph/graph_serializer.hpp>
 
 #include <QAction>
 #include <QDockWidget>
 #include <QMenuBar>
 #include <QStatusBar>
 #include <QLabel>
+#include <QFileDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -179,20 +182,89 @@ auto MainWindow::setupStatusBar() -> void {
   statusBar()->showMessage("Ready - Use left mouse to rotate, middle mouse to pan, scroll to zoom");
 }
 
-// Slot implementations (simple placeholders for now)
+// Slot implementations
 void MainWindow::onNewScene() {
-  // TODO: Implement later
-  statusBar()->showMessage("New Scene clicked", 2000);
+  // Ask for confirmation if graph has nodes
+  if (!node_graph_->get_nodes().empty()) {
+    auto reply = QMessageBox::question(
+        this, "New Scene",
+        "This will clear the current graph. Are you sure?",
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply != QMessageBox::Yes) {
+      return;
+    }
+  }
+
+  // Create a fresh empty graph to avoid signal issues
+  node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>();
+
+  // Reconnect the node graph widget to the new graph
+  node_graph_widget_->set_graph(node_graph_.get());
+
+  // Clear viewport and property panel
+  viewport_widget_->clearMesh();
+  property_panel_->clearProperties();
+
+  statusBar()->showMessage("New scene created", 2000);
 }
 
 void MainWindow::onOpenScene() {
-  // TODO: Implement later
-  statusBar()->showMessage("Open Scene clicked", 2000);
+  using nodeflux::graph::GraphSerializer;
+
+  QString file_path = QFileDialog::getOpenFileName(
+      this, "Open Node Graph", "", "NodeFlux Graph (*.nfg);;All Files (*)");
+
+  if (file_path.isEmpty()) {
+    return; // User cancelled
+  }
+
+  auto loaded_graph = GraphSerializer::load_from_file(file_path.toStdString());
+
+  if (loaded_graph.has_value()) {
+    // Replace current graph with loaded graph
+    // We need to create a new graph and swap pointers to avoid signal issues
+    node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>(std::move(loaded_graph.value()));
+
+    // Reconnect the node graph widget to the new graph
+    node_graph_widget_->set_graph(node_graph_.get());
+
+    // Clear viewport
+    viewport_widget_->clearMesh();
+    property_panel_->clearProperties();
+
+    statusBar()->showMessage("Graph loaded successfully", 3000);
+  } else {
+    QMessageBox::warning(this, "Load Failed",
+                        "Failed to load node graph from file.");
+    statusBar()->showMessage("Failed to load graph", 3000);
+  }
 }
 
 void MainWindow::onSaveScene() {
-  // TODO: Implement later
-  statusBar()->showMessage("Save Scene clicked", 2000);
+  using nodeflux::graph::GraphSerializer;
+
+  QString file_path = QFileDialog::getSaveFileName(
+      this, "Save Node Graph", "", "NodeFlux Graph (*.nfg);;All Files (*)");
+
+  if (file_path.isEmpty()) {
+    return; // User cancelled
+  }
+
+  // Add .nfg extension if not present
+  if (!file_path.endsWith(".nfg", Qt::CaseInsensitive)) {
+    file_path += ".nfg";
+  }
+
+  bool success = GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
+
+  if (success) {
+    statusBar()->showMessage("Graph saved successfully", 3000);
+  } else {
+    QMessageBox::warning(this, "Save Failed",
+                        "Failed to save node graph to file.");
+    statusBar()->showMessage("Failed to save graph", 3000);
+  }
 }
 
 void MainWindow::onExit() {

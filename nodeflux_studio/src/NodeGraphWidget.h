@@ -188,6 +188,10 @@ private:
     int connection_source_pin_ = -1;
     QGraphicsLineItem* temp_connection_line_ = nullptr;
 
+    // Box selection state
+    QPointF selection_start_pos_;
+    QGraphicsRectItem* selection_rect_ = nullptr;
+
     // Selection
     QSet<int> selected_nodes_;
 

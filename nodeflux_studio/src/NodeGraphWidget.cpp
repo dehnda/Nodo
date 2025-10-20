@@ -370,13 +370,23 @@ void NodeGraphWidget::update_display_flags_from_graph() {
 }
 
 void NodeGraphWidget::rebuild_from_graph() {
+  // Block signals during rebuild to prevent crashes from selection changed signals
+  // when items are being deleted/recreated
+  scene_->blockSignals(true);
+
   // Clear existing visual items
   scene_->clear();
   node_items_.clear();
   connection_items_.clear();
   selected_nodes_.clear();
 
+  // IMPORTANT: scene_->clear() deletes all items including these pointers
+  // We must null them out to avoid dangling pointer crashes
+  selection_rect_ = nullptr;
+  temp_connection_line_ = nullptr;
+
   if (graph_ == nullptr) {
+    scene_->blockSignals(false);
     return;
   }
 
@@ -389,6 +399,9 @@ void NodeGraphWidget::rebuild_from_graph() {
   for (const auto &connection : graph_->get_connections()) {
     create_connection_item(connection.id);
   }
+
+  // Re-enable signals after rebuild is complete
+  scene_->blockSignals(false);
 }
 
 void NodeGraphWidget::create_node_item(int node_id) {
@@ -549,10 +562,36 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
         event->accept();
         return;
       }
+      // If clicked on node (not on a pin), let QGraphicsView handle it for dragging
+      // This allows single-click node dragging
+      QGraphicsView::mousePressEvent(event);
+      return;
+    } else {
+      // Clicked on empty space - start box selection
+      mode_ = InteractionMode::Selecting;
+      selection_start_pos_ = scene_pos;
+
+      // Create selection rectangle
+      if (selection_rect_ == nullptr) {
+        selection_rect_ = new QGraphicsRectItem();
+        selection_rect_->setPen(QPen(QColor(100, 150, 255), 1.5F, Qt::DashLine));
+        selection_rect_->setBrush(QColor(100, 150, 255, 30));
+        selection_rect_->setZValue(1000); // Draw on top
+        scene_->addItem(selection_rect_);
+      }
+
+      selection_rect_->setRect(QRectF(scene_pos, scene_pos));
+      selection_rect_->show();
+
+      // Clear existing selection unless holding Shift
+      if (!(event->modifiers() & Qt::ShiftModifier)) {
+        clear_selection();
+      }
+
+      event->accept();
+      return;
     }
   }
-
-  QGraphicsView::mousePressEvent(event);
 }
 
 void NodeGraphWidget::mouseMoveEvent(QMouseEvent *event) {
@@ -587,6 +626,29 @@ void NodeGraphWidget::mouseMoveEvent(QMouseEvent *event) {
     return;
   }
 
+  if (mode_ == InteractionMode::Selecting && selection_rect_ != nullptr) {
+    // Update selection rectangle
+    QPointF scene_pos = mapToScene(event->pos());
+    QRectF rect = QRectF(selection_start_pos_, scene_pos).normalized();
+    selection_rect_->setRect(rect);
+
+    // Update selection based on items intersecting the rectangle
+    for (auto &[node_id, node_item] : node_items_) {
+      bool intersects = node_item->sceneBoundingRect().intersects(rect);
+
+      if (intersects && !selected_nodes_.contains(node_id)) {
+        selected_nodes_.insert(node_id);
+        node_item->set_selected(true);
+      } else if (!intersects && selected_nodes_.contains(node_id)) {
+        selected_nodes_.remove(node_id);
+        node_item->set_selected(false);
+      }
+    }
+
+    event->accept();
+    return;
+  }
+
   QGraphicsView::mouseMoveEvent(event);
 
   // Update connections when nodes move
@@ -597,6 +659,22 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
   if (mode_ == InteractionMode::Panning) {
     mode_ = InteractionMode::None;
     setCursor(Qt::ArrowCursor);
+    event->accept();
+    return;
+  }
+
+  if (mode_ == InteractionMode::Selecting) {
+    // Finish box selection
+    mode_ = InteractionMode::None;
+
+    // Hide selection rectangle
+    if (selection_rect_ != nullptr) {
+      selection_rect_->hide();
+    }
+
+    // Emit selection changed signal
+    emit selection_changed();
+
     event->accept();
     return;
   }
@@ -874,7 +952,7 @@ void NodeGraphWidget::on_scene_selection_changed() {
 
   // Unselect non-selected nodes
   for (auto &[id, node_item] : node_items_) {
-    if (!selected_nodes_.contains(id)) {
+    if (node_item != nullptr && !selected_nodes_.contains(id)) {
       node_item->set_selected(false);
     }
   }

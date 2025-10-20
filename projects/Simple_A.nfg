@@ -1,0 +1,96 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    }
+  ],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "Sphere",
+      "parameters": [
+        {
+          "name": "radius",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "u_segments",
+          "type": "int",
+          "value": 32
+        },
+        {
+          "name": "v_segments",
+          "type": "int",
+          "value": 16
+        }
+      ],
+      "position": [
+        -5.0,
+        -158.0
+      ],
+      "type": "Sphere"
+    },
+    {
+      "id": 2,
+      "name": "Transform",
+      "parameters": [
+        {
+          "name": "translate_x",
+          "type": "float",
+          "value": 0.6000000238418579
+        },
+        {
+          "name": "translate_y",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "translate_z",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "rotate_x",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "rotate_y",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "rotate_z",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "scale_x",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "scale_y",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "scale_z",
+          "type": "float",
+          "value": 1.0
+        }
+      ],
+      "position": [
+        21.0,
+        -82.0
+      ],
+      "type": "Transform"
+    }
+  ],
+  "version": "1.0"
+}
