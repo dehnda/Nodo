@@ -195,6 +195,32 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Array", 0});
     break;
 
+  case NodeType::Scatter:
+    // Scatter points on mesh surface
+    parameters_.emplace_back("point_count", 100);
+    parameters_.emplace_back("seed", 42);
+    parameters_.emplace_back("density", 1.0F);
+    parameters_.emplace_back("use_face_area", 1); // 1=true, 0=false
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Points", 0});
+    break;
+
+  case NodeType::CopyToPoints:
+    // Copy template geometry to each point
+    parameters_.emplace_back("use_point_normals", 0); // 0=false, 1=true
+    parameters_.emplace_back("use_point_scale", 0);
+    parameters_.emplace_back("uniform_scale", 1.0F);
+    parameters_.emplace_back("scale_attribute", std::string(""));
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Points", 0});
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Template", 1});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Copied", 0});
+    break;
+
   default:
     // Default: single input/output
     input_pins_.push_back(

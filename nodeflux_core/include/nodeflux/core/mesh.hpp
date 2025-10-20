@@ -52,7 +52,9 @@ public:
 
   // Basic queries
   [[nodiscard]] bool empty() const noexcept {
-    return vertices_.rows() == 0 || faces_.rows() == 0;
+    // A mesh is empty only if it has no vertices
+    // Point clouds have vertices but no faces, and are NOT empty
+    return vertices_.rows() == 0;
   }
   [[nodiscard]] size_t vertex_count() const noexcept {
     return vertices_.rows();

@@ -24,6 +24,10 @@ public:
   explicit ScatterSOP(const std::string &node_name = "scatter")
       : SOPNode(node_name, "ScatterSOP") {
 
+    // Add input port
+    input_ports_.add_port("input", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
+
     // Set default parameters
     set_parameter("point_count", DEFAULT_POINT_COUNT);
     set_parameter("seed", DEFAULT_SEED);
@@ -34,9 +38,14 @@ public:
   /**
    * @brief Generate scattered points on input geometry
    */
-  std::shared_ptr<GeometryData> get_output_data() override {
-    auto input_data = get_input_data(0);
+  std::shared_ptr<GeometryData> execute() override {
+    auto input_data = get_input_data("input");
     if (input_data == nullptr) {
+      return nullptr;
+    }
+
+    auto input_mesh = input_data->get_mesh();
+    if (!input_mesh || input_mesh->empty()) {
       return nullptr;
     }
 
@@ -50,13 +59,12 @@ public:
     auto output_data = std::make_shared<GeometryData>();
 
     // Generate scattered points
-    scatter_points_on_mesh(input_data->mesh, *output_data, point_count, seed,
+    scatter_points_on_mesh(*input_mesh, *output_data, point_count, seed,
                            density, use_face_area);
 
     return output_data;
   }
 
-private:
   /**
    * @brief Scatter points across mesh surface
    */
@@ -64,6 +72,7 @@ private:
                               GeometryData &output_data, int point_count,
                               int seed, float density, bool use_face_area);
 
+private:
   /**
    * @brief Calculate face areas for area-weighted distribution
    */

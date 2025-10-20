@@ -43,17 +43,13 @@ void ScatterSOP::scatter_points_on_mesh(const core::Mesh &input_mesh,
 
   // Create output mesh with scattered points
   core::Mesh::Vertices scattered_vertices(actual_point_count, 3);
+  core::Mesh::Faces scattered_faces(0, 3); // Point cloud - no faces
 
-  // Initialize output attributes
-  output_data->attributes.initialize_standard_attributes(actual_point_count, 0);
-
-  // Add scatter-specific attributes
-  output_data->attributes.add_attribute<int>(
-      "point_index", core::AttributeClass::VERTEX, actual_point_count);
-  output_data->attributes.add_attribute<int>(
-      "source_face", core::AttributeClass::VERTEX, actual_point_count);
-  output_data->attributes.add_attribute<core::Vector3>(
-      "barycentric", core::AttributeClass::VERTEX, actual_point_count);
+  // Prepare attribute arrays
+  std::vector<GeometryData::AttributeValue> point_indices;
+  std::vector<GeometryData::AttributeValue> source_faces_attr;
+  point_indices.reserve(actual_point_count);
+  source_faces_attr.reserve(actual_point_count);
 
   // Generate scattered points
   for (int point_idx = 0; point_idx < actual_point_count; ++point_idx) {
@@ -91,39 +87,19 @@ void ScatterSOP::scatter_points_on_mesh(const core::Mesh &input_mesh,
     scattered_vertices(point_idx, 1) = scattered_point.y();
     scattered_vertices(point_idx, 2) = scattered_point.z();
 
-    // Set attributes
-    output_data->attributes.set_position(point_idx, scattered_point);
-    output_data->attributes.set_attribute("point_index", point_idx, point_idx);
-    output_data->attributes.set_attribute("source_face", point_idx, face_index);
-
-    // Calculate barycentric coordinates for attribute interpolation
-    // (This is simplified - proper barycentric calculation would be more
-    // complex)
-    double u_coord = unit_dist(generator);
-    double v_coord = unit_dist(generator);
-    if (u_coord + v_coord > BARYCENTRIC_NORMALIZE) {
-      u_coord = BARYCENTRIC_NORMALIZE - u_coord;
-      v_coord = BARYCENTRIC_NORMALIZE - v_coord;
-    }
-    double w_coord = BARYCENTRIC_NORMALIZE - u_coord - v_coord;
-
-    core::Vector3 barycentric_coords(u_coord, v_coord, w_coord);
-    output_data->attributes.set_attribute("barycentric", point_idx,
-                                          barycentric_coords);
-
-    // Set default normal (up)
-    output_data->attributes.set_normal(point_idx, core::Vector3(0.0, 0.0, 1.0));
-
-    // Set color based on point index for visualization
-    double color_ratio = static_cast<double>(point_idx) /
-                         static_cast<double>(actual_point_count - 1);
-    core::Vector3 point_color(color_ratio, 0.5, 1.0 - color_ratio);
-    output_data->attributes.set_color(point_idx, point_color);
+    // Store attributes
+    point_indices.push_back(point_idx);
+    source_faces_attr.push_back(face_index);
   }
 
   // Create output mesh (points only, no faces)
-  core::Mesh::Faces empty_faces(0, 3);
-  output_data->mesh = core::Mesh(scattered_vertices, empty_faces);
+  auto scattered_mesh =
+      std::make_shared<core::Mesh>(scattered_vertices, scattered_faces);
+  output_data.set_mesh(scattered_mesh);
+
+  // Set attributes
+  output_data.set_vertex_attribute("point_index", point_indices);
+  output_data.set_vertex_attribute("source_face", source_faces_attr);
 }
 
 std::vector<double> ScatterSOP::calculate_face_areas(const core::Mesh &mesh) {
@@ -173,16 +149,6 @@ core::Vector3 ScatterSOP::random_point_on_triangle(
 
   // Interpolate position using barycentric coordinates
   return w_coord * vertex_0 + u_coord * vertex_1 + v_coord * vertex_2;
-}
-
-void ScatterSOP::interpolate_attributes_at_point(
-    const core::GeometryAttributes &input_attrs,
-    core::GeometryAttributes &output_attrs, int face_index,
-    const core::Vector3 &barycentric_coords, size_t output_point_index) {
-  // This would interpolate vertex attributes from the input mesh to the
-  // scattered point Implementation would depend on which attributes need
-  // interpolation For now, we'll leave this as a placeholder for future
-  // enhancement
 }
 
 } // namespace nodeflux::sop

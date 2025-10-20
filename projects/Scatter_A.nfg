@@ -1,0 +1,71 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    }
+  ],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "Box",
+      "parameters": [
+        {
+          "name": "width",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "depth",
+          "type": "float",
+          "value": 1.0
+        }
+      ],
+      "position": [
+        2.0,
+        -65.0
+      ],
+      "type": "Box"
+    },
+    {
+      "id": 2,
+      "name": "Merge",
+      "parameters": [
+        {
+          "name": "point_count",
+          "type": "int",
+          "value": 100
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "value": 42
+        },
+        {
+          "name": "density",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "use_face_area",
+          "type": "int",
+          "value": 1
+        }
+      ],
+      "position": [
+        53.0,
+        38.0
+      ],
+      "type": "Scatter"
+    }
+  ],
+  "version": "1.0"
+}

@@ -89,4 +89,6 @@ private:
   void buildLineParameters(nodeflux::graph::GraphNode *node);
   void buildPolyExtrudeParameters(nodeflux::graph::GraphNode *node);
   void buildResampleParameters(nodeflux::graph::GraphNode *node);
+  void buildScatterParameters(nodeflux::graph::GraphNode *node);
+  void buildCopyToPointsParameters(nodeflux::graph::GraphNode *node);
 };

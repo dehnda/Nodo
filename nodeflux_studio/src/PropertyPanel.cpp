@@ -437,6 +437,12 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
   case NodeType::Resample:
     buildResampleParameters(node);
     break;
+  case NodeType::Scatter:
+    buildScatterParameters(node);
+    break;
+  case NodeType::CopyToPoints:
+    buildCopyToPointsParameters(node);
+    break;
   default:
     // For other node types, show generic message
     auto *label = new QLabel(
@@ -1153,6 +1159,110 @@ void PropertyPanel::buildPolyExtrudeParameters(
   addBoolParameter("Individual Faces", individual, [this, node](bool value) {
     node->set_parameter("individual_faces",
                         NodeParameter("individual_faces", value ? 1 : 0));
+    emit parameterChanged();
+  });
+}
+
+void PropertyPanel::buildScatterParameters(nodeflux::graph::GraphNode *node) {
+  using namespace nodeflux::graph;
+
+  addHeader("Scatter Points");
+
+  // Point count parameter
+  auto point_count_param = node->get_parameter("point_count");
+  int point_count = (point_count_param.has_value() &&
+                     point_count_param->type == NodeParameter::Type::Int)
+                        ? point_count_param->int_value
+                        : 100;
+
+  addIntParameter(
+      "Point Count", point_count, 1, 100000, [this, node](int value) {
+        node->set_parameter("point_count", NodeParameter("point_count", value));
+        emit parameterChanged();
+      });
+
+  // Seed parameter
+  auto seed_param = node->get_parameter("seed");
+  int seed =
+      (seed_param.has_value() && seed_param->type == NodeParameter::Type::Int)
+          ? seed_param->int_value
+          : 12345;
+
+  addIntParameter("Random Seed", seed, 0, 999999, [this, node](int value) {
+    node->set_parameter("seed", NodeParameter("seed", value));
+    emit parameterChanged();
+  });
+
+  // Density parameter
+  auto density_param = node->get_parameter("density");
+  double density = (density_param.has_value() &&
+                    density_param->type == NodeParameter::Type::Float)
+                       ? density_param->float_value
+                       : 1.0;
+
+  addDoubleParameter("Density", density, 0.0, 2.0, [this, node](double value) {
+    node->set_parameter("density",
+                        NodeParameter("density", static_cast<float>(value)));
+    emit parameterChanged();
+  });
+
+  // Use face area weighting
+  auto use_area_param = node->get_parameter("use_face_area");
+  bool use_area = (use_area_param.has_value() &&
+                   use_area_param->type == NodeParameter::Type::Int)
+                      ? (use_area_param->int_value != 0)
+                      : true;
+
+  addBoolParameter("Weight by Face Area", use_area, [this, node](bool value) {
+    node->set_parameter("use_face_area",
+                        NodeParameter("use_face_area", value ? 1 : 0));
+    emit parameterChanged();
+  });
+}
+
+void PropertyPanel::buildCopyToPointsParameters(
+    nodeflux::graph::GraphNode *node) {
+  using namespace nodeflux::graph;
+
+  addHeader("Copy to Points");
+
+  // Scale parameter
+  auto scale_param = node->get_parameter("uniform_scale");
+  double scale = (scale_param.has_value() &&
+                  scale_param->type == NodeParameter::Type::Float)
+                     ? scale_param->float_value
+                     : 1.0;
+
+  addDoubleParameter("Scale", scale, 0.01, 10.0, [this, node](double value) {
+    node->set_parameter(
+        "uniform_scale",
+        NodeParameter("uniform_scale", static_cast<float>(value)));
+    emit parameterChanged();
+  });
+
+  // Use point normals
+  auto use_normals_param = node->get_parameter("use_point_normals");
+  bool use_normals = (use_normals_param.has_value() &&
+                      use_normals_param->type == NodeParameter::Type::Int)
+                         ? (use_normals_param->int_value != 0)
+                         : false;
+
+  addBoolParameter("Use Point Normals", use_normals, [this, node](bool value) {
+    node->set_parameter("use_point_normals",
+                        NodeParameter("use_point_normals", value ? 1 : 0));
+    emit parameterChanged();
+  });
+
+  // Use point scale
+  auto use_scale_param = node->get_parameter("use_point_scale");
+  bool use_scale = (use_scale_param.has_value() &&
+                    use_scale_param->type == NodeParameter::Type::Int)
+                       ? (use_scale_param->int_value != 0)
+                       : false;
+
+  addBoolParameter("Use Point Scale", use_scale, [this, node](bool value) {
+    node->set_parameter("use_point_scale",
+                        NodeParameter("use_point_scale", value ? 1 : 0));
     emit parameterChanged();
   });
 }

@@ -53,7 +53,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp
     src/sop/BooleanSOP.cpp
-    # src/sop/copy_to_points_sop.cpp  # TODO: Fix GeometryData API compatibility
+    src/sop/copy_to_points_sop.cpp
     src/sop/extrude_sop.cpp
     src/sop/laplacian_sop.cpp
     src/sop/line_sop.cpp
@@ -62,7 +62,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/noise_displacement_sop.cpp
     src/sop/polyextrude_sop.cpp
     src/sop/resample_sop.cpp
-    # src/sop/scatter_sop.cpp  # TODO: Fix GeometryData API compatibility
+    src/sop/scatter_sop.cpp
     src/sop/subdivision_sop.cpp
 
     # Spatial

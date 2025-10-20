@@ -74,9 +74,11 @@ layout(location = 0) in vec3 position;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float point_size;
 
 void main() {
     gl_Position = projection * view * model * vec4(position, 1.0);
+    gl_PointSize = point_size;
 }
 )";
 
@@ -89,7 +91,19 @@ out vec4 frag_color;
 uniform vec3 color = vec3(1.0, 1.0, 1.0);
 
 void main() {
-    frag_color = vec4(color, 1.0);
+    // Make points render as smooth circles instead of squares
+    vec2 coord = gl_PointCoord - vec2(0.5);
+    float dist = length(coord);
+
+    // Discard pixels outside the circle
+    if (dist > 0.5) {
+        discard;
+    }
+
+    // Smooth edge antialiasing
+    float alpha = 1.0 - smoothstep(0.4, 0.5, dist);
+
+    frag_color = vec4(color, alpha);
 }
 )";
 
@@ -242,6 +256,15 @@ void ViewportWidget::setBackfaceCulling(bool enabled) {
 void ViewportWidget::initializeGL() {
   initializeOpenGLFunctions();
 
+  // Query and log point size range
+  GLfloat point_size_range[2];
+  glGetFloatv(GL_POINT_SIZE_RANGE, point_size_range);
+  qDebug() << "OpenGL Point Size Range:" << point_size_range[0] << "to" << point_size_range[1];
+
+  GLfloat point_size_granularity;
+  glGetFloatv(GL_POINT_SIZE_GRANULARITY, &point_size_granularity);
+  qDebug() << "Point Size Granularity:" << point_size_granularity;
+
   // Set clear color (dark gray background)
   glClearColor(0.2F, 0.2F, 0.2F, 1.0F);
 
@@ -321,7 +344,10 @@ void ViewportWidget::paintGL() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
 
-  glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, nullptr);
+  // Only draw faces if we have any
+  if (index_count_ > 0) {
+    glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, nullptr);
+  }
 
   if (wireframe_mode_) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -331,12 +357,15 @@ void ViewportWidget::paintGL() {
 
   shader_program_->release();
 
+  // For point clouds (no faces), always show vertices
+  const bool is_point_cloud = (index_count_ == 0 && point_count_ > 0);
+
   // Draw edges and vertices on top of the mesh
   if (show_edges_) {
     drawEdges();
   }
 
-  if (show_vertices_) {
+  if (show_vertices_ || is_point_cloud) {
     drawVertices();
   }
 
@@ -834,6 +863,7 @@ void ViewportWidget::drawEdges() {
   simple_shader_program_->setUniformValue("projection", projection_matrix_);
   simple_shader_program_->setUniformValue("color",
                                           QVector3D(1.0F, 1.0F, 1.0F)); // White
+  simple_shader_program_->setUniformValue("point_size", 1.0F); // Not used for lines, but required
 
   glLineWidth(1.5F); // Slightly thicker lines for visibility
 
@@ -847,7 +877,19 @@ void ViewportWidget::drawEdges() {
 }
 
 void ViewportWidget::drawVertices() {
-  if (!show_vertices_ || !vertex_vao_ || point_count_ == 0) {
+  // Check if we're rendering a point cloud (no faces)
+  const bool is_point_cloud = (index_count_ == 0 && point_count_ > 0);
+
+  static bool logged_once = false;
+  if (!logged_once && is_point_cloud) {
+    qDebug() << "Drawing point cloud with" << point_count_ << "points";
+    logged_once = true;
+  }
+
+  // Skip if: (not showing vertices AND not a point cloud) OR no VAO OR no
+  // points
+  if ((!show_vertices_ && !is_point_cloud) || !vertex_vao_ ||
+      point_count_ == 0) {
     return;
   }
 
@@ -855,22 +897,35 @@ void ViewportWidget::drawVertices() {
     return;
   }
 
+  // Enable blending for smooth circular points
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Enable point sprite for proper gl_PointCoord
+  glEnable(GL_PROGRAM_POINT_SIZE);
+
   simple_shader_program_->bind();
   simple_shader_program_->setUniformValue("model", model_matrix_);
   simple_shader_program_->setUniformValue("view", view_matrix_);
   simple_shader_program_->setUniformValue("projection", projection_matrix_);
-  simple_shader_program_->setUniformValue("color",
-                                          QVector3D(0.3F, 0.5F, 1.0F)); // Blue
+  simple_shader_program_->setUniformValue(
+      "color", QVector3D(1.0F, 0.8F, 0.2F)); // Bright yellow/gold
 
-  glPointSize(6.0F); // Visible point size
+  const float point_size = 12.0F; // Reasonable size - adjust as needed
+  simple_shader_program_->setUniformValue("point_size", point_size);
+
+  if (!logged_once) {
+    qDebug() << "Setting point_size uniform to:" << point_size;
+  }
 
   vertex_vao_->bind();
   glDrawArrays(GL_POINTS, 0, point_count_);
   vertex_vao_->release();
 
-  glPointSize(1.0F); // Reset
-
   simple_shader_program_->release();
+
+  glDisable(GL_PROGRAM_POINT_SIZE);
+  glDisable(GL_BLEND);
 }
 
 void ViewportWidget::drawVertexNormals() {

@@ -12,19 +12,22 @@ void CopyToPointsSOP::copy_template_to_points(
     GeometryData &output_data, bool use_point_normals, bool use_point_scale,
     float uniform_scale, const std::string &scale_attribute) {
 
-  const auto &template_mesh = template_data.mesh;
-  const auto &template_vertices = template_mesh.vertices();
-  const auto &template_faces = template_mesh.faces();
-
-  if (template_vertices.rows() == 0) {
+  auto template_mesh = template_data.get_mesh();
+  if (!template_mesh || template_mesh->empty()) {
     return; // No template geometry
   }
 
+  const auto &template_vertices = template_mesh->vertices();
+  const auto &template_faces = template_mesh->faces();
+
   // Get point positions from scattered points
-  size_t point_count = points_data.mesh.vertices().rows();
-  if (point_count == 0) {
+  auto points_mesh = points_data.get_mesh();
+  if (!points_mesh || points_mesh->empty()) {
     return; // No points to copy to
   }
+
+  size_t point_count = points_mesh->vertices().rows();
+  const auto &point_vertices = points_mesh->vertices();
 
   // Calculate output mesh dimensions
   size_t vertices_per_instance = template_vertices.rows();
@@ -36,40 +39,28 @@ void CopyToPointsSOP::copy_template_to_points(
   core::Mesh::Vertices output_vertices(total_vertices, 3);
   core::Mesh::Faces output_faces(total_faces, 3);
 
-  // Initialize output attributes
-  output_data->attributes.initialize_standard_attributes(total_vertices,
-                                                         total_faces);
-
-  // Add instance-specific attributes
-  output_data->attributes.add_attribute<int>(
-      "instance_id", core::AttributeClass::VERTEX, total_vertices);
-  output_data->attributes.add_attribute<int>(
-      "original_point_index", core::AttributeClass::VERTEX, total_vertices);
-  output_data->attributes.add_attribute<float>(
-      "instance_scale", core::AttributeClass::VERTEX, total_vertices);
+  // Prepare attribute arrays
+  std::vector<GeometryData::AttributeValue> instance_ids;
+  std::vector<GeometryData::AttributeValue> material_ids;
+  instance_ids.reserve(total_vertices);
+  material_ids.reserve(total_faces);
 
   // Copy template to each point
   for (size_t point_idx = 0; point_idx < point_count; ++point_idx) {
-    // Get point data
-    auto point_position = points_data.attributes.get_position(point_idx);
-    auto point_normal = points_data.attributes.get_normal(point_idx);
+    // Get point position
+    core::Vector3 point_position(point_vertices(point_idx, 0),
+                                 point_vertices(point_idx, 1),
+                                 point_vertices(point_idx, 2));
 
-    if (!point_position.has_value()) {
-      continue; // Skip invalid points
-    }
+    // Use default normal (up)
+    core::Vector3 normal(0.0, UP_VECTOR_Y, 0.0);
 
     // Calculate scale for this instance
-    float point_scale =
-        calculate_point_scale(points_data.attributes, point_idx,
-                              scale_attribute, uniform_scale, use_point_scale);
-
-    // Use default normal if not available
-    core::Vector3 normal =
-        point_normal.value_or(core::Vector3(0.0, UP_VECTOR_Y, 0.0));
+    float point_scale = uniform_scale;
 
     // Transform template vertices for this point
     size_t vertex_offset = point_idx * vertices_per_instance;
-    transform_template_for_point(template_mesh, point_position.value(), normal,
+    transform_template_for_point(*template_mesh, point_position, normal,
                                  point_scale, output_vertices, vertex_offset);
 
     // Copy and offset faces
@@ -85,44 +76,25 @@ void CopyToPointsSOP::copy_template_to_points(
       output_faces(output_face_idx, 2) =
           template_face[2] + static_cast<int>(vertex_offset);
 
-      // Set face attributes
-      output_data->attributes.set_attribute("material_id", output_face_idx,
-                                            static_cast<int>(point_idx));
+      // Store face material ID
+      material_ids.push_back(static_cast<int>(point_idx));
     }
 
     // Set vertex attributes for this instance
     for (size_t vertex_idx = 0; vertex_idx < vertices_per_instance;
          ++vertex_idx) {
-      size_t output_vertex_idx = vertex_offset + vertex_idx;
-
-      // Set position from transformed vertices
-      core::Vector3 vertex_position(output_vertices(output_vertex_idx, 0),
-                                    output_vertices(output_vertex_idx, 1),
-                                    output_vertices(output_vertex_idx, 2));
-      output_data->attributes.set_position(output_vertex_idx, vertex_position);
-
-      // Set instance attributes
-      output_data->attributes.set_attribute("instance_id", output_vertex_idx,
-                                            static_cast<int>(point_idx));
-      output_data->attributes.set_attribute("original_point_index",
-                                            output_vertex_idx,
-                                            static_cast<int>(point_idx));
-      output_data->attributes.set_attribute("instance_scale", output_vertex_idx,
-                                            point_scale);
-
-      // Set color based on instance (for visualization)
-      double color_ratio =
-          static_cast<double>(point_idx) / static_cast<double>(point_count - 1);
-      core::Vector3 instance_color(color_ratio, 0.3, 1.0 - color_ratio);
-      output_data->attributes.set_color(output_vertex_idx, instance_color);
-
-      // Set normal (simplified - should be transformed properly)
-      output_data->attributes.set_normal(output_vertex_idx, normal);
+      instance_ids.push_back(static_cast<int>(point_idx));
     }
   }
 
   // Create final output mesh
-  output_data->mesh = core::Mesh(output_vertices, output_faces);
+  auto output_mesh =
+      std::make_shared<core::Mesh>(output_vertices, output_faces);
+  output_data.set_mesh(output_mesh);
+
+  // Set attributes
+  output_data.set_vertex_attribute("instance_id", instance_ids);
+  output_data.set_face_attribute("material_id", material_ids);
 }
 
 void CopyToPointsSOP::transform_template_for_point(
@@ -156,42 +128,6 @@ void CopyToPointsSOP::transform_template_for_point(
     output_vertices(output_idx, 1) = final_vertex.y();
     output_vertices(output_idx, 2) = final_vertex.z();
   }
-}
-
-float CopyToPointsSOP::calculate_point_scale(
-    const core::GeometryAttributes &point_attrs, size_t point_index,
-    const std::string &scale_attribute, float uniform_scale,
-    bool use_point_scale) {
-
-  if (!use_point_scale) {
-    return uniform_scale;
-  }
-
-  // Try to get scale from specified attribute
-  if (!scale_attribute.empty()) {
-    if (scale_attribute == "point_index") {
-      // Scale based on point index
-      auto point_index_attr =
-          point_attrs.get_attribute<int>("point_index", point_index);
-      if (point_index_attr.has_value()) {
-        // Scale from 0.1 to 2.0 based on index
-        float scale_factor = DEFAULT_SCALE_MULTIPLIER +
-                             (static_cast<float>(point_index_attr.value()) *
-                              DEFAULT_SCALE_MULTIPLIER);
-        return scale_factor * uniform_scale;
-      }
-    } else {
-      // Try to get float attribute
-      auto scale_value =
-          point_attrs.get_attribute<float>(scale_attribute, point_index);
-      if (scale_value.has_value()) {
-        return scale_value.value() * uniform_scale;
-      }
-    }
-  }
-
-  // Default to uniform scale
-  return uniform_scale;
 }
 
 } // namespace nodeflux::sop

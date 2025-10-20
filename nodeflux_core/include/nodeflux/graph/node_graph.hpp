@@ -40,6 +40,10 @@ enum class NodeType {
   // Boolean Operations
   Boolean,
 
+  // Point Operations
+  Scatter,
+  CopyToPoints,
+
   // Utilities
   Merge,
   Switch

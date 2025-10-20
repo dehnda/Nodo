@@ -9,9 +9,11 @@
 #include "nodeflux/geometry/sphere_generator.hpp"
 #include "nodeflux/geometry/torus_generator.hpp"
 #include "nodeflux/sop/boolean_sop.hpp"
+#include "nodeflux/sop/copy_to_points_sop.hpp"
 #include "nodeflux/sop/line_sop.hpp"
 #include "nodeflux/sop/polyextrude_sop.hpp"
 #include "nodeflux/sop/resample_sop.hpp"
+#include "nodeflux/sop/scatter_sop.hpp"
 #include <iostream>
 #include <memory>
 
@@ -98,6 +100,16 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     case NodeType::Resample: {
       auto inputs = gather_input_meshes(graph, node_id);
       result = execute_resample_node(*node, inputs);
+      break;
+    }
+    case NodeType::Scatter: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_scatter_node(*node, inputs);
+      break;
+    }
+    case NodeType::CopyToPoints: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_copy_to_points_node(*node, inputs);
       break;
     }
     default: {
@@ -789,6 +801,123 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
   resample_sop.set_input_mesh(inputs[0]);
 
   return resample_sop.cook();
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_scatter_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+
+  if (inputs.empty()) {
+    std::cout << "❌ Scatter node requires input mesh\n";
+    return nullptr;
+  }
+
+  // Get parameters
+  int point_count = 100;
+  int seed = 42;
+  float density = 1.0F;
+  bool use_face_area = true;
+
+  auto point_count_param = node.get_parameter("point_count");
+  if (point_count_param.has_value()) {
+    point_count = point_count_param->int_value;
+  }
+
+  auto seed_param = node.get_parameter("seed");
+  if (seed_param.has_value()) {
+    seed = seed_param->int_value;
+  }
+
+  auto density_param = node.get_parameter("density");
+  if (density_param.has_value()) {
+    density = density_param->float_value;
+  }
+
+  auto use_face_area_param = node.get_parameter("use_face_area");
+  if (use_face_area_param.has_value()) {
+    use_face_area = use_face_area_param->bool_value;
+  }
+
+  std::cout << "🌱 Scattering " << point_count << " points (seed=" << seed
+            << ", density=" << density << ")\n";
+
+  // Create scatter SOP
+  sop::ScatterSOP scatter_sop;
+  scatter_sop.set_parameter("point_count", point_count);
+  scatter_sop.set_parameter("seed", seed);
+  scatter_sop.set_parameter("density", density);
+  scatter_sop.set_parameter("use_face_area", use_face_area);
+
+  // Create input geometry data
+  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
+
+  // Manually call the scatter function
+  auto output_geo = std::make_shared<sop::GeometryData>();
+  scatter_sop.scatter_points_on_mesh(*inputs[0], *output_geo, point_count, seed,
+                                     density, use_face_area);
+
+  // Extract the mesh from the output geometry
+  return output_geo->get_mesh();
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_copy_to_points_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+
+  if (inputs.size() < 2) {
+    std::cout
+        << "❌ CopyToPoints node requires 2 inputs (points and template)\n";
+    return nullptr;
+  }
+
+  // Get parameters
+  bool use_point_normals = false;
+  bool use_point_scale = false;
+  float uniform_scale = 1.0F;
+  std::string scale_attribute;
+
+  auto use_point_normals_param = node.get_parameter("use_point_normals");
+  if (use_point_normals_param.has_value()) {
+    use_point_normals = use_point_normals_param->bool_value;
+  }
+
+  auto use_point_scale_param = node.get_parameter("use_point_scale");
+  if (use_point_scale_param.has_value()) {
+    use_point_scale = use_point_scale_param->bool_value;
+  }
+
+  auto uniform_scale_param = node.get_parameter("uniform_scale");
+  if (uniform_scale_param.has_value()) {
+    uniform_scale = uniform_scale_param->float_value;
+  }
+
+  auto scale_attribute_param = node.get_parameter("scale_attribute");
+  if (scale_attribute_param.has_value()) {
+    scale_attribute = scale_attribute_param->string_value;
+  }
+
+  std::cout << "📋 Copying template to points (scale=" << uniform_scale
+            << ")\n";
+
+  // Create copy to points SOP
+  sop::CopyToPointsSOP copy_sop;
+  copy_sop.set_parameter("use_point_normals", use_point_normals);
+  copy_sop.set_parameter("use_point_scale", use_point_scale);
+  copy_sop.set_parameter("uniform_scale", uniform_scale);
+  copy_sop.set_parameter("scale_attribute", scale_attribute);
+
+  // Create geometry data
+  auto points_geo = std::make_shared<sop::GeometryData>(inputs[0]);
+  auto template_geo = std::make_shared<sop::GeometryData>(inputs[1]);
+
+  // Manually call the copy function
+  auto output_geo = std::make_shared<sop::GeometryData>();
+  copy_sop.copy_template_to_points(*points_geo, *template_geo, *output_geo,
+                                   use_point_normals, use_point_scale,
+                                   uniform_scale, scale_attribute);
+
+  // Extract the mesh from the output geometry
+  return output_geo->get_mesh();
 }
 
 std::vector<std::shared_ptr<core::Mesh>>

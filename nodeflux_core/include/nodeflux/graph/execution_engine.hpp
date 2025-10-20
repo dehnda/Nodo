@@ -125,6 +125,12 @@ private:
   std::shared_ptr<core::Mesh>
   execute_resample_node(const GraphNode &node,
                         const std::vector<std::shared_ptr<core::Mesh>> &inputs);
+  std::shared_ptr<core::Mesh>
+  execute_scatter_node(const GraphNode &node,
+                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
+  std::shared_ptr<core::Mesh> execute_copy_to_points_node(
+      const GraphNode &node,
+      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
 
   // Helper methods
   std::vector<std::shared_ptr<core::Mesh>>

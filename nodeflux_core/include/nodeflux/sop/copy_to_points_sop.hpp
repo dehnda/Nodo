@@ -21,6 +21,12 @@ public:
   explicit CopyToPointsSOP(const std::string &node_name = "copy_to_points")
       : SOPNode(node_name, "CopyToPointsSOP") {
 
+    // Add input ports
+    input_ports_.add_port("points", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("template", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
+
     // Set default parameters
     set_parameter("use_point_normals", DEFAULT_USE_POINT_NORMALS);
     set_parameter("use_point_scale", DEFAULT_USE_POINT_SCALE);
@@ -32,15 +38,15 @@ public:
   /**
    * @brief Copy template geometry to all point locations
    */
-  std::shared_ptr<GeometryData> get_output_data() override {
+  std::shared_ptr<GeometryData> execute() override {
     // Input 0: Points to copy to
-    auto points_data = get_input_data(0);
+    auto points_data = get_input_data("points");
     if (points_data == nullptr) {
       return nullptr;
     }
 
     // Input 1: Template geometry to copy
-    auto template_data = get_input_data(1);
+    auto template_data = get_input_data("template");
     if (template_data == nullptr) {
       return nullptr;
     }
@@ -62,7 +68,6 @@ public:
     return output_data;
   }
 
-private:
   /**
    * @brief Copy template geometry to each point location
    */
@@ -73,6 +78,7 @@ private:
                                float uniform_scale,
                                const std::string &scale_attribute);
 
+private:
   /**
    * @brief Transform template vertices for a specific point instance
    */

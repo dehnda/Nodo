@@ -63,6 +63,11 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Merge:
     return QColor(160, 80, 180); // Purple
 
+  // Point Operations - Yellow
+  case NodeType::Scatter:
+  case NodeType::CopyToPoints:
+    return QColor(220, 180, 60); // Yellow/Gold
+
   // Utilities - Green
   case NodeType::Switch:
     return QColor(80, 160, 100); // Green
@@ -866,6 +871,18 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
 
     modifiersMenu->addAction("Resample", [this]() {
       create_node_at_position(nodeflux::graph::NodeType::Resample,
+                              context_menu_scene_pos_);
+    });
+
+    // Point operations
+    QMenu *pointOpsMenu = createMenu->addMenu("Point Operations");
+    pointOpsMenu->addAction("Scatter", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::Scatter,
+                              context_menu_scene_pos_);
+    });
+
+    pointOpsMenu->addAction("Copy to Points", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::CopyToPoints,
                               context_menu_scene_pos_);
     });
 
