@@ -50,6 +50,9 @@ public:
     void set_display_flag(bool flag) { has_display_flag_ = flag; update(); }
     bool has_display_flag() const { return has_display_flag_; }
 
+    void set_error_flag(bool flag) { has_error_flag_ = flag; update(); }
+    bool has_error_flag() const { return has_error_flag_; }
+
     // Pin hit detection
     int get_pin_at_position(const QPointF& pos, bool& is_input) const;
 
@@ -69,6 +72,7 @@ private:
     bool selected_ = false;
     bool hovered_ = false;
     bool has_display_flag_ = false;
+    bool has_error_flag_ = false;
 
     // Visual constants
     static constexpr float NODE_WIDTH = 140.0F;
@@ -137,6 +141,7 @@ signals:
     void node_selected(int node_id);
     void node_double_clicked(int node_id);
     void connection_created(int source_node, int source_pin, int target_node, int target_pin);
+    void connections_deleted(QVector<int> connection_ids);
     void nodes_deleted(QVector<int> node_ids);
     void selection_changed();
     void node_created(int node_id);

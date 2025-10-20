@@ -20,8 +20,13 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
   std::cout << "🔄 Executing " << execution_order.size() << " nodes"
             << std::endl;
 
-  // Clear previous results
+  // Clear previous results and errors
   result_cache_.clear();
+
+  // Clear error flags from all nodes
+  for (const auto& node_ptr : graph.get_nodes()) {
+    node_ptr->set_error(false);
+  }
 
   // Execute nodes in dependency order
   for (int node_id : execution_order) {
@@ -73,15 +78,18 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     }
     }
 
-    // Store the result
+    // Store the result or mark error
     if (result) {
       std::cout << "✅ Node " << node_id << " executed successfully"
                 << std::endl;
       result_cache_[node_id] = result;
       node->set_output_mesh(result);
+      node->set_error(false); // Clear any previous error
     } else {
       std::cout << "❌ Node " << node_id
                 << " execution failed - no result generated" << std::endl;
+      node->set_error(true, "Execution failed - no result generated");
+      notify_error("Execution failed - no result generated", node_id);
       return false;
     }
   }
@@ -380,6 +388,18 @@ ExecutionEngine::gather_input_meshes(const NodeGraph &graph, int node_id) {
 std::unordered_map<int, std::shared_ptr<core::Mesh>>
 ExecutionEngine::get_all_results() const {
   return result_cache_;
+}
+
+void ExecutionEngine::notify_progress(int completed, int total) {
+  if (progress_callback_) {
+    progress_callback_(completed, total);
+  }
+}
+
+void ExecutionEngine::notify_error(const std::string& error, int node_id) {
+  if (error_callback_) {
+    error_callback_(error, node_id);
+  }
 }
 
 } // namespace nodeflux::graph

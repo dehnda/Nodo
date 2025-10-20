@@ -144,6 +144,14 @@ public:
     bool is_bypassed() const { return bypass_flag_; }
     void set_bypass(bool bypass) { bypass_flag_ = bypass; }
 
+    // Error state
+    bool has_error() const { return has_error_; }
+    void set_error(bool error, const std::string& message = "") {
+        has_error_ = error;
+        error_message_ = message;
+    }
+    const std::string& get_error_message() const { return error_message_; }
+
     // Result cache
     void set_output_mesh(std::shared_ptr<core::Mesh> mesh) { output_mesh_ = mesh; }
     std::shared_ptr<core::Mesh> get_output_mesh() const { return output_mesh_; }
@@ -166,6 +174,10 @@ private:
     bool display_flag_ = false;
     bool render_flag_ = false;
     bool bypass_flag_ = false;
+
+    // Error state
+    bool has_error_ = false;
+    std::string error_message_;
 
     void setup_pins_for_type();
 };

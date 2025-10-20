@@ -76,6 +76,7 @@ private slots:
     void onCreateTestGraph();
     void onNodeCreated(int node_id);
     void onConnectionCreated(int source_node, int source_pin, int target_node, int target_pin);
+    void onConnectionsDeleted(QVector<int> connection_ids);
     void onNodesDeleted(QVector<int> node_ids);
     void onNodeSelectionChanged();
 

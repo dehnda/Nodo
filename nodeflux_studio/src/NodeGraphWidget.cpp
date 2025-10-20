@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QPainterPath>
+#include <QStyleOption>
 #include <QWheelEvent>
 #include <cmath>
 #include <nodeflux/graph/node_graph.hpp>
@@ -131,6 +132,26 @@ void NodeGraphicsItem::paint(QPainter *painter,
     const QPointF flag_pos(NODE_WIDTH - 12.0F, 12.0F);
     painter->drawEllipse(flag_pos, 6.0F, 6.0F);
   }
+
+  // Draw error indicator (red triangle in top-left corner)
+  if (has_error_flag_) {
+    QPolygonF triangle;
+    triangle << QPointF(5.0F, 5.0F)
+             << QPointF(18.0F, 5.0F)
+             << QPointF(11.5F, 16.0F);
+
+    painter->setBrush(QColor(255, 60, 60)); // Bright red
+    painter->setPen(QPen(Qt::white, 1.5F));
+    painter->drawPolygon(triangle);
+
+    // Draw exclamation mark
+    painter->setPen(Qt::white);
+    QFont symbol_font = painter->font();
+    symbol_font.setPointSize(10);
+    symbol_font.setBold(true);
+    painter->setFont(symbol_font);
+    painter->drawText(QRectF(5.0F, 5.0F, 13.0F, 11.0F), Qt::AlignCenter, "!");
+  }
 }
 
 QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
@@ -236,6 +257,8 @@ ConnectionGraphicsItem::ConnectionGraphicsItem(int connection_id,
       target_pin_(target_pin) {
 
   setZValue(0.0);
+  setFlag(QGraphicsItem::ItemIsSelectable);
+  setAcceptHoverEvents(true);
   update_path();
 }
 
@@ -244,11 +267,23 @@ QRectF ConnectionGraphicsItem::boundingRect() const {
 }
 
 void ConnectionGraphicsItem::paint(QPainter *painter,
-                                   const QStyleOptionGraphicsItem * /*option*/,
+                                   const QStyleOptionGraphicsItem *option,
                                    QWidget * /*widget*/) {
   painter->setRenderHint(QPainter::Antialiasing);
 
-  QPen pen(QColor(180, 180, 200), 2.5F);
+  // Change color/width based on selection/hover state
+  QColor line_color(180, 180, 200);
+  float line_width = 2.5F;
+
+  if (isSelected()) {
+    line_color = QColor(255, 150, 50); // Orange for selected
+    line_width = 3.5F;
+  } else if (option->state & QStyle::State_MouseOver) {
+    line_color = QColor(220, 220, 240); // Lighter when hovered
+    line_width = 3.0F;
+  }
+
+  QPen pen(line_color, line_width);
   painter->setPen(pen);
   painter->setBrush(Qt::NoBrush);
   painter->drawPath(path_);
@@ -324,11 +359,12 @@ void NodeGraphWidget::update_display_flags_from_graph() {
     return;
   }
 
-  // Update each node item's display flag from the backend
+  // Update each node item's display and error flags from the backend
   for (auto &[node_id, node_item] : node_items_) {
     const auto *node = graph_->get_node(node_id);
     if (node != nullptr) {
       node_item->set_display_flag(node->has_display_flag());
+      node_item->set_error_flag(node->has_error());
     }
   }
 }
@@ -616,6 +652,31 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
 
 void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
+    // Delete selected items (nodes and connections)
+    QList<QGraphicsItem*> selected = scene_->selectedItems();
+
+    // Collect connection IDs to delete
+    QVector<int> connection_ids_to_delete;
+    for (QGraphicsItem* item : selected) {
+      auto* conn_item = dynamic_cast<ConnectionGraphicsItem*>(item);
+      if (conn_item != nullptr) {
+        connection_ids_to_delete.push_back(conn_item->get_connection_id());
+      }
+    }
+
+    // Delete connections from backend and visual
+    for (int conn_id : connection_ids_to_delete) {
+      if (graph_ != nullptr) {
+        graph_->remove_connection(conn_id);
+      }
+      remove_connection_item(conn_id);
+    }
+
+    // Emit signal so MainWindow can handle viewport update
+    if (!connection_ids_to_delete.isEmpty()) {
+      emit connections_deleted(connection_ids_to_delete);
+    }
+
     // Delete selected nodes
     if (!selected_nodes_.isEmpty()) {
       emit nodes_deleted(get_selected_node_ids());

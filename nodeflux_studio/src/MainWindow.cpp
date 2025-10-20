@@ -119,6 +119,8 @@ auto MainWindow::setupDockWidgets() -> void {
           this, &MainWindow::onNodeCreated);
   connect(node_graph_widget_, &NodeGraphWidget::connection_created,
           this, &MainWindow::onConnectionCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::connections_deleted,
+          this, &MainWindow::onConnectionsDeleted);
   connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted,
           this, &MainWindow::onNodesDeleted);
   connect(node_graph_widget_, &NodeGraphWidget::selection_changed,
@@ -343,6 +345,25 @@ void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/,
   executeAndDisplayNode(target_node);
 }
 
+void MainWindow::onConnectionsDeleted(QVector<int> /*connection_ids*/) {
+  // When connections are deleted, re-execute the display node if one is set
+  // This ensures the viewport shows the updated graph state
+  if (node_graph_ != nullptr) {
+    int display_node = node_graph_->get_display_node();
+    if (display_node != -1) {
+      // Mark the display node as needing update
+      auto* node = node_graph_->get_node(display_node);
+      if (node != nullptr) {
+        node->mark_for_update();
+      }
+      executeAndDisplayNode(display_node);
+    } else {
+      // No display node set - clear viewport
+      viewport_widget_->clearMesh();
+    }
+  }
+}
+
 void MainWindow::onNodesDeleted(QVector<int> node_ids) {
   if (node_graph_ == nullptr) {
     return;
@@ -402,6 +423,9 @@ void MainWindow::executeAndDisplayNode(int node_id) {
 
   // Execute the entire graph up to this node
   bool success = execution_engine_->execute_graph(*node_graph_);
+
+  // Update error flags after execution
+  updateDisplayFlagVisuals();
 
   if (success) {
     // Get the mesh result for this specific node
