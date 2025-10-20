@@ -845,17 +845,14 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
                               context_menu_scene_pos_);
     });
 
-    // Boolean operations
-    createMenu->addAction("Boolean", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Boolean,
-                              context_menu_scene_pos_);
-    });
-
     // Utility nodes
     createMenu->addAction("Merge", [this]() {
       create_node_at_position(nodeflux::graph::NodeType::Merge,
                               context_menu_scene_pos_);
     });
+
+    // Boolean operations removed - CGAL dependency is GPL licensed
+    // Users can implement their own boolean operations with permissive libraries
   }
 
   menu.exec(event->globalPos());
