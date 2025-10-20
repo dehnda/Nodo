@@ -78,9 +78,9 @@ std::optional<core::Mesh> PlaneGenerator::generate(double width, double height,
 
   for (int row = 0; row < height_segments; ++row) {
     for (int col = 0; col < width_segments; ++col) {
-      const int top_left = row * vertices_per_row + col;
+      const int top_left = (row * vertices_per_row) + col;
       const int top_right = top_left + 1;
-      const int bottom_left = (row + 1) * vertices_per_row + col;
+      const int bottom_left = ((row + 1) * vertices_per_row) + col;
       const int bottom_right = bottom_left + 1;
 
       // First triangle (top-left, bottom-left, top-right)
