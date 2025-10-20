@@ -13,11 +13,13 @@
 // ============================================================================
 
 NodeGraphicsItem::NodeGraphicsItem(int node_id, const QString& node_name,
-                                 int input_count, int output_count)
+                                 int input_count, int output_count,
+                                 nodeflux::graph::NodeType node_type)
     : node_id_(node_id)
     , node_name_(node_name)
     , input_count_(input_count)
-    , output_count_(output_count) {
+    , output_count_(output_count)
+    , node_type_(node_type) {
 
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
@@ -34,6 +36,42 @@ QRectF NodeGraphicsItem::boundingRect() const {
                   NODE_HEIGHT + 2.0F * PADDING);
 }
 
+QColor NodeGraphicsItem::getNodeColor() const {
+    using nodeflux::graph::NodeType;
+
+    // Color scheme inspired by Houdini
+    switch (node_type_) {
+        // Generators - Orange/Tan
+        case NodeType::Sphere:
+        case NodeType::Box:
+        case NodeType::Cylinder:
+        case NodeType::Plane:
+        case NodeType::Torus:
+            return QColor(200, 120, 60);  // Orange
+
+        // Modifiers - Blue
+        case NodeType::Transform:
+        case NodeType::Extrude:
+        case NodeType::Smooth:
+        case NodeType::Subdivide:
+        case NodeType::Array:
+        case NodeType::Mirror:
+            return QColor(60, 120, 200);  // Blue
+
+        // Boolean/Combine - Purple
+        case NodeType::Boolean:
+        case NodeType::Merge:
+            return QColor(160, 80, 180);  // Purple
+
+        // Utilities - Green
+        case NodeType::Switch:
+            return QColor(80, 160, 100);  // Green
+
+        default:
+            return QColor(60, 60, 70);    // Default gray
+    }
+}
+
 void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/,
                              QWidget* /*widget*/) {
     painter->setRenderHint(QPainter::Antialiasing);
@@ -41,13 +79,16 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
     // Node body
     QRectF rect(0, 0, NODE_WIDTH, NODE_HEIGHT);
 
+    // Get base color from node type
+    QColor base_color = getNodeColor();
+
     // Colors based on state
-    QColor body_color = QColor(60, 60, 70);
-    QColor header_color = QColor(80, 80, 100);
-    QColor outline_color = QColor(100, 100, 120);
+    QColor body_color = base_color.darker(150);  // Darker body
+    QColor header_color = base_color;            // Category color for header
+    QColor outline_color = base_color.lighter(120);
 
     if (selected_) {
-        outline_color = QColor(255, 150, 50);
+        outline_color = QColor(255, 150, 50);  // Orange selection
     } else if (hovered_) {
         body_color = body_color.lighter(110);
         header_color = header_color.lighter(110);
@@ -306,9 +347,10 @@ void NodeGraphWidget::create_node_item(int node_id) {
     QString name = QString::fromStdString(node->get_name());
     int input_count = static_cast<int>(node->get_input_pins().size());
     int output_count = static_cast<int>(node->get_output_pins().size());
+    nodeflux::graph::NodeType node_type = node->get_type();
 
     // Create graphics item
-    auto* item = new NodeGraphicsItem(node_id, name, input_count, output_count);
+    auto* item = new NodeGraphicsItem(node_id, name, input_count, output_count, node_type);
 
     // Set position from backend
     auto [x, y] = node->get_position();

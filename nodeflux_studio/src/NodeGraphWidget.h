@@ -26,7 +26,8 @@ namespace nodeflux::graph {
 class NodeGraphicsItem : public QGraphicsItem {
 public:
     explicit NodeGraphicsItem(int node_id, const QString& node_name,
-                             int input_count, int output_count);
+                             int input_count, int output_count,
+                             nodeflux::graph::NodeType node_type);
 
     // QGraphicsItem interface
     QRectF boundingRect() const override;
@@ -64,6 +65,7 @@ private:
     QString node_name_;
     int input_count_;
     int output_count_;
+    nodeflux::graph::NodeType node_type_;
     bool selected_ = false;
     bool hovered_ = false;
     bool has_display_flag_ = false;
@@ -73,6 +75,9 @@ private:
     static constexpr float NODE_HEIGHT = 60.0F;
     static constexpr float PIN_RADIUS = 6.0F;
     static constexpr float PIN_SPACING = 20.0F;
+
+    // Helper to get color based on node type
+    QColor getNodeColor() const;
 };
 
 /**
