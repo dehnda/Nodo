@@ -431,6 +431,9 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
   case NodeType::Line:
     buildLineParameters(node);
     break;
+  case NodeType::PolyExtrude:
+    buildPolyExtrudeParameters(node);
+    break;
   case NodeType::Resample:
     buildResampleParameters(node);
     break;
@@ -1104,4 +1107,52 @@ void PropertyPanel::buildResampleParameters(nodeflux::graph::GraphNode *node) {
             NodeParameter("segment_length", static_cast<float>(value)));
         emit parameterChanged();
       });
+}
+
+void PropertyPanel::buildPolyExtrudeParameters(
+    nodeflux::graph::GraphNode *node) {
+  using namespace nodeflux::graph;
+
+  addHeader("Poly Extrude");
+
+  // Distance parameter
+  auto distance_param = node->get_parameter("distance");
+  double distance = (distance_param.has_value() &&
+                     distance_param->type == NodeParameter::Type::Float)
+                        ? distance_param->float_value
+                        : 1.0;
+
+  // Inset parameter
+  auto inset_param = node->get_parameter("inset");
+  double inset = (inset_param.has_value() &&
+                  inset_param->type == NodeParameter::Type::Float)
+                     ? inset_param->float_value
+                     : 0.0;
+
+  // Individual faces parameter
+  auto individual_param = node->get_parameter("individual_faces");
+  bool individual = (individual_param.has_value() &&
+                     individual_param->type == NodeParameter::Type::Int)
+                        ? (individual_param->int_value != 0)
+                        : true;
+
+  // Add UI controls
+  addDoubleParameter(
+      "Distance", distance, -10.0, 10.0, [this, node](double value) {
+        node->set_parameter(
+            "distance", NodeParameter("distance", static_cast<float>(value)));
+        emit parameterChanged();
+      });
+
+  addDoubleParameter("Inset", inset, 0.0, 2.0, [this, node](double value) {
+    node->set_parameter("inset",
+                        NodeParameter("inset", static_cast<float>(value)));
+    emit parameterChanged();
+  });
+
+  addBoolParameter("Individual Faces", individual, [this, node](bool value) {
+    node->set_parameter("individual_faces",
+                        NodeParameter("individual_faces", value ? 1 : 0));
+    emit parameterChanged();
+  });
 }

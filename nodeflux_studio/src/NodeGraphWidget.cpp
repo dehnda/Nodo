@@ -50,6 +50,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   // Modifiers - Blue
   case NodeType::Transform:
   case NodeType::Extrude:
+  case NodeType::PolyExtrude:
   case NodeType::Smooth:
   case NodeType::Subdivide:
   case NodeType::Array:
@@ -855,6 +856,11 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
 
     modifiersMenu->addAction("Boolean", [this]() {
       create_node_at_position(nodeflux::graph::NodeType::Boolean,
+                              context_menu_scene_pos_);
+    });
+
+    modifiersMenu->addAction("PolyExtrude", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::PolyExtrude,
                               context_menu_scene_pos_);
     });
 

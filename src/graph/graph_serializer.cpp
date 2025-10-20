@@ -8,7 +8,6 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-
 namespace nodeflux::graph {
 
 using json = nlohmann::json;
@@ -264,6 +263,8 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Line";
   case NodeType::Extrude:
     return "Extrude";
+  case NodeType::PolyExtrude:
+    return "PolyExtrude";
   case NodeType::Smooth:
     return "Smooth";
   case NodeType::Subdivide:
@@ -303,6 +304,8 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
     return NodeType::Line;
   if (type_str == "Extrude")
     return NodeType::Extrude;
+  if (type_str == "PolyExtrude")
+    return NodeType::PolyExtrude;
   if (type_str == "Smooth")
     return NodeType::Smooth;
   if (type_str == "Subdivide")

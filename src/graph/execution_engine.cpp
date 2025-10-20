@@ -10,6 +10,7 @@
 #include "nodeflux/geometry/torus_generator.hpp"
 #include "nodeflux/sop/boolean_sop.hpp"
 #include "nodeflux/sop/line_sop.hpp"
+#include "nodeflux/sop/polyextrude_sop.hpp"
 #include "nodeflux/sop/resample_sop.hpp"
 #include <iostream>
 #include <memory>
@@ -87,6 +88,11 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     case NodeType::Array: {
       auto inputs = gather_input_meshes(graph, node_id);
       result = execute_array_node(*node, inputs);
+      break;
+    }
+    case NodeType::PolyExtrude: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_polyextrude_node(*node, inputs);
       break;
     }
     case NodeType::Resample: {
@@ -704,6 +710,45 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
             << total_faces << " faces" << std::endl;
 
   return result;
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_polyextrude_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+  if (inputs.empty()) {
+    std::cout << "⚠️ PolyExtrude node needs input geometry\n";
+    return nullptr;
+  }
+
+  // Get poly extrude parameters
+  auto distance_param = node.get_parameter("distance");
+  auto inset_param = node.get_parameter("inset");
+  auto individual_param = node.get_parameter("individual_faces");
+
+  const float distance = (distance_param.has_value() &&
+                          distance_param->type == NodeParameter::Type::Float)
+                             ? distance_param->float_value
+                             : 1.0F;
+  const float inset = (inset_param.has_value() &&
+                       inset_param->type == NodeParameter::Type::Float)
+                          ? inset_param->float_value
+                          : 0.0F;
+  const bool individual_faces =
+      (individual_param.has_value() &&
+       individual_param->type == NodeParameter::Type::Int)
+          ? (individual_param->int_value != 0)
+          : true;
+
+  std::cout << "🔄 Poly-extruding faces (distance: " << distance
+            << ", inset: " << inset << ")\n";
+
+  sop::PolyExtrudeSOP polyextrude_sop("PolyExtrudeNode");
+  polyextrude_sop.set_distance(distance);
+  polyextrude_sop.set_inset(inset);
+  polyextrude_sop.set_individual_faces(individual_faces);
+  polyextrude_sop.set_input_mesh(inputs[0]);
+
+  return polyextrude_sop.cook();
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(

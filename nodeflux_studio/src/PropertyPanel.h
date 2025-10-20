@@ -87,5 +87,6 @@ private:
   void buildArrayParameters(nodeflux::graph::GraphNode *node);
   void buildBooleanParameters(nodeflux::graph::GraphNode *node);
   void buildLineParameters(nodeflux::graph::GraphNode *node);
+  void buildPolyExtrudeParameters(nodeflux::graph::GraphNode *node);
   void buildResampleParameters(nodeflux::graph::GraphNode *node);
 };

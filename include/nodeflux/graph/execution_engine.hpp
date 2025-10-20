@@ -11,7 +11,6 @@
 #include <memory>
 #include <unordered_map>
 
-
 namespace nodeflux::graph {
 
 /**
@@ -108,6 +107,9 @@ private:
   std::shared_ptr<core::Mesh>
   execute_extrude_node(const GraphNode &node,
                        const std::vector<std::shared_ptr<core::Mesh>> &inputs);
+  std::shared_ptr<core::Mesh> execute_polyextrude_node(
+      const GraphNode &node,
+      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
   std::shared_ptr<core::Mesh>
   execute_smooth_node(const GraphNode &node,
                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);

@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 
-
 namespace nodeflux::graph {
 
 /**
@@ -30,6 +29,7 @@ enum class NodeType {
 
   // Modifiers
   Extrude,
+  PolyExtrude,
   Smooth,
   Subdivide,
   Transform,

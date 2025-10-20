@@ -80,6 +80,16 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
+  case NodeType::PolyExtrude:
+    parameters_.emplace_back("distance", 1.0F);
+    parameters_.emplace_back("inset", 0.0F);
+    parameters_.emplace_back("individual_faces", 1); // 1=true, 0=false
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
+    break;
+
   case NodeType::Smooth:
     parameters_.emplace_back("iterations", 5);
     parameters_.emplace_back("lambda", 0.5F);
@@ -413,9 +423,9 @@ void NodeGraph::notify_connection_changed(int connection_id) {
 
 std::string NodeGraph::generate_node_name(NodeType type) const {
   constexpr const char *TYPE_NAMES[] = {
-      "Sphere",   "Box",     "Cylinder",  "Plane",     "Torus", "Line",
-      "Extrude",  "Smooth",  "Subdivide", "Transform", "Array", "Mirror",
-      "Resample", "Boolean", "Merge",     "Switch"};
+      "Sphere",  "Box",         "Cylinder", "Plane",     "Torus",     "Line",
+      "Extrude", "PolyExtrude", "Smooth",   "Subdivide", "Transform", "Array",
+      "Mirror",  "Resample",    "Boolean",  "Merge",     "Switch"};
 
   const int type_index = static_cast<int>(type);
   if (type_index >= 0 && type_index < static_cast<int>(std::size(TYPE_NAMES))) {

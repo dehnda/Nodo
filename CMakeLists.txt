@@ -68,6 +68,7 @@ add_library(nodeflux_core
     src/sop/line_sop.cpp
     src/sop/mirror_sop.cpp
     src/sop/noise_displacement_sop.cpp
+    src/sop/polyextrude_sop.cpp
     src/sop/resample_sop.cpp
     src/sop/subdivision_sop.cpp
 
