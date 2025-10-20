@@ -139,6 +139,7 @@ protected:
 
 private slots:
     void on_node_moved(NodeGraphicsItem* node);
+    void on_scene_selection_changed();
 
 private:
     // Backend graph reference (not owned)

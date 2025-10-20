@@ -110,6 +110,16 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_widget_->set_graph(node_graph_.get());
   node_graph_dock_->setWidget(node_graph_widget_);
 
+  // Connect node graph signals
+  connect(node_graph_widget_, &NodeGraphWidget::node_created,
+          this, &MainWindow::onNodeCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::connection_created,
+          this, &MainWindow::onConnectionCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted,
+          this, &MainWindow::onNodesDeleted);
+  connect(node_graph_widget_, &NodeGraphWidget::selection_changed,
+          this, &MainWindow::onNodeSelectionChanged);
+
   addDockWidget(Qt::BottomDockWidgetArea, node_graph_dock_);
 
   // Create dock widget for properties (left side)
@@ -305,4 +315,76 @@ void MainWindow::onCreateTestGraph() {
 
   constexpr int STATUS_MSG_DURATION = 2000;
   statusBar()->showMessage("Test graph created with 3 nodes", STATUS_MSG_DURATION);
+}
+
+void MainWindow::onNodeCreated(int node_id) {
+  // Execute the graph and display the new node's output
+  executeAndDisplayNode(node_id);
+}
+
+void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/,
+                                     int target_node, int /*target_pin*/) {
+  // When a connection is made, execute and display the target node
+  executeAndDisplayNode(target_node);
+}
+
+void MainWindow::onNodesDeleted(QVector<int> node_ids) {
+  if (node_graph_ == nullptr) {
+    return;
+  }
+
+  // Remove nodes from backend graph
+  for (int node_id : node_ids) {
+    node_graph_->remove_node(node_id);
+  }
+
+  // Rebuild visual representation
+  node_graph_widget_->rebuild_from_graph();
+
+  // Clear viewport if we deleted the displayed node
+  viewport_widget_->clearMesh();
+
+  QString msg = QString("Deleted %1 node(s)").arg(node_ids.size());
+  statusBar()->showMessage(msg, 2000);
+}
+
+void MainWindow::onNodeSelectionChanged() {
+  // When selection changes, display the selected node's output
+  auto selected_nodes = node_graph_widget_->get_selected_node_ids();
+  if (!selected_nodes.isEmpty()) {
+    executeAndDisplayNode(selected_nodes.first());
+  }
+}
+
+void MainWindow::executeAndDisplayNode(int node_id) {
+  if (node_graph_ == nullptr || execution_engine_ == nullptr) {
+    return;
+  }
+
+  // Execute the entire graph up to this node
+  bool success = execution_engine_->execute_graph(*node_graph_);
+
+  if (success) {
+    // Get the mesh result for this specific node
+    auto mesh = execution_engine_->get_node_result(node_id);
+
+    if (mesh) {
+      // Display in viewport
+      viewport_widget_->setMesh(*mesh);
+
+      // Update status
+      auto* node = node_graph_->get_node(node_id);
+      if (node != nullptr) {
+        QString msg = QString("Displaying: %1 (%2 vertices, %3 faces)")
+                          .arg(QString::fromStdString(node->get_name()))
+                          .arg(mesh->vertex_count())
+                          .arg(mesh->face_count());
+        statusBar()->showMessage(msg, 3000);
+      }
+    } else {
+      statusBar()->showMessage("Node has no mesh output", 2000);
+    }
+  } else {
+    statusBar()->showMessage("Graph execution failed", 2000);
+  }
 }

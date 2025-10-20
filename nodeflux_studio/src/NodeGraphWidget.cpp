@@ -98,6 +98,11 @@ QPointF NodeGraphicsItem::get_output_pin_pos(int index) const {
 }
 
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    // Handle selection
+    if (event->button() == Qt::LeftButton) {
+        setSelected(true);
+        set_selected(true);
+    }
     QGraphicsItem::mousePressEvent(event);
 }
 
@@ -224,6 +229,10 @@ NodeGraphWidget::NodeGraphWidget(QWidget* parent)
 
     // Center view
     centerOn(0, 0);
+
+    // Connect to scene selection changes
+    connect(scene_, &QGraphicsScene::selectionChanged,
+            this, &NodeGraphWidget::on_scene_selection_changed);
 }
 
 NodeGraphWidget::~NodeGraphWidget() = default;
@@ -669,4 +678,26 @@ void NodeGraphWidget::create_node_at_position(nodeflux::graph::NodeType type, co
 
     // Emit signal for other components
     emit node_created(node_id);
+}
+
+void NodeGraphWidget::on_scene_selection_changed() {
+    // Update our selection tracking
+    selected_nodes_.clear();
+
+    for (QGraphicsItem* item : scene_->selectedItems()) {
+        auto* node_item = dynamic_cast<NodeGraphicsItem*>(item);
+        if (node_item != nullptr) {
+            selected_nodes_.insert(node_item->get_node_id());
+            node_item->set_selected(true);
+        }
+    }
+
+    // Unselect non-selected nodes
+    for (auto& [id, node_item] : node_items_) {
+        if (!selected_nodes_.contains(id)) {
+            node_item->set_selected(false);
+        }
+    }
+
+    emit selection_changed();
 }

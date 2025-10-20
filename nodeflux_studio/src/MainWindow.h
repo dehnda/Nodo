@@ -35,6 +35,9 @@ private:
     void setupDockWidgets();
     void setupStatusBar();
 
+    // Execution helper
+    void executeAndDisplayNode(int node_id);
+
     // UI components (these will be pointers to our widgets)
     ViewportWidget* viewport_widget_;
     PropertyPanel* property_panel_;
@@ -70,6 +73,10 @@ private slots:
 
     // Node graph actions
     void onCreateTestGraph();
+    void onNodeCreated(int node_id);
+    void onConnectionCreated(int source_node, int source_pin, int target_node, int target_pin);
+    void onNodesDeleted(QVector<int> node_ids);
+    void onNodeSelectionChanged();
 
     // Property panel callback
     void onParameterChanged();
