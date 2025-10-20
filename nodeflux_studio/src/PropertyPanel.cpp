@@ -2,6 +2,7 @@
 #include <nodeflux/nodes/sphere_node.hpp>
 #include <nodeflux/nodes/box_node.hpp>
 #include <nodeflux/nodes/cylinder_node.hpp>
+#include <nodeflux/graph/node_graph.hpp>
 
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -360,4 +361,235 @@ void PropertyPanel::addBoolParameter(const QString& label, bool value,
             [callback](bool checked) { callback(checked); });
 
     content_layout_->insertWidget(content_layout_->count() - 1, container);
+}
+
+void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode* node, nodeflux::graph::NodeGraph* graph) {
+    if (node == nullptr || graph == nullptr) {
+        clearProperties();
+        return;
+    }
+
+    clearLayout();
+    current_graph_node_ = node;
+    current_graph_ = graph;
+
+    QString node_name = QString::fromStdString(node->get_name());
+    title_label_->setText(node_name + " Properties");
+
+    using nodeflux::graph::NodeType;
+
+    // Build UI based on node type
+    switch (node->get_type()) {
+        case NodeType::Sphere:
+            buildSphereParameters(node);
+            break;
+        case NodeType::Box:
+            buildBoxParameters(node);
+            break;
+        case NodeType::Cylinder:
+            buildCylinderParameters(node);
+            break;
+        case NodeType::Plane:
+            buildPlaneParameters(node);
+            break;
+        case NodeType::Torus:
+            buildTorusParameters(node);
+            break;
+        default:
+            // For other node types, show generic message
+            auto* label = new QLabel("Parameters not yet implemented for this node type", content_widget_);
+            label->setAlignment(Qt::AlignCenter);
+            label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
+            content_layout_->insertWidget(0, label);
+            break;
+    }
+}
+
+void PropertyPanel::buildSphereParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Geometry");
+
+    // Radius
+    auto radius_param = node->get_parameter("radius");
+    double radius = (radius_param.has_value() && radius_param->type == NodeParameter::Type::Float)
+        ? radius_param->float_value : 1.0;
+
+    addDoubleParameter("Radius", radius, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("radius", NodeParameter("radius", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    addHeader("Detail");
+
+    // U Segments
+    auto u_segments_param = node->get_parameter("u_segments");
+    int u_segments = (u_segments_param.has_value() && u_segments_param->type == NodeParameter::Type::Int)
+        ? u_segments_param->int_value : 32;
+
+    addIntParameter("U Segments", u_segments, 3, 128,
+        [this, node](int value) {
+            node->set_parameter("u_segments", NodeParameter("u_segments", value));
+            emit parameterChanged();
+        });
+
+    // V Segments
+    auto v_segments_param = node->get_parameter("v_segments");
+    int v_segments = (v_segments_param.has_value() && v_segments_param->type == NodeParameter::Type::Int)
+        ? v_segments_param->int_value : 16;
+
+    addIntParameter("V Segments", v_segments, 2, 64,
+        [this, node](int value) {
+            node->set_parameter("v_segments", NodeParameter("v_segments", value));
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::buildBoxParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Dimensions");
+
+    auto width_param = node->get_parameter("width");
+    double width = (width_param.has_value() && width_param->type == NodeParameter::Type::Float)
+        ? width_param->float_value : 1.0;
+
+    addDoubleParameter("Width", width, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("width", NodeParameter("width", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    auto height_param = node->get_parameter("height");
+    double height = (height_param.has_value() && height_param->type == NodeParameter::Type::Float)
+        ? height_param->float_value : 1.0;
+
+    addDoubleParameter("Height", height, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("height", NodeParameter("height", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    auto depth_param = node->get_parameter("depth");
+    double depth = (depth_param.has_value() && depth_param->type == NodeParameter::Type::Float)
+        ? depth_param->float_value : 1.0;
+
+    addDoubleParameter("Depth", depth, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("depth", NodeParameter("depth", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::buildCylinderParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Geometry");
+
+    auto radius_param = node->get_parameter("radius");
+    double radius = (radius_param.has_value() && radius_param->type == NodeParameter::Type::Float)
+        ? radius_param->float_value : 1.0;
+
+    addDoubleParameter("Radius", radius, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("radius", NodeParameter("radius", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    auto height_param = node->get_parameter("height");
+    double height = (height_param.has_value() && height_param->type == NodeParameter::Type::Float)
+        ? height_param->float_value : 2.0;
+
+    addDoubleParameter("Height", height, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("height", NodeParameter("height", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    addHeader("Detail");
+
+    auto segments_param = node->get_parameter("segments");
+    int segments = (segments_param.has_value() && segments_param->type == NodeParameter::Type::Int)
+        ? segments_param->int_value : 32;
+
+    addIntParameter("Radial Segments", segments, 3, 128,
+        [this, node](int value) {
+            node->set_parameter("segments", NodeParameter("segments", value));
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::buildPlaneParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Dimensions");
+
+    auto width_param = node->get_parameter("width");
+    double width = (width_param.has_value() && width_param->type == NodeParameter::Type::Float)
+        ? width_param->float_value : 1.0;
+
+    addDoubleParameter("Width", width, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("width", NodeParameter("width", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    auto height_param = node->get_parameter("height");
+    double height = (height_param.has_value() && height_param->type == NodeParameter::Type::Float)
+        ? height_param->float_value : 1.0;
+
+    addDoubleParameter("Height", height, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("height", NodeParameter("height", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::buildTorusParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Geometry");
+
+    auto major_radius_param = node->get_parameter("major_radius");
+    double major_radius = (major_radius_param.has_value() && major_radius_param->type == NodeParameter::Type::Float)
+        ? major_radius_param->float_value : 1.0;
+
+    addDoubleParameter("Major Radius", major_radius, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("major_radius", NodeParameter("major_radius", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    auto minor_radius_param = node->get_parameter("minor_radius");
+    double minor_radius = (minor_radius_param.has_value() && minor_radius_param->type == NodeParameter::Type::Float)
+        ? minor_radius_param->float_value : 0.3;
+
+    addDoubleParameter("Minor Radius", minor_radius, 0.01, 100.0,
+        [this, node](double value) {
+            node->set_parameter("minor_radius", NodeParameter("minor_radius", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    addHeader("Detail");
+
+    auto major_segments_param = node->get_parameter("major_segments");
+    int major_segments = (major_segments_param.has_value() && major_segments_param->type == NodeParameter::Type::Int)
+        ? major_segments_param->int_value : 48;
+
+    addIntParameter("Major Segments", major_segments, 3, 128,
+        [this, node](int value) {
+            node->set_parameter("major_segments", NodeParameter("major_segments", value));
+            emit parameterChanged();
+        });
+
+    auto minor_segments_param = node->get_parameter("minor_segments");
+    int minor_segments = (minor_segments_param.has_value() && minor_segments_param->type == NodeParameter::Type::Int)
+        ? minor_segments_param->int_value : 24;
+
+    addIntParameter("Minor Segments", minor_segments, 3, 64,
+        [this, node](int value) {
+            node->set_parameter("minor_segments", NodeParameter("minor_segments", value));
+            emit parameterChanged();
+        });
 }

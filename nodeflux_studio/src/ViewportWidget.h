@@ -85,6 +85,7 @@ private:
     bool show_normals_ = false;
     bool wireframe_mode_ = false;
     bool backface_culling_ = true;
+    bool first_mesh_load_ = true;
 
     // Private helper methods
     void setupShaders();

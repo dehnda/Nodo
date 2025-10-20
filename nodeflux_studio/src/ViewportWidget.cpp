@@ -160,6 +160,7 @@ void ViewportWidget::clearMesh() {
     has_mesh_ = false;
     vertex_count_ = 0;
     index_count_ = 0;
+    first_mesh_load_ = true;  // Reset flag so next mesh will auto-fit
     update();
 }
 
@@ -441,6 +442,10 @@ void ViewportWidget::calculateMeshBounds(const nodeflux::core::Mesh& mesh) {
     }
     mesh_radius_ = static_cast<float>(std::sqrt(max_dist_sq));
 
-    // Fit camera to view the mesh
-    fitToView();
+    // Only auto-fit on first mesh load, not on parameter updates
+    // This allows users to see size changes when adjusting parameters
+    if (first_mesh_load_) {
+        fitToView();
+        first_mesh_load_ = false;
+    }
 }

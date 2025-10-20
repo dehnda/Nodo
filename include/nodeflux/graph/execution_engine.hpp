@@ -91,7 +91,9 @@ private:
     std::shared_ptr<core::Mesh> execute_sphere_node(const GraphNode& node);
     std::shared_ptr<core::Mesh> execute_box_node(const GraphNode& node);
     std::shared_ptr<core::Mesh> execute_cylinder_node(const GraphNode& node);
-    std::shared_ptr<core::Mesh> execute_transform_node(const GraphNode& node, 
+    std::shared_ptr<core::Mesh> execute_plane_node(const GraphNode& node);
+    std::shared_ptr<core::Mesh> execute_torus_node(const GraphNode& node);
+    std::shared_ptr<core::Mesh> execute_transform_node(const GraphNode& node,
                                                        const std::vector<std::shared_ptr<core::Mesh>>& inputs);
     std::shared_ptr<core::Mesh> execute_extrude_node(const GraphNode& node, 
                                                      const std::vector<std::shared_ptr<core::Mesh>>& inputs);

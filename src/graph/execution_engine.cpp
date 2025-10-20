@@ -5,6 +5,9 @@
 #include "nodeflux/graph/execution_engine.hpp"
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/geometry/mesh_generator.hpp"
+#include "nodeflux/geometry/sphere_generator.hpp"
+#include "nodeflux/geometry/plane_generator.hpp"
+#include "nodeflux/geometry/torus_generator.hpp"
 #include <iostream>
 #include <memory>
 
@@ -44,6 +47,14 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     }
     case NodeType::Cylinder: {
       result = execute_cylinder_node(*node);
+      break;
+    }
+    case NodeType::Plane: {
+      result = execute_plane_node(*node);
+      break;
+    }
+    case NodeType::Torus: {
+      result = execute_torus_node(*node);
       break;
     }
     case NodeType::Transform: {
@@ -89,18 +100,21 @@ void ExecutionEngine::clear_cache() { result_cache_.clear(); }
 std::shared_ptr<core::Mesh>
 ExecutionEngine::execute_sphere_node(const GraphNode &node) {
   auto radius_param = node.get_parameter("radius");
-  auto subdivisions_param = node.get_parameter("subdivisions");
+  auto u_segments_param = node.get_parameter("u_segments");
+  auto v_segments_param = node.get_parameter("v_segments");
 
   const float radius =
       radius_param.has_value() ? radius_param->float_value : 1.0F;
-  const int subdivisions =
-      subdivisions_param.has_value() ? subdivisions_param->int_value : 3;
+  const int u_segments =
+      u_segments_param.has_value() ? u_segments_param->int_value : 32;
+  const int v_segments =
+      v_segments_param.has_value() ? v_segments_param->int_value : 16;
 
   std::cout << "🌐 Creating sphere with radius=" << radius
-            << ", subdivisions=" << subdivisions << std::endl;
+            << ", u_segments=" << u_segments << ", v_segments=" << v_segments << std::endl;
 
-  auto sphere_result = geometry::MeshGenerator::sphere(
-      Eigen::Vector3d(0, 0, 0), static_cast<double>(radius), subdivisions);
+  auto sphere_result = geometry::SphereGenerator::generate_uv_sphere(
+      static_cast<double>(radius), u_segments, v_segments);
 
   if (sphere_result.has_value()) {
     std::cout << "✅ Sphere generated successfully" << std::endl;
@@ -114,12 +128,19 @@ ExecutionEngine::execute_sphere_node(const GraphNode &node) {
 
 std::shared_ptr<core::Mesh>
 ExecutionEngine::execute_box_node(const GraphNode &node) {
-  auto size_param = node.get_parameter("size");
-  const float size = size_param.has_value() ? size_param->float_value : 1.0F;
+  auto width_param = node.get_parameter("width");
+  auto height_param = node.get_parameter("height");
+  auto depth_param = node.get_parameter("depth");
+
+  const float width = width_param.has_value() ? width_param->float_value : 1.0F;
+  const float height = height_param.has_value() ? height_param->float_value : 1.0F;
+  const float depth = depth_param.has_value() ? depth_param->float_value : 1.0F;
+
+  std::cout << "📦 Creating box with width=" << width << ", height=" << height << ", depth=" << depth << std::endl;
 
   auto box_result = geometry::MeshGenerator::box(
-      Eigen::Vector3d(-size / 2, -size / 2, -size / 2),
-      Eigen::Vector3d(size / 2, size / 2, size / 2));
+      Eigen::Vector3d(-width / 2, -height / 2, -depth / 2),
+      Eigen::Vector3d(width / 2, height / 2, depth / 2));
 
   return std::make_shared<core::Mesh>(box_result);
 }
@@ -128,22 +149,77 @@ std::shared_ptr<core::Mesh>
 ExecutionEngine::execute_cylinder_node(const GraphNode &node) {
   auto radius_param = node.get_parameter("radius");
   auto height_param = node.get_parameter("height");
-  auto subdivisions_param = node.get_parameter("subdivisions");
+  auto segments_param = node.get_parameter("segments");
 
   const float radius =
       radius_param.has_value() ? radius_param->float_value : 1.0F;
   const float height =
       height_param.has_value() ? height_param->float_value : 2.0F;
-  const int subdivisions =
-      subdivisions_param.has_value() ? subdivisions_param->int_value : 8;
+  const int segments =
+      segments_param.has_value() ? segments_param->int_value : 32;
+
+  std::cout << "🛢️ Creating cylinder with radius=" << radius << ", height=" << height << ", segments=" << segments << std::endl;
 
   auto cylinder_result = geometry::MeshGenerator::cylinder(
       Eigen::Vector3d(0, 0, -height / 2), // Bottom center
       Eigen::Vector3d(0, 0, height / 2),  // Top center
-      static_cast<double>(radius), subdivisions);
+      static_cast<double>(radius), segments);
 
   if (cylinder_result.has_value()) {
     return std::make_shared<core::Mesh>(cylinder_result.value());
+  }
+
+  return nullptr;
+}
+
+std::shared_ptr<core::Mesh>
+ExecutionEngine::execute_plane_node(const GraphNode &node) {
+  auto width_param = node.get_parameter("width");
+  auto height_param = node.get_parameter("height");
+
+  const float width = width_param.has_value() ? width_param->float_value : 1.0F;
+  const float height = height_param.has_value() ? height_param->float_value : 1.0F;
+
+  std::cout << "📄 Creating plane with width=" << width << ", height=" << height << std::endl;
+
+  auto plane_result = geometry::PlaneGenerator::generate(
+      static_cast<double>(width),
+      static_cast<double>(height),
+      1,  // width_segments - could be made configurable
+      1); // height_segments - could be made configurable
+
+  if (plane_result.has_value()) {
+    return std::make_shared<core::Mesh>(plane_result.value());
+  }
+
+  return nullptr;
+}
+
+std::shared_ptr<core::Mesh>
+ExecutionEngine::execute_torus_node(const GraphNode &node) {
+  auto major_radius_param = node.get_parameter("major_radius");
+  auto minor_radius_param = node.get_parameter("minor_radius");
+  auto major_segments_param = node.get_parameter("major_segments");
+  auto minor_segments_param = node.get_parameter("minor_segments");
+
+  const float major_radius = major_radius_param.has_value() ? major_radius_param->float_value : 1.0F;
+  const float minor_radius = minor_radius_param.has_value() ? minor_radius_param->float_value : 0.3F;
+  const int major_segments = major_segments_param.has_value() ? major_segments_param->int_value : 48;
+  const int minor_segments = minor_segments_param.has_value() ? minor_segments_param->int_value : 24;
+
+  std::cout << "🍩 Creating torus with major_radius=" << major_radius
+            << ", minor_radius=" << minor_radius
+            << ", major_segments=" << major_segments
+            << ", minor_segments=" << minor_segments << std::endl;
+
+  auto torus_result = geometry::TorusGenerator::generate(
+      static_cast<double>(major_radius),
+      static_cast<double>(minor_radius),
+      major_segments,
+      minor_segments);
+
+  if (torus_result.has_value()) {
+    return std::make_shared<core::Mesh>(torus_result.value());
   }
 
   return nullptr;

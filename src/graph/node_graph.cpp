@@ -50,13 +50,16 @@ void GraphNode::setup_pins_for_type() {
   switch (type_) {
   case NodeType::Sphere:
     parameters_.emplace_back("radius", 1.0F);
-    parameters_.emplace_back("subdivisions", 3);
+    parameters_.emplace_back("u_segments", 32);
+    parameters_.emplace_back("v_segments", 16);
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
   case NodeType::Box:
-    parameters_.emplace_back("size", 1.0F);
+    parameters_.emplace_back("width", 1.0F);
+    parameters_.emplace_back("height", 1.0F);
+    parameters_.emplace_back("depth", 1.0F);
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
@@ -64,7 +67,7 @@ void GraphNode::setup_pins_for_type() {
   case NodeType::Cylinder:
     parameters_.emplace_back("radius", 1.0F);
     parameters_.emplace_back("height", 2.0F);
-    parameters_.emplace_back("subdivisions", 8);
+    parameters_.emplace_back("segments", 32);
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
@@ -105,6 +108,22 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
+    break;
+
+  case NodeType::Plane:
+    parameters_.emplace_back("width", 2.0F);
+    parameters_.emplace_back("height", 2.0F);
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
+    break;
+
+  case NodeType::Torus:
+    parameters_.emplace_back("major_radius", 1.0F);
+    parameters_.emplace_back("minor_radius", 0.3F);
+    parameters_.emplace_back("major_segments", 48);
+    parameters_.emplace_back("minor_segments", 24);
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
   default:

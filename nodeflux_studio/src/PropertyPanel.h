@@ -13,6 +13,11 @@ class BoxNode;
 class CylinderNode;
 }
 
+namespace nodeflux::graph {
+class GraphNode;
+class NodeGraph;
+}
+
 /**
  * @brief Property panel for editing node parameters
  *
@@ -26,10 +31,14 @@ public:
     explicit PropertyPanel(QWidget* parent = nullptr);
     ~PropertyPanel() override = default;
 
-    // Set which node to display/edit
+    // Set which node to display/edit (old system)
     void setSphereNode(nodeflux::nodes::SphereNode* node);
     void setBoxNode(nodeflux::nodes::BoxNode* node);
     void setCylinderNode(nodeflux::nodes::CylinderNode* node);
+
+    // Set GraphNode from node graph system (new system)
+    void setGraphNode(nodeflux::graph::GraphNode* node, nodeflux::graph::NodeGraph* graph);
+
     void clearProperties();
 
 signals:
@@ -47,6 +56,10 @@ private:
     void* current_node_ = nullptr;
     QString current_node_type_;
 
+    // Current graph node (new system)
+    nodeflux::graph::GraphNode* current_graph_node_ = nullptr;
+    nodeflux::graph::NodeGraph* current_graph_ = nullptr;
+
     // Helper methods for building UI
     void clearLayout();
     void addSeparator();
@@ -59,4 +72,11 @@ private:
                            std::function<void(double)> callback);
     void addBoolParameter(const QString& label, bool value,
                          std::function<void(bool)> callback);
+
+    // Builder methods for specific node types
+    void buildSphereParameters(nodeflux::graph::GraphNode* node);
+    void buildBoxParameters(nodeflux::graph::GraphNode* node);
+    void buildCylinderParameters(nodeflux::graph::GraphNode* node);
+    void buildPlaneParameters(nodeflux::graph::GraphNode* node);
+    void buildTorusParameters(nodeflux::graph::GraphNode* node);
 };

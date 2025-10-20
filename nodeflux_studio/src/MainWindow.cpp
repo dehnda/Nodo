@@ -138,7 +138,13 @@ auto MainWindow::setupDockWidgets() -> void {
 }
 
 void MainWindow::onParameterChanged() {
-  // When a parameter changes, regenerate and update the viewport
+  // When a parameter changes in the property panel, re-execute the selected node
+  auto selected_nodes = node_graph_widget_->get_selected_node_ids();
+  if (!selected_nodes.isEmpty()) {
+    executeAndDisplayNode(selected_nodes.first());
+  }
+
+  // Legacy support for old test nodes (can be removed later)
   if (test_sphere_node_ != nullptr) {
     auto mesh = test_sphere_node_->generate();
     if (mesh) {
@@ -352,7 +358,19 @@ void MainWindow::onNodeSelectionChanged() {
   // When selection changes, display the selected node's output
   auto selected_nodes = node_graph_widget_->get_selected_node_ids();
   if (!selected_nodes.isEmpty()) {
-    executeAndDisplayNode(selected_nodes.first());
+    int selected_id = selected_nodes.first();
+    executeAndDisplayNode(selected_id);
+
+    // Update property panel to show selected node's parameters
+    if (node_graph_ != nullptr) {
+      auto* node = node_graph_->get_node(selected_id);
+      if (node != nullptr) {
+        property_panel_->setGraphNode(node, node_graph_.get());
+      }
+    }
+  } else {
+    // No selection - clear property panel
+    property_panel_->clearProperties();
   }
 }
 
@@ -379,6 +397,16 @@ void MainWindow::executeAndDisplayNode(int node_id) {
                           .arg(QString::fromStdString(node->get_name()))
                           .arg(mesh->vertex_count())
                           .arg(mesh->face_count());
+
+        // Add parameter info for debugging
+        using nodeflux::graph::NodeType;
+        if (node->get_type() == NodeType::Sphere) {
+          auto radius_param = node->get_parameter("radius");
+          if (radius_param.has_value()) {
+            msg += QString(" | radius=%1").arg(radius_param->float_value);
+          }
+        }
+
         statusBar()->showMessage(msg, 3000);
       }
     } else {
