@@ -16,7 +16,6 @@ std::string Error::description() const {
 bool Error::is_recoverable() const noexcept {
   switch (code) {
   case ErrorCode::OutOfMemory:
-  case ErrorCode::CGALInitializationFailed:
     return false;
   case ErrorCode::InvalidMesh:
   case ErrorCode::EmptyMesh:
@@ -38,8 +37,6 @@ std::string ErrorUtils::category_to_string(ErrorCategory category) {
     return "Validation";
   case ErrorCategory::Memory:
     return "Memory";
-  case ErrorCategory::CGAL:
-    return "CGAL";
   case ErrorCategory::Unknown:
     return "Unknown";
   default:
@@ -78,14 +75,6 @@ std::string ErrorUtils::code_to_string(ErrorCode code) {
     return "Unreferenced vertices";
   case ErrorCode::NonClosedMesh:
     return "Non-closed mesh";
-
-  // CGAL errors
-  case ErrorCode::CGALInitializationFailed:
-    return "CGAL initialization failed";
-  case ErrorCode::CGALConversionError:
-    return "CGAL conversion error";
-  case ErrorCode::CGALOperationTimeout:
-    return "CGAL operation timeout";
 
   // General
   case ErrorCode::OutOfMemory:

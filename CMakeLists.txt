@@ -17,9 +17,8 @@ option(NODEFLUX_BUILD_STUDIO "Build Qt Studio application" ON)
 # Conan dependencies
 find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
-find_package(gmp REQUIRED)
-find_package(mpfr REQUIRED)
-find_package(cgal REQUIRED)
+find_package(manifold REQUIRED)
+find_package(libigl REQUIRED)
 find_package(nlohmann_json REQUIRED)
 if(NODEFLUX_BUILD_TESTS)
     find_package(GTest REQUIRED)
@@ -88,9 +87,8 @@ target_link_libraries(nodeflux_core
         Eigen3::Eigen
         fmt::fmt
         nlohmann_json::nlohmann_json
-        gmp::gmp
-        mpfr::mpfr
-        CGAL::CGAL
+        igl::igl
+        manifold::manifold
 )
 
 # Compiler features and warnings

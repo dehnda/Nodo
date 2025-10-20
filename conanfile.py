@@ -11,7 +11,6 @@ class NodeFluxEngineConan(ConanFile):
     # Default options for dependencies
     default_options = {
         "boost/*:without_test": True,
-        "cgal/*:shared": False,
         "gtest/*:shared": False,
         "qt/*:shared": True,
         "qt/*:with_opengl": True,
@@ -43,10 +42,13 @@ class NodeFluxEngineConan(ConanFile):
         # Core dependencies
         self.requires("eigen/3.4.0")
         self.requires("fmt/10.2.1")
-        self.requires("gmp/6.3.0")
-        self.requires("mpfr/4.2.1")
-        self.requires("cgal/5.6.1")
         self.requires("nlohmann_json/3.11.3")
+
+        # Manifold for boolean operations (Apache 2.0 - fully commercial-friendly!)
+        self.requires("manifold/3.2.1")
+
+        # libigl for other geometry operations (MPL 2.0 - commercial-friendly)
+        self.requires("libigl/2.5.0")
 
         # Qt for UI
         self.requires("qt/6.7.3")

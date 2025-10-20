@@ -13,7 +13,6 @@ enum class ErrorCategory {
   IO,         ///< Input/output operations
   Validation, ///< Mesh validation errors
   Memory,     ///< Memory allocation errors
-  CGAL,       ///< CGAL library errors
   GPU,        ///< GPU/compute shader errors
   System,     ///< System-level errors
   Unknown     ///< Unknown or unclassified errors
@@ -40,11 +39,6 @@ enum class ErrorCode {
   DuplicateVertices,
   UnreferencedVertices,
   NonClosedMesh,
-
-  // CGAL errors
-  CGALInitializationFailed,
-  CGALConversionError,
-  CGALOperationTimeout,
 
   // GPU/System errors
   InitializationFailed,
