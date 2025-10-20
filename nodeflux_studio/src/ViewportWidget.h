@@ -86,11 +86,26 @@ private:
     bool wireframe_mode_ = false;
     bool backface_culling_ = true;
     bool first_mesh_load_ = true;
+    bool show_grid_ = true;
+    bool show_axes_ = true;
+
+    // Grid and axes buffers
+    std::unique_ptr<QOpenGLVertexArrayObject> grid_vao_;
+    std::unique_ptr<QOpenGLBuffer> grid_vertex_buffer_;
+    int grid_vertex_count_ = 0;
+
+    std::unique_ptr<QOpenGLVertexArrayObject> axes_vao_;
+    std::unique_ptr<QOpenGLBuffer> axes_vertex_buffer_;
+    std::unique_ptr<QOpenGLBuffer> axes_color_buffer_;
 
     // Private helper methods
     void setupShaders();
     void setupBuffers();
+    void setupGrid();
+    void setupAxes();
     void updateCamera();
     void calculateMeshBounds(const nodeflux::core::Mesh& mesh);
     void drawNormals();
+    void drawGrid();
+    void drawAxes();
 };

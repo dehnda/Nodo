@@ -104,6 +104,12 @@ void GraphNode::setup_pins_for_type() {
     parameters_.emplace_back("translate_x", 0.0F);
     parameters_.emplace_back("translate_y", 0.0F);
     parameters_.emplace_back("translate_z", 0.0F);
+    parameters_.emplace_back("rotate_x", 0.0F);
+    parameters_.emplace_back("rotate_y", 0.0F);
+    parameters_.emplace_back("rotate_z", 0.0F);
+    parameters_.emplace_back("scale_x", 1.0F);
+    parameters_.emplace_back("scale_y", 1.0F);
+    parameters_.emplace_back("scale_z", 1.0F);
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(

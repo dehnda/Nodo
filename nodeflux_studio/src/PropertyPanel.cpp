@@ -395,6 +395,9 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode* node, nodeflux::gra
         case NodeType::Torus:
             buildTorusParameters(node);
             break;
+        case NodeType::Transform:
+            buildTransformParameters(node);
+            break;
         default:
             // For other node types, show generic message
             auto* label = new QLabel("Parameters not yet implemented for this node type", content_widget_);
@@ -590,6 +593,115 @@ void PropertyPanel::buildTorusParameters(nodeflux::graph::GraphNode* node) {
     addIntParameter("Minor Segments", minor_segments, 3, 64,
         [this, node](int value) {
             node->set_parameter("minor_segments", NodeParameter("minor_segments", value));
+            emit parameterChanged();
+        });
+}
+
+void PropertyPanel::buildTransformParameters(nodeflux::graph::GraphNode* node) {
+    using namespace nodeflux::graph;
+
+    addHeader("Translation");
+
+    // Translate X
+    auto translate_x_param = node->get_parameter("translate_x");
+    double translate_x = (translate_x_param.has_value() && translate_x_param->type == NodeParameter::Type::Float)
+        ? translate_x_param->float_value : 0.0;
+
+    addDoubleParameter("Translate X", translate_x, -100.0, 100.0,
+        [this, node](double value) {
+            node->set_parameter("translate_x", NodeParameter("translate_x", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Translate Y
+    auto translate_y_param = node->get_parameter("translate_y");
+    double translate_y = (translate_y_param.has_value() && translate_y_param->type == NodeParameter::Type::Float)
+        ? translate_y_param->float_value : 0.0;
+
+    addDoubleParameter("Translate Y", translate_y, -100.0, 100.0,
+        [this, node](double value) {
+            node->set_parameter("translate_y", NodeParameter("translate_y", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Translate Z
+    auto translate_z_param = node->get_parameter("translate_z");
+    double translate_z = (translate_z_param.has_value() && translate_z_param->type == NodeParameter::Type::Float)
+        ? translate_z_param->float_value : 0.0;
+
+    addDoubleParameter("Translate Z", translate_z, -100.0, 100.0,
+        [this, node](double value) {
+            node->set_parameter("translate_z", NodeParameter("translate_z", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    addHeader("Rotation (Degrees)");
+
+    // Rotate X
+    auto rotate_x_param = node->get_parameter("rotate_x");
+    double rotate_x = (rotate_x_param.has_value() && rotate_x_param->type == NodeParameter::Type::Float)
+        ? rotate_x_param->float_value : 0.0;
+
+    addDoubleParameter("Rotate X", rotate_x, -360.0, 360.0,
+        [this, node](double value) {
+            node->set_parameter("rotate_x", NodeParameter("rotate_x", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Rotate Y
+    auto rotate_y_param = node->get_parameter("rotate_y");
+    double rotate_y = (rotate_y_param.has_value() && rotate_y_param->type == NodeParameter::Type::Float)
+        ? rotate_y_param->float_value : 0.0;
+
+    addDoubleParameter("Rotate Y", rotate_y, -360.0, 360.0,
+        [this, node](double value) {
+            node->set_parameter("rotate_y", NodeParameter("rotate_y", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Rotate Z
+    auto rotate_z_param = node->get_parameter("rotate_z");
+    double rotate_z = (rotate_z_param.has_value() && rotate_z_param->type == NodeParameter::Type::Float)
+        ? rotate_z_param->float_value : 0.0;
+
+    addDoubleParameter("Rotate Z", rotate_z, -360.0, 360.0,
+        [this, node](double value) {
+            node->set_parameter("rotate_z", NodeParameter("rotate_z", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    addHeader("Scale");
+
+    // Scale X
+    auto scale_x_param = node->get_parameter("scale_x");
+    double scale_x = (scale_x_param.has_value() && scale_x_param->type == NodeParameter::Type::Float)
+        ? scale_x_param->float_value : 1.0;
+
+    addDoubleParameter("Scale X", scale_x, 0.01, 10.0,
+        [this, node](double value) {
+            node->set_parameter("scale_x", NodeParameter("scale_x", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Scale Y
+    auto scale_y_param = node->get_parameter("scale_y");
+    double scale_y = (scale_y_param.has_value() && scale_y_param->type == NodeParameter::Type::Float)
+        ? scale_y_param->float_value : 1.0;
+
+    addDoubleParameter("Scale Y", scale_y, 0.01, 10.0,
+        [this, node](double value) {
+            node->set_parameter("scale_y", NodeParameter("scale_y", static_cast<float>(value)));
+            emit parameterChanged();
+        });
+
+    // Scale Z
+    auto scale_z_param = node->get_parameter("scale_z");
+    double scale_z = (scale_z_param.has_value() && scale_z_param->type == NodeParameter::Type::Float)
+        ? scale_z_param->float_value : 1.0;
+
+    addDoubleParameter("Scale Z", scale_z, 0.01, 10.0,
+        [this, node](double value) {
+            node->set_parameter("scale_z", NodeParameter("scale_z", static_cast<float>(value)));
             emit parameterChanged();
         });
 }

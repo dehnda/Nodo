@@ -236,6 +236,12 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
   auto translate_x_param = node.get_parameter("translate_x");
   auto translate_y_param = node.get_parameter("translate_y");
   auto translate_z_param = node.get_parameter("translate_z");
+  auto rotate_x_param = node.get_parameter("rotate_x");
+  auto rotate_y_param = node.get_parameter("rotate_y");
+  auto rotate_z_param = node.get_parameter("rotate_z");
+  auto scale_x_param = node.get_parameter("scale_x");
+  auto scale_y_param = node.get_parameter("scale_y");
+  auto scale_z_param = node.get_parameter("scale_z");
 
   const float translate_x =
       translate_x_param.has_value() ? translate_x_param->float_value : 0.0F;
@@ -243,20 +249,74 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
       translate_y_param.has_value() ? translate_y_param->float_value : 0.0F;
   const float translate_z =
       translate_z_param.has_value() ? translate_z_param->float_value : 0.0F;
+  const float rotate_x =
+      rotate_x_param.has_value() ? rotate_x_param->float_value : 0.0F;
+  const float rotate_y =
+      rotate_y_param.has_value() ? rotate_y_param->float_value : 0.0F;
+  const float rotate_z =
+      rotate_z_param.has_value() ? rotate_z_param->float_value : 0.0F;
+  const float scale_x =
+      scale_x_param.has_value() ? scale_x_param->float_value : 1.0F;
+  const float scale_y =
+      scale_y_param.has_value() ? scale_y_param->float_value : 1.0F;
+  const float scale_z =
+      scale_z_param.has_value() ? scale_z_param->float_value : 1.0F;
 
   // Create a copy of the input mesh
   auto transformed_mesh = std::make_shared<core::Mesh>(*inputs[0]);
 
-  // Apply translation to all vertices
+  // Build transformation matrix (Scale -> Rotate -> Translate)
   auto &vertices = transformed_mesh->vertices();
+
+  std::cout << "🔄 Transform: translate(" << translate_x << "," << translate_y << "," << translate_z
+            << ") rotate(" << rotate_x << "," << rotate_y << "," << rotate_z
+            << ") scale(" << scale_x << "," << scale_y << "," << scale_z << ")" << std::endl;
+
+  // Convert degrees to radians
+  constexpr double DEG_TO_RAD = M_PI / 180.0;
+  const double rx = static_cast<double>(rotate_x) * DEG_TO_RAD;
+  const double ry = static_cast<double>(rotate_y) * DEG_TO_RAD;
+  const double rz = static_cast<double>(rotate_z) * DEG_TO_RAD;
+
+  // Create rotation matrices
+  Eigen::Matrix3d rot_x;
+  rot_x << 1.0, 0.0, 0.0,
+           0.0, std::cos(rx), -std::sin(rx),
+           0.0, std::sin(rx), std::cos(rx);
+
+  Eigen::Matrix3d rot_y;
+  rot_y << std::cos(ry), 0.0, std::sin(ry),
+           0.0, 1.0, 0.0,
+           -std::sin(ry), 0.0, std::cos(ry);
+
+  Eigen::Matrix3d rot_z;
+  rot_z << std::cos(rz), -std::sin(rz), 0.0,
+           std::sin(rz), std::cos(rz), 0.0,
+           0.0, 0.0, 1.0;
+
+  // Combined rotation matrix (Z * Y * X order)
+  const Eigen::Matrix3d rotation = rot_z * rot_y * rot_x;
+
+  // Scale matrix
+  const Eigen::Vector3d scale(static_cast<double>(scale_x),
+                              static_cast<double>(scale_y),
+                              static_cast<double>(scale_z));
+
+  // Translation vector
   const Eigen::Vector3d translation(static_cast<double>(translate_x),
                                     static_cast<double>(translate_y),
                                     static_cast<double>(translate_z));
 
+  // Apply transformations to vertices (Scale -> Rotate -> Translate)
   for (int i = 0; i < vertices.rows(); ++i) {
-    vertices.row(i) += translation.transpose();
+    Eigen::Vector3d vertex = vertices.row(i).transpose();
+    vertex = vertex.cwiseProduct(scale);  // Scale
+    vertex = rotation * vertex;           // Rotate
+    vertex += translation;                // Translate
+    vertices.row(i) = vertex.transpose();
   }
 
+  // Normals will be automatically recomputed when needed since we modified vertices
   return transformed_mesh;
 }
 
