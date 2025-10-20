@@ -217,6 +217,10 @@ void ViewportWidget::initializeGL() {
     // Setup buffers
     setupBuffers();
 
+    // Setup grid and axes
+    setupGrid();
+    setupAxes();
+
     // Initialize camera
     resetCamera();
 }
@@ -232,12 +236,16 @@ void ViewportWidget::paintGL() {
     // Clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Update camera matrices
+    updateCamera();
+
+    // Draw grid and axes first (before mesh)
+    drawGrid();
+    drawAxes();
+
     if (!has_mesh_ || !shader_program_) {
         return;
     }
-
-    // Update camera matrices
-    updateCamera();
 
     // Bind shader and set uniforms
     shader_program_->bind();
@@ -448,4 +456,155 @@ void ViewportWidget::calculateMeshBounds(const nodeflux::core::Mesh& mesh) {
         fitToView();
         first_mesh_load_ = false;
     }
+}
+
+void ViewportWidget::setupGrid() {
+    // Create grid on XZ plane (Y=0)
+    constexpr int GRID_SIZE = 20;
+    constexpr float GRID_SPACING = 1.0F;
+    const float half_size = static_cast<float>(GRID_SIZE) * GRID_SPACING * 0.5F;
+
+    std::vector<float> grid_vertices;
+    grid_vertices.reserve(GRID_SIZE * 2 * 2 * 3); // lines in both directions, 2 vertices per line, 3 floats per vertex
+
+    // Lines along X axis (parallel to X, varying in Z)
+    for (int i = 0; i <= GRID_SIZE; ++i) {
+        const float z = static_cast<float>(i) * GRID_SPACING - half_size;
+        grid_vertices.push_back(-half_size); // x1
+        grid_vertices.push_back(0.0F);       // y1
+        grid_vertices.push_back(z);          // z1
+        grid_vertices.push_back(half_size);  // x2
+        grid_vertices.push_back(0.0F);       // y2
+        grid_vertices.push_back(z);          // z2
+    }
+
+    // Lines along Z axis (parallel to Z, varying in X)
+    for (int i = 0; i <= GRID_SIZE; ++i) {
+        const float x = static_cast<float>(i) * GRID_SPACING - half_size;
+        grid_vertices.push_back(x);          // x1
+        grid_vertices.push_back(0.0F);       // y1
+        grid_vertices.push_back(-half_size); // z1
+        grid_vertices.push_back(x);          // x2
+        grid_vertices.push_back(0.0F);       // y2
+        grid_vertices.push_back(half_size);  // z2
+    }
+
+    grid_vertex_count_ = static_cast<int>(grid_vertices.size() / 3);
+
+    // Create and upload grid buffers
+    grid_vao_ = std::make_unique<QOpenGLVertexArrayObject>();
+    grid_vao_->create();
+    grid_vao_->bind();
+
+    grid_vertex_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    grid_vertex_buffer_->create();
+    grid_vertex_buffer_->bind();
+    grid_vertex_buffer_->allocate(grid_vertices.data(),
+                                   static_cast<int>(grid_vertices.size() * sizeof(float)));
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+    grid_vao_->release();
+}
+
+void ViewportWidget::setupAxes() {
+    // Create XYZ axes centered at origin
+    constexpr float AXIS_LENGTH = 5.0F;
+
+    std::vector<float> axes_vertices = {
+        // X axis (Red)
+        0.0F, 0.0F, 0.0F,
+        AXIS_LENGTH, 0.0F, 0.0F,
+        // Y axis (Green)
+        0.0F, 0.0F, 0.0F,
+        0.0F, AXIS_LENGTH, 0.0F,
+        // Z axis (Blue)
+        0.0F, 0.0F, 0.0F,
+        0.0F, 0.0F, AXIS_LENGTH
+    };
+
+    std::vector<float> axes_colors = {
+        // X axis (Red)
+        1.0F, 0.0F, 0.0F,
+        1.0F, 0.0F, 0.0F,
+        // Y axis (Green)
+        0.0F, 1.0F, 0.0F,
+        0.0F, 1.0F, 0.0F,
+        // Z axis (Blue)
+        0.0F, 0.0F, 1.0F,
+        0.0F, 0.0F, 1.0F
+    };
+
+    // Create and upload axes buffers
+    axes_vao_ = std::make_unique<QOpenGLVertexArrayObject>();
+    axes_vao_->create();
+    axes_vao_->bind();
+
+    axes_vertex_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    axes_vertex_buffer_->create();
+    axes_vertex_buffer_->bind();
+    axes_vertex_buffer_->allocate(axes_vertices.data(),
+                                   static_cast<int>(axes_vertices.size() * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+    axes_color_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    axes_color_buffer_->create();
+    axes_color_buffer_->bind();
+    axes_color_buffer_->allocate(axes_colors.data(),
+                                  static_cast<int>(axes_colors.size() * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+    axes_vao_->release();
+}
+
+void ViewportWidget::drawGrid() {
+    if (!show_grid_ || !grid_vao_) {
+        return;
+    }
+
+    // Use a simple shader approach - we'll use the main shader but with a gray color
+    shader_program_->bind();
+    shader_program_->setUniformValue("model", model_matrix_);
+    shader_program_->setUniformValue("view", view_matrix_);
+    shader_program_->setUniformValue("projection", projection_matrix_);
+    shader_program_->setUniformValue("object_color", QVector3D(0.3F, 0.3F, 0.3F));
+
+    grid_vao_->bind();
+    glDrawArrays(GL_LINES, 0, grid_vertex_count_);
+    grid_vao_->release();
+
+    shader_program_->release();
+}
+
+void ViewportWidget::drawAxes() {
+    if (!show_axes_ || !axes_vao_) {
+        return;
+    }
+
+    // Draw axes with their respective colors
+    // Note: The current shader uses object_color uniform, so we'll draw each axis separately
+    shader_program_->bind();
+    shader_program_->setUniformValue("model", model_matrix_);
+    shader_program_->setUniformValue("view", view_matrix_);
+    shader_program_->setUniformValue("projection", projection_matrix_);
+
+    axes_vao_->bind();
+
+    // X axis (Red)
+    shader_program_->setUniformValue("object_color", QVector3D(1.0F, 0.0F, 0.0F));
+    glDrawArrays(GL_LINES, 0, 2);
+
+    // Y axis (Green)
+    shader_program_->setUniformValue("object_color", QVector3D(0.0F, 1.0F, 0.0F));
+    glDrawArrays(GL_LINES, 2, 2);
+
+    // Z axis (Blue)
+    shader_program_->setUniformValue("object_color", QVector3D(0.0F, 0.0F, 1.0F));
+    glDrawArrays(GL_LINES, 4, 2);
+
+    axes_vao_->release();
+    shader_program_->release();
 }
