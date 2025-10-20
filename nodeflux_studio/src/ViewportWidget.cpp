@@ -180,6 +180,9 @@ void ViewportWidget::setMesh(const nodeflux::core::Mesh &mesh) {
   index_count_ = static_cast<int>(index_data.size());
   has_mesh_ = true;
 
+  // Store mesh for normal visualization
+  current_mesh_ = std::make_shared<nodeflux::core::Mesh>(mesh);
+
   // Extract edges and vertex points for visualization
   extractEdgesFromMesh(mesh);
 
@@ -211,6 +214,18 @@ void ViewportWidget::fitToView() {
 
 void ViewportWidget::setShowNormals(bool show) {
   show_normals_ = show;
+  show_vertex_normals_ = show;
+  show_face_normals_ = show;
+  update();
+}
+
+void ViewportWidget::setShowVertexNormals(bool show) {
+  show_vertex_normals_ = show;
+  update();
+}
+
+void ViewportWidget::setShowFaceNormals(bool show) {
+  show_face_normals_ = show;
   update();
 }
 
@@ -324,7 +339,16 @@ void ViewportWidget::paintGL() {
     drawVertices();
   }
 
-  // Debug: Draw normals if enabled
+  // Draw normals if enabled
+  if (show_vertex_normals_) {
+    drawVertexNormals();
+  }
+
+  if (show_face_normals_) {
+    drawFaceNormals();
+  }
+
+  // Debug: Draw normals if enabled (legacy)
   if (show_normals_) {
     drawNormals();
   }
@@ -830,6 +854,178 @@ void ViewportWidget::drawVertices() {
   vertex_vao_->release();
 
   glPointSize(1.0F); // Reset
+
+  simple_shader_program_->release();
+}
+
+void ViewportWidget::drawVertexNormals() {
+  if (!show_vertex_normals_ || !current_mesh_ || !simple_shader_program_) {
+    return;
+  }
+
+  const auto &vertices = current_mesh_->vertices();
+  const auto &vertex_normals = current_mesh_->vertex_normals();
+
+  if (vertices.rows() == 0 || vertex_normals.rows() != vertices.rows()) {
+    return;
+  }
+
+  // Calculate normal line length based on mesh size
+  const float normal_length = mesh_radius_ * 0.1F;
+
+  // Build line segments for vertex normals
+  std::vector<float> normal_lines;
+  normal_lines.reserve(vertices.rows() *
+                       6); // 2 points per normal, 3 coords per point
+
+  for (int i = 0; i < vertices.rows(); ++i) {
+    // Start point (vertex position)
+    normal_lines.push_back(static_cast<float>(vertices(i, 0)));
+    normal_lines.push_back(static_cast<float>(vertices(i, 1)));
+    normal_lines.push_back(static_cast<float>(vertices(i, 2)));
+
+    // End point (vertex position + normal * length)
+    normal_lines.push_back(static_cast<float>(
+        vertices(i, 0) + vertex_normals(i, 0) * normal_length));
+    normal_lines.push_back(static_cast<float>(
+        vertices(i, 1) + vertex_normals(i, 1) * normal_length));
+    normal_lines.push_back(static_cast<float>(
+        vertices(i, 2) + vertex_normals(i, 2) * normal_length));
+  }
+
+  // Create VAO and buffer if not created
+  static std::unique_ptr<QOpenGLVertexArrayObject> vertex_normal_vao;
+  static std::unique_ptr<QOpenGLBuffer> vertex_normal_buffer;
+
+  if (!vertex_normal_vao) {
+    vertex_normal_vao = std::make_unique<QOpenGLVertexArrayObject>();
+    vertex_normal_vao->create();
+    vertex_normal_buffer =
+        std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    vertex_normal_buffer->create();
+  }
+
+  // Upload data to GPU
+  vertex_normal_vao->bind();
+  vertex_normal_buffer->bind();
+  vertex_normal_buffer->allocate(
+      normal_lines.data(),
+      static_cast<int>(normal_lines.size() * sizeof(float)));
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+  vertex_normal_vao->release();
+  vertex_normal_buffer->release();
+
+  // Draw vertex normals
+  simple_shader_program_->bind();
+  simple_shader_program_->setUniformValue("model", model_matrix_);
+  simple_shader_program_->setUniformValue("view", view_matrix_);
+  simple_shader_program_->setUniformValue("projection", projection_matrix_);
+  simple_shader_program_->setUniformValue("color",
+                                          QVector3D(0.0F, 1.0F, 1.0F)); // Cyan
+
+  vertex_normal_vao->bind();
+  glDrawArrays(GL_LINES, 0, static_cast<int>(normal_lines.size() / 3));
+  vertex_normal_vao->release();
+
+  simple_shader_program_->release();
+}
+
+void ViewportWidget::drawFaceNormals() {
+  if (!show_face_normals_ || !current_mesh_ || !simple_shader_program_) {
+    return;
+  }
+
+  const auto &vertices = current_mesh_->vertices();
+  const auto &faces = current_mesh_->faces();
+  const auto &face_normals = current_mesh_->face_normals();
+
+  if (faces.rows() == 0 || face_normals.rows() != faces.rows()) {
+    return;
+  }
+
+  // Calculate normal line length based on mesh size
+  const float normal_length = mesh_radius_ * 0.15F;
+
+  // Build line segments for face normals
+  std::vector<float> normal_lines;
+  normal_lines.reserve(faces.rows() *
+                       6); // 2 points per normal, 3 coords per point
+
+  for (int i = 0; i < faces.rows(); ++i) {
+    // Calculate face center
+    const int v0 = faces(i, 0);
+    const int v1 = faces(i, 1);
+    const int v2 = faces(i, 2);
+
+    // Skip degenerate triangles (line edges)
+    if (v1 == v2) {
+      continue;
+    }
+
+    const double center_x =
+        (vertices(v0, 0) + vertices(v1, 0) + vertices(v2, 0)) / 3.0;
+    const double center_y =
+        (vertices(v0, 1) + vertices(v1, 1) + vertices(v2, 1)) / 3.0;
+    const double center_z =
+        (vertices(v0, 2) + vertices(v1, 2) + vertices(v2, 2)) / 3.0;
+
+    // Start point (face center)
+    normal_lines.push_back(static_cast<float>(center_x));
+    normal_lines.push_back(static_cast<float>(center_y));
+    normal_lines.push_back(static_cast<float>(center_z));
+
+    // End point (face center + face normal * length)
+    normal_lines.push_back(
+        static_cast<float>(center_x + face_normals(i, 0) * normal_length));
+    normal_lines.push_back(
+        static_cast<float>(center_y + face_normals(i, 1) * normal_length));
+    normal_lines.push_back(
+        static_cast<float>(center_z + face_normals(i, 2) * normal_length));
+  }
+
+  if (normal_lines.empty()) {
+    return;
+  }
+
+  // Create VAO and buffer if not created
+  static std::unique_ptr<QOpenGLVertexArrayObject> face_normal_vao;
+  static std::unique_ptr<QOpenGLBuffer> face_normal_buffer;
+
+  if (!face_normal_vao) {
+    face_normal_vao = std::make_unique<QOpenGLVertexArrayObject>();
+    face_normal_vao->create();
+    face_normal_buffer =
+        std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    face_normal_buffer->create();
+  }
+
+  // Upload data to GPU
+  face_normal_vao->bind();
+  face_normal_buffer->bind();
+  face_normal_buffer->allocate(
+      normal_lines.data(),
+      static_cast<int>(normal_lines.size() * sizeof(float)));
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+  face_normal_vao->release();
+  face_normal_buffer->release();
+
+  // Draw face normals
+  simple_shader_program_->bind();
+  simple_shader_program_->setUniformValue("model", model_matrix_);
+  simple_shader_program_->setUniformValue("view", view_matrix_);
+  simple_shader_program_->setUniformValue("projection", projection_matrix_);
+  simple_shader_program_->setUniformValue(
+      "color", QVector3D(1.0F, 0.0F, 1.0F)); // Magenta
+
+  face_normal_vao->bind();
+  glDrawArrays(GL_LINES, 0, static_cast<int>(normal_lines.size() / 3));
+  face_normal_vao->release();
 
   simple_shader_program_->release();
 }

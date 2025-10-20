@@ -1,27 +1,28 @@
 #include "MainWindow.h"
-#include "ViewportWidget.h"
-#include "PropertyPanel.h"
 #include "NodeGraphWidget.h"
+#include "PropertyPanel.h"
+#include "ViewportWidget.h"
 
-#include <nodeflux/nodes/sphere_node.hpp>
-#include <nodeflux/nodes/box_node.hpp>
-#include <nodeflux/nodes/cylinder_node.hpp>
-#include <nodeflux/graph/node_graph.hpp>
+
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
+#include <nodeflux/graph/node_graph.hpp>
+#include <nodeflux/nodes/box_node.hpp>
+#include <nodeflux/nodes/cylinder_node.hpp>
+#include <nodeflux/nodes/sphere_node.hpp>
+
 
 #include <QAction>
 #include <QDockWidget>
-#include <QMenuBar>
-#include <QStatusBar>
-#include <QLabel>
 #include <QFileDialog>
+#include <QLabel>
+#include <QMenuBar>
 #include <QMessageBox>
+#include <QStatusBar>
+
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent),
-      test_sphere_node_(nullptr),
-      test_box_node_(nullptr),
+    : QMainWindow(parent), test_sphere_node_(nullptr), test_box_node_(nullptr),
       test_cylinder_node_(nullptr) {
 
   // Initialize backend graph system
@@ -85,32 +86,75 @@ auto MainWindow::setupMenuBar() -> void {
   cullingAction->setCheckable(true);
   cullingAction->setChecked(true); // Enabled by default
 
+  viewMenu->addSeparator();
+
+  // Edge and vertex visualization (stored as members to connect after viewport
+  // creation)
+  edges_action_ = viewMenu->addAction("Show &Edges");
+  edges_action_->setCheckable(true);
+  edges_action_->setChecked(true); // Enabled by default
+
+  vertices_action_ = viewMenu->addAction("Show &Vertices");
+  vertices_action_->setCheckable(true);
+  vertices_action_->setChecked(true); // Enabled by default
+
+  viewMenu->addSeparator();
+
+  // Normal visualization (stored as members to connect after viewport creation)
+  vertex_normals_action_ = viewMenu->addAction("Show Vertex &Normals");
+  vertex_normals_action_->setCheckable(true);
+  vertex_normals_action_->setChecked(false);
+
+  face_normals_action_ = viewMenu->addAction("Show &Face Normals");
+  face_normals_action_->setCheckable(true);
+  face_normals_action_->setChecked(false);
+
   // Connect view actions
-  connect(sphereAction, &QAction::triggered, this, &MainWindow::onLoadTestSphere);
+  connect(sphereAction, &QAction::triggered, this,
+          &MainWindow::onLoadTestSphere);
   connect(boxAction, &QAction::triggered, this, &MainWindow::onLoadTestBox);
-  connect(cylinderAction, &QAction::triggered, this, &MainWindow::onLoadTestCylinder);
+  connect(cylinderAction, &QAction::triggered, this,
+          &MainWindow::onLoadTestCylinder);
   connect(clearAction, &QAction::triggered, this, &MainWindow::onClearViewport);
-  connect(wireframeAction, &QAction::toggled, this, &MainWindow::onToggleWireframe);
-  connect(cullingAction, &QAction::toggled, this, &MainWindow::onToggleBackfaceCulling);
+  connect(wireframeAction, &QAction::toggled, this,
+          &MainWindow::onToggleWireframe);
+  connect(cullingAction, &QAction::toggled, this,
+          &MainWindow::onToggleBackfaceCulling);
+  // Note: viewport widget connections are made in setupDockWidgets() after
+  // widget creation
 
   // Create a Graph menu for node graph operations
   QMenu *graphMenu = menuBar->addMenu("&Graph");
   QAction *testGraphAction = graphMenu->addAction("Create &Test Graph");
-  connect(testGraphAction, &QAction::triggered, this, &MainWindow::onCreateTestGraph);
+  connect(testGraphAction, &QAction::triggered, this,
+          &MainWindow::onCreateTestGraph);
 }
 
 auto MainWindow::setupDockWidgets() -> void {
   // Create the 3D viewport widget on the LEFT (takes most space)
   // We'll make it a dock widget so we can control its size
-  QDockWidget* viewport_dock = new QDockWidget("Viewport", this);
-  viewport_dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  QDockWidget *viewport_dock = new QDockWidget("Viewport", this);
+  viewport_dock->setAllowedAreas(Qt::LeftDockWidgetArea |
+                                 Qt::RightDockWidgetArea);
   viewport_widget_ = new ViewportWidget(this);
   viewport_dock->setWidget(viewport_widget_);
   addDockWidget(Qt::LeftDockWidgetArea, viewport_dock);
 
+  // Now connect viewport visualization actions (after viewport widget is
+  // created)
+  connect(edges_action_, &QAction::toggled, viewport_widget_,
+          &ViewportWidget::setShowEdges);
+  connect(vertices_action_, &QAction::toggled, viewport_widget_,
+          &ViewportWidget::setShowVertices);
+  connect(vertex_normals_action_, &QAction::toggled, viewport_widget_,
+          &ViewportWidget::setShowVertexNormals);
+  connect(face_normals_action_, &QAction::toggled, viewport_widget_,
+          &ViewportWidget::setShowFaceNormals);
+
   // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
-  node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
+                                    Qt::RightDockWidgetArea);
 
   // Create node graph widget and connect to backend
   node_graph_widget_ = new NodeGraphWidget(this);
@@ -118,23 +162,24 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_dock_->setWidget(node_graph_widget_);
 
   // Connect node graph signals
-  connect(node_graph_widget_, &NodeGraphWidget::node_created,
-          this, &MainWindow::onNodeCreated);
-  connect(node_graph_widget_, &NodeGraphWidget::connection_created,
-          this, &MainWindow::onConnectionCreated);
-  connect(node_graph_widget_, &NodeGraphWidget::connections_deleted,
-          this, &MainWindow::onConnectionsDeleted);
-  connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted,
-          this, &MainWindow::onNodesDeleted);
-  connect(node_graph_widget_, &NodeGraphWidget::selection_changed,
-          this, &MainWindow::onNodeSelectionChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_created, this,
+          &MainWindow::onNodeCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::connection_created, this,
+          &MainWindow::onConnectionCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::connections_deleted, this,
+          &MainWindow::onConnectionsDeleted);
+  connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted, this,
+          &MainWindow::onNodesDeleted);
+  connect(node_graph_widget_, &NodeGraphWidget::selection_changed, this,
+          &MainWindow::onNodeSelectionChanged);
 
   // Add node graph to the right of viewport
   splitDockWidget(viewport_dock, node_graph_dock_, Qt::Horizontal);
 
   // Create dock widget for properties (FAR RIGHT)
   property_dock_ = new QDockWidget("Properties", this);
-  property_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  property_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
+                                  Qt::RightDockWidgetArea);
 
   // Create property panel
   property_panel_ = new PropertyPanel(this);
@@ -144,15 +189,17 @@ auto MainWindow::setupDockWidgets() -> void {
   splitDockWidget(node_graph_dock_, property_dock_, Qt::Horizontal);
 
   // Set initial sizes: Viewport (500px), Node Graph (400px), Properties (300px)
-  resizeDocks({viewport_dock, node_graph_dock_, property_dock_}, {500, 400, 300}, Qt::Horizontal);
+  resizeDocks({viewport_dock, node_graph_dock_, property_dock_},
+              {500, 400, 300}, Qt::Horizontal);
 
   // Connect property changes to viewport updates
-  connect(property_panel_, &PropertyPanel::parameterChanged,
-          this, &MainWindow::onParameterChanged);
+  connect(property_panel_, &PropertyPanel::parameterChanged, this,
+          &MainWindow::onParameterChanged);
 }
 
 void MainWindow::onParameterChanged() {
-  // When a parameter changes in the property panel, re-execute the selected node
+  // When a parameter changes in the property panel, re-execute the selected
+  // node
   auto selected_nodes = node_graph_widget_->get_selected_node_ids();
   if (!selected_nodes.isEmpty()) {
     executeAndDisplayNode(selected_nodes.first());
@@ -179,7 +226,8 @@ void MainWindow::onParameterChanged() {
 
 auto MainWindow::setupStatusBar() -> void {
   // Show status bar with helpful message
-  statusBar()->showMessage("Ready - Use left mouse to rotate, middle mouse to pan, scroll to zoom");
+  statusBar()->showMessage(
+      "Ready - Use left mouse to rotate, middle mouse to pan, scroll to zoom");
 }
 
 // Slot implementations
@@ -187,8 +235,7 @@ void MainWindow::onNewScene() {
   // Ask for confirmation if graph has nodes
   if (!node_graph_->get_nodes().empty()) {
     auto reply = QMessageBox::question(
-        this, "New Scene",
-        "This will clear the current graph. Are you sure?",
+        this, "New Scene", "This will clear the current graph. Are you sure?",
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply != QMessageBox::Yes) {
@@ -224,7 +271,8 @@ void MainWindow::onOpenScene() {
   if (loaded_graph.has_value()) {
     // Replace current graph with loaded graph
     // We need to create a new graph and swap pointers to avoid signal issues
-    node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>(std::move(loaded_graph.value()));
+    node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>(
+        std::move(loaded_graph.value()));
 
     // Reconnect the node graph widget to the new graph
     node_graph_widget_->set_graph(node_graph_.get());
@@ -236,7 +284,7 @@ void MainWindow::onOpenScene() {
     statusBar()->showMessage("Graph loaded successfully", 3000);
   } else {
     QMessageBox::warning(this, "Load Failed",
-                        "Failed to load node graph from file.");
+                         "Failed to load node graph from file.");
     statusBar()->showMessage("Failed to load graph", 3000);
   }
 }
@@ -256,13 +304,14 @@ void MainWindow::onSaveScene() {
     file_path += ".nfg";
   }
 
-  bool success = GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
+  bool success =
+      GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
 
   if (success) {
     statusBar()->showMessage("Graph saved successfully", 3000);
   } else {
     QMessageBox::warning(this, "Save Failed",
-                        "Failed to save node graph to file.");
+                         "Failed to save node graph to file.");
     statusBar()->showMessage("Failed to save graph", 3000);
   }
 }
@@ -289,7 +338,9 @@ void MainWindow::onLoadTestSphere() {
   auto mesh = test_sphere_node_->generate();
   if (mesh) {
     viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage("Loaded editable sphere - adjust parameters in property panel", STATUS_MSG_DURATION);
+    statusBar()->showMessage(
+        "Loaded editable sphere - adjust parameters in property panel",
+        STATUS_MSG_DURATION);
   } else {
     statusBar()->showMessage("Failed to generate sphere", STATUS_MSG_DURATION);
   }
@@ -316,7 +367,9 @@ void MainWindow::onLoadTestBox() {
   auto mesh = test_box_node_->generate();
   if (mesh) {
     viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage("Loaded editable box - adjust parameters in property panel", STATUS_MSG_DURATION);
+    statusBar()->showMessage(
+        "Loaded editable box - adjust parameters in property panel",
+        STATUS_MSG_DURATION);
   } else {
     statusBar()->showMessage("Failed to generate box", STATUS_MSG_DURATION);
   }
@@ -343,9 +396,12 @@ void MainWindow::onLoadTestCylinder() {
   auto mesh = test_cylinder_node_->generate();
   if (mesh) {
     viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage("Loaded editable cylinder - adjust parameters in property panel", STATUS_MSG_DURATION);
+    statusBar()->showMessage(
+        "Loaded editable cylinder - adjust parameters in property panel",
+        STATUS_MSG_DURATION);
   } else {
-    statusBar()->showMessage("Failed to generate cylinder", STATUS_MSG_DURATION);
+    statusBar()->showMessage("Failed to generate cylinder",
+                             STATUS_MSG_DURATION);
   }
 }
 
@@ -365,16 +421,18 @@ void MainWindow::onClearViewport() {
 void MainWindow::onToggleWireframe(bool enabled) {
   viewport_widget_->setWireframeMode(enabled);
   constexpr int STATUS_MSG_DURATION = 1000;
-  statusBar()->showMessage(enabled ? "Wireframe mode enabled" : "Wireframe mode disabled",
-                          STATUS_MSG_DURATION);
+  statusBar()->showMessage(enabled ? "Wireframe mode enabled"
+                                   : "Wireframe mode disabled",
+                           STATUS_MSG_DURATION);
 }
 
 void MainWindow::onToggleBackfaceCulling(bool enabled) {
   viewport_widget_->setBackfaceCulling(enabled);
   constexpr int STATUS_MSG_DURATION = 1000;
-  statusBar()->showMessage(enabled ? "Backface culling enabled - inverted faces hidden" :
-                                    "Backface culling disabled - see all faces",
-                          STATUS_MSG_DURATION);
+  statusBar()->showMessage(
+      enabled ? "Backface culling enabled - inverted faces hidden"
+              : "Backface culling disabled - see all faces",
+      STATUS_MSG_DURATION);
 }
 
 void MainWindow::onCreateTestGraph() {
@@ -389,13 +447,13 @@ void MainWindow::onCreateTestGraph() {
   int cylinder_id = node_graph_->add_node(NodeType::Cylinder, "Test Cylinder");
 
   // Set positions for nice layout
-  if (auto* sphere_node = node_graph_->get_node(sphere_id)) {
+  if (auto *sphere_node = node_graph_->get_node(sphere_id)) {
     sphere_node->set_position(50.0F, 100.0F);
   }
-  if (auto* box_node = node_graph_->get_node(box_id)) {
+  if (auto *box_node = node_graph_->get_node(box_id)) {
     box_node->set_position(250.0F, 100.0F);
   }
-  if (auto* cylinder_node = node_graph_->get_node(cylinder_id)) {
+  if (auto *cylinder_node = node_graph_->get_node(cylinder_id)) {
     cylinder_node->set_position(450.0F, 100.0F);
   }
 
@@ -403,7 +461,8 @@ void MainWindow::onCreateTestGraph() {
   node_graph_widget_->rebuild_from_graph();
 
   constexpr int STATUS_MSG_DURATION = 2000;
-  statusBar()->showMessage("Test graph created with 3 nodes", STATUS_MSG_DURATION);
+  statusBar()->showMessage("Test graph created with 3 nodes",
+                           STATUS_MSG_DURATION);
 }
 
 void MainWindow::onNodeCreated(int node_id) {
@@ -424,7 +483,7 @@ void MainWindow::onConnectionsDeleted(QVector<int> /*connection_ids*/) {
     int display_node = node_graph_->get_display_node();
     if (display_node != -1) {
       // Mark the display node as needing update
-      auto* node = node_graph_->get_node(display_node);
+      auto *node = node_graph_->get_node(display_node);
       if (node != nullptr) {
         node->mark_for_update();
       }
@@ -465,7 +524,7 @@ void MainWindow::onNodeSelectionChanged() {
 
     // Update property panel to show selected node's parameters
     if (node_graph_ != nullptr) {
-      auto* node = node_graph_->get_node(selected_id);
+      auto *node = node_graph_->get_node(selected_id);
       if (node != nullptr) {
         property_panel_->setGraphNode(node, node_graph_.get());
       }
@@ -508,7 +567,7 @@ void MainWindow::executeAndDisplayNode(int node_id) {
       viewport_widget_->setMesh(*mesh);
 
       // Update status
-      auto* node = node_graph_->get_node(node_id);
+      auto *node = node_graph_->get_node(node_id);
       if (node != nullptr) {
         QString msg = QString("Displaying: %1 (%2 vertices, %3 faces)")
                           .arg(QString::fromStdString(node->get_name()))

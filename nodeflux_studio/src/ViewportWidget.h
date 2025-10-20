@@ -9,7 +9,6 @@
 #include <QVector3D>
 #include <memory>
 
-
 // Forward declare Mesh class
 namespace nodeflux::core {
 class Mesh;
@@ -39,6 +38,8 @@ public:
 
   // Debug visualization
   void setShowNormals(bool show);
+  void setShowVertexNormals(bool show);
+  void setShowFaceNormals(bool show);
   void setWireframeMode(bool wireframe);
   void setBackfaceCulling(bool enabled);
   void setShowEdges(bool show);
@@ -80,6 +81,8 @@ private:
   int index_count_ = 0;
   QVector3D mesh_center_;
   float mesh_radius_ = 1.0F;
+  std::shared_ptr<nodeflux::core::Mesh>
+      current_mesh_; // Store for normal visualization
 
   // Camera state
   QMatrix4x4 projection_matrix_;
@@ -97,7 +100,9 @@ private:
 
   // Rendering state
   bool has_mesh_ = false;
-  bool show_normals_ = false;
+  bool show_normals_ = false;        // Legacy - now use vertex/face specific
+  bool show_vertex_normals_ = false; // Show vertex normals as lines
+  bool show_face_normals_ = false;   // Show face normals as lines
   bool wireframe_mode_ = false;
   bool backface_culling_ = true;
   bool first_mesh_load_ = true;
@@ -125,6 +130,8 @@ private:
   void calculateMeshBounds(const nodeflux::core::Mesh &mesh);
   void extractEdgesFromMesh(const nodeflux::core::Mesh &mesh);
   void drawNormals();
+  void drawVertexNormals();
+  void drawFaceNormals();
   void drawGrid();
   void drawAxes();
   void drawEdges();
