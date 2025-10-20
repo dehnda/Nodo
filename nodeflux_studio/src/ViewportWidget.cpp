@@ -613,8 +613,8 @@ void ViewportWidget::setupGrid() {
 }
 
 void ViewportWidget::setupAxes() {
-  // Create XYZ axes centered at origin
-  constexpr float AXIS_LENGTH = 5.0F;
+  // Create XYZ axes centered at origin - shorter for subtlety
+  constexpr float AXIS_LENGTH = 2.0F;
 
   std::vector<float> axes_vertices = {// X axis (Red)
                                       0.0F, 0.0F, 0.0F, AXIS_LENGTH, 0.0F, 0.0F,
@@ -669,7 +669,7 @@ void ViewportWidget::drawGrid() {
   shader_program_->setUniformValue("model", model_matrix_);
   shader_program_->setUniformValue("view", view_matrix_);
   shader_program_->setUniformValue("projection", projection_matrix_);
-  shader_program_->setUniformValue("object_color", QVector3D(0.3F, 0.3F, 0.3F));
+  shader_program_->setUniformValue("object_color", QVector3D(0.5F, 0.5F, 0.5F));
 
   grid_vao_->bind();
   glDrawArrays(GL_LINES, 0, grid_vertex_count_);
@@ -683,7 +683,16 @@ void ViewportWidget::drawAxes() {
     return;
   }
 
-  // Draw axes with their respective colors
+  // Use depth testing but with slight bias toward camera to win z-fighting
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL); // Allow equal depth values
+  glEnable(GL_POLYGON_OFFSET_LINE);
+  glPolygonOffset(-2.0F, -2.0F); // Pull axes slightly toward camera
+
+  // Use default line width for subtle appearance
+  glLineWidth(1.5F);
+
+  // Draw axes with their respective colors (slightly dimmed for subtlety)
   // Note: The current shader uses object_color uniform, so we'll draw each axis
   // separately
   shader_program_->bind();
@@ -693,20 +702,25 @@ void ViewportWidget::drawAxes() {
 
   axes_vao_->bind();
 
-  // X axis (Red)
-  shader_program_->setUniformValue("object_color", QVector3D(1.0F, 0.0F, 0.0F));
+  // X axis (Red - slightly dimmed)
+  shader_program_->setUniformValue("object_color", QVector3D(0.8F, 0.2F, 0.2F));
   glDrawArrays(GL_LINES, 0, 2);
 
-  // Y axis (Green)
-  shader_program_->setUniformValue("object_color", QVector3D(0.0F, 1.0F, 0.0F));
+  // Y axis (Green - slightly dimmed)
+  shader_program_->setUniformValue("object_color", QVector3D(0.4F, 0.8F, 0.3F));
   glDrawArrays(GL_LINES, 2, 2);
 
-  // Z axis (Blue)
-  shader_program_->setUniformValue("object_color", QVector3D(0.0F, 0.0F, 1.0F));
+  // Z axis (Blue - slightly dimmed)
+  shader_program_->setUniformValue("object_color", QVector3D(0.2F, 0.4F, 1.0F));
   glDrawArrays(GL_LINES, 4, 2);
 
   axes_vao_->release();
   shader_program_->release();
+
+  // Reset OpenGL state
+  glLineWidth(1.0F);
+  glDisable(GL_POLYGON_OFFSET_LINE);
+  glDepthFunc(GL_LESS); // Restore default depth function
 }
 
 void ViewportWidget::extractEdgesFromMesh(const nodeflux::core::Mesh &mesh) {
