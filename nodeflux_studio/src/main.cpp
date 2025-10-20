@@ -1,8 +1,9 @@
 #include "MainWindow.h"
 #include <QApplication>
-#include <QSurfaceFormat>
 #include <QPalette>
 #include <QStyleFactory>
+#include <QSurfaceFormat>
+
 
 int main(int argc, char *argv[]) {
   // Set up OpenGL surface format BEFORE creating QApplication
@@ -32,9 +33,10 @@ int main(int argc, char *argv[]) {
   darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
   darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
   darkPalette.setColor(QPalette::HighlightedText, Qt::black);
-  
+
   app.setPalette(darkPalette);
-  app.setStyle(QStyleFactory::create("Fusion")); // Fusion style works best with dark themes
+  app.setStyle(QStyleFactory::create(
+      "Fusion")); // Fusion style works best with dark themes
 
   // Set application metadata (shows in window title, about dialogs, etc.)
   app.setApplicationName("NodeFlux Studio");
