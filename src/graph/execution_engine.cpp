@@ -5,11 +5,13 @@
 #include "nodeflux/graph/execution_engine.hpp"
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/geometry/mesh_generator.hpp"
-#include "nodeflux/geometry/sphere_generator.hpp"
 #include "nodeflux/geometry/plane_generator.hpp"
+#include "nodeflux/geometry/sphere_generator.hpp"
 #include "nodeflux/geometry/torus_generator.hpp"
+#include "nodeflux/sop/boolean_sop.hpp"
 #include <iostream>
 #include <memory>
+
 
 namespace nodeflux::graph {
 
@@ -24,7 +26,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
   result_cache_.clear();
 
   // Clear error flags from all nodes
-  for (const auto& node_ptr : graph.get_nodes()) {
+  for (const auto &node_ptr : graph.get_nodes()) {
     node_ptr->set_error(false);
   }
 
@@ -129,7 +131,8 @@ ExecutionEngine::execute_sphere_node(const GraphNode &node) {
       v_segments_param.has_value() ? v_segments_param->int_value : 16;
 
   std::cout << "🌐 Creating sphere with radius=" << radius
-            << ", u_segments=" << u_segments << ", v_segments=" << v_segments << std::endl;
+            << ", u_segments=" << u_segments << ", v_segments=" << v_segments
+            << std::endl;
 
   auto sphere_result = geometry::SphereGenerator::generate_uv_sphere(
       static_cast<double>(radius), u_segments, v_segments);
@@ -151,10 +154,12 @@ ExecutionEngine::execute_box_node(const GraphNode &node) {
   auto depth_param = node.get_parameter("depth");
 
   const float width = width_param.has_value() ? width_param->float_value : 1.0F;
-  const float height = height_param.has_value() ? height_param->float_value : 1.0F;
+  const float height =
+      height_param.has_value() ? height_param->float_value : 1.0F;
   const float depth = depth_param.has_value() ? depth_param->float_value : 1.0F;
 
-  std::cout << "📦 Creating box with width=" << width << ", height=" << height << ", depth=" << depth << std::endl;
+  std::cout << "📦 Creating box with width=" << width << ", height=" << height
+            << ", depth=" << depth << std::endl;
 
   auto box_result = geometry::MeshGenerator::box(
       Eigen::Vector3d(-width / 2, -height / 2, -depth / 2),
@@ -176,7 +181,8 @@ ExecutionEngine::execute_cylinder_node(const GraphNode &node) {
   const int segments =
       segments_param.has_value() ? segments_param->int_value : 32;
 
-  std::cout << "🛢️ Creating cylinder with radius=" << radius << ", height=" << height << ", segments=" << segments << std::endl;
+  std::cout << "🛢️ Creating cylinder with radius=" << radius
+            << ", height=" << height << ", segments=" << segments << std::endl;
 
   auto cylinder_result = geometry::MeshGenerator::cylinder(
       Eigen::Vector3d(0, 0, -height / 2), // Bottom center
@@ -196,13 +202,14 @@ ExecutionEngine::execute_plane_node(const GraphNode &node) {
   auto height_param = node.get_parameter("height");
 
   const float width = width_param.has_value() ? width_param->float_value : 1.0F;
-  const float height = height_param.has_value() ? height_param->float_value : 1.0F;
+  const float height =
+      height_param.has_value() ? height_param->float_value : 1.0F;
 
-  std::cout << "📄 Creating plane with width=" << width << ", height=" << height << std::endl;
+  std::cout << "📄 Creating plane with width=" << width << ", height=" << height
+            << std::endl;
 
   auto plane_result = geometry::PlaneGenerator::generate(
-      static_cast<double>(width),
-      static_cast<double>(height),
+      static_cast<double>(width), static_cast<double>(height),
       1,  // width_segments - could be made configurable
       1); // height_segments - could be made configurable
 
@@ -220,10 +227,14 @@ ExecutionEngine::execute_torus_node(const GraphNode &node) {
   auto major_segments_param = node.get_parameter("major_segments");
   auto minor_segments_param = node.get_parameter("minor_segments");
 
-  const float major_radius = major_radius_param.has_value() ? major_radius_param->float_value : 1.0F;
-  const float minor_radius = minor_radius_param.has_value() ? minor_radius_param->float_value : 0.3F;
-  const int major_segments = major_segments_param.has_value() ? major_segments_param->int_value : 48;
-  const int minor_segments = minor_segments_param.has_value() ? minor_segments_param->int_value : 24;
+  const float major_radius =
+      major_radius_param.has_value() ? major_radius_param->float_value : 1.0F;
+  const float minor_radius =
+      minor_radius_param.has_value() ? minor_radius_param->float_value : 0.3F;
+  const int major_segments =
+      major_segments_param.has_value() ? major_segments_param->int_value : 48;
+  const int minor_segments =
+      minor_segments_param.has_value() ? minor_segments_param->int_value : 24;
 
   std::cout << "🍩 Creating torus with major_radius=" << major_radius
             << ", minor_radius=" << minor_radius
@@ -231,10 +242,8 @@ ExecutionEngine::execute_torus_node(const GraphNode &node) {
             << ", minor_segments=" << minor_segments << std::endl;
 
   auto torus_result = geometry::TorusGenerator::generate(
-      static_cast<double>(major_radius),
-      static_cast<double>(minor_radius),
-      major_segments,
-      minor_segments);
+      static_cast<double>(major_radius), static_cast<double>(minor_radius),
+      major_segments, minor_segments);
 
   if (torus_result.has_value()) {
     return std::make_shared<core::Mesh>(torus_result.value());
@@ -286,9 +295,10 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
   // Build transformation matrix (Scale -> Rotate -> Translate)
   auto &vertices = transformed_mesh->vertices();
 
-  std::cout << "🔄 Transform: translate(" << translate_x << "," << translate_y << "," << translate_z
-            << ") rotate(" << rotate_x << "," << rotate_y << "," << rotate_z
-            << ") scale(" << scale_x << "," << scale_y << "," << scale_z << ")" << std::endl;
+  std::cout << "🔄 Transform: translate(" << translate_x << "," << translate_y
+            << "," << translate_z << ") rotate(" << rotate_x << "," << rotate_y
+            << "," << rotate_z << ") scale(" << scale_x << "," << scale_y << ","
+            << scale_z << ")" << std::endl;
 
   // Convert degrees to radians
   constexpr double DEG_TO_RAD = M_PI / 180.0;
@@ -298,19 +308,16 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
 
   // Create rotation matrices
   Eigen::Matrix3d rot_x;
-  rot_x << 1.0, 0.0, 0.0,
-           0.0, std::cos(rx), -std::sin(rx),
-           0.0, std::sin(rx), std::cos(rx);
+  rot_x << 1.0, 0.0, 0.0, 0.0, std::cos(rx), -std::sin(rx), 0.0, std::sin(rx),
+      std::cos(rx);
 
   Eigen::Matrix3d rot_y;
-  rot_y << std::cos(ry), 0.0, std::sin(ry),
-           0.0, 1.0, 0.0,
-           -std::sin(ry), 0.0, std::cos(ry);
+  rot_y << std::cos(ry), 0.0, std::sin(ry), 0.0, 1.0, 0.0, -std::sin(ry), 0.0,
+      std::cos(ry);
 
   Eigen::Matrix3d rot_z;
-  rot_z << std::cos(rz), -std::sin(rz), 0.0,
-           std::sin(rz), std::cos(rz), 0.0,
-           0.0, 0.0, 1.0;
+  rot_z << std::cos(rz), -std::sin(rz), 0.0, std::sin(rz), std::cos(rz), 0.0,
+      0.0, 0.0, 1.0;
 
   // Combined rotation matrix (Z * Y * X order)
   const Eigen::Matrix3d rotation = rot_z * rot_y * rot_x;
@@ -328,13 +335,14 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
   // Apply transformations to vertices (Scale -> Rotate -> Translate)
   for (int i = 0; i < vertices.rows(); ++i) {
     Eigen::Vector3d vertex = vertices.row(i).transpose();
-    vertex = vertex.cwiseProduct(scale);  // Scale
-    vertex = rotation * vertex;           // Rotate
-    vertex += translation;                // Translate
+    vertex = vertex.cwiseProduct(scale); // Scale
+    vertex = rotation * vertex;          // Rotate
+    vertex += translation;               // Translate
     vertices.row(i) = vertex.transpose();
   }
 
-  // Normals will be automatically recomputed when needed since we modified vertices
+  // Normals will be automatically recomputed when needed since we modified
+  // vertices
   return transformed_mesh;
 }
 
@@ -366,12 +374,57 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
   if (inputs.size() < 2) {
+    std::cout << "⚠️ Boolean node needs 2 inputs, got " << inputs.size()
+              << std::endl;
     return inputs.empty() ? nullptr : inputs[0];
   }
 
-  // TODO: Implement boolean operation
-  // For now, just return the first input mesh
-  return inputs[0];
+  // Get operation parameter (0=Union, 1=Intersection, 2=Difference)
+  auto operation_param = node.get_parameter("operation");
+  int operation = (operation_param.has_value() &&
+                   operation_param->type == NodeParameter::Type::Int)
+                      ? operation_param->int_value
+                      : 0;
+
+  // Map to BooleanSOP operation type
+  sop::BooleanSOP::OperationType op_type;
+  const char *op_name;
+  switch (operation) {
+  case 0:
+    op_type = sop::BooleanSOP::OperationType::UNION;
+    op_name = "Union";
+    break;
+  case 1:
+    op_type = sop::BooleanSOP::OperationType::INTERSECTION;
+    op_name = "Intersection";
+    break;
+  case 2:
+    op_type = sop::BooleanSOP::OperationType::DIFFERENCE;
+    op_name = "Difference";
+    break;
+  default:
+    op_type = sop::BooleanSOP::OperationType::UNION;
+    op_name = "Union";
+    break;
+  }
+
+  std::cout << "🔀 Boolean operation: " << op_name << " on " << inputs.size()
+            << " meshes" << std::endl;
+
+  // Create BooleanSOP and execute
+  sop::BooleanSOP boolean_sop("BooleanNode");
+  boolean_sop.set_operation(op_type);
+  boolean_sop.set_mesh_a(inputs[0]);
+  boolean_sop.set_mesh_b(inputs[1]);
+
+  auto result = boolean_sop.execute();
+  if (result.has_value()) {
+    std::cout << "✅ Boolean operation completed successfully" << std::endl;
+    return std::make_shared<core::Mesh>(std::move(*result));
+  }
+
+  std::cout << "❌ Boolean operation failed" << std::endl;
+  return nullptr;
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_merge_node(
@@ -405,7 +458,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_merge_node(
   Eigen::MatrixXi merged_faces(total_face_count, 3);
 
   // Copy first mesh data
-  merged_vertices.topRows(merged_mesh->vertex_count()) = merged_mesh->vertices();
+  merged_vertices.topRows(merged_mesh->vertex_count()) =
+      merged_mesh->vertices();
   merged_faces.topRows(merged_mesh->face_count()) = merged_mesh->faces();
 
   int current_vertex_offset = merged_mesh->vertex_count();
@@ -413,7 +467,7 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_merge_node(
 
   // Merge remaining meshes
   for (size_t i = 1; i < inputs.size(); ++i) {
-    const auto& input_mesh = inputs[i];
+    const auto &input_mesh = inputs[i];
     const int vertex_count = input_mesh->vertex_count();
     const int face_count = input_mesh->face_count();
 
@@ -446,7 +500,7 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
     return nullptr;
   }
 
-  const auto& input_mesh = inputs[0];
+  const auto &input_mesh = inputs[0];
 
   // Get parameters
   auto mode_param = node.get_parameter("mode");
@@ -461,48 +515,55 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
 
   const int mode = mode_param.has_value() ? mode_param->int_value : 0;
   const int count = count_param.has_value() ? count_param->int_value : 5;
-  const float offset_x = offset_x_param.has_value() ? offset_x_param->float_value : 2.0F;
-  const float offset_y = offset_y_param.has_value() ? offset_y_param->float_value : 0.0F;
-  const float offset_z = offset_z_param.has_value() ? offset_z_param->float_value : 0.0F;
-  const int grid_rows = grid_rows_param.has_value() ? grid_rows_param->int_value : 3;
-  const int grid_cols = grid_cols_param.has_value() ? grid_cols_param->int_value : 3;
-  const float radius = radius_param.has_value() ? radius_param->float_value : 5.0F;
-  const float angle = angle_param.has_value() ? angle_param->float_value : 360.0F;
+  const float offset_x =
+      offset_x_param.has_value() ? offset_x_param->float_value : 2.0F;
+  const float offset_y =
+      offset_y_param.has_value() ? offset_y_param->float_value : 0.0F;
+  const float offset_z =
+      offset_z_param.has_value() ? offset_z_param->float_value : 0.0F;
+  const int grid_rows =
+      grid_rows_param.has_value() ? grid_rows_param->int_value : 3;
+  const int grid_cols =
+      grid_cols_param.has_value() ? grid_cols_param->int_value : 3;
+  const float radius =
+      radius_param.has_value() ? radius_param->float_value : 5.0F;
+  const float angle =
+      angle_param.has_value() ? angle_param->float_value : 360.0F;
 
   std::vector<std::shared_ptr<core::Mesh>> array_meshes;
 
   if (mode == 0) {
     // Linear array
-    std::cout << "📏 Creating linear array: " << count << " copies" << std::endl;
+    std::cout << "📏 Creating linear array: " << count << " copies"
+              << std::endl;
 
     for (int i = 0; i < count; ++i) {
       auto copy = std::make_shared<core::Mesh>(*input_mesh);
-      auto& vertices = copy->vertices();
+      auto &vertices = copy->vertices();
 
       // Apply offset
       const Eigen::Vector3d offset(
           static_cast<double>(offset_x * static_cast<float>(i)),
           static_cast<double>(offset_y * static_cast<float>(i)),
-          static_cast<double>(offset_z * static_cast<float>(i))
-      );
+          static_cast<double>(offset_z * static_cast<float>(i)));
 
       vertices.rowwise() += offset.transpose();
       array_meshes.push_back(copy);
     }
   } else if (mode == 1) {
     // Grid array
-    std::cout << "⊞ Creating grid array: " << grid_rows << "x" << grid_cols << std::endl;
+    std::cout << "⊞ Creating grid array: " << grid_rows << "x" << grid_cols
+              << std::endl;
 
     for (int row = 0; row < grid_rows; ++row) {
       for (int col = 0; col < grid_cols; ++col) {
         auto copy = std::make_shared<core::Mesh>(*input_mesh);
-        auto& vertices = copy->vertices();
+        auto &vertices = copy->vertices();
 
         const Eigen::Vector3d offset(
             static_cast<double>(offset_x * static_cast<float>(col)),
             static_cast<double>(offset_y * static_cast<float>(row)),
-            static_cast<double>(offset_z)
-        );
+            static_cast<double>(offset_z));
 
         vertices.rowwise() += offset.transpose();
         array_meshes.push_back(copy);
@@ -510,19 +571,22 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
     }
   } else if (mode == 2) {
     // Radial array
-    std::cout << "○ Creating radial array: " << count << " copies around radius "
-              << radius << std::endl;
+    std::cout << "○ Creating radial array: " << count
+              << " copies around radius " << radius << std::endl;
 
     constexpr double DEG_TO_RAD = M_PI / 180.0;
-    const double angle_step = (static_cast<double>(angle) * DEG_TO_RAD) / static_cast<double>(count);
+    const double angle_step =
+        (static_cast<double>(angle) * DEG_TO_RAD) / static_cast<double>(count);
 
     for (int i = 0; i < count; ++i) {
       auto copy = std::make_shared<core::Mesh>(*input_mesh);
-      auto& vertices = copy->vertices();
+      auto &vertices = copy->vertices();
 
       const double current_angle = angle_step * static_cast<double>(i);
-      const double x_offset = static_cast<double>(radius) * std::cos(current_angle);
-      const double y_offset = static_cast<double>(radius) * std::sin(current_angle);
+      const double x_offset =
+          static_cast<double>(radius) * std::cos(current_angle);
+      const double y_offset =
+          static_cast<double>(radius) * std::sin(current_angle);
 
       const Eigen::Vector3d offset(x_offset, y_offset, 0.0);
       vertices.rowwise() += offset.transpose();
@@ -543,7 +607,7 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
   // Calculate total size
   int total_vertices = 0;
   int total_faces = 0;
-  for (const auto& mesh : array_meshes) {
+  for (const auto &mesh : array_meshes) {
     total_vertices += mesh->vertex_count();
     total_faces += mesh->face_count();
   }
@@ -556,7 +620,7 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
   int face_offset = 0;
 
   // Merge all meshes
-  for (const auto& mesh : array_meshes) {
+  for (const auto &mesh : array_meshes) {
     const int vcount = mesh->vertex_count();
     const int fcount = mesh->face_count();
 
@@ -612,7 +676,7 @@ void ExecutionEngine::notify_progress(int completed, int total) {
   }
 }
 
-void ExecutionEngine::notify_error(const std::string& error, int node_id) {
+void ExecutionEngine::notify_error(const std::string &error, int node_id) {
   if (error_callback_) {
     error_callback_(error, node_id);
   }

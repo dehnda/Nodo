@@ -132,6 +132,28 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
+  case NodeType::Line:
+    parameters_.emplace_back("start_x", 0.0F);
+    parameters_.emplace_back("start_y", 0.0F);
+    parameters_.emplace_back("start_z", 0.0F);
+    parameters_.emplace_back("end_x", 1.0F);
+    parameters_.emplace_back("end_y", 0.0F);
+    parameters_.emplace_back("end_z", 0.0F);
+    parameters_.emplace_back("segments", 10);
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Line", 0});
+    break;
+
+  case NodeType::Resample:
+    parameters_.emplace_back("mode", 0); // 0=BY_COUNT, 1=BY_LENGTH
+    parameters_.emplace_back("point_count", 20);
+    parameters_.emplace_back("segment_length", 0.1F);
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Resampled", 0});
+    break;
+
   case NodeType::Merge:
     // Merge node combines multiple meshes into one
     // Start with 2 inputs, but can accept any number via multiple connections
@@ -148,7 +170,8 @@ void GraphNode::setup_pins_for_type() {
     parameters_.emplace_back("mode", 0); // 0=Linear, 1=Grid, 2=Radial
     parameters_.emplace_back("count", 5);
     parameters_.emplace_back("offset_x", 2.0F);
-    parameters_.emplace_back("offset_y", 2.0F);  // Changed from 0.0F to 2.0F for grid mode
+    parameters_.emplace_back("offset_y",
+                             2.0F); // Changed from 0.0F to 2.0F for grid mode
     parameters_.emplace_back("offset_z", 0.0F);
     // Grid-specific parameters
     parameters_.emplace_back("grid_rows", 3);

@@ -31,8 +31,15 @@ void BooleanSOP::set_mesh_b(std::shared_ptr<core::Mesh> mesh) {
 
 std::optional<core::Mesh> BooleanSOP::execute() {
   if (!mesh_a_ || !mesh_b_) {
+    std::cout << "BooleanSOP '" << name_
+              << "': Missing input meshes - A: " << (mesh_a_ ? "✓" : "✗")
+              << ", B: " << (mesh_b_ ? "✓" : "✗") << "\n";
     return std::nullopt;
   }
+
+  std::cout << "BooleanSOP '" << name_ << "': Executing with mesh A ("
+            << mesh_a_->vertex_count() << " verts) and mesh B ("
+            << mesh_b_->vertex_count() << " verts)\n";
 
   try {
     switch (operation_) {
@@ -49,6 +56,8 @@ std::optional<core::Mesh> BooleanSOP::execute() {
       return std::nullopt;
     }
   } catch (const std::exception &exception) {
+    std::cout << "BooleanSOP '" << name_ << "': Exception: " << exception.what()
+              << "\n";
     return std::nullopt;
   }
 }

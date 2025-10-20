@@ -136,8 +136,7 @@ void NodeGraphicsItem::paint(QPainter *painter,
   // Draw error indicator (red triangle in top-left corner)
   if (has_error_flag_) {
     QPolygonF triangle;
-    triangle << QPointF(5.0F, 5.0F)
-             << QPointF(18.0F, 5.0F)
+    triangle << QPointF(5.0F, 5.0F) << QPointF(18.0F, 5.0F)
              << QPointF(11.5F, 16.0F);
 
     painter->setBrush(QColor(255, 60, 60)); // Bright red
@@ -333,7 +332,8 @@ NodeGraphWidget::NodeGraphWidget(QWidget *parent)
   // Use NoDrag - we'll handle all dragging manually
   setDragMode(QGraphicsView::NoDrag);
 
-  // Enable mouse tracking to receive mouse move events even without buttons pressed
+  // Enable mouse tracking to receive mouse move events even without buttons
+  // pressed
   setMouseTracking(true);
 
   // Set scene rect to large area
@@ -370,8 +370,8 @@ void NodeGraphWidget::update_display_flags_from_graph() {
 }
 
 void NodeGraphWidget::rebuild_from_graph() {
-  // Block signals during rebuild to prevent crashes from selection changed signals
-  // when items are being deleted/recreated
+  // Block signals during rebuild to prevent crashes from selection changed
+  // signals when items are being deleted/recreated
   scene_->blockSignals(true);
 
   // Clear existing visual items
@@ -562,8 +562,8 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
         event->accept();
         return;
       }
-      // If clicked on node (not on a pin), let QGraphicsView handle it for dragging
-      // This allows single-click node dragging
+      // If clicked on node (not on a pin), let QGraphicsView handle it for
+      // dragging This allows single-click node dragging
       QGraphicsView::mousePressEvent(event);
       return;
     } else {
@@ -574,7 +574,8 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
       // Create selection rectangle
       if (selection_rect_ == nullptr) {
         selection_rect_ = new QGraphicsRectItem();
-        selection_rect_->setPen(QPen(QColor(100, 150, 255), 1.5F, Qt::DashLine));
+        selection_rect_->setPen(
+            QPen(QColor(100, 150, 255), 1.5F, Qt::DashLine));
         selection_rect_->setBrush(QColor(100, 150, 255, 30));
         selection_rect_->setZValue(1000); // Draw on top
         scene_->addItem(selection_rect_);
@@ -731,12 +732,12 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
 void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
     // Delete selected items (nodes and connections)
-    QList<QGraphicsItem*> selected = scene_->selectedItems();
+    QList<QGraphicsItem *> selected = scene_->selectedItems();
 
     // Collect connection IDs to delete
     QVector<int> connection_ids_to_delete;
-    for (QGraphicsItem* item : selected) {
-      auto* conn_item = dynamic_cast<ConnectionGraphicsItem*>(item);
+    for (QGraphicsItem *item : selected) {
+      auto *conn_item = dynamic_cast<ConnectionGraphicsItem *>(item);
       if (conn_item != nullptr) {
         connection_ids_to_delete.push_back(conn_item->get_connection_id());
       }
@@ -845,14 +846,16 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
                               context_menu_scene_pos_);
     });
 
+    modifiersMenu->addAction("Boolean", [this]() {
+      create_node_at_position(nodeflux::graph::NodeType::Boolean,
+                              context_menu_scene_pos_);
+    });
+
     // Utility nodes
     createMenu->addAction("Merge", [this]() {
       create_node_at_position(nodeflux::graph::NodeType::Merge,
                               context_menu_scene_pos_);
     });
-
-    // Boolean operations removed - CGAL dependency is GPL licensed
-    // Users can implement their own boolean operations with permissive libraries
   }
 
   menu.exec(event->globalPos());

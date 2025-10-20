@@ -65,8 +65,10 @@ add_library(nodeflux_core
     src/sop/boolean_sop.cpp
     src/sop/extrude_sop.cpp
     src/sop/laplacian_sop.cpp
+    src/sop/line_sop.cpp
     src/sop/mirror_sop.cpp
     src/sop/noise_displacement_sop.cpp
+    src/sop/resample_sop.cpp
     src/sop/subdivision_sop.cpp
 
     # Graph system (clean architecture)
