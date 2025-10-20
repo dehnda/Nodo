@@ -3,6 +3,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QWheelEvent>
+#include <QContextMenuEvent>
+#include <QMenu>
 #include <QPainterPath>
 #include <cmath>
 
@@ -115,6 +117,34 @@ void NodeGraphicsItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
 void NodeGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
     set_hovered(false);
     QGraphicsItem::hoverLeaveEvent(event);
+}
+
+int NodeGraphicsItem::get_pin_at_position(const QPointF& pos, bool& is_input) const {
+    constexpr float PIN_CLICK_RADIUS = 12.0F; // Slightly larger than visual radius for easier clicking
+
+    // Check input pins
+    for (int i = 0; i < input_count_; ++i) {
+        QPointF pin_pos = get_input_pin_pos(i);
+        float distance = std::sqrt(std::pow(pos.x() - pin_pos.x(), 2.0F) +
+                                   std::pow(pos.y() - pin_pos.y(), 2.0F));
+        if (distance <= PIN_CLICK_RADIUS) {
+            is_input = true;
+            return i;
+        }
+    }
+
+    // Check output pins
+    for (int i = 0; i < output_count_; ++i) {
+        QPointF pin_pos = get_output_pin_pos(i);
+        float distance = std::sqrt(std::pow(pos.x() - pin_pos.x(), 2.0F) +
+                                   std::pow(pos.y() - pin_pos.y(), 2.0F));
+        if (distance <= PIN_CLICK_RADIUS) {
+            is_input = false;
+            return i;
+        }
+    }
+
+    return -1; // No pin found
 }
 
 // ============================================================================
@@ -352,6 +382,36 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
+    if (event->button() == Qt::LeftButton) {
+        // Check if clicking on a pin to start connection
+        QPointF scene_pos = mapToScene(event->pos());
+        QGraphicsItem* item = scene_->itemAt(scene_pos, transform());
+        auto* node_item = dynamic_cast<NodeGraphicsItem*>(item);
+
+        if (node_item != nullptr) {
+            bool is_input = false;
+            int pin_index = node_item->get_pin_at_position(node_item->mapFromScene(scene_pos), is_input);
+
+            if (pin_index >= 0 && !is_input) {
+                // Start creating connection from output pin
+                mode_ = InteractionMode::ConnectingPin;
+                connection_source_node_ = node_item;
+                connection_source_pin_ = pin_index;
+
+                // Create temporary line for visual feedback
+                temp_connection_line_ = new QGraphicsLineItem();
+                temp_connection_line_->setPen(QPen(QColor(180, 180, 200), 2.5F));
+                scene_->addItem(temp_connection_line_);
+
+                QPointF start_pos = node_item->mapToScene(node_item->get_output_pin_pos(pin_index));
+                temp_connection_line_->setLine(QLineF(start_pos, scene_pos));
+
+                event->accept();
+                return;
+            }
+        }
+    }
+
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -368,6 +428,16 @@ void NodeGraphWidget::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
+    if (mode_ == InteractionMode::ConnectingPin && temp_connection_line_ != nullptr) {
+        // Update temporary connection line
+        QPointF scene_pos = mapToScene(event->pos());
+        QPointF start_pos = connection_source_node_->mapToScene(
+            connection_source_node_->get_output_pin_pos(connection_source_pin_));
+        temp_connection_line_->setLine(QLineF(start_pos, scene_pos));
+        event->accept();
+        return;
+    }
+
     QGraphicsView::mouseMoveEvent(event);
 
     // Update connections when nodes move
@@ -378,6 +448,51 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (mode_ == InteractionMode::Panning) {
         mode_ = InteractionMode::None;
         setCursor(Qt::ArrowCursor);
+        event->accept();
+        return;
+    }
+
+    if (mode_ == InteractionMode::ConnectingPin) {
+        // Check if releasing on an input pin
+        QPointF scene_pos = mapToScene(event->pos());
+        QGraphicsItem* item = scene_->itemAt(scene_pos, transform());
+        auto* target_node_item = dynamic_cast<NodeGraphicsItem*>(item);
+
+        if (target_node_item != nullptr && target_node_item != connection_source_node_) {
+            bool is_input = false;
+            int pin_index = target_node_item->get_pin_at_position(
+                target_node_item->mapFromScene(scene_pos), is_input);
+
+            if (pin_index >= 0 && is_input) {
+                // Valid connection target found - create connection in backend
+                if (graph_ != nullptr) {
+                    int connection_id = graph_->add_connection(
+                        connection_source_node_->get_node_id(), connection_source_pin_,
+                        target_node_item->get_node_id(), pin_index);
+
+                    if (connection_id >= 0) {
+                        // Create visual representation
+                        create_connection_item(connection_id);
+
+                        // Emit signal
+                        emit connection_created(
+                            connection_source_node_->get_node_id(), connection_source_pin_,
+                            target_node_item->get_node_id(), pin_index);
+                    }
+                }
+            }
+        }
+
+        // Clean up temporary line
+        if (temp_connection_line_ != nullptr) {
+            scene_->removeItem(temp_connection_line_);
+            delete temp_connection_line_;
+            temp_connection_line_ = nullptr;
+        }
+
+        mode_ = InteractionMode::None;
+        connection_source_node_ = nullptr;
+        connection_source_pin_ = -1;
         event->accept();
         return;
     }
@@ -406,6 +521,77 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent* event) {
     }
 
     QGraphicsView::keyPressEvent(event);
+}
+
+void NodeGraphWidget::contextMenuEvent(QContextMenuEvent* event) {
+    if (graph_ == nullptr) {
+        return;
+    }
+
+    // Store the scene position for node creation
+    context_menu_scene_pos_ = mapToScene(event->pos());
+
+    // Check if we're clicking on a node
+    QGraphicsItem* item = scene_->itemAt(context_menu_scene_pos_, transform());
+    auto* node_item = dynamic_cast<NodeGraphicsItem*>(item);
+
+    QMenu menu(this);
+
+    if (node_item != nullptr) {
+        // Context menu for existing node
+        menu.addAction("Delete Node", [this, node_item]() {
+            QVector<int> ids;
+            ids.push_back(node_item->get_node_id());
+            emit nodes_deleted(ids);
+        });
+    } else {
+        // Context menu for empty space - create nodes
+        QMenu* createMenu = menu.addMenu("Create Node");
+
+        // Generator nodes
+        QMenu* generatorsMenu = createMenu->addMenu("Generators");
+        generatorsMenu->addAction("Sphere", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Sphere, context_menu_scene_pos_);
+        });
+
+        generatorsMenu->addAction("Box", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Box, context_menu_scene_pos_);
+        });
+
+        generatorsMenu->addAction("Cylinder", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Cylinder, context_menu_scene_pos_);
+        });
+
+        generatorsMenu->addAction("Plane", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Plane, context_menu_scene_pos_);
+        });
+
+        generatorsMenu->addAction("Torus", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Torus, context_menu_scene_pos_);
+        });
+
+        // Modifier nodes
+        QMenu* modifiersMenu = createMenu->addMenu("Modifiers");
+        modifiersMenu->addAction("Transform", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Transform, context_menu_scene_pos_);
+        });
+
+        modifiersMenu->addAction("Array", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Array, context_menu_scene_pos_);
+        });
+
+        modifiersMenu->addAction("Mirror", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Mirror, context_menu_scene_pos_);
+        });
+
+        // Boolean operations
+        createMenu->addAction("Boolean", [this]() {
+            create_node_at_position(nodeflux::graph::NodeType::Boolean, context_menu_scene_pos_);
+        });
+    }
+
+    menu.exec(event->globalPos());
+    event->accept();
 }
 
 void NodeGraphWidget::drawBackground(QPainter* painter, const QRectF& rect) {
@@ -462,4 +648,25 @@ void NodeGraphWidget::on_node_moved(NodeGraphicsItem* node) {
 
     // Update connections
     update_all_connections();
+}
+
+void NodeGraphWidget::create_node_at_position(nodeflux::graph::NodeType type, const QPointF& pos) {
+    if (graph_ == nullptr) {
+        return;
+    }
+
+    // Create the node in the backend graph
+    int node_id = graph_->add_node(type);
+
+    // Set the position
+    if (auto* backend_node = graph_->get_node(node_id)) {
+        backend_node->set_position(static_cast<float>(pos.x()),
+                                  static_cast<float>(pos.y()));
+    }
+
+    // Create the visual representation
+    create_node_item(node_id);
+
+    // Emit signal for other components
+    emit node_created(node_id);
 }

@@ -9,11 +9,14 @@
 #include <memory>
 #include <unordered_map>
 
-// Forward declarations
+// Forward declarations and includes
 namespace nodeflux::graph {
     class NodeGraph;
     class GraphNode;
+    enum class NodeType;
 }
+
+#include <nodeflux/graph/node_graph.hpp>
 
 /**
  * @brief Visual representation of a node in the graph
@@ -41,6 +44,9 @@ public:
     void set_selected(bool selected) { selected_ = selected; update(); }
     bool is_selected() const { return selected_; }
     void set_hovered(bool hovered) { hovered_ = hovered; update(); }
+
+    // Pin hit detection
+    int get_pin_at_position(const QPointF& pos, bool& is_input) const;
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -120,6 +126,7 @@ signals:
     void connection_created(int source_node, int source_pin, int target_node, int target_pin);
     void nodes_deleted(QVector<int> node_ids);
     void selection_changed();
+    void node_created(int node_id);
 
 protected:
     void wheelEvent(QWheelEvent* event) override;
@@ -127,6 +134,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void contextMenuEvent(QContextMenuEvent* event) override;
     void drawBackground(QPainter* painter, const QRectF& rect) override;
 
 private slots:
@@ -164,6 +172,9 @@ private:
     // Selection
     QSet<int> selected_nodes_;
 
+    // Context menu position (for node creation)
+    QPointF context_menu_scene_pos_;
+
     // Visual settings
     float zoom_factor_ = 1.0F;
     static constexpr float ZOOM_MIN = 0.2F;
@@ -176,6 +187,7 @@ private:
     void remove_node_item(int node_id);
     void remove_connection_item(int connection_id);
     void update_all_connections();
+    void create_node_at_position(nodeflux::graph::NodeType type, const QPointF& pos);
 
     // Grid drawing
     void draw_grid(QPainter* painter, const QRectF& rect);
