@@ -161,11 +161,20 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 
 ### ❌ GPU Compute Shaders
 
-**Status**: Framework exists, but NO `.comp` shader files implemented
+**Status**: Experimental work done, not yet committed
 
-The SOP nodes have `cook_gpu()` methods defined, but actual GLSL compute shader implementations are missing. This is the **biggest gap** between vision and reality.
+GPU compute shader infrastructure was prototyped (buffer management, shader compilation, sphere generation) but **not included in main branch** because:
+- Performance was slower than CPU without GPU chaining (0.23-0.83x due to transfer overhead)
+- Requires architectural changes to keep data on GPU between operations
+- Would mislead users about performance benefits
 
-**Impact**: Performance is still CPU-bound for most operations
+**What was learned**:
+- GLSL compute shaders work correctly for sphere generation
+- GPU buffer management (SSBO) implemented and tested
+- Key insight: Need to chain operations on GPU to avoid expensive CPU↔GPU transfers
+- Future implementation should keep meshes on GPU across multiple SOP nodes
+
+**Impact**: All operations are CPU-bound for now. GPU acceleration is a future enhancement that requires proper data flow architecture first.
 
 ### ❌ Additional File Formats
 
@@ -345,13 +354,7 @@ cmake --build build --parallel
 
 ### 🎯 Near-Term Priorities (Next 4 Weeks)
 
-**Week 1: GPU Compute Shaders** 🔥 HIGH PRIORITY
-- Implement actual `.comp` shader files
-- Sphere, Box, Cylinder, Plane GPU generation
-- GPU BVH acceleration
-- Performance benchmarking
-
-**Week 2: UI/UX Enhancements**
+**Week 1: UI/UX Enhancements** 🔥 HIGH PRIORITY
 - Node selection/picking in viewport
 - Transform gizmos (move, rotate, scale)
 - Camera presets (orthographic views)
@@ -392,6 +395,13 @@ cmake --build build --parallel
 
 ### 🚀 Long-Term Vision (6+ Months)
 
+**GPU Acceleration** (requires architecture redesign):
+- GPU chaining: keep mesh data on GPU between SOP operations
+- Implement compute shaders for primitives, booleans, deformations
+- GPU memory management and buffer pooling
+- Target: 10-100x speedup for multi-node workflows
+
+**Other Long-Term Goals**:
 - Python bindings for scripting
 - Node marketplace/library
 - Animation/keyframing system
