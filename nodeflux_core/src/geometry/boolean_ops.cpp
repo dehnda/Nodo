@@ -3,7 +3,6 @@
 #include <manifold/manifold.h>
 #include <vector>
 
-
 using namespace manifold;
 
 namespace nodeflux::geometry {
@@ -21,7 +20,7 @@ std::optional<core::Mesh> BooleanOps::union_meshes(const core::Mesh &a,
     return std::nullopt;
   }
 
-  return libigl_boolean_operation(a, b, 0); // 0 = union
+  return manifold_boolean_operation(a, b, 0); // 0 = union
 }
 
 std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh &a,
@@ -33,7 +32,7 @@ std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh &a,
     return std::nullopt;
   }
 
-  return libigl_boolean_operation(a, b, 1); // 1 = intersection
+  return manifold_boolean_operation(a, b, 1); // 1 = intersection
 }
 
 std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh &a,
@@ -45,7 +44,7 @@ std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh &a,
     return std::nullopt;
   }
 
-  return libigl_boolean_operation(a, b, 2); // 2 = difference
+  return manifold_boolean_operation(a, b, 2); // 2 = difference
 }
 
 const core::Error &BooleanOps::last_error() { return last_error_; }
@@ -144,8 +143,8 @@ static core::Mesh manifold_to_eigen(const Manifold &manifold) {
 }
 
 std::optional<core::Mesh>
-BooleanOps::libigl_boolean_operation(const core::Mesh &a, const core::Mesh &b,
-                                     int operation_type) {
+BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
+                                       int operation_type) {
   try {
     // Convert to Manifold format
     manifold::Manifold mesh_a = eigen_to_manifold(a);

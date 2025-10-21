@@ -47,9 +47,6 @@ class NodeFluxEngineConan(ConanFile):
         # Manifold for boolean operations (Apache 2.0 - fully commercial-friendly!)
         self.requires("manifold/3.2.1")
 
-        # libigl for other geometry operations (MPL 2.0 - commercial-friendly)
-        self.requires("libigl/2.5.0")
-
         # Qt for UI
         self.requires("qt/6.7.3")
 

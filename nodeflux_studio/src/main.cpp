@@ -4,7 +4,6 @@
 #include <QStyleFactory>
 #include <QSurfaceFormat>
 
-
 int main(int argc, char *argv[]) {
   // Set up OpenGL surface format BEFORE creating QApplication
   // This configures what version of OpenGL we want
@@ -41,7 +40,7 @@ int main(int argc, char *argv[]) {
   // Set application metadata (shows in window title, about dialogs, etc.)
   app.setApplicationName("NodeFlux Studio");
   app.setApplicationVersion("1.0.0");
-  app.setOrganizationName("Seasick Games");
+  app.setOrganizationName("NodeFlux Labs");
 
   // Create and show the main window
   MainWindow window;

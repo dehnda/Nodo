@@ -71,9 +71,9 @@ public:
 
 private:
   /// Internal Manifold boolean operation implementation (Apache 2.0 license)
-  static std::optional<core::Mesh> libigl_boolean_operation(const core::Mesh &a,
-                                                            const core::Mesh &b,
-                                                            int operation_type);
+  static std::optional<core::Mesh>
+  manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
+                             int operation_type);
 
   /// Set the last error for error reporting
   static void set_last_error(const core::Error &error);

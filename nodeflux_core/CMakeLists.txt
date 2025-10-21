@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(manifold REQUIRED)
-find_package(libigl REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
 # Core library sources
@@ -97,7 +96,6 @@ target_link_libraries(nodeflux_core
         Eigen3::Eigen
         fmt::fmt
         nlohmann_json::nlohmann_json
-        igl::igl
         manifold::manifold
 )
 
