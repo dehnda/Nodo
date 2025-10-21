@@ -51,13 +51,11 @@ set(NODEFLUX_CORE_SOURCES
     # SOPs
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp
-    src/sop/BooleanSOP.cpp
     src/sop/copy_to_points_sop.cpp
     src/sop/extrude_sop.cpp
     src/sop/laplacian_sop.cpp
     src/sop/line_sop.cpp
     src/sop/mirror_sop.cpp
-    src/sop/MirrorSOP.cpp
     src/sop/noise_displacement_sop.cpp
     src/sop/polyextrude_sop.cpp
     src/sop/resample_sop.cpp

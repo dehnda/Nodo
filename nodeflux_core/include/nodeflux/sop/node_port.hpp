@@ -1,14 +1,13 @@
 #pragma once
 
-#include "GeometryData.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
 #include <algorithm>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-namespace nodeflux {
-namespace sop {
+namespace nodeflux::sop {
 
 class SOPNode; // Forward declaration
 
@@ -254,5 +253,4 @@ public:
   }
 };
 
-} // namespace sop
-} // namespace nodeflux
+} // namespace nodeflux::sop

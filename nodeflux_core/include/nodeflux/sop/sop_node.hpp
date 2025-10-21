@@ -1,6 +1,5 @@
 #pragma once
 
-#include "GeometryData.hpp"
 #include "node_port.hpp"
 #include <Eigen/Dense>
 #include <chrono>
