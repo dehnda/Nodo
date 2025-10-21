@@ -1,4 +1,5 @@
 #include "NodeGraphWidget.h"
+#include "NodeCreationMenu.h"
 #include <QContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
@@ -344,6 +345,9 @@ NodeGraphWidget::NodeGraphWidget(QWidget *parent)
   // pressed
   setMouseTracking(true);
 
+  // Set focus policy to receive keyboard events (including TAB)
+  setFocusPolicy(Qt::StrongFocus);
+
   // Set scene rect to large area
   scene_->setSceneRect(-5000, -5000, 10000, 10000);
 
@@ -353,6 +357,11 @@ NodeGraphWidget::NodeGraphWidget(QWidget *parent)
   // Connect to scene selection changes
   connect(scene_, &QGraphicsScene::selectionChanged, this,
           &NodeGraphWidget::on_scene_selection_changed);
+
+  // Create node creation menu
+  node_creation_menu_ = new nodeflux_studio::NodeCreationMenu(this);
+  connect(node_creation_menu_, &nodeflux_studio::NodeCreationMenu::nodeSelected,
+          this, &NodeGraphWidget::on_node_menu_selected);
 }
 
 NodeGraphWidget::~NodeGraphWidget() = default;
@@ -737,7 +746,28 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
   QGraphicsView::mouseReleaseEvent(event);
 }
 
+bool NodeGraphWidget::event(QEvent *event) {
+  // Intercept TAB key before Qt's focus system can consume it
+  if (event->type() == QEvent::KeyPress) {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+    if (keyEvent->key() == Qt::Key_Tab) {
+      keyPressEvent(keyEvent);
+      return true;
+    }
+  }
+  return QGraphicsView::event(event);
+}
+
 void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
+  if (event->key() == Qt::Key_Tab) {
+    // Show node creation menu at cursor position
+    QPoint cursor_pos = QCursor::pos();
+    context_menu_scene_pos_ = mapToScene(mapFromGlobal(cursor_pos));
+    node_creation_menu_->showAtPosition(cursor_pos);
+    event->accept();
+    return;
+  }
+
   if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
     // Delete selected items (nodes and connections)
     QList<QGraphicsItem *> selected = scene_->selectedItems();
@@ -797,103 +827,20 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
   QGraphicsItem *item = scene_->itemAt(context_menu_scene_pos_, transform());
   auto *node_item = dynamic_cast<NodeGraphicsItem *>(item);
 
-  QMenu menu(this);
-
   if (node_item != nullptr) {
     // Context menu for existing node
+    QMenu menu(this);
     menu.addAction("Delete Node", [this, node_item]() {
       QVector<int> ids;
       ids.push_back(node_item->get_node_id());
       emit nodes_deleted(ids);
     });
+    menu.exec(event->globalPos());
   } else {
-    // Context menu for empty space - create nodes
-    QMenu *createMenu = menu.addMenu("Create Node");
-
-    // Generator nodes
-    QMenu *generatorsMenu = createMenu->addMenu("Generators");
-    generatorsMenu->addAction("Sphere", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Sphere,
-                              context_menu_scene_pos_);
-    });
-
-    generatorsMenu->addAction("Box", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Box,
-                              context_menu_scene_pos_);
-    });
-
-    generatorsMenu->addAction("Cylinder", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Cylinder,
-                              context_menu_scene_pos_);
-    });
-
-    generatorsMenu->addAction("Plane", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Plane,
-                              context_menu_scene_pos_);
-    });
-
-    generatorsMenu->addAction("Torus", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Torus,
-                              context_menu_scene_pos_);
-    });
-
-    generatorsMenu->addAction("Line", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Line,
-                              context_menu_scene_pos_);
-    });
-
-    // Modifier nodes
-    QMenu *modifiersMenu = createMenu->addMenu("Modifiers");
-    modifiersMenu->addAction("Transform", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Transform,
-                              context_menu_scene_pos_);
-    });
-
-    modifiersMenu->addAction("Array", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Array,
-                              context_menu_scene_pos_);
-    });
-
-    modifiersMenu->addAction("Mirror", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Mirror,
-                              context_menu_scene_pos_);
-    });
-
-    modifiersMenu->addAction("Boolean", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Boolean,
-                              context_menu_scene_pos_);
-    });
-
-    modifiersMenu->addAction("PolyExtrude", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::PolyExtrude,
-                              context_menu_scene_pos_);
-    });
-
-    modifiersMenu->addAction("Resample", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Resample,
-                              context_menu_scene_pos_);
-    });
-
-    // Point operations
-    QMenu *pointOpsMenu = createMenu->addMenu("Point Operations");
-    pointOpsMenu->addAction("Scatter", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Scatter,
-                              context_menu_scene_pos_);
-    });
-
-    pointOpsMenu->addAction("Copy to Points", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::CopyToPoints,
-                              context_menu_scene_pos_);
-    });
-
-    // Utility nodes
-    createMenu->addAction("Merge", [this]() {
-      create_node_at_position(nodeflux::graph::NodeType::Merge,
-                              context_menu_scene_pos_);
-    });
+    // Context menu for empty space - show NodeCreationMenu
+    node_creation_menu_->showAtPosition(event->globalPos());
   }
 
-  menu.exec(event->globalPos());
   event->accept();
 }
 
@@ -999,4 +946,56 @@ void NodeGraphWidget::on_scene_selection_changed() {
   }
 
   emit selection_changed();
+}
+
+void NodeGraphWidget::on_node_menu_selected(const QString &type_id) {
+  // Convert string type_id to NodeType enum
+  nodeflux::graph::NodeType node_type = string_to_node_type(type_id);
+
+  // Create node at the last context menu position
+  create_node_at_position(node_type, context_menu_scene_pos_);
+}
+
+nodeflux::graph::NodeType
+NodeGraphWidget::string_to_node_type(const QString &type_id) const {
+  using nodeflux::graph::NodeType;
+
+  // Map from NodeCreationMenu type_id strings to NodeType enum
+  if (type_id == "sphere_sop")
+    return NodeType::Sphere;
+  if (type_id == "box_sop")
+    return NodeType::Box;
+  if (type_id == "cylinder_sop")
+    return NodeType::Cylinder;
+  if (type_id == "plane_sop")
+    return NodeType::Plane;
+  if (type_id == "torus_sop")
+    return NodeType::Torus;
+  if (type_id == "line_sop")
+    return NodeType::Line;
+  if (type_id == "laplacian_sop")
+    return NodeType::Smooth;
+  if (type_id == "subdivision_sop")
+    return NodeType::Subdivide;
+  if (type_id == "resample_sop")
+    return NodeType::Resample;
+  if (type_id == "extrude_sop")
+    return NodeType::Extrude;
+  if (type_id == "polyextrude_sop")
+    return NodeType::PolyExtrude;
+  if (type_id == "array_sop")
+    return NodeType::Array;
+  if (type_id == "scatter_sop")
+    return NodeType::Scatter;
+  if (type_id == "copy_to_points_sop")
+    return NodeType::CopyToPoints;
+  if (type_id == "boolean_sop")
+    return NodeType::Boolean;
+  if (type_id == "mirror_sop")
+    return NodeType::Mirror;
+  if (type_id == "noise_displacement_sop")
+    return NodeType::Transform; // Using Transform as fallback for noise displacement
+
+  // Default fallback
+  return NodeType::Sphere;
 }

@@ -18,6 +18,11 @@ namespace nodeflux::graph {
 
 #include <nodeflux/graph/node_graph.hpp>
 
+// Forward declare NodeCreationMenu
+namespace nodeflux_studio {
+    class NodeCreationMenu;
+}
+
 /**
  * @brief Visual representation of a node in the graph
  *
@@ -147,6 +152,7 @@ signals:
     void node_created(int node_id);
 
 protected:
+    bool event(QEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
@@ -171,6 +177,9 @@ private:
 
     // Connection items (connection_id -> graphics item)
     std::unordered_map<int, ConnectionGraphicsItem*> connection_items_;
+
+    // Node creation menu
+    nodeflux_studio::NodeCreationMenu* node_creation_menu_ = nullptr;
 
     // Interaction state
     enum class InteractionMode {
@@ -211,6 +220,10 @@ private:
     void remove_connection_item(int connection_id);
     void update_all_connections();
     void create_node_at_position(nodeflux::graph::NodeType type, const QPointF& pos);
+
+    // Node creation menu helpers
+    void on_node_menu_selected(const QString& type_id);
+    nodeflux::graph::NodeType string_to_node_type(const QString& type_id) const;
 
     // Grid drawing
     void draw_grid(QPainter* painter, const QRectF& rect);

@@ -20,6 +20,7 @@ set(STUDIO_SOURCES
     src/ViewportWidget.cpp
     src/PropertyPanel.cpp
     src/NodeGraphWidget.cpp
+    src/NodeCreationMenu.cpp
 )
 
 set(STUDIO_HEADERS
@@ -27,6 +28,7 @@ set(STUDIO_HEADERS
     src/ViewportWidget.h
     src/PropertyPanel.h
     src/NodeGraphWidget.h
+    src/NodeCreationMenu.h
 )
 
 # Create the executable
