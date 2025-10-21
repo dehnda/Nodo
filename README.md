@@ -33,11 +33,15 @@ NodeFluxEngine is the **first GPU-native procedural mesh generation system** tha
 - **Boolean Operations**: Union, intersection, difference with CGAL integration
 - **Advanced Algorithms**: Ready for procedural workflows
 
-## 🚀 What's Next: Procedural Node System
+## 🚀 Development Status & Roadmap
 
-See **[UNIFIED_PROCEDURAL_ROADMAP.md](UNIFIED_PROCEDURAL_ROADMAP.md)** for the complete development plan.
+See **[CLAUDE.md](CLAUDE.md)** for the complete project documentation including:
+- Full implementation status (what's done vs what's missing)
+- Development roadmap and priorities
+- Architecture guide and code style
+- How to add new SOP nodes
 
-**Current Focus**: Building a complete GPU-accelerated procedural mesh generation system with visual node-based workflows.
+**Current Focus**: GPU compute shader implementation, UI/UX enhancements, and file format support.
 
 ## Quick Start
 
@@ -168,14 +172,15 @@ examples/           # Usage examples and demos
 tests/              # Unit tests (44 passing tests)
 ```
 
-## 📋 Development Roadmap
+## 📋 Project Documentation
 
-See **[UNIFIED_PROCEDURAL_ROADMAP.md](UNIFIED_PROCEDURAL_ROADMAP.md)** for the complete development plan including:
+All comprehensive documentation is consolidated in **[CLAUDE.md](CLAUDE.md)**:
 
-- **Week 1**: Core SOP data flow architecture and GPU primitive completion
-- **Week 2**: Transform & Array nodes with GPU acceleration
-- **Week 3**: Advanced procedural operations (subdivision, smoothing, noise)
-- **Week 4**: Enhanced export system and production polish
+- ✅ What's actually implemented (17 SOP nodes, Qt Studio, etc.)
+- ❌ What's missing (GPU shaders, file formats, advanced features)
+- 🎯 Clear development roadmap
+- 🏗️ Architecture guide
+- 📝 Code style and contribution guidelines
 
 ## 🤝 Contributing
 

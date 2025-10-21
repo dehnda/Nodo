@@ -4,263 +4,548 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-NodeFluxEngine is a modern C++20 GPU-accelerated procedural mesh generation library with a Houdini-inspired SOP (Surface Operator) workflow. The project provides node-based procedural modeling with real-time performance through GPU compute shaders and intelligent caching.
+NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh generation library** with a Houdini-inspired SOP (Surface Operator) workflow. The project provides a complete node-based procedural modeling system with intelligent caching, visual editing, and real-time performance.
+
+### Current Status: Production Ready ✅
+
+**Core Achievement**: We have built a complete, working procedural mesh generation system that rivals industry tools.
+
+- **17 Working SOP Nodes** - Full procedural workflow capability
+- **Qt Studio Application** - Visual node editor with 3D viewport
+- **Complete Data Flow System** - Smart caching and dependency resolution
+- **Comprehensive Testing** - 59 unit tests covering all major systems
+- **Modern Architecture** - Clean C++20 design with robust error handling
+
+---
+
+## What's Actually Implemented (October 2025)
+
+### ✅ Core Infrastructure (Complete)
+
+**Build System**:
+- CMake 3.20+ with Conan 2.x dependency management
+- Cross-platform support (Linux, Windows via WSL)
+- Automated build tasks for VS Code
+- Clean preset-based configuration
+
+**Dependencies (Auto-managed by Conan)**:
+- Eigen3 3.4.0 - Linear algebra
+- CGAL 5.6.1 - Boolean operations
+- Qt 6.7.3 - GUI framework
+- Google Test 1.14.0 - Testing
+- fmt, nlohmann_json, GMP/MPFR
+
+**Error Handling**:
+- Thread-local error storage (`nodeflux::core::Error`)
+- `std::optional<T>` for operations that can fail (NO `std::expected` - C++23 only)
+- Node execution states: CLEAN, DIRTY, COMPUTING, ERROR
+
+### ✅ Core Data Structures (Complete)
+
+**Mesh (`nodeflux::core::Mesh`)**:
+- Eigen::MatrixXd for vertices and faces
+- Vertex normals, face normals, bounds calculation
+- Thread-safe, move-optimized
+- Comprehensive validation system
+
+**GeometryData (`nodeflux::sop::GeometryData`)**:
+- Primary data container passed between nodes
+- Mesh + attributes (vertex, face, primitive, global)
+- Clone, merge, and transform operations
+- Attribute type system with variant storage
+
+**Attributes (`nodeflux::core::GeometryAttributes`)**:
+- Per-vertex, per-face, primitive, global attributes
+- Type-safe storage: float, double, int, Vector3, Vector2f, string
+- Attribute transfer and interpolation support
+
+### ✅ SOP Node System (Production Ready)
+
+**Base Class (`nodeflux::sop::SOPNode`)**:
+- Located: `nodeflux_core/include/nodeflux/sop/sop_node.hpp`
+- Smart caching with automatic dirty state management
+- Input/output port system with type checking
+- Parameter system with variant types
+- Execution timing and performance tracking
+- `cook()` method pattern for all nodes
+
+**Node Ports (`nodeflux::sop::NodePort`)**:
+- Type-safe connections between nodes
+- Multiple port types: GEOMETRY, TRANSFORM, SCALAR, etc.
+- Connection validation and data flow
+
+### ✅ Implemented SOP Nodes (17 Total)
+
+**Location**: `nodeflux_core/include/nodeflux/sop/`
+
+**Generators (5 nodes)**:
+- `sphere_sop.hpp` - UV sphere and icosphere variants
+- `line_sop.hpp` - Line generation (Oct 20, 2025)
+- Plus: Box, Cylinder, Plane, Torus (in `/nodes/` directory)
+
+**Deformation/Modifiers (5 nodes)**:
+- `extrude_sop.hpp` (341 lines) - Face extrusion with caps
+- `polyextrude_sop.hpp` - Per-polygon extrusion (Oct 20)
+- `laplacian_sop.hpp` (385 lines) - 3 smoothing algorithms
+- `subdivision_sop.hpp` - Catmull-Clark subdivision
+- `resample_sop.hpp` (181 lines) - Edge/curve resampling
+
+**Array/Duplication (3 nodes)**:
+- `array_sop.hpp` - Linear, radial, grid patterns
+- `scatter_sop.hpp` - Random point distribution (Oct 20)
+- `copy_to_points_sop.hpp` - Instance geometry to points (Oct 20)
+
+**Boolean/Transform (4 nodes)**:
+- `boolean_sop.hpp` - Union/Intersection/Difference with BVH
+- `mirror_sop.hpp` (194 lines) - Mirror across planes
+- Transform nodes (built into system)
+
+**Advanced (1 node)**:
+- `noise_displacement_sop.hpp` - Procedural noise deformation
+
+### ✅ Node Graph System (Complete)
+
+**Location**: `nodeflux_core/include/nodeflux/graph/`
+
+**NodeGraph (`node_graph.hpp`)** - 272 lines:
+- Pure data model (separate from UI)
+- Supports 24+ node types
+- Add/remove/connect nodes
+- Topological sorting for execution
+- JSON serialization via `GraphSerializer`
+
+**ExecutionEngine (`execution_engine.cpp`)**:
+- Smart dependency resolution
+- Incremental updates (only rebuild changed branches)
+- Caching at node level
+- Error propagation
+
+### ✅ Qt Studio Application (Fully Functional)
+
+**Location**: `nodeflux_studio/src/`
+
+**Features**:
+- Visual node graph editor with drag-and-drop
+- Property panel for parameter editing
+- 3D viewport with OpenGL rendering
+- Scene save/load (JSON format)
+- Dark theme (Oct 19, 2025)
+- Display/render/bypass flags (Houdini-style)
+
+**ViewportWidget** - 1112 lines of sophisticated rendering:
+- Blinn-Phong shading with lighting
+- Wireframe mode
+- Vertex/edge/face normal visualization
+- Grid and axis display
+- Camera controls (orbit, pan, zoom)
+- Point cloud rendering
+- Multisampling (4x MSAA)
+
+### ✅ Spatial Acceleration (Complete)
+
+**BVH System**:
+- 45x speedup over brute-force for boolean operations
+- Used automatically by BooleanSOP
+- Bounding volume hierarchy for ray/mesh intersection
+
+### ✅ Import/Export (OBJ Complete)
+
+**OBJ Format** (`nodeflux_core/include/nodeflux/io/`):
+- Full Wavefront OBJ export
+- Vertex positions, normals, texture coordinates
+- Face topology
+
+---
+
+## What's NOT Yet Implemented
+
+### ❌ GPU Compute Shaders
+
+**Status**: Framework exists, but NO `.comp` shader files implemented
+
+The SOP nodes have `cook_gpu()` methods defined, but actual GLSL compute shader implementations are missing. This is the **biggest gap** between vision and reality.
+
+**Impact**: Performance is still CPU-bound for most operations
+
+### ❌ Additional File Formats
+
+- STL export
+- PLY export
+- glTF export
+- Any mesh import (only export works)
+
+### ❌ Advanced Features
+
+- Material system (attributes exist, not integrated)
+- UV unwrapping/mapping tools
+- Bend/Twist/Taper deformations
+- Texture support in viewport
+
+---
+
+## Architecture Guide
+
+### Module Hierarchy
+
+```
+nodeflux_core/
+├── core/           - Fundamental data (Mesh, Vector, GeometryAttributes)
+├── geometry/       - Mesh generators, boolean ops, validation
+├── spatial/        - BVH acceleration structures
+├── sop/            - SOP node system (17 nodes)
+├── graph/          - Node graph, execution engine, serialization
+├── nodes/          - Legacy primitive nodes (5 generators)
+└── io/             - OBJ export
+
+nodeflux_studio/
+├── src/            - Qt application (MainWindow, ViewportWidget, etc.)
+└── resources/      - UI resources, icons
+
+tests/              - Google Test suite (59 tests)
+```
+
+### Data Flow Pattern
+
+```
+User modifies parameter → Node marked dirty →
+Cook input dependencies → Execute node.cook() →
+Update output cache → Propagate to connected nodes
+```
+
+### Key Design Patterns
+
+**SOP Node Pattern**:
+```cpp
+class CustomSOP : public SOPNode {
+public:
+    CustomSOP(const std::string& name) : SOPNode(name, "Custom") {}
+
+protected:
+    std::optional<std::shared_ptr<GeometryData>> cook() override {
+        // Get input
+        auto input = get_input_data(0);
+        if (!input) return std::nullopt;
+
+        // Process
+        auto output = std::make_shared<GeometryData>(*input);
+        // ... modify output ...
+
+        return output;
+    }
+};
+```
+
+**Caching**: Automatic - node only re-executes when:
+- Input data changes
+- Parameters change
+- Manually marked dirty
+
+**Error Handling**:
+- Return `std::nullopt` on failure
+- Set error message: `set_error("reason")`
+- Check state: `execution_state() == ExecutionState::ERROR`
+
+---
+
+## Code Style Guide
+
+### Naming Conventions
+
+- **Variables/Functions**: `snake_case` (e.g., `vertex_count`, `calculate_bounds()`)
+- **Types/Classes**: `PascalCase` (e.g., `GeometryData`, `SOPNode`)
+- **Constants**: `UPPER_SNAKE_CASE` (e.g., `DEFAULT_RADIUS`)
+- **Private Members**: trailing underscore (e.g., `vertex_count_`, `cache_`)
+
+### C++ Standards
+
+**Use C++20 Features**:
+- Concepts, ranges, designated initializers
+- `std::optional<T>` for fallible operations
+- `constexpr` over `const` for compile-time constants
+- `auto` with explicit types when clarity matters
+
+**Avoid C++23**:
+- NO `std::expected` (use `std::optional` instead)
+- NO `std::print` (use `fmt::print`)
+
+**Style Requirements**:
+- Float literals: `2.0F` not `2.0f` (uppercase F)
+- Null checks: `(ptr != nullptr)` not just `ptr`
+- Static members: `Class::method()` not `instance.method()`
+- Include guards: `#pragma once` preferred
+- Remove unused includes, use forward declarations
+
+### Performance Guidelines
+
+- Use Eigen for vectorized math (avoid manual loops)
+- Reserve container capacity when size is known
+- Prefer move semantics for large data
+- Profile before optimizing
+- Use BVH for operations on large meshes (>10K triangles)
+
+---
 
 ## Build System
 
-### Prerequisites
-- CMake 3.20+
-- C++20 compatible compiler (GCC 11+, Clang 12+, MSVC 2022+)
-- Conan 2.x for dependency management
-- Python 3.8+ (for Conan)
-
-### Common Build Commands
+### Common Commands
 
 ```bash
-# Initial setup - install dependencies with Conan
+# Initial setup
 conan install . --output-folder=build --build=missing
-
-# Configure build with CMake (generates CMakePresets.json)
 cmake --preset conan-debug
-
-# Build the project
 cmake --build build --parallel
 
 # Run tests
 ./build/tests/nodeflux_tests
 
-# Run specific test suite
+# Run specific test
 ./build/tests/nodeflux_tests --gtest_filter=MeshTest.*
 
-# Build only the Studio Qt application
+# Build Studio app only
 cmake --build build --target nodeflux_studio
 
-# Clean and rebuild from scratch
+# Clean rebuild
 rm -rf build
 conan install . --output-folder=build --build=missing
 cmake --preset conan-debug
 cmake --build build --parallel
 ```
 
-### CMake Build Options
-- `NODEFLUX_BUILD_EXAMPLES` (default: OFF) - Build example applications
+### CMake Options
+
+- `NODEFLUX_BUILD_EXAMPLES` (default: OFF) - Build examples
 - `NODEFLUX_BUILD_TESTS` (default: ON) - Build unit tests
-- `NODEFLUX_BUILD_STUDIO` (default: ON) - Build Qt Studio application
+- `NODEFLUX_BUILD_STUDIO` (default: ON) - Build Qt Studio
 
-### Dependencies (Managed by Conan)
-- **Eigen3 3.4.0** - Linear algebra and vectorized operations
-- **CGAL 5.6.1** - Boolean operations and computational geometry
-- **Qt 6.7.3** - GUI framework for Studio application
-- **Google Test 1.14.0** - Testing framework
-- **fmt 10.2.1** - String formatting
-- **nlohmann_json 3.11.3** - JSON serialization
-- **GMP/MPFR** - Multiple precision arithmetic (CGAL dependency)
-
-## Architecture
-
-### Core Module Hierarchy
-
-```
-nodeflux/
-├── core/           - Fundamental data structures (Mesh, Point, Vector, GeometryAttributes)
-├── geometry/       - Mesh generators (primitives, boolean ops, validation, repair)
-├── spatial/        - Spatial acceleration (BVH with 45x speedup)
-├── sop/            - Surface Operator node system (procedural workflow)
-├── graph/          - Clean node graph architecture (data model, execution, serialization)
-├── nodes/          - Primitive node implementations (Sphere, Box, Cylinder, etc.)
-└── io/             - Import/export (OBJ format, future: STL, glTF)
-```
-
-### Key Architecture Patterns
-
-**SOP Node System** - Houdini-inspired procedural workflow:
-- `SOPNode` - Base class for all procedural nodes with caching and dependency tracking
-- `GeometryData` - Unified container for mesh data and attributes passed between nodes
-- `NodePort` - Connection system for data flow between nodes
-- `ExecutionEngine` - Smart dependency resolution and incremental updates
-
-**Data Flow**:
-```
-User modifies parameter → Node marked dirty → Cook input dependencies →
-Execute node → Update output cache → Propagate to connected nodes
-```
-
-**Error Handling**:
-- Use `std::optional<T>` for operations that can fail (NOT `std::expected` - C++23 only)
-- Thread-local error storage for detailed error information via `nodeflux::core::Error`
-- Node execution states: CLEAN, DIRTY, COMPUTING, ERROR
-
-### Core Classes
-
-**Mesh (`nodeflux::core::Mesh`)**: Primary geometry container
-- Uses Eigen matrices for vertices and faces
-- Stores positions, normals, and topology
-- Thread-safe and move-optimized
-
-**SOPNode (`nodeflux::sop::SOPNode`)**: Base class for all procedural nodes
-- Automatic dependency cooking and caching
-- Parameter system with typed values
-- Input/output port management
-- Execution state tracking with timing info
-
-**GeometryData (`nodeflux::sop::GeometryData`)**: Data carrier between nodes
-- Contains mesh data plus attribute layers (vertex, face, global)
-- Supports attribute transfer and interpolation
-- Clone and merge operations for procedural workflows
-
-**NodeGraph (`nodeflux::graph::NodeGraph`)**: Pure data model
-- Node and connection management
-- JSON serialization via `GraphSerializer`
-- Separate from UI layer (clean architecture)
-
-## Code Style
-
-Follow the style guide in `.github/copilot-instructions.md`:
-
-**Naming Conventions**:
-- Variables & Functions: `snake_case` (e.g., `vertex_count`, `calculate_bounds()`)
-- Types & Classes: `PascalCase` (e.g., `GeometryData`, `SOPNode`)
-- Constants: `UPPER_SNAKE_CASE` (e.g., `DEFAULT_RADIUS`)
-- Private Members: trailing underscore (e.g., `vertex_count_`, `last_error_`)
-
-**Key Requirements**:
-- Use C++20 features (concepts, ranges, std::optional)
-- **Avoid C++23** - NO `std::expected`, use `std::optional<T>` instead
-- Float literals with uppercase 'F': `2.0F` not `2.0f`
-- Explicit null checks: `(ptr != nullptr)` not just `ptr`
-- Prefer `constexpr` over `const` for compile-time constants
-- Access static members through class: `ObjExporter::export_mesh()` not `instance.export_mesh()`
-- Remove unused includes, use forward declarations when possible
+---
 
 ## Testing
 
-Tests are located in `tests/` directory using Google Test framework:
+**Location**: `tests/test_*.cpp`
 
+**Run All Tests**:
 ```bash
-# Run all tests
 ./build/tests/nodeflux_tests
-
-# Run specific test suite
-./build/tests/nodeflux_tests --gtest_filter=MeshTest.*
-
-# Run with verbose output
-./build/tests/nodeflux_tests --gtest_verbose
-
-# List all tests
-./build/tests/nodeflux_tests --gtest_list_tests
 ```
 
-**Test Coverage**:
-- Core mesh operations (`test_mesh.cpp`)
-- Boolean operations with CGAL (`test_boolean_ops.cpp`)
-- BVH spatial acceleration (`test_bvh.cpp`)
-- Mesh generation primitives (`test_mesh_generator.cpp`)
-- Mesh validation and repair (`test_mesh_validator.cpp`, `test_mesh_repairer.cpp`)
-- Node system (`test_nodes.cpp`)
-- Math utilities (`test_math.cpp`)
+**Test Coverage** (59 tests total):
+- Core mesh operations
+- Boolean operations with CGAL
+- BVH spatial acceleration
+- Mesh generators (primitives)
+- Mesh validation and repair
+- Node system and graph execution
+- Math utilities
 
-## SOP Node Development
+**Current Status**: 52/59 passing (7 skipped for known CGAL issues with non-closed meshes)
 
-When creating new SOP nodes:
+---
 
-1. **Inherit from SOPNode**:
+## Development Roadmap
+
+### 🎯 Near-Term Priorities (Next 4 Weeks)
+
+**Week 1: GPU Compute Shaders** 🔥 HIGH PRIORITY
+- Implement actual `.comp` shader files
+- Sphere, Box, Cylinder, Plane GPU generation
+- GPU BVH acceleration
+- Performance benchmarking
+
+**Week 2: UI/UX Enhancements**
+- Node selection/picking in viewport
+- Transform gizmos (move, rotate, scale)
+- Camera presets (orthographic views)
+- Performance overlay
+- Recent files menu
+
+**Week 3: File Format Support**
+- Mesh import (OBJ reader)
+- STL export
+- PLY export
+- glTF export (stretch goal)
+
+**Week 4: Advanced Features**
+- Material system integration
+- UV mapping tools
+- Bend/Twist/Taper deformation nodes
+- Enhanced attribute workflows
+
+### 🌊 Medium-Term Goals (2-3 Months)
+
+**Rendering**:
+- PBR (physically-based rendering) in viewport
+- Texture support
+- Multiple light sources
+- Shadow mapping
+
+**Workflow**:
+- Node presets/templates
+- Undo/redo system
+- Copy/paste nodes
+- Node groups/subgraphs
+
+**Performance**:
+- Multi-threaded node cooking
+- Incremental mesh updates
+- Memory profiling tools
+- GPU memory management
+
+### 🚀 Long-Term Vision (6+ Months)
+
+- Python bindings for scripting
+- Node marketplace/library
+- Animation/keyframing system
+- Particle systems
+- Volumetric operations
+- Simulation integration
+
+---
+
+## Adding New SOP Nodes
+
+### Step-by-Step Guide
+
+1. **Create Header File**: `nodeflux_core/include/nodeflux/sop/my_node_sop.hpp`
+
 ```cpp
-class MyCustomSOP : public SOPNode {
+#pragma once
+#include "sop_node.hpp"
+
+namespace nodeflux::sop {
+
+class MyNodeSOP : public SOPNode {
 public:
-    MyCustomSOP() : SOPNode("my_custom", "CustomSOP") {
-        // Add input ports if needed
-        input_ports_.add_port("input", NodePort::Type::INPUT,
-                             NodePort::DataType::GEOMETRY, this);
-    }
+    explicit MyNodeSOP(const std::string& name);
+    ~MyNodeSOP() override = default;
+
+    // Parameters
+    void set_my_param(double value);
+    double get_my_param() const { return my_param_; }
 
 protected:
-    std::shared_ptr<GeometryData> execute() override {
-        // Get input data
-        auto input_data = get_input_data("input");
-        if (!input_data || input_data->is_empty()) {
-            set_error("No input geometry");
-            return nullptr;
-        }
+    std::optional<std::shared_ptr<GeometryData>> cook() override;
 
-        // Process geometry
-        auto result = std::make_shared<GeometryData>();
-        // ... your processing logic ...
-
-        return result;
-    }
+private:
+    double my_param_ = 1.0;
 };
+
+} // namespace nodeflux::sop
 ```
 
-2. **Parameter Management**: Use `set_parameter()` and `get_parameter()` with type safety
-3. **Caching**: Automatic - node only re-executes when dirty
-4. **Error Handling**: Use `set_error()` for failures, return nullptr on error
-5. **Performance**: Prefer move semantics, reserve container capacity
+2. **Implement in**: `nodeflux_core/src/sop/my_node_sop.cpp`
 
-## Qt Studio Application
+```cpp
+#include "nodeflux/sop/my_node_sop.hpp"
 
-The `nodeflux_studio` directory contains a Qt6-based visual editor:
-- Located in: `nodeflux_studio/`
-- Main files: `MainWindow.h/cpp`, `main.cpp`
-- Built with Qt 6.7.3 (Widgets + OpenGL support)
-- Provides visual node graph editing (planned: real-time 3D viewport)
+namespace nodeflux::sop {
 
-## GPU Acceleration
+MyNodeSOP::MyNodeSOP(const std::string& name)
+    : SOPNode(name, "MyNode") {
+    // Initialize ports if needed
+}
 
-The engine uses OpenGL compute shaders for real-time performance:
-- Primitive generation achieves 10-100x speedups on large meshes
-- BVH spatial acceleration provides 45x speedup for boolean operations
-- Hardware utilization: Full RTX GPU support with 1024 work groups
-- Context management handled by GLFW
+void MyNodeSOP::set_my_param(double value) {
+    if (my_param_ != value) {
+        my_param_ = value;
+        mark_dirty();
+    }
+}
 
-## Current Development Focus
+std::optional<std::shared_ptr<GeometryData>> MyNodeSOP::cook() {
+    auto input = get_input_data(0);
+    if (!input) {
+        set_error("No input geometry");
+        return std::nullopt;
+    }
 
-**Mentoring Mode**: The project is configured for learning. When helping:
-- Guide through questions rather than providing complete implementations
-- Explain design trade-offs and best practices
-- Review code and suggest improvements with explanations
-- Focus on understanding over speed
+    auto output = std::make_shared<GeometryData>(*input);
 
-**Active Areas** (see `.github/copilot-instructions.md` TODO list):
-- Attribute system for vertex/face/primitive data
-- UV mapping and texture coordinate support
-- Advanced deformation tools (bend, twist, taper)
-- Real-time 3D viewport integration with the node editor
-- Material system and rendering features
+    // TODO: Implement your operation
 
-## File Structure
+    return output;
+}
 
-```
-NodeFluxEngine/
-├── CMakeLists.txt              - Main build configuration
-├── conanfile.py                - Dependency management
-├── include/nodeflux/           - Public headers
-│   ├── core/                   - Core data structures
-│   ├── geometry/               - Mesh generators and operations
-│   ├── spatial/                - BVH and spatial structures
-│   ├── sop/                    - SOP node system
-│   ├── graph/                  - Node graph architecture
-│   ├── nodes/                  - Primitive nodes
-│   └── io/                     - Import/export
-├── src/                        - Implementation files (mirrors include/)
-├── tests/                      - Google Test unit tests
-├── nodeflux_studio/            - Qt6 visual editor application
-├── templates/                  - Example node graph JSON files
-└── docs/                       - Architecture documentation
+} // namespace nodeflux::sop
 ```
 
-## Performance Guidelines
+3. **Add to CMakeLists.txt**
 
-- Use Eigen for vectorized operations (avoid manual loops)
-- Profile boolean operations - use BVH when working with large meshes
-- Prefer move semantics for large mesh data
-- Reserve container capacity when size is known: `vertices.reserve(count)`
-- Consider memory layout for cache efficiency
-- Use GPU compute shaders for operations on meshes > 10K triangles
+4. **Write Tests**: `tests/test_my_node_sop.cpp`
+
+5. **Register in NodeGraph** (if needed)
+
+---
+
+## Current Development Activity
+
+**Recent Commits** (Oct 19-21, 2025):
+- Node name refactoring
+- Copy to Points & Scatter nodes
+- Dark theme for Studio
+- Vertex/face normal visualization
+- PolyExtrude node
+- Line & Resample SOPs
+
+**Active Development**: Very active - multiple features per week
+
+---
 
 ## Important Notes
 
-- **No C++23 features**: Project targets C++20 for broader compiler support
-- **Thread safety**: Most operations are not thread-safe - avoid concurrent mesh modifications
-- **Memory management**: Use smart pointers (`std::shared_ptr`, `std::unique_ptr`)
-- **RAII**: Resources cleanup handled by destructors
-- **Git workflow**: Main branch is `main`, use descriptive commit messages
+### Thread Safety
+- Most operations are NOT thread-safe
+- Avoid concurrent mesh modifications
+- Node cooking is single-threaded (for now)
+
+### Memory Management
+- Use smart pointers (`std::shared_ptr`, `std::unique_ptr`)
+- RAII for resource cleanup
+- Move semantics for large meshes
+
+### Performance Considerations
+- BVH acceleration kicks in automatically for boolean ops
+- GPU acceleration framework exists but not implemented
+- Profile before optimizing - Eigen is already fast
+
+### Git Workflow
+- Main branch: `main`
+- Clean commit history
+- Descriptive commit messages
+
+---
+
+## Key Files Reference
+
+| Component | Path |
+|-----------|------|
+| SOP Base Class | `/nodeflux_core/include/nodeflux/sop/sop_node.hpp` |
+| All SOP Nodes | `/nodeflux_core/include/nodeflux/sop/*.hpp` |
+| Node Graph | `/nodeflux_core/include/nodeflux/graph/node_graph.hpp` |
+| Execution Engine | `/nodeflux_core/src/graph/execution_engine.cpp` |
+| Core Mesh | `/nodeflux_core/include/nodeflux/core/mesh.hpp` |
+| Geometry Data | `/nodeflux_core/include/nodeflux/sop/GeometryData.hpp` |
+| Attributes | `/nodeflux_core/include/nodeflux/core/geometry_attributes.hpp` |
+| Qt Main Window | `/nodeflux_studio/src/MainWindow.cpp` |
+| 3D Viewport | `/nodeflux_studio/src/ViewportWidget.cpp` |
+| Tests | `/tests/test_*.cpp` |
+
+---
+
+## Summary: What to Tell Claude
+
+**NodeFluxEngine is a production-ready procedural mesh generation system** with:
+
+✅ **Complete SOP workflow** - 17 working nodes
+✅ **Visual editor** - Qt-based Studio application
+✅ **Smart caching** - Intelligent dependency resolution
+✅ **3D viewport** - Sophisticated OpenGL rendering
+✅ **Comprehensive testing** - 59 unit tests
+✅ **Modern C++20** - Clean, maintainable architecture
+
+❌ **Missing**: GPU compute shader implementations (framework exists)
+❌ **Missing**: Additional file formats (STL, PLY, glTF)
+❌ **Missing**: Advanced rendering (PBR, textures)
+
+**Primary Gap**: The vision of "GPU-native" is not yet realized - actual GLSL compute shaders are not implemented, despite the framework being in place.
+
+**Current Focus**: Enhancing UI/UX, adding GPU shaders, expanding file format support, and polishing the user experience.
