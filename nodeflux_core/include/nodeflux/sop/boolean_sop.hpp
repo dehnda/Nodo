@@ -2,6 +2,7 @@
 
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/geometry/boolean_ops.hpp"
+#include "nodeflux/sop/sop_node.hpp"
 #include <memory>
 #include <optional>
 #include <string>
@@ -14,7 +15,7 @@ namespace nodeflux::sop {
  * Supports union, intersection, and difference operations using Manifold
  * (Apache 2.0) - fully compatible with commercial use.
  */
-class BooleanSOP {
+class BooleanSOP : public SOPNode {
 public:
   enum class OperationType {
     UNION,        ///< Combine meshes (A ∪ B)
@@ -25,19 +26,27 @@ public:
 private:
   std::string name_;
   OperationType operation_ = OperationType::UNION;
-  bool is_dirty_ = true;
-  std::shared_ptr<core::Mesh> cached_result_;
 
   // Input meshes
   std::shared_ptr<core::Mesh> mesh_a_;
   std::shared_ptr<core::Mesh> mesh_b_;
+
+  std::shared_ptr<GeometryData> execute_boolean();
 
 public:
   /**
    * @brief Construct a new Boolean SOP
    * @param name Node name for debugging
    */
-  explicit BooleanSOP(std::string name);
+  explicit BooleanSOP(const std::string &node_name = "boolean")
+      : SOPNode(node_name, "BooleanSOP") {
+
+    // Add input ports
+    input_ports_.add_port("mesh_a", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("mesh_b", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
+  }
 
   /**
    * @brief Set the boolean operation type
@@ -65,23 +74,9 @@ public:
 
   /**
    * @brief Execute the boolean operation
-   * @return Result mesh or nullopt on failure
+   * @return Result GeometryData or std::nullopt on failure
    */
-  std::optional<core::Mesh> execute();
-
-  /**
-   * @brief Get cached result or compute if dirty
-   * @return Result mesh or nullopt on failure
-   */
-  std::shared_ptr<core::Mesh> cook();
-
-  /**
-   * @brief Mark node as needing recomputation
-   */
-  void mark_dirty() {
-    is_dirty_ = true;
-    cached_result_.reset();
-  }
+  std::shared_ptr<GeometryData> execute() override;
 
   /**
    * @brief Get node name

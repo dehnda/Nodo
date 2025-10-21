@@ -1,12 +1,8 @@
 #include "nodeflux/sop/boolean_sop.hpp"
-#include "nodeflux/core/error.hpp"
 #include "nodeflux/geometry/boolean_ops.hpp"
-#include <chrono>
 #include <iostream>
 
 namespace nodeflux::sop {
-
-BooleanSOP::BooleanSOP(std::string name) : name_(std::move(name)) {}
 
 void BooleanSOP::set_operation(OperationType operation) {
   if (operation_ != operation) {
@@ -29,12 +25,12 @@ void BooleanSOP::set_mesh_b(std::shared_ptr<core::Mesh> mesh) {
   }
 }
 
-std::optional<core::Mesh> BooleanSOP::execute() {
+std::shared_ptr<GeometryData> BooleanSOP::execute_boolean() {
   if (!mesh_a_ || !mesh_b_) {
     std::cout << "BooleanSOP '" << name_
               << "': Missing input meshes - A: " << (mesh_a_ ? "✓" : "✗")
               << ", B: " << (mesh_b_ ? "✓" : "✗") << "\n";
-    return std::nullopt;
+    return nullptr;
   }
 
   std::cout << "BooleanSOP '" << name_ << "': Executing with mesh A ("
@@ -42,56 +38,53 @@ std::optional<core::Mesh> BooleanSOP::execute() {
             << mesh_b_->vertex_count() << " verts)\n";
 
   try {
+    std::optional<core::Mesh> result_mesh;
+
     switch (operation_) {
     case OperationType::UNION:
-      return geometry::BooleanOps::union_meshes(*mesh_a_, *mesh_b_);
+      result_mesh = geometry::BooleanOps::union_meshes(*mesh_a_, *mesh_b_);
+      break;
 
     case OperationType::INTERSECTION:
-      return geometry::BooleanOps::intersect_meshes(*mesh_a_, *mesh_b_);
+      result_mesh = geometry::BooleanOps::intersect_meshes(*mesh_a_, *mesh_b_);
+      break;
 
     case OperationType::DIFFERENCE:
-      return geometry::BooleanOps::difference_meshes(*mesh_a_, *mesh_b_);
+      result_mesh = geometry::BooleanOps::difference_meshes(*mesh_a_, *mesh_b_);
+      break;
 
     default:
-      return std::nullopt;
+      return nullptr;
     }
+
+    if (!result_mesh.has_value()) {
+      std::cerr << "BooleanSOP '" << name_ << "': Boolean operation failed: "
+                << geometry::BooleanOps::last_error().message << "\n";
+      return nullptr;
+    }
+
+    return std::make_shared<GeometryData>(
+        std::make_shared<core::Mesh>(std::move(result_mesh.value())));
+
   } catch (const std::exception &exception) {
     std::cout << "BooleanSOP '" << name_ << "': Exception: " << exception.what()
               << "\n";
-    return std::nullopt;
+    return nullptr;
   }
 }
 
-std::shared_ptr<core::Mesh> BooleanSOP::cook() {
-  if (!is_dirty_ && cached_result_) {
-    std::cout << "BooleanSOP '" << name_ << "': Using cached result\n";
-    return cached_result_;
-  }
+std::shared_ptr<GeometryData> BooleanSOP::execute() {
 
   std::cout << "BooleanSOP '" << name_ << "': Computing "
             << operation_to_string(operation_) << " operation...\n";
 
-  auto start_time = std::chrono::steady_clock::now();
-
-  auto result = execute();
+  auto result = execute_boolean();
   if (!result) {
     std::cerr << "BooleanSOP '" << name_ << "': Operation failed\n";
     return nullptr;
   }
 
-  cached_result_ = std::make_shared<core::Mesh>(std::move(*result));
-  is_dirty_ = false;
-
-  auto end_time = std::chrono::steady_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end_time - start_time);
-
-  std::cout << "BooleanSOP '" << name_ << "': Completed in " << duration.count()
-            << "ms\n";
-  std::cout << "  Result: " << cached_result_->vertices().rows()
-            << " vertices, " << cached_result_->faces().rows() << " faces\n";
-
-  return cached_result_;
+  return result;
 }
 
 std::string BooleanSOP::operation_to_string(OperationType operation) {

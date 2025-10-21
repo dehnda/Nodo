@@ -120,8 +120,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // Store the result or mark error
     if (result) {
-      std::cout << "✅ Node " << node_id << " executed successfully"
-                << std::endl;
+      std::cout << "✅ Node " << node_id << " executed successfully" << '\n';
       result_cache_[node_id] = result;
       node->set_output_mesh(result);
       node->set_error(false); // Clear any previous error
@@ -497,13 +496,10 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(
   boolean_sop.set_mesh_a(inputs[0]);
   boolean_sop.set_mesh_b(inputs[1]);
 
-  auto result = boolean_sop.execute();
-  if (result.has_value()) {
-    std::cout << "✅ Boolean operation completed successfully" << std::endl;
-    return std::make_shared<core::Mesh>(std::move(*result));
+  std::shared_ptr<sop::GeometryData> result = boolean_sop.execute();
+  if (!result->is_empty()) {
+    return result->get_mesh();
   }
-
-  std::cout << "❌ Boolean operation failed" << std::endl;
   return nullptr;
 }
 
