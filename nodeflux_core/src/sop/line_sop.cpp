@@ -1,46 +1,17 @@
 #include "nodeflux/sop/line_sop.hpp"
 #include <Eigen/Dense>
-#include <iostream>
 
 namespace nodeflux::sop {
 
-LineSOP::LineSOP(std::string name) : name_(std::move(name)) {}
+LineSOP::LineSOP(const std::string &name) : SOPNode(name, "Line") {}
 
-void LineSOP::set_start_point(float x_coord, float y_coord, float z_coord) {
-  start_point_ = {x_coord, y_coord, z_coord};
-  mark_dirty();
-}
-
-void LineSOP::set_start_point(const std::array<float, 3> &point) {
-  start_point_ = point;
-  mark_dirty();
-}
-
-void LineSOP::set_end_point(float x_coord, float y_coord, float z_coord) {
-  end_point_ = {x_coord, y_coord, z_coord};
-  mark_dirty();
-}
-
-void LineSOP::set_end_point(const std::array<float, 3> &point) {
-  end_point_ = point;
-  mark_dirty();
-}
-
-void LineSOP::set_segments(int segments) {
-  if (segments < 1) {
-    segments = 1;
+std::shared_ptr<GeometryData> LineSOP::execute() {
+  if (segments_ < 1) {
+    set_error("Segments must be at least 1");
+    return nullptr;
   }
-  if (segments_ != segments) {
-    segments_ = segments;
-    mark_dirty();
-  }
-}
 
-std::optional<core::Mesh> LineSOP::execute() {
   const int num_points = segments_ + 1;
-
-  std::cout << "LineSOP '" << name_ << "': Generating line with " << num_points
-            << " points (" << segments_ << " segments)\n";
 
   // Create vertices along the line
   Eigen::MatrixXd vertices(num_points, 3);
@@ -63,34 +34,9 @@ std::optional<core::Mesh> LineSOP::execute() {
     faces(i, 2) = i + 1; // Degenerate triangle marker for line edge
   }
 
-  core::Mesh result(std::move(vertices), std::move(faces));
-
-  std::cout << "LineSOP '" << name_ << "': Line generated successfully\n";
-
-  return result;
-}
-
-std::shared_ptr<core::Mesh> LineSOP::cook() {
-  if (!is_dirty_ && cached_result_) {
-    std::cout << "LineSOP '" << name_ << "': Using cached result\n";
-    return cached_result_;
-  }
-
-  std::cout << "LineSOP '" << name_ << "': Computing line...\n";
-
-  auto result = execute();
-  if (!result) {
-    std::cerr << "LineSOP '" << name_ << "': Line generation failed\n";
-    return nullptr;
-  }
-
-  cached_result_ = std::make_shared<core::Mesh>(std::move(*result));
-  is_dirty_ = false;
-
-  std::cout << "LineSOP '" << name_ << "': Line generated with "
-            << cached_result_->vertex_count() << " vertices\n";
-
-  return cached_result_;
+  auto result_mesh =
+      std::make_shared<core::Mesh>(std::move(vertices), std::move(faces));
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 } // namespace nodeflux::sop

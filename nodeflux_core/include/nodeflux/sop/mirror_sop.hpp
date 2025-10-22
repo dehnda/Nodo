@@ -2,6 +2,8 @@
 
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/core/types.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
+#include "nodeflux/sop/sop_node.hpp"
 
 #include <Eigen/Dense>
 #include <memory>
@@ -16,7 +18,7 @@ namespace nodeflux::sop {
  * Mirrors geometry across specified planes (XY, XZ, YZ) or custom planes.
  * Can create single mirrors or bilateral symmetry.
  */
-class MirrorSOP {
+class MirrorSOP : public SOPNode {
 public:
   enum class MirrorPlane {
     XY,    ///< Mirror across XY plane (Z=0)
@@ -26,27 +28,28 @@ public:
   };
 
 private:
-  std::string name_;
   MirrorPlane plane_ = MirrorPlane::YZ;
   core::Vector3 custom_point_ = core::Vector3::Zero();
   core::Vector3 custom_normal_ = core::Vector3::UnitY();
   bool keep_original_ = true;
-  bool is_dirty_ = true;
-  std::shared_ptr<core::Mesh> cached_result_;
-  std::shared_ptr<core::Mesh> input_mesh_;
 
 public:
   /**
    * @brief Construct a new Mirror SOP
    * @param name Node name for debugging
    */
-  explicit MirrorSOP(std::string name);
+  explicit MirrorSOP(const std::string& name = "mirror");
 
   /**
    * @brief Set the mirror plane
    * @param plane The plane to mirror across
    */
-  void set_plane(MirrorPlane plane);
+  void set_plane(MirrorPlane plane) {
+    if (plane_ != plane) {
+      plane_ = plane;
+      mark_dirty();
+    }
+  }
 
   /**
    * @brief Get the current mirror plane
@@ -60,13 +63,22 @@ public:
    * @param normal The plane normal vector
    */
   void set_custom_plane(const core::Vector3 &point,
-                        const core::Vector3 &normal);
+                        const core::Vector3 &normal) {
+    custom_point_ = point;
+    custom_normal_ = normal;
+    mark_dirty();
+  }
 
   /**
    * @brief Set whether to keep the original geometry
    * @param keep_original If true, result includes both original and mirrored
    */
-  void set_keep_original(bool keep_original);
+  void set_keep_original(bool keep_original) {
+    if (keep_original_ != keep_original) {
+      keep_original_ = keep_original;
+      mark_dirty();
+    }
+  }
 
   /**
    * @brief Get whether original geometry is kept
@@ -75,43 +87,17 @@ public:
   bool get_keep_original() const { return keep_original_; }
 
   /**
-   * @brief Set the input mesh
-   * @param mesh The mesh to mirror
-   */
-  void set_input_mesh(std::shared_ptr<core::Mesh> mesh);
-
-  /**
-   * @brief Execute the mirror operation
-   * @return Result mesh or nullopt on failure
-   */
-  std::optional<core::Mesh> execute();
-
-  /**
-   * @brief Get cached result or compute if dirty
-   * @return Result mesh or nullopt on failure
-   */
-  std::shared_ptr<core::Mesh> cook();
-
-  /**
-   * @brief Mark node as needing recomputation
-   */
-  void mark_dirty() {
-    is_dirty_ = true;
-    cached_result_.reset();
-  }
-
-  /**
-   * @brief Get node name
-   * @return The node name
-   */
-  const std::string &get_name() const { return name_; }
-
-  /**
    * @brief Convert mirror plane to string
    * @param plane The mirror plane
    * @return String representation
    */
   static std::string plane_to_string(MirrorPlane plane);
+
+protected:
+  /**
+   * @brief Execute the mirror operation (SOPNode override)
+   */
+  std::shared_ptr<GeometryData> execute() override;
 
 private:
   /**

@@ -1,94 +1,32 @@
 #include "nodeflux/sop/extrude_sop.hpp"
-#include <functional>
 #include <iostream>
-#include <unordered_set>
 
 namespace nodeflux::sop {
 
-namespace {
-/// Default values for extrusion parameters
-constexpr double DEFAULT_DISTANCE = 1.0;
-constexpr double DEFAULT_INSET = 0.0;
-const Eigen::Vector3d DEFAULT_DIRECTION(0.0, 0.0, 1.0);
-} // namespace
-
 ExtrudeSOP::ExtrudeSOP(const std::string &name)
-    : name_(name), distance_(DEFAULT_DISTANCE), direction_(DEFAULT_DIRECTION),
-      mode_(ExtrusionMode::FACE_NORMALS), inset_(DEFAULT_INSET),
-      cache_valid_(false), last_input_hash_(0) {}
+    : SOPNode(name, "Extrude") {}
 
-void ExtrudeSOP::set_input_mesh(std::shared_ptr<core::Mesh> mesh) {
-  if (input_mesh_ != mesh) {
-    input_mesh_ = mesh;
-    cache_valid_ = false;
-  }
-}
-
-void ExtrudeSOP::set_distance(double distance) {
-  if (distance_ != distance) {
-    distance_ = distance;
-    cache_valid_ = false;
-  }
-}
-
-void ExtrudeSOP::set_direction(const Eigen::Vector3d &direction) {
-  if (!direction_.isApprox(direction)) {
-    direction_ = direction.normalized();
-    cache_valid_ = false;
-  }
-}
-
-void ExtrudeSOP::set_mode(ExtrusionMode mode) {
-  if (mode_ != mode) {
-    mode_ = mode;
-    cache_valid_ = false;
-  }
-}
-
-void ExtrudeSOP::set_inset(double inset) {
-  if (inset_ != inset) {
-    inset_ = inset;
-    cache_valid_ = false;
-  }
-}
-
-std::shared_ptr<core::Mesh> ExtrudeSOP::cook() {
-  if (cache_valid_ && cached_result_ && !needs_recalculation()) {
-    return cached_result_;
+std::shared_ptr<GeometryData> ExtrudeSOP::execute() {
+  // Get input geometry
+  auto input_geo = get_input_data(0);
+  if (!input_geo) {
+    set_error("No input geometry connected");
+    return nullptr;
   }
 
-  auto start_time = std::chrono::high_resolution_clock::now();
-
-  std::cout << "ExtrudeSOP '" << name_ << "': Computing extrusion...\n";
-
-  cached_result_ = execute();
-
-  auto end_time = std::chrono::high_resolution_clock::now();
-  last_cook_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end_time - start_time);
-
-  if (cached_result_) {
-    std::cout << "ExtrudeSOP '" << name_ << "': Completed in "
-              << last_cook_time_.count() << "ms\n";
-    std::cout << "  Result: " << cached_result_->vertices().rows()
-              << " vertices, " << cached_result_->faces().rows() << " faces\n";
-    cache_valid_ = true;
-
-    // Update input hash for change detection
-    if (input_mesh_) {
-      std::hash<size_t> hasher;
-      last_input_hash_ =
-          hasher(input_mesh_->vertices().rows() * input_mesh_->faces().rows());
-    }
-  } else {
-    std::cerr << "ExtrudeSOP '" << name_ << "': Failed to execute\n";
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh) {
+    set_error("Input geometry does not contain a mesh");
+    return nullptr;
   }
 
-  return cached_result_;
-}
+  if (input_mesh->faces().rows() == 0) {
+    set_error("Input mesh has no faces to extrude");
+    return nullptr;
+  }
 
-std::shared_ptr<core::Mesh> ExtrudeSOP::execute() {
-  if (!validate_parameters()) {
+  if (mode_ == ExtrusionMode::UNIFORM_DIRECTION && direction_.norm() < 1e-6) {
+    set_error("Invalid direction vector");
     return nullptr;
   }
 
@@ -96,13 +34,13 @@ std::shared_ptr<core::Mesh> ExtrudeSOP::execute() {
 
   switch (mode_) {
   case ExtrusionMode::FACE_NORMALS:
-    result = extrude_face_normals(*input_mesh_);
+    result = extrude_face_normals(*input_mesh);
     break;
   case ExtrusionMode::UNIFORM_DIRECTION:
-    result = extrude_uniform_direction(*input_mesh_);
+    result = extrude_uniform_direction(*input_mesh);
     break;
   case ExtrusionMode::REGION_NORMALS:
-    result = extrude_region_normals(*input_mesh_);
+    result = extrude_region_normals(*input_mesh);
     break;
   }
 
@@ -111,7 +49,8 @@ std::shared_ptr<core::Mesh> ExtrudeSOP::execute() {
     apply_inset(result, inset_);
   }
 
-  return std::make_shared<core::Mesh>(std::move(result));
+  auto result_mesh = std::make_shared<core::Mesh>(std::move(result));
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 core::Mesh ExtrudeSOP::extrude_face_normals(const core::Mesh &input) {
@@ -306,36 +245,6 @@ void ExtrudeSOP::apply_inset(core::Mesh &mesh, double inset_amount) {
   // This would shrink faces inward by the specified amount
   // Complex implementation - could be added in future iteration
   std::cout << "  Note: Inset functionality not yet implemented\n";
-}
-
-bool ExtrudeSOP::validate_parameters() const {
-  if (!input_mesh_) {
-    std::cerr << "ExtrudeSOP: No input mesh provided\n";
-    return false;
-  }
-
-  if (input_mesh_->faces().rows() == 0) {
-    std::cerr << "ExtrudeSOP: Input mesh has no faces to extrude\n";
-    return false;
-  }
-
-  if (mode_ == ExtrusionMode::UNIFORM_DIRECTION && direction_.norm() < 1e-6) {
-    std::cerr << "ExtrudeSOP: Invalid direction vector\n";
-    return false;
-  }
-
-  return true;
-}
-
-bool ExtrudeSOP::needs_recalculation() const {
-  if (!input_mesh_)
-    return true;
-
-  std::hash<size_t> hasher;
-  size_t current_hash =
-      hasher(input_mesh_->vertices().rows() * input_mesh_->faces().rows());
-
-  return current_hash != last_input_hash_;
 }
 
 } // namespace nodeflux::sop

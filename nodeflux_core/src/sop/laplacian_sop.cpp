@@ -1,111 +1,41 @@
 #include "nodeflux/sop/laplacian_sop.hpp"
 #include "nodeflux/core/types.hpp"
 #include <cmath>
-#include <functional>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
 
 namespace nodeflux::sop {
 
-namespace {
-/// Default values for smoothing parameters
-constexpr int DEFAULT_ITERATIONS = 1;
-constexpr double DEFAULT_LAMBDA = 0.5;
-constexpr double DEFAULT_MU = -0.51; // Slightly stronger than lambda for Taubin
-constexpr bool DEFAULT_PRESERVE_BOUNDARIES = true;
-} // namespace
-
 LaplacianSOP::LaplacianSOP(const std::string &name)
-    : name_(name), iterations_(DEFAULT_ITERATIONS), lambda_(DEFAULT_LAMBDA),
-      mu_(DEFAULT_MU), method_(SmoothingMethod::UNIFORM),
-      preserve_boundaries_(DEFAULT_PRESERVE_BOUNDARIES), cache_valid_(false),
-      last_input_hash_(0) {}
+    : SOPNode(name, "Laplacian") {}
 
-void LaplacianSOP::set_input_mesh(std::shared_ptr<core::Mesh> mesh) {
-  if (input_mesh_ != mesh) {
-    input_mesh_ = mesh;
-    cache_valid_ = false;
-  }
-}
-
-void LaplacianSOP::set_iterations(int iterations) {
-  if (iterations_ != iterations) {
-    iterations_ = std::max(0, iterations);
-    cache_valid_ = false;
-  }
-}
-
-void LaplacianSOP::set_lambda(double lambda) {
-  if (lambda_ != lambda) {
-    lambda_ = std::clamp(lambda, 0.0, 1.0);
-    cache_valid_ = false;
-  }
-}
-
-void LaplacianSOP::set_method(SmoothingMethod method) {
-  if (method_ != method) {
-    method_ = method;
-    cache_valid_ = false;
-  }
-}
-
-void LaplacianSOP::set_mu(double mu) {
-  if (mu_ != mu) {
-    mu_ = mu;
-    cache_valid_ = false;
-  }
-}
-
-void LaplacianSOP::set_preserve_boundaries(bool preserve) {
-  if (preserve_boundaries_ != preserve) {
-    preserve_boundaries_ = preserve;
-    cache_valid_ = false;
-  }
-}
-
-std::shared_ptr<core::Mesh> LaplacianSOP::cook() {
-  if (cache_valid_ && cached_result_ && !needs_recalculation()) {
-    return cached_result_;
-  }
-
-  auto start_time = std::chrono::high_resolution_clock::now();
-
-  std::cout << "LaplacianSOP '" << name_ << "': Computing smoothing...\n";
-
-  cached_result_ = execute();
-
-  auto end_time = std::chrono::high_resolution_clock::now();
-  last_cook_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end_time - start_time);
-
-  if (cached_result_) {
-    std::cout << "LaplacianSOP '" << name_ << "': Completed in "
-              << last_cook_time_.count() << "ms\n";
-    std::cout << "  Result: " << cached_result_->vertices().rows()
-              << " vertices, " << cached_result_->faces().rows() << " faces\n";
-    cache_valid_ = true;
-
-    // Update input hash for change detection
-    if (input_mesh_) {
-      std::hash<size_t> hasher;
-      last_input_hash_ =
-          hasher(input_mesh_->vertices().rows() * input_mesh_->faces().rows());
-    }
-  } else {
-    std::cerr << "LaplacianSOP '" << name_ << "': Failed to execute\n";
-  }
-
-  return cached_result_;
-}
-
-std::shared_ptr<core::Mesh> LaplacianSOP::execute() {
-  if (!validate_parameters()) {
+std::shared_ptr<GeometryData> LaplacianSOP::execute() {
+  // Get input geometry
+  auto input_geo = get_input_data(0);
+  if (!input_geo) {
+    set_error("No input geometry connected");
     return nullptr;
   }
 
-  const auto &original_vertices = input_mesh_->vertices();
-  const auto &faces = input_mesh_->faces();
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh) {
+    set_error("Input geometry does not contain a mesh");
+    return nullptr;
+  }
+
+  if (input_mesh->vertices().rows() == 0) {
+    set_error("Input mesh has no vertices");
+    return nullptr;
+  }
+
+  if (iterations_ < 0) {
+    set_error("Iterations must be non-negative");
+    return nullptr;
+  }
+
+  const auto &original_vertices = input_mesh->vertices();
+  const auto &faces = input_mesh->faces();
 
   Eigen::MatrixXd smoothed_vertices;
 
@@ -121,7 +51,8 @@ std::shared_ptr<core::Mesh> LaplacianSOP::execute() {
     break;
   }
 
-  return std::make_shared<core::Mesh>(smoothed_vertices, faces);
+  auto result_mesh = std::make_shared<core::Mesh>(smoothed_vertices, faces);
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 Eigen::MatrixXd
@@ -350,36 +281,6 @@ LaplacianSOP::calculate_cotangent_weight(const Eigen::Vector3d &v1,
   }
 
   return dot_product / cross_magnitude; // cotangent = cos/sin
-}
-
-bool LaplacianSOP::validate_parameters() const {
-  if (!input_mesh_) {
-    std::cerr << "LaplacianSOP: No input mesh provided\n";
-    return false;
-  }
-
-  if (input_mesh_->vertices().rows() == 0) {
-    std::cerr << "LaplacianSOP: Input mesh has no vertices\n";
-    return false;
-  }
-
-  if (iterations_ < 0) {
-    std::cerr << "LaplacianSOP: Invalid iteration count\n";
-    return false;
-  }
-
-  return true;
-}
-
-bool LaplacianSOP::needs_recalculation() const {
-  if (!input_mesh_)
-    return true;
-
-  std::hash<size_t> hasher;
-  size_t current_hash =
-      hasher(input_mesh_->vertices().rows() * input_mesh_->faces().rows());
-
-  return current_hash != last_input_hash_;
 }
 
 } // namespace nodeflux::sop

@@ -339,7 +339,11 @@ ExecutionEngine::execute_line_node(const GraphNode &node) {
   line_sop.set_end_point(end_x, end_y, end_z);
   line_sop.set_segments(segments);
 
-  return line_sop.cook();
+  auto geo_data = line_sop.cook();
+  if (!geo_data) {
+    return nullptr;
+  }
+  return geo_data->get_mesh();
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
