@@ -6,45 +6,11 @@
 
 namespace nodeflux::sop {
 
-ResampleSOP::ResampleSOP(std::string name) : name_(std::move(name)) {}
+ResampleSOP::ResampleSOP(const std::string &name)
+    : SOPNode(name, "Resample") {}
 
-void ResampleSOP::set_mode(Mode mode) {
-  if (mode_ != mode) {
-    mode_ = mode;
-    mark_dirty();
-  }
-}
-
-void ResampleSOP::set_point_count(int count) {
-  const int min_points = 2;
-  if (count < min_points) {
-    count = min_points;
-  }
-  if (point_count_ != count) {
-    point_count_ = count;
-    mark_dirty();
-  }
-}
-
-void ResampleSOP::set_segment_length(float length) {
-  const float min_length = 0.001F;
-  if (length < min_length) {
-    length = min_length;
-  }
-  if (segment_length_ != length) {
-    segment_length_ = length;
-    mark_dirty();
-  }
-}
-
-void ResampleSOP::set_input_mesh(std::shared_ptr<core::Mesh> mesh) {
-  if (input_mesh_ != mesh) {
-    input_mesh_ = std::move(mesh);
-    mark_dirty();
-  }
-}
-
-float ResampleSOP::calculate_curve_length(const core::Mesh &mesh) const {
+// Helper function for calculating curve length
+static float calculate_curve_length(const core::Mesh &mesh) {
   const auto &vertices = mesh.vertices();
   if (vertices.rows() < 2) {
     return 0.0F;
@@ -59,20 +25,28 @@ float ResampleSOP::calculate_curve_length(const core::Mesh &mesh) const {
   return total_length;
 }
 
-std::optional<core::Mesh> ResampleSOP::execute() {
-  if (!input_mesh_ || input_mesh_->vertex_count() < 2) {
-    std::cout << "ResampleSOP '" << name_ << "': Invalid input mesh\n";
-    return std::nullopt;
+std::shared_ptr<GeometryData> ResampleSOP::execute() {
+  // Get input geometry
+  auto input_geo = get_input_data(0);
+  if (!input_geo) {
+    set_error("No input geometry connected");
+    return nullptr;
   }
 
-  const auto &input_vertices = input_mesh_->vertices();
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh || input_mesh->vertex_count() < 2) {
+    set_error("Input geometry does not contain a valid mesh");
+    return nullptr;
+  }
+
+  const auto &input_vertices = input_mesh->vertices();
   const int input_count = input_vertices.rows();
 
   // Calculate total curve length
-  const float total_length = calculate_curve_length(*input_mesh_);
+  const float total_length = calculate_curve_length(*input_mesh);
   if (total_length < 0.001F) {
-    std::cout << "ResampleSOP '" << name_ << "': Curve too short to resample\n";
-    return std::nullopt;
+    set_error("Curve too short to resample");
+    return nullptr;
   }
 
   // Determine target point count
@@ -85,7 +59,7 @@ std::optional<core::Mesh> ResampleSOP::execute() {
     }
   }
 
-  std::cout << "ResampleSOP '" << name_ << "': Resampling " << input_count
+  std::cout << "ResampleSOP '" << get_name() << "': Resampling " << input_count
             << " points to " << target_count
             << " points (length: " << total_length << ")\n";
 
@@ -148,34 +122,9 @@ std::optional<core::Mesh> ResampleSOP::execute() {
     faces(i, 2) = i + 1; // Degenerate triangle
   }
 
-  core::Mesh result(resampled_vertices, faces);
-
-  std::cout << "ResampleSOP '" << name_ << "': Resampling completed\n";
-
-  return result;
-}
-
-std::shared_ptr<core::Mesh> ResampleSOP::cook() {
-  if (!is_dirty_ && cached_result_) {
-    std::cout << "ResampleSOP '" << name_ << "': Using cached result\n";
-    return cached_result_;
-  }
-
-  std::cout << "ResampleSOP '" << name_ << "': Computing resample...\n";
-
-  auto result = execute();
-  if (!result) {
-    std::cerr << "ResampleSOP '" << name_ << "': Resampling failed\n";
-    return nullptr;
-  }
-
-  cached_result_ = std::make_shared<core::Mesh>(std::move(*result));
-  is_dirty_ = false;
-
-  std::cout << "ResampleSOP '" << name_ << "': Resampled to "
-            << cached_result_->vertex_count() << " vertices\n";
-
-  return cached_result_;
+  auto result_mesh =
+      std::make_shared<core::Mesh>(resampled_vertices, faces);
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 } // namespace nodeflux::sop

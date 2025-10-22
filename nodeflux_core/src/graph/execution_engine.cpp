@@ -765,13 +765,22 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_polyextrude_node(
   std::cout << "🔄 Poly-extruding faces (distance: " << distance
             << ", inset: " << inset << ")\n";
 
+  // For bridge: wrap input and execute directly
+  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
+
   sop::PolyExtrudeSOP polyextrude_sop("PolyExtrudeNode");
   polyextrude_sop.set_distance(distance);
   polyextrude_sop.set_inset(inset);
   polyextrude_sop.set_individual_faces(individual_faces);
-  polyextrude_sop.set_input_mesh(inputs[0]);
 
-  return polyextrude_sop.cook();
+  // Manually set input via protected method (bridge hack)
+  polyextrude_sop.set_input_data(0, input_geo);
+
+  auto geo_data = polyextrude_sop.cook();
+  if (!geo_data) {
+    return nullptr;
+  }
+  return geo_data->get_mesh();
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
@@ -804,14 +813,23 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
   const char *mode_name = (mode == 0) ? "BY_COUNT" : "BY_LENGTH";
   std::cout << "🔄 Resampling geometry (mode: " << mode_name << ")\n";
 
+  // For bridge: wrap input and execute directly
+  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
+
   sop::ResampleSOP resample_sop("ResampleNode");
   resample_sop.set_mode(mode == 0 ? sop::ResampleSOP::Mode::BY_COUNT
                                   : sop::ResampleSOP::Mode::BY_LENGTH);
   resample_sop.set_point_count(point_count);
   resample_sop.set_segment_length(segment_length);
-  resample_sop.set_input_mesh(inputs[0]);
 
-  return resample_sop.cook();
+  // Manually set input via protected method (bridge hack)
+  resample_sop.set_input_data(0, input_geo);
+
+  auto geo_data = resample_sop.cook();
+  if (!geo_data) {
+    return nullptr;
+  }
+  return geo_data->get_mesh();
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_scatter_node(

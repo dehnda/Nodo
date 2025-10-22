@@ -5,50 +5,26 @@
 
 namespace nodeflux::sop {
 
-PolyExtrudeSOP::PolyExtrudeSOP(std::string name) : name_(std::move(name)) {}
+PolyExtrudeSOP::PolyExtrudeSOP(const std::string &name)
+    : SOPNode(name, "PolyExtrude") {}
 
-void PolyExtrudeSOP::set_input_mesh(std::shared_ptr<core::Mesh> mesh) {
-  if (input_mesh_ != mesh) {
-    input_mesh_ = mesh;
-    mark_dirty();
-  }
-}
-
-void PolyExtrudeSOP::set_distance(float distance) {
-  if (distance_ != distance) {
-    distance_ = distance;
-    mark_dirty();
-  }
-}
-
-void PolyExtrudeSOP::set_inset(float inset) {
-  if (inset_ != inset) {
-    inset_ = inset;
-    mark_dirty();
-  }
-}
-
-void PolyExtrudeSOP::set_individual_faces(bool individual) {
-  if (individual_faces_ != individual) {
-    individual_faces_ = individual;
-    mark_dirty();
-  }
-}
-
-std::optional<core::Mesh> PolyExtrudeSOP::execute() {
-  if (!input_mesh_ || input_mesh_->empty()) {
-    std::cerr << "PolyExtrudeSOP '" << name_
-              << "': No valid input mesh provided\n";
-    return std::nullopt;
+std::shared_ptr<GeometryData> PolyExtrudeSOP::execute() {
+  // Get input geometry
+  auto input_geo = get_input_data(0);
+  if (!input_geo) {
+    set_error("No input geometry connected");
+    return nullptr;
   }
 
-  std::cout << "PolyExtrudeSOP '" << name_
-            << "': Extruding faces with distance=" << distance_
-            << ", inset=" << inset_ << "\n";
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh || input_mesh->empty()) {
+    set_error("Input geometry does not contain a valid mesh");
+    return nullptr;
+  }
 
-  const auto &input_verts = input_mesh_->vertices();
-  const auto &input_faces = input_mesh_->faces();
-  const auto &face_normals = input_mesh_->face_normals();
+  const auto &input_verts = input_mesh->vertices();
+  const auto &input_faces = input_mesh->faces();
+  const auto &face_normals = input_mesh->face_normals();
 
   // Calculate output size
   // For each face: 1 top face + 3 side quads (2 triangles each)
@@ -124,32 +100,9 @@ std::optional<core::Mesh> PolyExtrudeSOP::execute() {
         Eigen::Vector3i(base_start + 2, base_start + 3, base_start + 5);
   }
 
-  core::Mesh result(std::move(output_verts), std::move(output_faces));
-
-  std::cout << "PolyExtrudeSOP '" << name_ << "': Generated "
-            << num_output_verts << " vertices and " << num_output_faces
-            << " faces\n";
-
-  return result;
-}
-
-std::shared_ptr<core::Mesh> PolyExtrudeSOP::cook() {
-  if (!is_dirty_ && cached_result_) {
-    std::cout << "PolyExtrudeSOP '" << name_ << "': Using cached result\n";
-    return cached_result_;
-  }
-
-  std::cout << "PolyExtrudeSOP '" << name_ << "': Computing extrusion...\n";
-
-  auto result = execute();
-  if (result.has_value()) {
-    cached_result_ = std::make_shared<core::Mesh>(std::move(result.value()));
-    is_dirty_ = false;
-    return cached_result_;
-  }
-
-  std::cerr << "PolyExtrudeSOP '" << name_ << "': Execution failed\n";
-  return nullptr;
+  auto result_mesh =
+      std::make_shared<core::Mesh>(std::move(output_verts), std::move(output_faces));
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 } // namespace nodeflux::sop

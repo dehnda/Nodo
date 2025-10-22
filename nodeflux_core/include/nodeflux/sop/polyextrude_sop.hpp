@@ -1,8 +1,9 @@
 #pragma once
 
 #include "nodeflux/core/mesh.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
+#include "nodeflux/sop/sop_node.hpp"
 #include <memory>
-#include <optional>
 #include <string>
 
 namespace nodeflux::sop {
@@ -13,37 +14,47 @@ namespace nodeflux::sop {
  * Creates extrusions by duplicating face vertices and moving them along face
  * normals, generating side geometry. Supports inset for creating beveled edges.
  */
-class PolyExtrudeSOP {
+class PolyExtrudeSOP : public SOPNode {
 public:
-  explicit PolyExtrudeSOP(std::string name);
-
-  // Input mesh
-  void set_input_mesh(std::shared_ptr<core::Mesh> mesh);
+  explicit PolyExtrudeSOP(const std::string &name = "polyextrude");
 
   // Parameters
-  void set_distance(float distance);
-  void set_inset(float inset);
-  void set_individual_faces(bool individual);
+  void set_distance(float distance) {
+    if (distance_ != distance) {
+      distance_ = distance;
+      mark_dirty();
+    }
+  }
 
-  // Execution
-  std::optional<core::Mesh> execute();
-  std::shared_ptr<core::Mesh> cook();
+  void set_inset(float inset) {
+    if (inset_ != inset) {
+      inset_ = inset;
+      mark_dirty();
+    }
+  }
 
-  // Query
-  [[nodiscard]] const std::string &name() const { return name_; }
-  [[nodiscard]] bool is_dirty() const { return is_dirty_; }
+  void set_individual_faces(bool individual) {
+    if (individual_faces_ != individual) {
+      individual_faces_ = individual;
+      mark_dirty();
+    }
+  }
+
+  // Getters
+  float get_distance() const { return distance_; }
+  float get_inset() const { return inset_; }
+  bool get_individual_faces() const { return individual_faces_; }
+
+protected:
+  /**
+   * @brief Execute the poly-extrude operation (SOPNode override)
+   */
+  std::shared_ptr<GeometryData> execute() override;
 
 private:
-  void mark_dirty() { is_dirty_ = true; }
-
-  std::string name_;
-  std::shared_ptr<core::Mesh> input_mesh_;
-  std::shared_ptr<core::Mesh> cached_result_;
-
-  float distance_{1.0F};
-  float inset_{0.0F};
-  bool individual_faces_{true};
-  bool is_dirty_{true};
+  float distance_ = 1.0F;
+  float inset_ = 0.0F;
+  bool individual_faces_ = true;
 };
 
 } // namespace nodeflux::sop

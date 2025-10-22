@@ -1,6 +1,6 @@
 #include "nodeflux/sop/noise_displacement_sop.hpp"
-#include "nodeflux/core/types.hpp"
 #include "nodeflux/core/math.hpp"
+#include "nodeflux/core/types.hpp"
 #include <cmath>
 
 namespace nodeflux::sop {
@@ -17,10 +17,25 @@ constexpr float SMOOTHSTEP_COEFF_B = 2.0F;
 // Vertex normal threshold
 constexpr double VERTEX_NORMAL_THRESHOLD = 0.1;
 
-std::optional<core::Mesh>
-NoiseDisplacementSOP::process(const core::Mesh &input_mesh) {
+NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string &name)
+    : SOPNode(name, "NoiseDisplacement") {}
+
+std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
+  // Get input geometry
+  auto input_geo = get_input_data(0);
+  if (!input_geo) {
+    set_error("No input geometry connected");
+    return nullptr;
+  }
+
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh) {
+    set_error("Input geometry does not contain a mesh");
+    return nullptr;
+  }
+
   // Create a copy of the input mesh
-  core::Mesh result = input_mesh;
+  core::Mesh result = *input_mesh;
 
   // Apply noise displacement to vertices
   auto &vertices = result.vertices();
@@ -49,7 +64,8 @@ NoiseDisplacementSOP::process(const core::Mesh &input_mesh) {
     vertices.row(i) = displaced_vertex;
   }
 
-  return result;
+  auto result_mesh = std::make_shared<core::Mesh>(std::move(result));
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y,

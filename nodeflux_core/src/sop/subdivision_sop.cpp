@@ -1,27 +1,45 @@
 #include "nodeflux/sop/subdivisions_sop.hpp"
-#include "nodeflux/core/types.hpp"
 #include "nodeflux/core/math.hpp"
+#include "nodeflux/core/types.hpp"
 #include <vector>
 
 namespace nodeflux::sop {
 
-std::optional<core::Mesh>
-SubdivisionSOP::process(const core::Mesh &input_mesh) {
+SubdivisionSOP::SubdivisionSOP(const std::string &name)
+    : SOPNode(name, "Subdivision") {}
+
+std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
+  // Get input geometry
+  auto input_geo = get_input_data(0);
+  if (!input_geo) {
+    set_error("No input geometry connected");
+    return nullptr;
+  }
+
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh) {
+    set_error("Input geometry does not contain a mesh");
+    return nullptr;
+  }
+
   if (subdivision_levels_ == 0) {
-    return input_mesh; // No subdivision
+    // No subdivision, return copy
+    return std::make_shared<GeometryData>(input_mesh);
   }
 
   // Apply subdivision iteratively
-  core::Mesh result = input_mesh;
+  core::Mesh result = *input_mesh;
   for (int level = 0; level < subdivision_levels_; ++level) {
     auto subdivided = apply_catmull_clark_subdivision(result);
     if (!subdivided) {
-      return std::nullopt; // Subdivision failed
+      set_error("Subdivision failed");
+      return nullptr;
     }
     result = std::move(*subdivided);
   }
 
-  return result;
+  auto result_mesh = std::make_shared<core::Mesh>(std::move(result));
+  return std::make_shared<GeometryData>(result_mesh);
 }
 
 std::optional<core::Mesh>

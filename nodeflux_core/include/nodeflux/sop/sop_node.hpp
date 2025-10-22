@@ -9,6 +9,12 @@
 #include <variant>
 
 namespace nodeflux {
+
+// Forward declaration
+namespace graph {
+class ExecutionEngine;
+}
+
 namespace sop {
 
 /**
@@ -18,6 +24,8 @@ namespace sop {
  * implementing caching, dependency tracking, and execution management.
  */
 class SOPNode {
+  friend class graph::ExecutionEngine; // Allow bridge access
+
 public:
   enum class ExecutionState {
     CLEAN,     // Node output is up-to-date
@@ -236,6 +244,19 @@ protected:
   get_input_data(const std::string &port_name) const {
     auto *port = input_ports_.get_port(port_name);
     return (port != nullptr) ? port->get_data() : nullptr;
+  }
+
+  /**
+   * @brief Manually set input data (for testing/bridge purposes only)
+   * @param port_index Port index (0-based)
+   * @param data Geometry data to set
+   */
+  void set_input_data(int port_index,
+                      std::shared_ptr<GeometryData> data) {
+    auto *port = input_ports_.get_port(std::to_string(port_index));
+    if (port != nullptr) {
+      port->set_data(std::move(data));
+    }
   }
 
 private:

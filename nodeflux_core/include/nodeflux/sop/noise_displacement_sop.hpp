@@ -1,18 +1,13 @@
 #pragma once
 
 #include "nodeflux/core/mesh.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
+#include "nodeflux/sop/sop_node.hpp"
 #include <Eigen/Dense>
-#include <optional>
+#include <memory>
 #include <string>
 
 namespace nodeflux::sop {
-
-// Noise displacement constants
-constexpr float DEFAULT_NOISE_AMPLITUDE = 0.1F;
-constexpr float DEFAULT_NOISE_LACUNARITY = 2.0F;
-constexpr float DEFAULT_NOISE_PERSISTENCE = 0.5F;
-constexpr int DEFAULT_NOISE_SEED = 42;
-constexpr int MAX_NOISE_OCTAVES = 8;
 
 /**
  * @brief Noise Displacement SOP - Applies procedural noise displacement to mesh
@@ -21,31 +16,53 @@ constexpr int MAX_NOISE_OCTAVES = 8;
  * Displaces mesh vertices using multi-octave fractal noise patterns for organic
  * effects.
  */
-class NoiseDisplacementSOP {
-private:
-  std::string name_;
-  float amplitude_ = DEFAULT_NOISE_AMPLITUDE;
-  float frequency_ = 1.0F;
-  int octaves_ = 4;
-  float lacunarity_ = DEFAULT_NOISE_LACUNARITY;
-  float persistence_ = DEFAULT_NOISE_PERSISTENCE;
-  int seed_ = DEFAULT_NOISE_SEED;
-
+class NoiseDisplacementSOP : public SOPNode {
 public:
-  explicit NoiseDisplacementSOP(std::string name = "noise_displacement")
-      : name_(std::move(name)) {}
-
-  const std::string &get_name() const { return name_; }
+  explicit NoiseDisplacementSOP(const std::string &name = "noise_displacement");
 
   // Configuration methods
-  void set_amplitude(float amplitude) { amplitude_ = amplitude; }
-  void set_frequency(float frequency) { frequency_ = frequency; }
-  void set_octaves(int octaves) {
-    octaves_ = std::max(1, std::min(octaves, MAX_NOISE_OCTAVES));
+  void set_amplitude(float amplitude) {
+    if (amplitude_ != amplitude) {
+      amplitude_ = amplitude;
+      mark_dirty();
+    }
   }
-  void set_lacunarity(float lacunarity) { lacunarity_ = lacunarity; }
-  void set_persistence(float persistence) { persistence_ = persistence; }
-  void set_seed(int seed) { seed_ = seed; }
+
+  void set_frequency(float frequency) {
+    if (frequency_ != frequency) {
+      frequency_ = frequency;
+      mark_dirty();
+    }
+  }
+
+  void set_octaves(int octaves) {
+    int clamped = std::max(1, std::min(octaves, 8));
+    if (octaves_ != clamped) {
+      octaves_ = clamped;
+      mark_dirty();
+    }
+  }
+
+  void set_lacunarity(float lacunarity) {
+    if (lacunarity_ != lacunarity) {
+      lacunarity_ = lacunarity;
+      mark_dirty();
+    }
+  }
+
+  void set_persistence(float persistence) {
+    if (persistence_ != persistence) {
+      persistence_ = persistence;
+      mark_dirty();
+    }
+  }
+
+  void set_seed(int seed) {
+    if (seed_ != seed) {
+      seed_ = seed;
+      mark_dirty();
+    }
+  }
 
   // Getters
   float get_amplitude() const { return amplitude_; }
@@ -55,15 +72,23 @@ public:
   float get_persistence() const { return persistence_; }
   int get_seed() const { return seed_; }
 
+protected:
   /**
-   * @brief Apply noise displacement to input mesh
+   * @brief Execute the noise displacement operation (SOPNode override)
    */
-  std::optional<core::Mesh> process(const core::Mesh &input_mesh);
+  std::shared_ptr<GeometryData> execute() override;
 
 private:
   // Noise generation functions
   float fractal_noise(float pos_x, float pos_y, float pos_z) const;
   float simple_noise(float pos_x, float pos_y, float pos_z) const;
+
+  float amplitude_ = 0.1F;
+  float frequency_ = 1.0F;
+  int octaves_ = 4;
+  float lacunarity_ = 2.0F;
+  float persistence_ = 0.5F;
+  int seed_ = 42;
 };
 
 } // namespace nodeflux::sop
