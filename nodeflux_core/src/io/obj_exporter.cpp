@@ -30,7 +30,7 @@ ObjExporter::mesh_to_obj_string(const core::Mesh &mesh) {
   obj_stream << "# Vertices: " << mesh.vertex_count() << "\n";
   obj_stream << "# Faces: " << mesh.face_count() << "\n\n";
 
-  // Write vertices
+  // Write vertex positions
   const auto &vertices = mesh.vertices();
   for (int i = 0; i < vertices.rows(); ++i) {
     obj_stream << "v " << vertices(i, 0) << " " << vertices(i, 1) << " "
@@ -39,11 +39,22 @@ ObjExporter::mesh_to_obj_string(const core::Mesh &mesh) {
 
   obj_stream << "\n";
 
-  // Write faces (OBJ uses 1-based indexing)
+  // Write vertex normals
+  const auto &vertex_normals = mesh.vertex_normals();
+  for (int i = 0; i < vertex_normals.rows(); ++i) {
+    obj_stream << "vn " << vertex_normals(i, 0) << " " << vertex_normals(i, 1)
+               << " " << vertex_normals(i, 2) << "\n";
+  }
+
+  obj_stream << "\n";
+
+  // Write faces with vertex positions and normals (format: v//vn)
+  // OBJ uses 1-based indexing
   const auto &faces = mesh.faces();
   for (int i = 0; i < faces.rows(); ++i) {
-    obj_stream << "f " << (faces(i, 0) + 1) << " " << (faces(i, 1) + 1) << " "
-               << (faces(i, 2) + 1) << "\n";
+    obj_stream << "f " << (faces(i, 0) + 1) << "//" << (faces(i, 0) + 1) << " "
+               << (faces(i, 1) + 1) << "//" << (faces(i, 1) + 1) << " "
+               << (faces(i, 2) + 1) << "//" << (faces(i, 2) + 1) << "\n";
   }
 
   return obj_stream.str();

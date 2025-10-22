@@ -11,6 +11,10 @@ namespace nodeflux::io {
  *
  * Provides functionality to export meshes to Wavefront OBJ format,
  * which is widely supported by 3D modeling software.
+ *
+ * Exports vertex positions, vertex normals, and face topology using
+ * the standard OBJ format (v//vn) for proper smooth/hard edge rendering
+ * in external applications like Blender, Maya, and 3ds Max.
  */
 class ObjExporter {
 public:
