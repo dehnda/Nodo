@@ -14,6 +14,7 @@ add_executable(nodeflux_tests
     test_bvh.cpp
     test_obj_export.cpp
     test_array_sop.cpp
+    test_selective_execution.cpp
 )
 
 target_link_libraries(nodeflux_tests

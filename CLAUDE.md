@@ -574,3 +574,4 @@ std::optional<std::shared_ptr<GeometryData>> MyNodeSOP::cook() {
 **Primary Gap**: The vision of "GPU-native" is not yet realized - actual GLSL compute shaders are not implemented, despite the framework being in place.
 
 **Current Focus**: Enhancing UI/UX, adding GPU shaders, expanding file format support, and polishing the user experience.
+- dont do summary documents, just update the claude.md if a task is done in the todo list

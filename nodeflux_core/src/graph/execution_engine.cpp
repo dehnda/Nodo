@@ -20,11 +20,22 @@
 namespace nodeflux::graph {
 
 bool ExecutionEngine::execute_graph(NodeGraph &graph) {
-  // Get execution order (topological sort)
-  auto execution_order = graph.get_execution_order();
+  // Get display node (if set, only execute its dependencies)
+  int display_node_id = graph.get_display_node();
 
-  std::cout << "🔄 Executing " << execution_order.size() << " nodes"
-            << std::endl;
+  std::vector<int> execution_order;
+
+  if (display_node_id >= 0) {
+    // Selective execution: only cook nodes needed for display node
+    execution_order = graph.get_upstream_dependencies(display_node_id);
+    std::cout << "🎯 Selective execution for display node " << display_node_id
+              << " (cooking " << execution_order.size() << " nodes)" << std::endl;
+  } else {
+    // No display node: cook everything (fallback to old behavior)
+    execution_order = graph.get_execution_order();
+    std::cout << "🔄 Full execution: " << execution_order.size() << " nodes"
+              << std::endl;
+  }
 
   // Clear previous results and errors
   result_cache_.clear();

@@ -232,6 +232,18 @@ public:
   std::vector<int> get_output_nodes(int node_id) const;
   std::vector<int> get_execution_order() const; // Topological sort
 
+  /**
+   * @brief Get all upstream dependencies of a node (backward trace)
+   *
+   * Returns all nodes that need to be executed before the given node,
+   * in topological order (dependencies first, then dependents).
+   * This enables selective execution - only cook what's needed!
+   *
+   * @param node_id The target node
+   * @return Vector of node IDs in execution order (inputs first)
+   */
+  std::vector<int> get_upstream_dependencies(int node_id) const;
+
   // Graph operations
   void clear();
   bool is_valid() const;

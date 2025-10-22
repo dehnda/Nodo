@@ -4,6 +4,7 @@
 
 #include "nodeflux/graph/node_graph.hpp"
 #include <algorithm>
+#include <functional>
 #include <queue>
 #include <unordered_set>
 
@@ -419,6 +420,45 @@ std::vector<int> NodeGraph::get_execution_order() const {
   }
 
   return result;
+}
+
+std::vector<int> NodeGraph::get_upstream_dependencies(int node_id) const {
+  // Verify node exists
+  const auto *target_node = get_node(node_id);
+  if (target_node == nullptr) {
+    return {}; // Node doesn't exist
+  }
+
+  // Use depth-first search to collect all upstream nodes
+  std::unordered_set<int> visited;
+  std::vector<int> dependencies;
+
+  // Recursive DFS function
+  std::function<void(int)> collect_dependencies = [&](int current_id) {
+    // Skip if already visited
+    if (visited.count(current_id) > 0) {
+      return;
+    }
+
+    visited.insert(current_id);
+
+    // Get all input nodes
+    const auto input_nodes = get_input_nodes(current_id);
+
+    // Recursively visit all inputs first (depth-first)
+    for (int input_id : input_nodes) {
+      collect_dependencies(input_id);
+    }
+
+    // Add current node after its dependencies
+    dependencies.push_back(current_id);
+  };
+
+  // Start DFS from the target node
+  collect_dependencies(node_id);
+
+  // Result is already in topological order (dependencies first)
+  return dependencies;
 }
 
 void NodeGraph::clear() {
