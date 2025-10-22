@@ -354,7 +354,22 @@ cmake --build build --parallel
 
 ### 🎯 Near-Term Priorities (Next 4 Weeks)
 
-**Week 1: UI/UX Enhancements** 🔥 HIGH PRIORITY
+**Week 1: Architecture Refactoring** 🔥 HIGH PRIORITY
+- Migrate legacy SOP nodes to inherit from SOPNode base class
+  - ✅ BooleanSOP (complete - fixed switch bug)
+  - ⚠️ MirrorSOP (legacy standalone)
+  - ⚠️ ArraySOP (legacy standalone)
+  - ⚠️ ExtrudeSOP (legacy standalone)
+  - ⚠️ LaplacianSOP (legacy standalone)
+  - ⚠️ LineSOP (legacy standalone)
+  - ⚠️ NoiseDisplacementSOP (legacy standalone)
+  - ⚠️ PolyExtrudeSOP (legacy standalone)
+  - ⚠️ ResampleSOP (legacy standalone)
+  - ⚠️ SubdivisionSOP (legacy standalone)
+- Update ExecutionEngine bridges for modernized SOPs
+- Unified port-based data flow for all nodes
+
+**Week 2: UI/UX Enhancements**
 - Node selection/picking in viewport
 - Transform gizmos (move, rotate, scale)
 - Camera presets (orthographic views)
