@@ -2,6 +2,8 @@
 
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/core/types.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
+#include "nodeflux/sop/sop_node.hpp"
 
 #include <Eigen/Dense>
 #include <optional>
@@ -20,7 +22,7 @@ constexpr float DEFAULT_ANGLE_STEP = 60.0F; // degrees
  * patterns. This is a simplified version that works with the existing mesh
  * system.
  */
-class ArraySOP {
+class ArraySOP : public SOPNode {
 public:
   enum class ArrayType {
     LINEAR, ///< Copies along a line with specified offset
@@ -46,32 +48,66 @@ private:
   Eigen::Vector2f grid_spacing_{1.0F, 1.0F};
 
 public:
-  explicit ArraySOP(std::string name = "array") : name_(std::move(name)) {}
+  explicit ArraySOP(const std::string &name = "array")
+      : SOPNode(name, "ArraySOP") {
+    // Add input ports
+    input_ports_.add_port("mesh", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
+  }
 
   const std::string &get_name() const { return name_; }
 
   // Configuration methods
-  void set_array_type(ArrayType type) { array_type_ = type; }
-  void set_count(int count) { count_ = std::max(1, count); }
+  void set_array_type(ArrayType type) {
+    if (array_type_ != type) {
+      array_type_ = type;
+      mark_dirty();
+    }
+  }
+
+  void set_count(int count) {
+    int new_count = std::max(1, count);
+    if (count_ != new_count) {
+      count_ = new_count;
+      mark_dirty();
+    }
+  }
 
   // Linear array configuration
   void set_linear_offset(const core::Vector3 &offset) {
     linear_offset_ = offset;
+    mark_dirty();
   }
 
   // Radial array configuration
   void set_radial_center(const core::Vector3 &center) {
     radial_center_ = center;
+    mark_dirty();
   }
-  void set_radial_radius(float radius) { radial_radius_ = radius; }
-  void set_angle_step(float degrees) { angle_step_ = degrees; }
+
+  void set_radial_radius(float radius) {
+    if (radial_radius_ != radius) {
+      radial_radius_ = radius;
+      mark_dirty();
+    }
+  }
+
+  void set_angle_step(float degrees) {
+    if (angle_step_ != degrees) {
+      angle_step_ = degrees;
+      mark_dirty();
+    }
+  }
 
   // Grid array configuration
   void set_grid_size(int width, int height) {
     grid_size_ = core::Vector2i(width, height);
+    mark_dirty();
   }
+
   void set_grid_spacing(float x_spacing, float y_spacing) {
     grid_spacing_ = Eigen::Vector2f(x_spacing, y_spacing);
+    mark_dirty();
   }
 
   // Getters
@@ -85,14 +121,19 @@ public:
   const core::Vector2f &get_grid_spacing() const { return grid_spacing_; }
 
   /**
-   * @brief Apply array operation to input mesh
+   * @brief Execute the array operation (SOPNode override)
    */
-  std::optional<core::Mesh> process(const core::Mesh &input_mesh);
+  std::shared_ptr<GeometryData> execute() override;
 
 private:
   std::optional<core::Mesh> create_linear_array(const core::Mesh &input_mesh);
   std::optional<core::Mesh> create_radial_array(const core::Mesh &input_mesh);
   std::optional<core::Mesh> create_grid_array(const core::Mesh &input_mesh);
+
+  void add_instance_attributes(std::shared_ptr<GeometryData> geo_data,
+                                size_t verts_per_instance,
+                                size_t faces_per_instance,
+                                int instance_count);
 };
 
 } // namespace nodeflux::sop

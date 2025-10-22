@@ -13,6 +13,7 @@ add_executable(nodeflux_tests
     test_nodes.cpp
     test_bvh.cpp
     test_obj_export.cpp
+    test_array_sop.cpp
 )
 
 target_link_libraries(nodeflux_tests

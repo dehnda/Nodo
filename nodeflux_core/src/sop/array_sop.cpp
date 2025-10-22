@@ -1,24 +1,67 @@
 #include "nodeflux/sop/array_sop.hpp"
 #include "nodeflux/core/math.hpp"
 #include "nodeflux/core/types.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
 
 #include <cmath>
 #include <iostream>
 
 namespace nodeflux::sop {
 
-std::optional<core::Mesh> ArraySOP::process(const core::Mesh &input_mesh) {
+std::shared_ptr<GeometryData> ArraySOP::execute() {
+  // Get input geometry from port
+  auto input_geo = get_input_data("mesh");
+  if (!input_geo) {
+    set_error("No input geometry connected");
+    return nullptr;
+  }
+
+  // Extract mesh from GeometryData
+  auto input_mesh = input_geo->get_mesh();
+  if (!input_mesh) {
+    set_error("Input geometry does not contain a mesh");
+    return nullptr;
+  }
+
+  // Store input sizes for attribute tracking
+  size_t input_vert_count = input_mesh->vertices().rows();
+  size_t input_face_count = input_mesh->faces().rows();
+
+  // Execute the appropriate array operation
+  std::optional<core::Mesh> result_mesh;
+  int effective_count = count_;
+
   switch (array_type_) {
   case ArrayType::LINEAR:
-    return create_linear_array(input_mesh);
+    result_mesh = create_linear_array(*input_mesh);
+    break;
   case ArrayType::RADIAL:
-    return create_radial_array(input_mesh);
+    result_mesh = create_radial_array(*input_mesh);
+    break;
   case ArrayType::GRID:
-    return create_grid_array(input_mesh);
+    effective_count = grid_size_.x() * grid_size_.y();
+    result_mesh = create_grid_array(*input_mesh);
+    break;
   default:
-    std::cerr << "ArraySOP: Unknown array type\n";
-    return std::nullopt;
+    set_error("Unknown array type");
+    return nullptr;
   }
+
+  // Check if operation succeeded
+  if (!result_mesh) {
+    set_error("Array operation failed");
+    return nullptr;
+  }
+
+  // Wrap result in GeometryData
+  auto output_mesh = std::make_shared<core::Mesh>(std::move(*result_mesh));
+  auto output_data = std::make_shared<GeometryData>(output_mesh);
+
+  // Add instance tracking attributes
+  add_instance_attributes(output_data, input_vert_count, input_face_count,
+                          effective_count);
+
+  return output_data;
 }
 
 std::optional<core::Mesh>
@@ -81,7 +124,8 @@ ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
     // Calculate position offset (radial positioning)
     core::Vector3 position_offset = radial_center_.cast<double>();
     if (radial_radius_ > 0.0F) {
-      position_offset += core::math::circular_offset_2d(radial_radius_, angle_rad);
+      position_offset +=
+          core::math::circular_offset_2d(radial_radius_, angle_rad);
     }
 
     // Copy vertices with rotation and translation
@@ -150,6 +194,37 @@ ArraySOP::create_grid_array(const core::Mesh &input_mesh) {
   }
 
   return core::Mesh(std::move(output_vertices), std::move(output_faces));
+}
+
+void ArraySOP::add_instance_attributes(std::shared_ptr<GeometryData> geo_data,
+                                        size_t verts_per_instance,
+                                        size_t faces_per_instance,
+                                        int instance_count) {
+  // Add per-vertex instance ID attribute
+  GeometryData::AttributeArray vertex_instance_ids;
+  vertex_instance_ids.reserve(verts_per_instance * instance_count);
+
+  for (int copy = 0; copy < instance_count; ++copy) {
+    for (size_t v = 0; v < verts_per_instance; ++v) {
+      vertex_instance_ids.push_back(copy);
+    }
+  }
+  geo_data->set_vertex_attribute("instance_id", vertex_instance_ids);
+
+  // Add per-face instance ID attribute
+  GeometryData::AttributeArray face_instance_ids;
+  face_instance_ids.reserve(faces_per_instance * instance_count);
+
+  for (int copy = 0; copy < instance_count; ++copy) {
+    for (size_t f = 0; f < faces_per_instance; ++f) {
+      face_instance_ids.push_back(copy);
+    }
+  }
+  geo_data->set_face_attribute("instance_id", face_instance_ids);
+
+  // Add global metadata
+  geo_data->set_global_attribute("instance_count", instance_count);
+  geo_data->set_global_attribute("array_type", static_cast<int>(array_type_));
 }
 
 } // namespace nodeflux::sop
