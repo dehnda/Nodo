@@ -30,8 +30,9 @@ NodeGraphicsItem::NodeGraphicsItem(int node_id, const QString &node_name,
 QRectF NodeGraphicsItem::boundingRect() const {
   // Add some padding for selection outline
   constexpr float PADDING = 4.0F;
+  float height = getTotalHeight();
   return QRectF(-PADDING, -PADDING, NODE_WIDTH + 2.0F * PADDING,
-                NODE_HEIGHT + 2.0F * PADDING);
+                height + 2.0F * PADDING);
 }
 
 QColor NodeGraphicsItem::getNodeColor() const {
@@ -83,82 +84,58 @@ void NodeGraphicsItem::paint(QPainter *painter,
                              QWidget * /*widget*/) {
   painter->setRenderHint(QPainter::Antialiasing);
 
-  // Node body
-  QRectF rect(0, 0, NODE_WIDTH, NODE_HEIGHT);
+  // Get total height and bounding rect
+  float total_height = getTotalHeight();
+  QRectF node_rect(0, 0, NODE_WIDTH, total_height);
 
   // Get base color from node type
   QColor base_color = getNodeColor();
 
-  // Colors based on state
-  QColor body_color = base_color.darker(150); // Darker body
-  QColor header_color = base_color;           // Category color for header
-  QColor outline_color = base_color.lighter(120);
-
+  // Determine outline color based on selection
+  QColor outline_color = QColor(255, 255, 255, 40); // Subtle white border
   if (selected_) {
-    outline_color = QColor(255, 150, 50); // Orange selection
-  } else if (hovered_) {
-    body_color = body_color.lighter(110);
-    header_color = header_color.lighter(110);
+    outline_color = QColor(74, 158, 255); // Blue selection (#4a9eff)
   }
 
-  // Draw node body
-  painter->setPen(QPen(outline_color, 2.0F));
-  painter->setBrush(body_color);
-  painter->drawRoundedRect(rect, 5.0, 5.0);
+  // Draw main node background with solid dark color
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(QColor(26, 26, 31)); // #1a1a1f - solid dark background
+  painter->drawRoundedRect(node_rect, 12.0, 12.0);
 
-  // Draw header
-  QRectF header_rect(0, 0, NODE_WIDTH, 25);
-  painter->setBrush(header_color);
-  painter->drawRoundedRect(header_rect, 5.0, 5.0);
-  painter->drawRect(0, 20, NODE_WIDTH, 5); // Square off bottom of header
+  // Draw outline on top
+  painter->setPen(QPen(outline_color, 2.0));
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRoundedRect(node_rect, 12.0, 12.0);
 
-  // Draw node name
-  painter->setPen(Qt::white);
-  QFont font = painter->font();
-  font.setPointSize(9);
-  font.setBold(true);
-  painter->setFont(font);
-  painter->drawText(header_rect, Qt::AlignCenter, node_name_);
+  // Draw each section
+  drawHeader(painter);
+  drawStatusBar(painter);
 
-  // Draw input pins
-  painter->setBrush(QColor(100, 200, 100));
+  if (!compact_mode_) {
+    drawBody(painter);
+    drawFooter(painter);
+  }
+
+  // Draw input pins (at top)
+  painter->setPen(QPen(QColor(31, 31, 38), 2.0)); // Border
+  painter->setBrush(QColor(74, 158, 255));        // Blue
   for (int i = 0; i < input_count_; ++i) {
     QPointF pin_pos = get_input_pin_pos(i);
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
   }
 
-  // Draw output pins
-  painter->setBrush(QColor(200, 100, 100));
+  // Draw output pins (at bottom)
+  painter->setBrush(QColor(255, 107, 157)); // Pink
   for (int i = 0; i < output_count_; ++i) {
     QPointF pin_pos = get_output_pin_pos(i);
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
   }
 
-  // Draw display flag (blue dot in top-right corner, Houdini-style)
-  if (has_display_flag_) {
-    painter->setBrush(QColor(80, 150, 255)); // Blue
-    painter->setPen(QPen(Qt::white, 1.5F));
-    const QPointF flag_pos(NODE_WIDTH - 12.0F, 12.0F);
-    painter->drawEllipse(flag_pos, 6.0F, 6.0F);
-  }
-
-  // Draw error indicator (red triangle in top-left corner)
-  if (has_error_flag_) {
-    QPolygonF triangle;
-    triangle << QPointF(5.0F, 5.0F) << QPointF(18.0F, 5.0F)
-             << QPointF(11.5F, 16.0F);
-
-    painter->setBrush(QColor(255, 60, 60)); // Bright red
-    painter->setPen(QPen(Qt::white, 1.5F));
-    painter->drawPolygon(triangle);
-
-    // Draw exclamation mark
-    painter->setPen(Qt::white);
-    QFont symbol_font = painter->font();
-    symbol_font.setPointSize(10);
-    symbol_font.setBold(true);
-    painter->setFont(symbol_font);
-    painter->drawText(QRectF(5.0F, 5.0F, 13.0F, 11.0F), Qt::AlignCenter, "!");
+  // Draw selection glow
+  if (selected_) {
+    painter->setPen(QPen(QColor(74, 158, 255, 50), 8.0));
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRoundedRect(node_rect, 12.0, 12.0);
   }
 }
 
@@ -177,7 +154,7 @@ QPointF NodeGraphicsItem::get_output_pin_pos(int index) const {
   const float offset = static_cast<float>(index) -
                        (static_cast<float>(output_count_ - 1) / 2.0F);
   const float x = center_x + (offset * PIN_SPACING);
-  return QPointF(x, NODE_HEIGHT);
+  return QPointF(x, getTotalHeight());
 }
 
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
@@ -249,6 +226,291 @@ int NodeGraphicsItem::get_pin_at_position(const QPointF &pos,
   }
 
   return -1; // No pin found
+}
+
+// ============================================================================
+// NodeGraphicsItem Helper Methods
+// ============================================================================
+
+float NodeGraphicsItem::getTotalHeight() const {
+  if (compact_mode_) {
+    return NODE_COMPACT_HEIGHT;
+  }
+  return NODE_HEADER_HEIGHT + NODE_STATUS_HEIGHT + NODE_BODY_HEIGHT +
+         NODE_FOOTER_HEIGHT;
+}
+
+QRectF NodeGraphicsItem::getHeaderRect() const {
+  return QRectF(0, 0, NODE_WIDTH, NODE_HEADER_HEIGHT);
+}
+
+QRectF NodeGraphicsItem::getStatusRect() const {
+  return QRectF(0, NODE_HEADER_HEIGHT, NODE_WIDTH, NODE_STATUS_HEIGHT);
+}
+
+QRectF NodeGraphicsItem::getBodyRect() const {
+  return QRectF(0, NODE_HEADER_HEIGHT + NODE_STATUS_HEIGHT, NODE_WIDTH,
+                NODE_BODY_HEIGHT);
+}
+
+QRectF NodeGraphicsItem::getFooterRect() const {
+  float y = NODE_HEADER_HEIGHT + NODE_STATUS_HEIGHT + NODE_BODY_HEIGHT;
+  return QRectF(0, y, NODE_WIDTH, NODE_FOOTER_HEIGHT);
+}
+
+void NodeGraphicsItem::drawHeader(QPainter *painter) {
+  QRectF header_rect = getHeaderRect();
+  QColor base_color = getNodeColor();
+
+  // Draw header gradient background
+  QLinearGradient header_gradient(0, 0, 0, NODE_HEADER_HEIGHT);
+  header_gradient.setColorAt(0, base_color.lighter(110));
+  header_gradient.setColorAt(1, base_color);
+  painter->setBrush(header_gradient);
+  painter->setPen(Qt::NoPen);
+
+  // Draw rounded top
+  QPainterPath header_path;
+  header_path.moveTo(0, NODE_HEADER_HEIGHT);
+  header_path.lineTo(0, 12.0);
+  header_path.quadTo(0, 0, 12.0, 0);
+  header_path.lineTo(NODE_WIDTH - 12.0, 0);
+  header_path.quadTo(NODE_WIDTH, 0, NODE_WIDTH, 12.0);
+  header_path.lineTo(NODE_WIDTH, NODE_HEADER_HEIGHT);
+  header_path.closeSubpath();
+  painter->drawPath(header_path);
+
+  // Draw border at bottom of header
+  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
+  painter->drawLine(0, NODE_HEADER_HEIGHT, NODE_WIDTH, NODE_HEADER_HEIGHT);
+
+  // Draw node icon (simple colored circle)
+  float icon_size = 20.0;
+  float icon_x = 12.0;
+  float icon_y = (NODE_HEADER_HEIGHT - icon_size) / 2.0;
+  QRectF icon_rect(icon_x, icon_y, icon_size, icon_size);
+  painter->setBrush(QColor(0, 0, 0, 80));
+  painter->setPen(Qt::NoPen);
+  painter->drawRoundedRect(icon_rect, 6.0, 6.0);
+
+  // Draw node name
+  painter->setPen(Qt::white);
+  QFont font = painter->font();
+  font.setPointSize(10);
+  font.setBold(true);
+  painter->setFont(font);
+  QRectF text_rect(icon_x + icon_size + 8.0, 0,
+                   NODE_WIDTH - icon_x - icon_size - 120.0, NODE_HEADER_HEIGHT);
+  painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, node_name_);
+
+  // Draw action buttons
+  drawActionButtons(painter);
+}
+
+void NodeGraphicsItem::drawActionButtons(QPainter *painter) {
+  float button_y = (NODE_HEADER_HEIGHT - ACTION_BUTTON_SIZE) / 2.0;
+  float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
+  float button_spacing = ACTION_BUTTON_SIZE + 4.0;
+
+  // Info button
+  QRectF info_rect(button_x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
+  painter->setBrush(QColor(255, 255, 255, 20));
+  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
+  painter->drawRoundedRect(info_rect, 6.0, 6.0);
+  painter->setPen(QColor(192, 192, 200));
+  QFont icon_font = painter->font();
+  icon_font.setPointSize(12);
+  painter->setFont(icon_font);
+  painter->drawText(info_rect, Qt::AlignCenter, "i");
+  button_x -= button_spacing;
+
+  // Lock button
+  QRectF lock_rect(button_x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
+  QColor lock_bg =
+      lock_flag_ ? QColor(255, 107, 157) : QColor(255, 255, 255, 20);
+  painter->setBrush(lock_bg);
+  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
+  painter->drawRoundedRect(lock_rect, 6.0, 6.0);
+  painter->setPen(lock_flag_ ? Qt::white : QColor(192, 192, 200));
+  painter->drawText(lock_rect, Qt::AlignCenter, "🔒");
+  button_x -= button_spacing;
+
+  // Display button (eye icon)
+  QRectF display_rect(button_x, button_y, ACTION_BUTTON_SIZE,
+                      ACTION_BUTTON_SIZE);
+  QColor display_bg =
+      has_display_flag_ ? QColor(74, 158, 255) : QColor(255, 255, 255, 20);
+  painter->setBrush(display_bg);
+  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
+  painter->drawRoundedRect(display_rect, 6.0, 6.0);
+  painter->setPen(has_display_flag_ ? Qt::white : QColor(192, 192, 200));
+  icon_font.setPointSize(11);
+  painter->setFont(icon_font);
+  painter->drawText(display_rect, Qt::AlignCenter, "👁");
+  button_x -= button_spacing;
+
+  // Bypass button
+  QRectF bypass_rect(button_x, button_y, ACTION_BUTTON_SIZE,
+                     ACTION_BUTTON_SIZE);
+  QColor bypass_bg =
+      bypass_flag_ ? QColor(255, 211, 61) : QColor(255, 255, 255, 20);
+  painter->setBrush(bypass_bg);
+  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
+  painter->drawRoundedRect(bypass_rect, 6.0, 6.0);
+  painter->setPen(bypass_flag_ ? QColor(26, 26, 31) : QColor(192, 192, 200));
+  icon_font.setPointSize(14);
+  painter->setFont(icon_font);
+  painter->drawText(bypass_rect, Qt::AlignCenter, "⊘");
+}
+
+void NodeGraphicsItem::drawStatusBar(QPainter *painter) {
+  QRectF status_rect = getStatusRect();
+
+  // Background
+  painter->setBrush(QColor(0, 0, 0, 80));
+  painter->setPen(Qt::NoPen);
+  painter->drawRect(status_rect);
+
+  // Bottom border
+  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
+  painter->drawLine(0, status_rect.bottom(), NODE_WIDTH, status_rect.bottom());
+
+  // Status indicator dot
+  float dot_x = 12.0;
+  float dot_y = status_rect.top() + (NODE_STATUS_HEIGHT / 2.0);
+  QColor dot_color = has_error_flag_ ? QColor(255, 107, 157)
+                                     : QColor(74, 222, 128); // Red or green
+  painter->setBrush(dot_color);
+  painter->setPen(Qt::NoPen);
+  painter->drawEllipse(QPointF(dot_x, dot_y), 4.0, 4.0);
+
+  // Status text
+  painter->setPen(QColor(160, 160, 168));
+  QFont status_font = painter->font();
+  status_font.setPointSize(9);
+  status_font.setFamily("monospace");
+  painter->setFont(status_font);
+
+  QString status_text = has_error_flag_ ? "Error" : "Cached";
+  QRectF text_rect(dot_x + 12.0, status_rect.top(), 100.0, NODE_STATUS_HEIGHT);
+  painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, status_text);
+
+  // Cook time (right side)
+  if (cook_time_ms_ > 0.0) {
+    painter->setPen(QColor(74, 158, 255));
+    status_font.setBold(true);
+    painter->setFont(status_font);
+    QString time_text = QString("%1ms").arg(cook_time_ms_, 0, 'f', 1);
+    QRectF time_rect(NODE_WIDTH - 80.0, status_rect.top(), 68.0,
+                     NODE_STATUS_HEIGHT);
+    painter->drawText(time_rect, Qt::AlignVCenter | Qt::AlignRight, time_text);
+  }
+}
+
+void NodeGraphicsItem::drawBody(QPainter *painter) {
+  QRectF body_rect = getBodyRect();
+
+  // Background - dark semi-transparent
+  painter->setBrush(QColor(26, 26, 31)); // #1a1a1f
+  painter->setPen(Qt::NoPen);
+  painter->drawRect(body_rect);
+
+  // Bottom border
+  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
+  painter->drawLine(0, body_rect.bottom(), NODE_WIDTH, body_rect.bottom());
+
+  // Draw parameters (placeholder - would need actual parameter data)
+  painter->setPen(QColor(160, 160, 168));
+  QFont param_font = painter->font();
+  param_font.setPointSize(9);
+  painter->setFont(param_font);
+
+  float param_y = body_rect.top() + 12.0;
+  float param_spacing = 16.0;
+
+  // Example parameters (would be populated from actual node data)
+  painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft,
+                    "Radius");
+  painter->setPen(QColor(224, 224, 224));
+  param_font.setFamily("monospace");
+  param_font.setBold(false);
+  painter->setFont(param_font);
+  painter->setBrush(QColor(74, 158, 255, 40));
+  painter->drawRoundedRect(QRectF(NODE_WIDTH - 80.0, param_y - 2.0, 64.0, 16.0),
+                           4.0, 4.0);
+  painter->drawText(QRectF(NODE_WIDTH - 76.0, param_y, 56.0, 14.0),
+                    Qt::AlignCenter, "1.0");
+
+  param_y += param_spacing;
+  painter->setPen(QColor(160, 160, 168));
+  param_font.setBold(false);
+  painter->setFont(param_font);
+  painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft,
+                    "Segments");
+  painter->setPen(QColor(224, 224, 224));
+  param_font.setFamily("monospace");
+  painter->setFont(param_font);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawText(QRectF(NODE_WIDTH - 80.0, param_y, 64.0, 14.0),
+                    Qt::AlignCenter, "32");
+}
+
+void NodeGraphicsItem::drawFooter(QPainter *painter) {
+  QRectF footer_rect = getFooterRect();
+
+  // Background
+  painter->setBrush(QColor(0, 0, 0, 80));
+  painter->setPen(Qt::NoPen);
+
+  // Draw rounded bottom
+  QPainterPath footer_path;
+  footer_path.moveTo(0, footer_rect.top());
+  footer_path.lineTo(0, footer_rect.bottom() - 12.0);
+  footer_path.quadTo(0, footer_rect.bottom(), 12.0, footer_rect.bottom());
+  footer_path.lineTo(NODE_WIDTH - 12.0, footer_rect.bottom());
+  footer_path.quadTo(NODE_WIDTH, footer_rect.bottom(), NODE_WIDTH,
+                     footer_rect.bottom() - 12.0);
+  footer_path.lineTo(NODE_WIDTH, footer_rect.top());
+  footer_path.closeSubpath();
+  painter->drawPath(footer_path);
+
+  // Top border
+  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
+  painter->drawLine(0, footer_rect.top(), NODE_WIDTH, footer_rect.top());
+
+  // Stats
+  QFont stats_font = painter->font();
+  stats_font.setPointSize(8);
+  stats_font.setFamily("monospace");
+  painter->setFont(stats_font);
+
+  float stat_x = 12.0;
+  float stat_y = footer_rect.top() + (NODE_FOOTER_HEIGHT / 2.0) + 4.0;
+
+  // Vertices
+  painter->setPen(QColor(128, 128, 136));
+  painter->drawText(QPointF(stat_x, stat_y), "▲");
+  painter->setPen(QColor(192, 192, 200));
+  stats_font.setBold(false);
+  painter->setFont(stats_font);
+  painter->drawText(QPointF(stat_x + 14.0, stat_y),
+                    QString::number(vertex_count_));
+
+  // Triangles
+  stat_x = 80.0;
+  painter->setPen(QColor(128, 128, 136));
+  painter->drawText(QPointF(stat_x, stat_y), "◆");
+  painter->setPen(QColor(192, 192, 200));
+  painter->drawText(QPointF(stat_x + 14.0, stat_y),
+                    QString::number(triangle_count_));
+
+  // Memory
+  stat_x = NODE_WIDTH - 68.0;
+  painter->setPen(QColor(128, 128, 136));
+  painter->drawText(QPointF(stat_x, stat_y), "💾");
+  painter->setPen(QColor(192, 192, 200));
+  painter->drawText(QPointF(stat_x + 18.0, stat_y),
+                    QString("%1KB").arg(memory_kb_));
 }
 
 // ============================================================================
@@ -994,7 +1256,8 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
   if (type_id == "mirror_sop")
     return NodeType::Mirror;
   if (type_id == "noise_displacement_sop")
-    return NodeType::Transform; // Using Transform as fallback for noise displacement
+    return NodeType::Transform; // Using Transform as fallback for noise
+                                // displacement
 
   // Default fallback
   return NodeType::Sphere;

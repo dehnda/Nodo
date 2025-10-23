@@ -58,6 +58,24 @@ public:
     void set_error_flag(bool flag) { has_error_flag_ = flag; update(); }
     bool has_error_flag() const { return has_error_flag_; }
 
+    void set_bypass_flag(bool flag) { bypass_flag_ = flag; update(); }
+    bool is_bypassed() const { return bypass_flag_; }
+
+    void set_lock_flag(bool flag) { lock_flag_ = flag; update(); }
+    bool is_locked() const { return lock_flag_; }
+
+    // Compact mode
+    void set_compact_mode(bool compact) { compact_mode_ = compact; update(); }
+    bool is_compact() const { return compact_mode_; }
+
+    // Cook time
+    void set_cook_time(double ms) { cook_time_ms_ = ms; update(); }
+
+    // Stats
+    void set_vertex_count(int count) { vertex_count_ = count; update(); }
+    void set_triangle_count(int count) { triangle_count_ = count; update(); }
+    void set_memory_kb(int kb) { memory_kb_ = kb; update(); }
+
     // Pin hit detection
     int get_pin_at_position(const QPointF& pos, bool& is_input) const;
 
@@ -78,15 +96,40 @@ private:
     bool hovered_ = false;
     bool has_display_flag_ = false;
     bool has_error_flag_ = false;
+    bool bypass_flag_ = false;
+    bool lock_flag_ = false;
+    bool compact_mode_ = false;
+
+    // Performance stats
+    double cook_time_ms_ = 0.0;
+    int vertex_count_ = 0;
+    int triangle_count_ = 0;
+    int memory_kb_ = 0;
 
     // Visual constants
-    static constexpr float NODE_WIDTH = 140.0F;
-    static constexpr float NODE_HEIGHT = 60.0F;
-    static constexpr float PIN_RADIUS = 6.0F;
+    static constexpr float NODE_WIDTH = 240.0F;  // Wider for more content
+    static constexpr float NODE_HEADER_HEIGHT = 32.0F;
+    static constexpr float NODE_STATUS_HEIGHT = 24.0F;
+    static constexpr float NODE_BODY_HEIGHT = 60.0F;
+    static constexpr float NODE_FOOTER_HEIGHT = 28.0F;
+    static constexpr float NODE_COMPACT_HEIGHT = 56.0F;  // Just header + status
+    static constexpr float PIN_RADIUS = 8.0F;
     static constexpr float PIN_SPACING = 20.0F;
+    static constexpr float ACTION_BUTTON_SIZE = 28.0F;
 
-    // Helper to get color based on node type
+    // Helper methods
     QColor getNodeColor() const;
+    QRectF getHeaderRect() const;
+    QRectF getStatusRect() const;
+    QRectF getBodyRect() const;
+    QRectF getFooterRect() const;
+    float getTotalHeight() const;
+
+    void drawHeader(QPainter* painter);
+    void drawActionButtons(QPainter* painter);
+    void drawStatusBar(QPainter* painter);
+    void drawBody(QPainter* painter);
+    void drawFooter(QPainter* painter);
 };
 
 /**
