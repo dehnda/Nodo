@@ -161,8 +161,9 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   // Only handle left mouse button for selection and dragging
   // Middle mouse is handled by the view for panning
   if (event->button() == Qt::LeftButton) {
-    setSelected(true);
-    set_selected(true);
+    // Don't modify selection here - let the view handle it
+    // Just update our internal selected flag to match Qt's selection state
+    set_selected(isSelected());
     QGraphicsItem::mousePressEvent(event);
   } else {
     // Don't accept other buttons - let them pass through to view
@@ -432,22 +433,24 @@ void NodeGraphicsItem::drawBody(QPainter *painter) {
   float param_spacing = 18.0;
   int max_params = 2; // Show max 2 parameters in body (limited space)
 
-  for (int i = 0; i < std::min(max_params, static_cast<int>(parameters_.size())); ++i) {
-    const auto& [param_name, param_value] = parameters_[i];
+  for (int i = 0;
+       i < std::min(max_params, static_cast<int>(parameters_.size())); ++i) {
+    const auto &[param_name, param_value] = parameters_[i];
 
     // Draw parameter name (left side)
     painter->setPen(QColor(160, 160, 168));
     param_font.setBold(false);
     painter->setFont(param_font);
-    painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft, param_name);
+    painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft,
+                      param_name);
 
     // Draw parameter value (right side) with highlighted background
     painter->setPen(QColor(224, 224, 224));
     param_font.setFamily("monospace");
     painter->setFont(param_font);
     painter->setBrush(QColor(74, 158, 255, 40));
-    painter->drawRoundedRect(QRectF(NODE_WIDTH - 80.0, param_y - 2.0, 64.0, 16.0),
-                             4.0, 4.0);
+    painter->drawRoundedRect(
+        QRectF(NODE_WIDTH - 80.0, param_y - 2.0, 64.0, 16.0), 4.0, 4.0);
     painter->drawText(QRectF(NODE_WIDTH - 76.0, param_y, 56.0, 14.0),
                       Qt::AlignCenter, param_value);
 
@@ -649,8 +652,8 @@ void NodeGraphWidget::update_display_flags_from_graph() {
 }
 
 void NodeGraphWidget::update_node_stats(int node_id, int vertex_count,
-                                         int triangle_count, int memory_kb,
-                                         double cook_time_ms) {
+                                        int triangle_count, int memory_kb,
+                                        double cook_time_ms) {
   auto it = node_items_.find(node_id);
   if (it != node_items_.end()) {
     NodeGraphicsItem *item = it->second;
@@ -845,12 +848,22 @@ QVector<int> NodeGraphWidget::get_selected_node_ids() const {
 }
 
 void NodeGraphWidget::clear_selection() {
+  // Block signals to prevent on_scene_selection_changed from being called
+  // during the loop (which could cause iterator invalidation or recursive
+  // calls)
+  scene_->blockSignals(true);
+
   for (int node_id : selected_nodes_) {
     auto node_it = node_items_.find(node_id);
     if (node_it != node_items_.end()) {
-      node_it->second->set_selected(false);
+      node_it->second->setSelected(false);  // Clear Qt's selection state
+      node_it->second->set_selected(false); // Clear visual flag
     }
   }
+
+  // Re-enable signals
+  scene_->blockSignals(false);
+
   selected_nodes_.clear();
   emit selection_changed();
 }
@@ -906,36 +919,72 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
         event->accept();
         return;
       }
-      // If clicked on node (not on a pin), let QGraphicsView handle it for
-      // dragging This allows single-click node dragging
+
+      // If clicked on node (not on a pin), handle selection explicitly
+      bool is_ctrl_held = (event->modifiers() & Qt::ControlModifier);
+      bool node_already_selected = node_item->isSelected();
+
+      // Block signals to prevent on_scene_selection_changed from being called
+      // multiple times during selection update
+      scene_->blockSignals(true);
+
+      // Only clear selection if:
+      // - Ctrl is NOT held AND
+      // - The clicked node is NOT already selected (to preserve multi-selection
+      // dragging)
+      if (!is_ctrl_held && !node_already_selected) {
+        scene_->clearSelection();
+        node_item->setSelected(true);
+      } else if (is_ctrl_held) {
+        // Toggle selection with Ctrl
+        node_item->setSelected(!node_already_selected);
+      }
+      // else: node is already selected and Ctrl not held - keep all selections
+      // for dragging
+
+      // Re-enable signals and trigger selection changed manually
+      scene_->blockSignals(false);
+      on_scene_selection_changed();
+
+      // Let QGraphicsView handle the dragging, but we've already handled
+      // selection So we pass the event to the base class to enable dragging
       QGraphicsView::mousePressEvent(event);
       return;
-    } else {
-      // Clicked on empty space - start box selection
-      mode_ = InteractionMode::Selecting;
-      selection_start_pos_ = scene_pos;
+    }
 
-      // Create selection rectangle
-      if (selection_rect_ == nullptr) {
-        selection_rect_ = new QGraphicsRectItem();
-        selection_rect_->setPen(
-            QPen(QColor(100, 150, 255), 1.5F, Qt::DashLine));
-        selection_rect_->setBrush(QColor(100, 150, 255, 30));
-        selection_rect_->setZValue(1000); // Draw on top
-        scene_->addItem(selection_rect_);
-      }
-
-      selection_rect_->setRect(QRectF(scene_pos, scene_pos));
-      selection_rect_->show();
-
-      // Clear existing selection unless holding Shift
+    // If we clicked on something else (like a connection), clear selection
+    // unless Shift is held
+    if (item != nullptr) {
       if (!(event->modifiers() & Qt::ShiftModifier)) {
         clear_selection();
       }
-
       event->accept();
       return;
     }
+
+    // Clicked on empty space - start box selection
+    mode_ = InteractionMode::Selecting;
+    selection_start_pos_ = scene_pos;
+
+    // Create selection rectangle
+    if (selection_rect_ == nullptr) {
+      selection_rect_ = new QGraphicsRectItem();
+      selection_rect_->setPen(QPen(QColor(100, 150, 255), 1.5F, Qt::DashLine));
+      selection_rect_->setBrush(QColor(100, 150, 255, 30));
+      selection_rect_->setZValue(1000); // Draw on top
+      scene_->addItem(selection_rect_);
+    }
+
+    selection_rect_->setRect(QRectF(scene_pos, scene_pos));
+    selection_rect_->show();
+
+    // Clear existing selection unless holding Shift
+    if (!(event->modifiers() & Qt::ShiftModifier)) {
+      clear_selection();
+    }
+
+    event->accept();
+    return;
   }
 }
 
@@ -977,18 +1026,27 @@ void NodeGraphWidget::mouseMoveEvent(QMouseEvent *event) {
     QRectF rect = QRectF(selection_start_pos_, scene_pos).normalized();
     selection_rect_->setRect(rect);
 
+    // Block signals to prevent on_scene_selection_changed from being called
+    // during the loop (which could cause iterator invalidation)
+    scene_->blockSignals(true);
+
     // Update selection based on items intersecting the rectangle
     for (auto &[node_id, node_item] : node_items_) {
       bool intersects = node_item->sceneBoundingRect().intersects(rect);
 
       if (intersects && !selected_nodes_.contains(node_id)) {
         selected_nodes_.insert(node_id);
-        node_item->set_selected(true);
+        node_item->setSelected(true);  // Qt selection state
+        node_item->set_selected(true); // Visual flag
       } else if (!intersects && selected_nodes_.contains(node_id)) {
         selected_nodes_.remove(node_id);
-        node_item->set_selected(false);
+        node_item->setSelected(false);  // Qt selection state
+        node_item->set_selected(false); // Visual flag
       }
     }
+
+    // Re-enable signals
+    scene_->blockSignals(false);
 
     event->accept();
     return;

@@ -22,16 +22,17 @@ PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
 
   // Title label
   title_label_ = new QLabel("Properties", this);
-  title_label_->setStyleSheet("QLabel {"
-                              "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-                              "      stop:0 #3a3a40, stop:1 #2e2e34);"
-                              "   color: #e0e0e0;"
-                              "   padding: 12px 16px;"
-                              "   font-weight: 600;"
-                              "   font-size: 13px;"
-                              "   border-bottom: 1px solid rgba(255, 255, 255, 0.1);"
-                              "   letter-spacing: 0.5px;"
-                              "}");
+  title_label_->setStyleSheet(
+      "QLabel {"
+      "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+      "      stop:0 #3a3a40, stop:1 #2e2e34);"
+      "   color: #e0e0e0;"
+      "   padding: 12px 16px;"
+      "   font-weight: 600;"
+      "   font-size: 13px;"
+      "   border-bottom: 1px solid rgba(255, 255, 255, 0.1);"
+      "   letter-spacing: 0.5px;"
+      "}");
   main_layout->addWidget(title_label_);
 
   // Scroll area for parameters
@@ -253,33 +254,34 @@ void PropertyPanel::clearProperties() {
   auto *empty_layout = new QVBoxLayout(empty_container);
   empty_layout->setAlignment(Qt::AlignCenter);
   empty_layout->setSpacing(12);
-  
+
   auto *empty_icon = new QLabel("📋", empty_container);
   empty_icon->setAlignment(Qt::AlignCenter);
   empty_icon->setStyleSheet("QLabel { "
-                           "  font-size: 48px; "
-                           "  padding: 20px; "
-                           "}");
-  
+                            "  font-size: 48px; "
+                            "  padding: 20px; "
+                            "}");
+
   auto *empty_label = new QLabel("No node selected", empty_container);
   empty_label->setAlignment(Qt::AlignCenter);
   empty_label->setStyleSheet("QLabel { "
-                            "  color: #606068; "
-                            "  font-size: 13px; "
-                            "  font-weight: 500; "
-                            "}");
-  
-  auto *empty_hint = new QLabel("Select a node to edit its properties", empty_container);
+                             "  color: #606068; "
+                             "  font-size: 13px; "
+                             "  font-weight: 500; "
+                             "}");
+
+  auto *empty_hint =
+      new QLabel("Select a node to edit its properties", empty_container);
   empty_hint->setAlignment(Qt::AlignCenter);
   empty_hint->setStyleSheet("QLabel { "
-                           "  color: #4a4a50; "
-                           "  font-size: 11px; "
-                           "}");
-  
+                            "  color: #4a4a50; "
+                            "  font-size: 11px; "
+                            "}");
+
   empty_layout->addWidget(empty_icon);
   empty_layout->addWidget(empty_label);
   empty_layout->addWidget(empty_hint);
-  
+
   content_layout_->insertWidget(0, empty_container);
 }
 
@@ -299,12 +301,11 @@ void PropertyPanel::addSeparator() {
   line->setFrameShape(QFrame::HLine);
   line->setFrameShadow(QFrame::Plain);
   line->setFixedHeight(1);
-  line->setStyleSheet(
-      "QFrame { "
-      "  background-color: rgba(255, 255, 255, 0.06); "
-      "  border: none; "
-      "  margin: 12px 0px; "
-      "}");
+  line->setStyleSheet("QFrame { "
+                      "  background-color: rgba(255, 255, 255, 0.06); "
+                      "  border: none; "
+                      "  margin: 12px 0px; "
+                      "}");
   content_layout_->insertWidget(content_layout_->count() - 1, line);
 }
 
@@ -353,48 +354,46 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
   spinbox->setValue(value);
   spinbox->setMinimumWidth(70);
   spinbox->setMaximumWidth(90);
-  spinbox->setStyleSheet(
-      "QSpinBox {"
-      "  background: rgba(255, 255, 255, 0.08);"
-      "  border: 1px solid rgba(255, 255, 255, 0.12);"
-      "  border-radius: 6px;"
-      "  padding: 6px 8px;"
-      "  color: #e0e0e0;"
-      "  font-size: 12px;"
-      "  font-weight: 500;"
-      "}"
-      "QSpinBox:focus {"
-      "  background: rgba(255, 255, 255, 0.12);"
-      "  border-color: #4a9eff;"
-      "  outline: none;"
-      "}"
-      "QSpinBox::up-button, QSpinBox::down-button {"
-      "  width: 0px;"
-      "  border: none;"
-      "}");
+  spinbox->setStyleSheet("QSpinBox {"
+                         "  background: rgba(255, 255, 255, 0.08);"
+                         "  border: 1px solid rgba(255, 255, 255, 0.12);"
+                         "  border-radius: 6px;"
+                         "  padding: 6px 8px;"
+                         "  color: #e0e0e0;"
+                         "  font-size: 12px;"
+                         "  font-weight: 500;"
+                         "}"
+                         "QSpinBox:focus {"
+                         "  background: rgba(255, 255, 255, 0.12);"
+                         "  border-color: #4a9eff;"
+                         "  outline: none;"
+                         "}"
+                         "QSpinBox::up-button, QSpinBox::down-button {"
+                         "  width: 0px;"
+                         "  border: none;"
+                         "}");
 
   // Slider for visual adjustment
   auto *slider = new QSlider(Qt::Horizontal, control_container);
   slider->setRange(min, max);
   slider->setValue(value);
-  slider->setStyleSheet(
-      "QSlider::groove:horizontal {"
-      "  background: rgba(255, 255, 255, 0.1);"
-      "  height: 6px;"
-      "  border-radius: 3px;"
-      "}"
-      "QSlider::handle:horizontal {"
-      "  background: #4a9eff;"
-      "  border: 2px solid #2a2a30;"
-      "  width: 16px;"
-      "  height: 16px;"
-      "  margin: -6px 0;"
-      "  border-radius: 8px;"
-      "}"
-      "QSlider::handle:horizontal:hover {"
-      "  background: #6ab4ff;"
-      "  border-color: #3a3a40;"
-      "}");
+  slider->setStyleSheet("QSlider::groove:horizontal {"
+                        "  background: rgba(255, 255, 255, 0.1);"
+                        "  height: 6px;"
+                        "  border-radius: 3px;"
+                        "}"
+                        "QSlider::handle:horizontal {"
+                        "  background: #4a9eff;"
+                        "  border: 2px solid #2a2a30;"
+                        "  width: 16px;"
+                        "  height: 16px;"
+                        "  margin: -6px 0;"
+                        "  border-radius: 8px;"
+                        "}"
+                        "QSlider::handle:horizontal:hover {"
+                        "  background: #6ab4ff;"
+                        "  border-color: #3a3a40;"
+                        "}");
 
   control_layout->addWidget(spinbox);
   control_layout->addWidget(slider);
@@ -471,24 +470,23 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
   slider->setRange(0, 1000);
   double normalized = (value - min) / (max - min);
   slider->setValue(static_cast<int>(normalized * 1000));
-  slider->setStyleSheet(
-      "QSlider::groove:horizontal {"
-      "  background: rgba(255, 255, 255, 0.1);"
-      "  height: 6px;"
-      "  border-radius: 3px;"
-      "}"
-      "QSlider::handle:horizontal {"
-      "  background: #4a9eff;"
-      "  border: 2px solid #2a2a30;"
-      "  width: 16px;"
-      "  height: 16px;"
-      "  margin: -6px 0;"
-      "  border-radius: 8px;"
-      "}"
-      "QSlider::handle:horizontal:hover {"
-      "  background: #6ab4ff;"
-      "  border-color: #3a3a40;"
-      "}");
+  slider->setStyleSheet("QSlider::groove:horizontal {"
+                        "  background: rgba(255, 255, 255, 0.1);"
+                        "  height: 6px;"
+                        "  border-radius: 3px;"
+                        "}"
+                        "QSlider::handle:horizontal {"
+                        "  background: #4a9eff;"
+                        "  border: 2px solid #2a2a30;"
+                        "  width: 16px;"
+                        "  height: 16px;"
+                        "  margin: -6px 0;"
+                        "  border-radius: 8px;"
+                        "}"
+                        "QSlider::handle:horizontal:hover {"
+                        "  background: #6ab4ff;"
+                        "  border-color: #3a3a40;"
+                        "}");
 
   control_layout->addWidget(spinbox);
   control_layout->addWidget(slider);
@@ -547,7 +545,13 @@ void PropertyPanel::addBoolParameter(const QString &label, bool value,
       "QCheckBox::indicator:checked {"
       "  background: #4a9eff;"
       "  border-color: #4a9eff;"
-      "  image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAgM0w0LjUgOC41TDIgNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PC9zdmc+);"
+      "  image: "
+      "url(data:image/"
+      "svg+xml;base64,"
+      "PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgeG1sbnM9"
+      "Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAgM0w0LjUgOC41TDIg"
+      "NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PC9zdmc+"
+      ");"
       "}"
       "QCheckBox::indicator:hover {"
       "  background: rgba(255, 255, 255, 0.12);"
@@ -588,44 +592,43 @@ void PropertyPanel::addComboParameter(const QString &label, int value,
   combobox->addItems(options);
   combobox->setCurrentIndex(value);
   combobox->setMinimumHeight(32);
-  combobox->setStyleSheet(
-      "QComboBox {"
-      "  background: rgba(255, 255, 255, 0.08);"
-      "  border: 1px solid rgba(255, 255, 255, 0.12);"
-      "  border-radius: 6px;"
-      "  padding: 6px 12px;"
-      "  color: #e0e0e0;"
-      "  font-size: 12px;"
-      "  font-weight: 500;"
-      "}"
-      "QComboBox:hover {"
-      "  background: rgba(255, 255, 255, 0.12);"
-      "  border-color: rgba(255, 255, 255, 0.2);"
-      "}"
-      "QComboBox:focus {"
-      "  border-color: #4a9eff;"
-      "  outline: none;"
-      "}"
-      "QComboBox::drop-down {"
-      "  border: none;"
-      "  width: 24px;"
-      "}"
-      "QComboBox::down-arrow {"
-      "  image: none;"
-      "  border-left: 4px solid transparent;"
-      "  border-right: 4px solid transparent;"
-      "  border-top: 6px solid #e0e0e0;"
-      "  margin-right: 8px;"
-      "}"
-      "QComboBox QAbstractItemView {"
-      "  background: #2a2a30;"
-      "  border: 1px solid rgba(255, 255, 255, 0.15);"
-      "  border-radius: 6px;"
-      "  padding: 4px;"
-      "  color: #e0e0e0;"
-      "  selection-background-color: #4a9eff;"
-      "  selection-color: white;"
-      "}");
+  combobox->setStyleSheet("QComboBox {"
+                          "  background: rgba(255, 255, 255, 0.08);"
+                          "  border: 1px solid rgba(255, 255, 255, 0.12);"
+                          "  border-radius: 6px;"
+                          "  padding: 6px 12px;"
+                          "  color: #e0e0e0;"
+                          "  font-size: 12px;"
+                          "  font-weight: 500;"
+                          "}"
+                          "QComboBox:hover {"
+                          "  background: rgba(255, 255, 255, 0.12);"
+                          "  border-color: rgba(255, 255, 255, 0.2);"
+                          "}"
+                          "QComboBox:focus {"
+                          "  border-color: #4a9eff;"
+                          "  outline: none;"
+                          "}"
+                          "QComboBox::drop-down {"
+                          "  border: none;"
+                          "  width: 24px;"
+                          "}"
+                          "QComboBox::down-arrow {"
+                          "  image: none;"
+                          "  border-left: 4px solid transparent;"
+                          "  border-right: 4px solid transparent;"
+                          "  border-top: 6px solid #e0e0e0;"
+                          "  margin-right: 8px;"
+                          "}"
+                          "QComboBox QAbstractItemView {"
+                          "  background: #2a2a30;"
+                          "  border: 1px solid rgba(255, 255, 255, 0.15);"
+                          "  border-radius: 6px;"
+                          "  padding: 4px;"
+                          "  color: #e0e0e0;"
+                          "  selection-background-color: #4a9eff;"
+                          "  selection-color: white;"
+                          "}");
 
   layout->addWidget(combobox);
 
@@ -950,20 +953,17 @@ void PropertyPanel::buildTransformParameters(nodeflux::graph::GraphNode *node) {
                            ? translate_z_param->float_value
                            : 0.0;
 
-  addVector3Parameter("Position", translate_x, translate_y, translate_z,
-                      -100.0, 100.0,
-                      [this, node](double x, double y, double z) {
-                        node->set_parameter(
-                            "translate_x",
-                            NodeParameter("translate_x", static_cast<float>(x)));
-                        node->set_parameter(
-                            "translate_y",
-                            NodeParameter("translate_y", static_cast<float>(y)));
-                        node->set_parameter(
-                            "translate_z",
-                            NodeParameter("translate_z", static_cast<float>(z)));
-                        emit parameterChanged();
-                      });
+  addVector3Parameter(
+      "Position", translate_x, translate_y, translate_z, -100.0, 100.0,
+      [this, node](double x, double y, double z) {
+        node->set_parameter(
+            "translate_x", NodeParameter("translate_x", static_cast<float>(x)));
+        node->set_parameter(
+            "translate_y", NodeParameter("translate_y", static_cast<float>(y)));
+        node->set_parameter(
+            "translate_z", NodeParameter("translate_z", static_cast<float>(z)));
+        emit parameterChanged();
+      });
 
   addHeader("Rotation (Degrees)");
 
@@ -986,19 +986,17 @@ void PropertyPanel::buildTransformParameters(nodeflux::graph::GraphNode *node) {
                         ? rotate_z_param->float_value
                         : 0.0;
 
-  addVector3Parameter("Rotation", rotate_x, rotate_y, rotate_z, -360.0, 360.0,
-                      [this, node](double x, double y, double z) {
-                        node->set_parameter(
-                            "rotate_x",
+  addVector3Parameter(
+      "Rotation", rotate_x, rotate_y, rotate_z, -360.0, 360.0,
+      [this, node](double x, double y, double z) {
+        node->set_parameter("rotate_x",
                             NodeParameter("rotate_x", static_cast<float>(x)));
-                        node->set_parameter(
-                            "rotate_y",
+        node->set_parameter("rotate_y",
                             NodeParameter("rotate_y", static_cast<float>(y)));
-                        node->set_parameter(
-                            "rotate_z",
+        node->set_parameter("rotate_z",
                             NodeParameter("rotate_z", static_cast<float>(z)));
-                        emit parameterChanged();
-                      });
+        emit parameterChanged();
+      });
 
   addHeader("Scale");
 
@@ -1021,19 +1019,17 @@ void PropertyPanel::buildTransformParameters(nodeflux::graph::GraphNode *node) {
                        ? scale_z_param->float_value
                        : 1.0;
 
-  addVector3Parameter("Scale", scale_x, scale_y, scale_z, 0.01, 10.0,
-                      [this, node](double x, double y, double z) {
-                        node->set_parameter(
-                            "scale_x",
+  addVector3Parameter(
+      "Scale", scale_x, scale_y, scale_z, 0.01, 10.0,
+      [this, node](double x, double y, double z) {
+        node->set_parameter("scale_x",
                             NodeParameter("scale_x", static_cast<float>(x)));
-                        node->set_parameter(
-                            "scale_y",
+        node->set_parameter("scale_y",
                             NodeParameter("scale_y", static_cast<float>(y)));
-                        node->set_parameter(
-                            "scale_z",
+        node->set_parameter("scale_z",
                             NodeParameter("scale_z", static_cast<float>(z)));
-                        emit parameterChanged();
-                      });
+        emit parameterChanged();
+      });
 }
 
 void PropertyPanel::buildArrayParameters(nodeflux::graph::GraphNode *node) {
@@ -1619,13 +1615,13 @@ void PropertyPanel::addInfoLabel(const QString &text) {
   auto *info = new QLabel(text, content_widget_);
   info->setWordWrap(true);
   info->setStyleSheet("QLabel { "
-                     "  background: rgba(74, 158, 255, 0.1); "
-                     "  border: 1px solid rgba(74, 158, 255, 0.2); "
-                     "  border-radius: 6px; "
-                     "  padding: 8px 10px; "
-                     "  color: #8ab4f8; "
-                     "  font-size: 11px; "
-                     "  line-height: 1.4; "
-                     "}");
+                      "  background: rgba(74, 158, 255, 0.1); "
+                      "  border: 1px solid rgba(74, 158, 255, 0.2); "
+                      "  border-radius: 6px; "
+                      "  padding: 8px 10px; "
+                      "  color: #8ab4f8; "
+                      "  font-size: 11px; "
+                      "  line-height: 1.4; "
+                      "}");
   content_layout_->insertWidget(content_layout_->count() - 1, info);
 }

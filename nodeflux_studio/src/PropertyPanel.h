@@ -76,9 +76,10 @@ private:
   void addComboParameter(const QString &label, int value,
                          const QStringList &options,
                          std::function<void(int)> callback);
-  void addVector3Parameter(const QString &label, double x, double y, double z,
-                          double min, double max,
-                          std::function<void(double, double, double)> callback);
+  void
+  addVector3Parameter(const QString &label, double x, double y, double z,
+                      double min, double max,
+                      std::function<void(double, double, double)> callback);
   void addInfoLabel(const QString &text);
 
   // Builder methods for specific node types
