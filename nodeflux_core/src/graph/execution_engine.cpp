@@ -175,6 +175,12 @@ ExecutionEngine::execute_sphere_node(const GraphNode &node) {
   std::cout << "🌐 Creating sphere with radius=" << radius
             << ", u_segments=" << u_segments << ", v_segments=" << v_segments
             << std::endl;
+  std::cout << "   radius_param has_value: " << radius_param.has_value()
+            << std::endl;
+  if (radius_param.has_value()) {
+    std::cout << "   radius_param.float_value: " << radius_param->float_value
+              << std::endl;
+  }
 
   auto sphere_result = geometry::SphereGenerator::generate_uv_sphere(
       static_cast<double>(radius), u_segments, v_segments);

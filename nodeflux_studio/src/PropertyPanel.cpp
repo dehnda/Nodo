@@ -502,16 +502,20 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
             slider->blockSignals(false);
           });
 
-  // Connect slider to spinbox
-  connect(slider, &QSlider::valueChanged, [spinbox, min, max](int v) {
+  // Connect slider to spinbox and callback
+  // Note: We block spinbox signals to prevent feedback loop, but must
+  // explicitly call the callback since the valueChanged signal won't be emitted
+  connect(slider, &QSlider::valueChanged, [spinbox, min, max, callback](int v) {
     double normalized = v / 1000.0;
     double value = min + normalized * (max - min);
     spinbox->blockSignals(true);
     spinbox->setValue(value);
     spinbox->blockSignals(false);
+    // Call callback directly since signals are blocked
+    callback(value);
   });
 
-  // Connect to callback
+  // Connect spinbox to callback (for direct spinbox edits)
   connect(spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
           [callback](double v) { callback(v); });
 
@@ -680,12 +684,19 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
       addDoubleParameter(
           label, value, min, max, [this, node, param](double new_value) {
             std::cout << "🎚️ Float parameter '" << param.name << "' changed to "
-                      << new_value << "\n";
+                      << new_value << std::endl;
+            std::cout << "   Node ID: " << node->get_id() << std::endl;
+            std::cout << "   Old value: " << param.float_value << std::endl;
             node->set_parameter(param.name,
                                 nodeflux::graph::NodeParameter(
                                     param.name, static_cast<float>(new_value),
                                     param.label, param.ui_range.float_min,
                                     param.ui_range.float_max));
+            auto verify_param = node->get_parameter(param.name);
+            if (verify_param.has_value()) {
+              std::cout << "   Verified new value: "
+                        << verify_param->float_value << std::endl;
+            }
             emit parameterChanged();
           });
       break;

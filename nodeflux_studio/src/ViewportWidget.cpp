@@ -3,8 +3,8 @@
 #include <nodeflux/core/mesh.hpp>
 
 #include <QMouseEvent>
-#include <QWheelEvent>
 #include <QTimer>
+#include <QWheelEvent>
 #include <QtMath>
 
 // Vertex shader source (GLSL 330)
@@ -269,7 +269,8 @@ void ViewportWidget::initializeGL() {
   // Query and log point size range
   GLfloat point_size_range[2];
   glGetFloatv(GL_POINT_SIZE_RANGE, point_size_range);
-  qDebug() << "OpenGL Point Size Range:" << point_size_range[0] << "to" << point_size_range[1];
+  qDebug() << "OpenGL Point Size Range:" << point_size_range[0] << "to"
+           << point_size_range[1];
 
   GLfloat point_size_granularity;
   glGetFloatv(GL_POINT_SIZE_GRANULARITY, &point_size_granularity);
@@ -876,7 +877,8 @@ void ViewportWidget::drawEdges() {
   simple_shader_program_->setUniformValue("projection", projection_matrix_);
   simple_shader_program_->setUniformValue("color",
                                           QVector3D(1.0F, 1.0F, 1.0F)); // White
-  simple_shader_program_->setUniformValue("point_size", 1.0F); // Not used for lines, but required
+  simple_shader_program_->setUniformValue(
+      "point_size", 1.0F); // Not used for lines, but required
 
   glLineWidth(1.5F); // Slightly thicker lines for visibility
 
@@ -892,12 +894,6 @@ void ViewportWidget::drawEdges() {
 void ViewportWidget::drawVertices() {
   // Check if we're rendering a point cloud (no faces)
   const bool is_point_cloud = (index_count_ == 0 && point_count_ > 0);
-
-  static bool logged_once = false;
-  if (!logged_once && is_point_cloud) {
-    qDebug() << "Drawing point cloud with" << point_count_ << "points";
-    logged_once = true;
-  }
 
   // Skip if: (not showing vertices AND not a point cloud) OR no VAO OR no
   // points
@@ -926,10 +922,6 @@ void ViewportWidget::drawVertices() {
 
   const float point_size = 12.0F; // Reasonable size - adjust as needed
   simple_shader_program_->setUniformValue("point_size", point_size);
-
-  if (!logged_once) {
-    qDebug() << "Setting point_size uniform to:" << point_size;
-  }
 
   vertex_vao_->bind();
   glDrawArrays(GL_POINTS, 0, point_count_);
@@ -1137,12 +1129,12 @@ void ViewportWidget::setupOverlays() {
   controls_overlay_->raise();
 
   // Connect controls signals
-  connect(controls_overlay_, &ViewportControlsOverlay::wireframeToggled,
-          this, &ViewportWidget::setWireframeMode);
-  connect(controls_overlay_, &ViewportControlsOverlay::cameraReset,
-          this, &ViewportWidget::resetCamera);
-  connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView,
-          this, &ViewportWidget::fitToView);
+  connect(controls_overlay_, &ViewportControlsOverlay::wireframeToggled, this,
+          &ViewportWidget::setWireframeMode);
+  connect(controls_overlay_, &ViewportControlsOverlay::cameraReset, this,
+          &ViewportWidget::resetCamera);
+  connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView, this,
+          &ViewportWidget::fitToView);
 
   // Create axis gizmo (bottom-left)
   axis_gizmo_ = new ViewportAxisGizmo(this);
@@ -1166,7 +1158,7 @@ void ViewportWidget::updateOverlayPositions() {
   }
 }
 
-void ViewportWidget::resizeEvent(QResizeEvent* event) {
+void ViewportWidget::resizeEvent(QResizeEvent *event) {
   QOpenGLWidget::resizeEvent(event);
   updateOverlayPositions();
 }
@@ -1183,8 +1175,9 @@ void ViewportWidget::updateStats() {
     stats_overlay_->setTriangleCount(index_count_ / 3);
 
     // Calculate approximate memory usage
-    int memory_kb = (vertex_count_ * sizeof(float) * 6 +  // vertices + normals
-                     index_count_ * sizeof(unsigned int)) / 1024;
+    int memory_kb = (vertex_count_ * sizeof(float) * 6 + // vertices + normals
+                     index_count_ * sizeof(unsigned int)) /
+                    1024;
     stats_overlay_->setMemoryUsage(QString("%1 KB").arg(memory_kb));
   }
 }
