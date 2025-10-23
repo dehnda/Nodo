@@ -105,7 +105,7 @@ auto MainWindow::setupMenuBar() -> void {
 
   QAction *cullingAction = viewMenu->addAction("Backface C&ulling");
   cullingAction->setCheckable(true);
-  cullingAction->setChecked(true); // Enabled by default
+  cullingAction->setChecked(false); // Enabled by default
 
   viewMenu->addSeparator();
 
