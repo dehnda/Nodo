@@ -318,15 +318,48 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
   param_label->setStyleSheet("QLabel { color: #ccc; font-size: 10px; }");
   layout->addWidget(param_label);
 
+  // Spinbox and slider container
+  auto *control_container = new QWidget(container);
+  auto *control_layout = new QHBoxLayout(control_container);
+  control_layout->setContentsMargins(0, 0, 0, 0);
+  control_layout->setSpacing(4);
+
   // Double spinbox for precise input
-  auto *spinbox = new QDoubleSpinBox(container);
+  auto *spinbox = new QDoubleSpinBox(control_container);
   spinbox->setRange(min, max);
   spinbox->setValue(value);
   spinbox->setDecimals(3);
   spinbox->setSingleStep(0.1);
-  spinbox->setMinimumWidth(80);
+  spinbox->setMinimumWidth(60);
+  spinbox->setMaximumWidth(80);
 
-  layout->addWidget(spinbox);
+  // Slider for visual adjustment (map double range to int slider 0-1000)
+  auto *slider = new QSlider(Qt::Horizontal, control_container);
+  slider->setRange(0, 1000);
+  double normalized = (value - min) / (max - min);
+  slider->setValue(static_cast<int>(normalized * 1000));
+
+  control_layout->addWidget(spinbox);
+  control_layout->addWidget(slider);
+  layout->addWidget(control_container);
+
+  // Connect spinbox to slider
+  connect(spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          [slider, min, max](double v) {
+            double normalized = (v - min) / (max - min);
+            slider->blockSignals(true);
+            slider->setValue(static_cast<int>(normalized * 1000));
+            slider->blockSignals(false);
+          });
+
+  // Connect slider to spinbox
+  connect(slider, &QSlider::valueChanged, [spinbox, min, max](int v) {
+    double normalized = v / 1000.0;
+    double value = min + normalized * (max - min);
+    spinbox->blockSignals(true);
+    spinbox->setValue(value);
+    spinbox->blockSignals(false);
+  });
 
   // Connect to callback
   connect(spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
