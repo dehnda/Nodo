@@ -34,10 +34,16 @@ set(STUDIO_HEADERS
     src/NodeCreationMenu.h
 )
 
+# Resource files
+set(STUDIO_RESOURCES
+    resources.qrc
+)
+
 # Create the executable
 add_executable(nodeflux_studio
     ${STUDIO_SOURCES}
     ${STUDIO_HEADERS}
+    ${STUDIO_RESOURCES}
 )
 
 # Link to our core library and Qt

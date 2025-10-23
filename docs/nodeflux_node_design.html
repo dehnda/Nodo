@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeFluxEngine - Refined Advanced Node Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #1f1f26;
+            color: #e0e0e0;
+            padding: 40px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #4a9eff;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #a0a0a8;
+            margin-bottom: 24px;
+        }
+
+        .note {
+            background: rgba(74, 158, 255, 0.1);
+            border: 2px solid rgba(74, 158, 255, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 900px;
+            margin: 0 auto 40px;
+        }
+
+        .note h3 {
+            color: #4a9eff;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .note p {
+            color: #c0c0c8;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #e0e0e0;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #2a2a32;
+        }
+
+        .section-description {
+            font-size: 16px;
+            color: #a0a0a8;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .showcase-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #2a2a32;
+            border-radius: 12px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .showcase-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a9eff;
+            text-align: center;
+        }
+
+        /* Base Node */
+        .node {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            min-width: 240px;
+            max-width: 280px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .node.selected {
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 4px rgba(74, 158, 255, 0.2), 0 12px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Node Header */
+        .node-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+
+        .node-icon {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .node-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+        }
+
+        /* BUTTON LAYOUT VARIATIONS */
+
+        /* Option 1: Right Side Vertical (Original) */
+        .node-actions-v1 {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* Option 2: Below Header Bar */
+        .node-actions-v2 {
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        /* Option 3: Floating Bottom Right */
+        .node-actions-v3 {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Option 4: Header Right, Spaced Out */
+        .node-actions-v4 {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        /* Button Styles */
+        .node-action-btn {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #c0c0c8;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .node-action-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.1);
+            color: white;
+        }
+
+        .node-action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .node-action-btn.active {
+            background: #4a9eff;
+            border-color: #4a9eff;
+            color: white;
+        }
+
+        .node-action-btn.bypass.active {
+            background: #ffd93d;
+            border-color: #ffd93d;
+            color: #1a1a1f;
+        }
+
+        .node-action-btn.lock.active {
+            background: #ff6b9d;
+            border-color: #ff6b9d;
+        }
+
+        /* Tooltip */
+        .node-action-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-4px);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .node-action-btn:hover::after {
+            opacity: 1;
+        }
+
+        /* Status Bar */
+        .node-status {
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+
+        .status-indicator.ready {
+            background: #4ade80;
+        }
+
+        .status-indicator.processing {
+            background: #ffd93d;
+        }
+
+        .status-indicator.cached {
+            background: #4a9eff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: #a0a0a8;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .status-time {
+            margin-left: auto;
+            color: #4a9eff;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-weight: 600;
+        }
+
+        /* Node Body */
+        .node-body {
+            padding: 14px 16px;
+        }
+
+        .node-param {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .node-param:last-child {
+            margin-bottom: 0;
+        }
+
+        .param-label {
+            color: #a0a0a8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .param-icon {
+            font-size: 10px;
+        }
+
+        .param-value {
+            color: #e0e0e0;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .param-value.modified {
+            background: rgba(74, 158, 255, 0.15);
+            color: #4a9eff;
+        }
+
+        /* Node Footer */
+        .node-footer {
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 10px 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 11px;
+        }
+
+        .footer-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #808088;
+        }
+
+        .footer-stat-icon {
+            font-size: 12px;
+        }
+
+        .footer-stat-value {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            color: #c0c0c8;
+        }
+
+        .footer-spacer {
+            flex: 1;
+        }
+
+        /* GPU Badge */
+        .node-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 2px solid #1f1f26;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Compact Mode */
+        .node.compact .node-body {
+            display: none;
+        }
+
+        .node.compact .node-footer {
+            display: none;
+        }
+
+        .node.compact .node-actions-v2 {
+            display: none;
+        }
+
+        /* Ports */
+        .node-port {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #1f1f26;
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .node-port:hover {
+            transform: scale(1.3);
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        .node-port.input {
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4a9eff;
+        }
+
+        .node-port.output {
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff6b9d;
+        }
+
+        /* Controls */
+        .demo-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 12px 24px;
+            background: rgba(74, 158, 255, 0.15);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 8px;
+            color: #4a9eff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            background: rgba(74, 158, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .demo-btn.active {
+            background: #4a9eff;
+            color: white;
+        }
+
+        /* Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .comparison-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #2a2a32;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .comparison-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 16px;
+        }
+
+        .comparison-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            color: #c0c0c8;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .comparison-list li::before {
+            content: '→';
+            color: #4a9eff;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Refined Advanced Node Design</h1>
+            <p class="subtitle">Better Button Placement + Properties + Compact Mode</p>
+            
+            <div class="note">
+                <h3>✨ What You Liked</h3>
+                <p>
+                    You wanted to keep the <strong>advanced design</strong> with:<br>
+                    • Properties visible in nodes<br>
+                    • Action buttons for quick access<br>
+                    • Status bar showing cook time<br>
+                    • Footer stats (verts, tris, memory)<br>
+                    • Compact mode option<br><br>
+                    Below are <strong>4 button placement options</strong> - which feels best?
+                </p>
+            </div>
+        </div>
+
+        <!-- Button Placement Options -->
+        <section class="section">
+            <h2 class="section-title">Button Placement Options</h2>
+            <p class="section-description">
+                Same design, different button positions. Which placement feels most natural?
+            </p>
+
+            <div class="showcase-grid">
+                <!-- Option 1: Header Right (Original) -->
+                <div class="showcase-item">
+                    <div class="showcase-label">Option 1: Header Right</div>
+                    <div class="node selected" style="position: relative;">
+                        <div class="node-port input"></div>
+                        
+                        <div class="node-header" style="background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);">
+                            <div class="node-icon">🔧</div>
+                            <div class="node-title">Transform</div>
+                            <div class="node-actions-v1">
+                                <div class="node-action-btn" data-tooltip="Bypass">⊘</div>
+                                <div class="node-action-btn active" data-tooltip="Display">👁</div>
+                                <div class="node-action-btn" data-tooltip="Lock">🔒</div>
+                                <div class="node-action-btn" data-tooltip="Info">ℹ️</div>
+                            </div>
+                        </div>
+
+                        <div class="node-status">
+                            <div class="status-indicator cached"></div>
+                            <span class="status-text">Cached</span>
+                            <span class="status-time">0.2ms</span>
+                        </div>
+
+                        <div class="node-body">
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">→</span>
+                                    Position
+                                </span>
+                                <span class="param-value modified">0, 2, 0</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">↻</span>
+                                    Rotation
+                                </span>
+                                <span class="param-value">0, 0, 0</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">⊕</span>
+                                    Scale
+                                </span>
+                                <span class="param-value modified">1.5</span>
+                            </div>
+                        </div>
+
+                        <div class="node-footer">
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">▲</span>
+                                <span class="footer-stat-value">1,024</span>
+                            </div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">◆</span>
+                                <span class="footer-stat-value">2,048</span>
+                            </div>
+                            <div class="footer-spacer"></div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">💾</span>
+                                <span class="footer-stat-value">2.4KB</span>
+                            </div>
+                        </div>
+
+                        <div class="node-badge">⚡</div>
+                        <div class="node-port output"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #808088; text-align: center; margin-top: 12px;">
+                        Original - buttons beside title
+                    </div>
+                </div>
+
+                <!-- Option 2: Below Header Bar -->
+                <div class="showcase-item">
+                    <div class="showcase-label">Option 2: Action Bar Below Header</div>
+                    <div class="node" style="position: relative;">
+                        <div class="node-port input"></div>
+                        
+                        <div class="node-header" style="background: linear-gradient(135deg, #ff8c42 0%, #ff6b2b 100%);">
+                            <div class="node-icon">📦</div>
+                            <div class="node-title">Sphere</div>
+                        </div>
+
+                        <div class="node-actions-v2">
+                            <div class="node-action-btn" data-tooltip="Bypass">⊘</div>
+                            <div class="node-action-btn active" data-tooltip="Display">👁</div>
+                            <div class="node-action-btn" data-tooltip="Lock">🔒</div>
+                            <div class="node-action-btn" data-tooltip="Info">ℹ️</div>
+                        </div>
+
+                        <div class="node-status">
+                            <div class="status-indicator ready"></div>
+                            <span class="status-text">Ready</span>
+                            <span class="status-time">0.3ms</span>
+                        </div>
+
+                        <div class="node-body">
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">●</span>
+                                    Radius
+                                </span>
+                                <span class="param-value">1.0</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">⊞</span>
+                                    Segments
+                                </span>
+                                <span class="param-value modified">32</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">⊞</span>
+                                    Rings
+                                </span>
+                                <span class="param-value">16</span>
+                            </div>
+                        </div>
+
+                        <div class="node-footer">
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">▲</span>
+                                <span class="footer-stat-value">1,024</span>
+                            </div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">◆</span>
+                                <span class="footer-stat-value">2,048</span>
+                            </div>
+                            <div class="footer-spacer"></div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">💾</span>
+                                <span class="footer-stat-value">4KB</span>
+                            </div>
+                        </div>
+
+                        <div class="node-badge">⚡</div>
+                        <div class="node-port output"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #808088; text-align: center; margin-top: 12px;">
+                        Dedicated action bar - cleaner header
+                    </div>
+                </div>
+
+                <!-- Option 3: Floating Bottom Right -->
+                <div class="showcase-item">
+                    <div class="showcase-label">Option 3: Floating Corner</div>
+                    <div class="node" style="position: relative;">
+                        <div class="node-port input"></div>
+                        
+                        <div class="node-header" style="background: linear-gradient(135deg, #6bcf7f 0%, #4ade80 100%);">
+                            <div class="node-icon">🔀</div>
+                            <div class="node-title">Boolean Union</div>
+                        </div>
+
+                        <div class="node-status">
+                            <div class="status-indicator processing"></div>
+                            <span class="status-text">Processing</span>
+                            <span class="status-time">12.5ms</span>
+                        </div>
+
+                        <div class="node-body">
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">⚙</span>
+                                    Operation
+                                </span>
+                                <span class="param-value">Union</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">🌳</span>
+                                    BVH Accel
+                                </span>
+                                <span class="param-value modified">ON</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">🔧</span>
+                                    Manifold
+                                </span>
+                                <span class="param-value">ON</span>
+                            </div>
+                        </div>
+
+                        <div class="node-actions-v3">
+                            <div class="node-action-btn" data-tooltip="Bypass">⊘</div>
+                            <div class="node-action-btn active" data-tooltip="Display">👁</div>
+                            <div class="node-action-btn" data-tooltip="Lock">🔒</div>
+                            <div class="node-action-btn" data-tooltip="Info">ℹ️</div>
+                        </div>
+
+                        <div class="node-footer">
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">▲</span>
+                                <span class="footer-stat-value">2,048</span>
+                            </div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">◆</span>
+                                <span class="footer-stat-value">4,096</span>
+                            </div>
+                            <div class="footer-spacer"></div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">💾</span>
+                                <span class="footer-stat-value">16KB</span>
+                            </div>
+                        </div>
+
+                        <div class="node-badge">⚡</div>
+                        <div class="node-port output"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #808088; text-align: center; margin-top: 12px;">
+                        Floating - stays out of the way
+                    </div>
+                </div>
+
+                <!-- Option 4: Header Right, Spaced -->
+                <div class="showcase-item">
+                    <div class="showcase-label">Option 4: Header Right, Better Spacing</div>
+                    <div class="node" style="position: relative;">
+                        <div class="node-port input"></div>
+                        
+                        <div class="node-header" style="background: linear-gradient(135deg, #ff6b9d 0%, #ff4d7d 100%);">
+                            <div class="node-icon">💾</div>
+                            <div class="node-title">Export OBJ</div>
+                            <div class="node-actions-v4">
+                                <div class="node-action-btn" data-tooltip="Bypass">⊘</div>
+                                <div class="node-action-btn active" data-tooltip="Display">👁</div>
+                                <div class="node-action-btn" data-tooltip="Lock">🔒</div>
+                            </div>
+                        </div>
+
+                        <div class="node-status">
+                            <div class="status-indicator ready"></div>
+                            <span class="status-text">Ready to Export</span>
+                        </div>
+
+                        <div class="node-body">
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">📁</span>
+                                    Filename
+                                </span>
+                                <span class="param-value">output.obj</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">
+                                    <span class="param-icon">⚙</span>
+                                    Format
+                                </span>
+                                <span class="param-value">Wavefront</span>
+                            </div>
+                        </div>
+
+                        <div class="node-footer">
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">▲</span>
+                                <span class="footer-stat-value">2,048</span>
+                            </div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">◆</span>
+                                <span class="footer-stat-value">4,096</span>
+                            </div>
+                            <div class="footer-spacer"></div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">💾</span>
+                                <span class="footer-stat-value">16KB</span>
+                            </div>
+                        </div>
+
+                        <div class="node-port output"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #808088; text-align: center; margin-top: 12px;">
+                        Header right - more breathing room
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Compact Mode Demo -->
+        <section class="section">
+            <h2 class="section-title">Compact Mode</h2>
+            <p class="section-description">
+                Toggle compact mode to hide parameters and footer for dense graphs. Great when you have 50+ nodes.
+            </p>
+
+            <div class="demo-controls">
+                <button class="demo-btn" onclick="toggleCompactDemo()">Toggle Compact Mode</button>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #4a9eff; margin-bottom: 16px; font-weight: 600;">Normal Mode</div>
+                    <div class="node" id="normalNode" style="position: relative;">
+                        <div class="node-port input"></div>
+                        
+                        <div class="node-header" style="background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);">
+                            <div class="node-icon">🔧</div>
+                            <div class="node-title">Transform</div>
+                            <div class="node-actions-v4">
+                                <div class="node-action-btn" data-tooltip="Bypass">⊘</div>
+                                <div class="node-action-btn active" data-tooltip="Display">👁</div>
+                                <div class="node-action-btn" data-tooltip="Lock">🔒</div>
+                            </div>
+                        </div>
+
+                        <div class="node-status">
+                            <div class="status-indicator cached"></div>
+                            <span class="status-text">Cached</span>
+                            <span class="status-time">0.2ms</span>
+                        </div>
+
+                        <div class="node-body">
+                            <div class="node-param">
+                                <span class="param-label">Position</span>
+                                <span class="param-value modified">0, 2, 0</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">Rotation</span>
+                                <span class="param-value">0, 0, 0</span>
+                            </div>
+                            <div class="node-param">
+                                <span class="param-label">Scale</span>
+                                <span class="param-value modified">1.5</span>
+                            </div>
+                        </div>
+
+                        <div class="node-footer">
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">▲</span>
+                                <span class="footer-stat-value">1,024</span>
+                            </div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">◆</span>
+                                <span class="footer-stat-value">2,048</span>
+                            </div>
+                            <div class="footer-spacer"></div>
+                            <div class="footer-stat">
+                                <span class="footer-stat-icon">💾</span>
+                                <span class="footer-stat-value">2.4KB</span>
+                            </div>
+                        </div>
+
+                        <div class="node-badge">⚡</div>
+                        <div class="node-port output"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #4a9eff; margin-bottom: 16px; font-weight: 600;">Compact Mode</div>
+                    <div class="node compact" id="compactNode" style="position: relative;">
+                        <div class="node-port input"></div>
+                        
+                        <div class="node-header" style="background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);">
+                            <div class="node-icon">🔧</div>
+                            <div class="node-title">Transform</div>
+                            <div class="node-actions-v4">
+                                <div class="node-action-btn" data-tooltip="Bypass">⊘</div>
+                                <div class="node-action-btn active" data-tooltip="Display">👁</div>
+                                <div class="node-action-btn" data-tooltip="Lock">🔒</div>
+                            </div>
+                        </div>
+
+                        <div class="node-status">
+                            <div class="status-indicator cached"></div>
+                            <span class="status-text">Cached</span>
+                            <span class="status-time">0.2ms</span>
+                        </div>
+
+                        <div class="node-badge">⚡</div>
+                        <div class="node-port output"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; padding: 24px; background: rgba(74, 158, 255, 0.1); border: 1px solid rgba(74, 158, 255, 0.3); border-radius: 12px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                <p style="color: #c0c0c8; font-size: 14px; line-height: 1.8;">
+                    <strong style="color: #4a9eff;">💡 Compact Mode Use Cases:</strong><br>
+                    • Large graphs with 50+ nodes - more nodes visible at once<br>
+                    • Quick overview of network structure - focus on connections<br>
+                    • When you don't need to see parameter values<br>
+                    • Toggle per-node or globally for entire graph<br>
+                    • Header and status remain visible for important info
+                </p>
+            </div>
+        </section>
+
+        <!-- Comparison -->
+        <section class="section">
+            <h2 class="section-title">Button Placement Comparison</h2>
+            
+            <div class="comparison">
+                <div class="comparison-card">
+                    <div class="comparison-title">Option 1: Header Right (Original)</div>
+                    <div class="comparison-list">
+                        <li>Buttons always visible</li>
+                        <li>Close to node title</li>
+                        <li>Can crowd the header</li>
+                        <li>Good for wide nodes</li>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-title">Option 2: Action Bar Below</div>
+                    <div class="comparison-list">
+                        <li>Clean header separation</li>
+                        <li>Easy to hit (horizontal)</li>
+                        <li>Takes vertical space</li>
+                        <li>Hidden in compact mode</li>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-title">Option 3: Floating Corner</div>
+                    <div class="comparison-list">
+                        <li>Stays out of the way</li>
+                        <li>Modern floating feel</li>
+                        <li>Always accessible</li>
+                        <li>Might cover content</li>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-title">Option 4: Header Right, Spaced</div>
+                    <div class="comparison-list">
+                        <li>Better visual balance</li>
+                        <li>More breathing room</li>
+                        <li>Clear separation from title</li>
+                        <li>Slightly fewer buttons fit</li>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendation -->
+        <section style="background: linear-gradient(135deg, rgba(74, 158, 255, 0.15), rgba(102, 126, 234, 0.10)); border: 2px solid rgba(74, 158, 255, 0.3); border-radius: 16px; padding: 48px; margin-top: 60px;">
+            <h2 style="font-size: 32px; font-weight: 700; color: #4a9eff; margin-bottom: 24px; text-align: center;">
+                My Recommendation
+            </h2>
+            <p style="font-size: 16px; color: #c0c0c8; line-height: 1.8; max-width: 800px; margin: 0 auto 24px; text-align: center;">
+                <strong style="color: #e0e0e0;">Option 2 (Action Bar) or Option 4 (Header Right Spaced)</strong>
+            </p>
+            <div style="max-width: 900px; margin: 0 auto;">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 12px 0; color: #e0e0e0; display: flex; gap: 12px; font-size: 15px;">
+                        <span style="color: #4ade80; font-weight: 700;">✓</span>
+                        <span><strong>Option 2 (Action Bar):</strong> Best for clarity - dedicated space for actions, clean header, doesn't crowd title</span>
+                    </li>
+                    <li style="padding: 12px 0; color: #e0e0e0; display: flex; gap: 12px; font-size: 15px;">
+                        <span style="color: #4ade80; font-weight: 700;">✓</span>
+                        <span><strong>Option 4 (Header Spaced):</strong> Best for compactness - slightly shorter nodes, buttons still accessible</span>
+                    </li>
+                    <li style="padding: 12px 0; color: #e0e0e0; display: flex; gap: 12px; font-size: 15px;">
+                        <span style="color: #4a9eff; font-weight: 700;">→</span>
+                        <span>Both work great with compact mode</span>
+                    </li>
+                    <li style="padding: 12px 0; color: #e0e0e0; display: flex; gap: 12px; font-size: 15px;">
+                        <span style="color: #4a9eff; font-weight: 700;">→</span>
+                        <span>Both keep all the features you liked: properties, stats, status bar</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function toggleCompactDemo() {
+            const normal = document.getElementById('normalNode');
+            const compact = document.getElementById('compactNode');
+            
+            normal.classList.toggle('compact');
+            compact.classList.toggle('compact');
+        }
+
+        // Node selection
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', function() {
+                document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // Button interactions
+        document.querySelectorAll('.node-action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (!this.classList.contains('active')) {
+                    this.classList.add('active');
+                } else {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

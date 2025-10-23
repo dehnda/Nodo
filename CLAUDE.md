@@ -382,11 +382,15 @@ cmake --build build --parallel
 - PLY export
 - glTF export (stretch goal)
 
-**Week 4: Advanced Features**
+**Week 4: Advanced Features & Attribute Unification**
 - Material system integration
 - UV mapping tools
 - Bend/Twist/Taper deformation nodes
-- Enhanced attribute workflows
+- Enhanced attribute workflows:
+  - Unify GeometryData and GeometryAttributes (remove duplication)
+  - Add attribute validation and introspection helpers
+  - Document point vs vertex semantics
+  - Add metadata for organized/unorganized geometry (foundation for point cloud support)
 
 ### 🌊 Medium-Term Goals (2-3 Months)
 
@@ -407,6 +411,14 @@ cmake --build build --parallel
 - Incremental mesh updates
 - Memory profiling tools
 - GPU memory management
+- Spatial indexing for point clouds
+
+**Point Cloud & Advanced Geometry**:
+- Point cloud representation mode in GeometryData
+- Point cloud processing SOPs (downsample, filter, normal estimation)
+- Organized grid support for efficient spatial queries
+- Optional PCL integration for advanced algorithms
+- Point-to-mesh conversion nodes (Poisson, Ball Pivoting)
 
 ### 🚀 Long-Term Vision (6+ Months)
 

@@ -14,6 +14,7 @@
 
 #include <QAction>
 #include <QDockWidget>
+#include <QFile>
 #include <QFileDialog>
 #include <QLabel>
 #include <QMenuBar>
@@ -28,6 +29,14 @@ MainWindow::MainWindow(QWidget *parent)
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>();
   execution_engine_ = std::make_unique<nodeflux::graph::ExecutionEngine>();
+
+  // Load and apply dark theme stylesheet
+  QFile styleFile(":/resources/styles/dark_theme.qss");
+  if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
+    QString styleSheet = QLatin1String(styleFile.readAll());
+    setStyleSheet(styleSheet);
+    styleFile.close();
+  }
 
   // Setup UI components in order
   setupMenuBar();
