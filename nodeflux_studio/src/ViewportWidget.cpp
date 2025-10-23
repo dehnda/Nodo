@@ -913,6 +913,12 @@ void ViewportWidget::drawVertices() {
   // Enable point sprite for proper gl_PointCoord
   glEnable(GL_PROGRAM_POINT_SIZE);
 
+// Enable point smoothing for better rendering (especially on Windows)
+#ifndef __APPLE__
+  glEnable(GL_POINT_SMOOTH);
+  glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+#endif
+
   simple_shader_program_->bind();
   simple_shader_program_->setUniformValue("model", model_matrix_);
   simple_shader_program_->setUniformValue("view", view_matrix_);
@@ -920,7 +926,13 @@ void ViewportWidget::drawVertices() {
   simple_shader_program_->setUniformValue(
       "color", QVector3D(0.2F, 0.5F, 0.9F)); // Nice blue
 
-  const float point_size = 6.0F; // Reasonable size - adjust as needed
+  // Query point size range and clamp to supported values (Windows
+  // compatibility)
+  GLfloat point_size_range[2];
+  glGetFloatv(GL_POINT_SIZE_RANGE, point_size_range);
+  const float desired_point_size = 6.0F;
+  const float point_size =
+      qBound(point_size_range[0], desired_point_size, point_size_range[1]);
   simple_shader_program_->setUniformValue("point_size", point_size);
 
   vertex_vao_->bind();
@@ -929,6 +941,9 @@ void ViewportWidget::drawVertices() {
 
   simple_shader_program_->release();
 
+#ifndef __APPLE__
+  glDisable(GL_POINT_SMOOTH);
+#endif
   glDisable(GL_PROGRAM_POINT_SIZE);
   glDisable(GL_BLEND);
 }
