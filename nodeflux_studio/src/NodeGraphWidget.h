@@ -181,6 +181,9 @@ public:
     // Update display flags without rebuilding
     void update_display_flags_from_graph();
 
+    // Update node statistics (vertices, triangles, memory, cook time)
+    void update_node_stats(int node_id, int vertex_count, int triangle_count, int memory_kb, double cook_time_ms);
+
     // Node selection
     QVector<int> get_selected_node_ids() const;
     void clear_selection();

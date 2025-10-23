@@ -648,6 +648,19 @@ void NodeGraphWidget::update_display_flags_from_graph() {
   }
 }
 
+void NodeGraphWidget::update_node_stats(int node_id, int vertex_count,
+                                         int triangle_count, int memory_kb,
+                                         double cook_time_ms) {
+  auto it = node_items_.find(node_id);
+  if (it != node_items_.end()) {
+    NodeGraphicsItem *item = it->second;
+    item->set_vertex_count(vertex_count);
+    item->set_triangle_count(triangle_count);
+    item->set_memory_kb(memory_kb);
+    item->set_cook_time(cook_time_ms);
+  }
+}
+
 void NodeGraphWidget::rebuild_from_graph() {
   // Block signals during rebuild to prevent crashes from selection changed
   // signals when items are being deleted/recreated

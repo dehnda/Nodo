@@ -600,13 +600,28 @@ void MainWindow::executeAndDisplayNode(int node_id) {
       // Display in viewport
       viewport_widget_->setMesh(*mesh);
 
+      // Calculate stats
+      int vertex_count = mesh->vertex_count();
+      int triangle_count = mesh->face_count(); // faces are triangles
+
+      // Estimate memory usage (very rough estimate):
+      // vertices: 3 floats (x,y,z) * 4 bytes = 12 bytes per vertex
+      // faces: 3 ints * 4 bytes = 12 bytes per face
+      // normals: 3 floats * 4 bytes = 12 bytes per vertex
+      int memory_bytes = (vertex_count * 24) + (triangle_count * 12);
+      int memory_kb = memory_bytes / 1024;
+
+      // Update node stats in graph widget
+      node_graph_widget_->update_node_stats(node_id, vertex_count, triangle_count,
+                                            memory_kb, 0.0); // TODO: Add actual cook time
+
       // Update status
       auto *node = node_graph_->get_node(node_id);
       if (node != nullptr) {
         QString msg = QString("Displaying: %1 (%2 vertices, %3 faces)")
                           .arg(QString::fromStdString(node->get_name()))
-                          .arg(mesh->vertex_count())
-                          .arg(mesh->face_count());
+                          .arg(vertex_count)
+                          .arg(triangle_count);
 
         // Add parameter info for debugging
         using nodeflux::graph::NodeType;
@@ -617,10 +632,10 @@ void MainWindow::executeAndDisplayNode(int node_id) {
           }
         }
 
-        statusBar()->showMessage(msg, 3000);
+        status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, msg);
       }
     } else {
-      statusBar()->showMessage("Node has no mesh output", 2000);
+      status_bar_widget_->setStatus(StatusBarWidget::Status::Error, "Node has no mesh output");
     }
   } else {
     statusBar()->showMessage("Graph execution failed", 2000);
