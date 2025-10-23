@@ -611,9 +611,10 @@ void MainWindow::executeAndDisplayNode(int node_id) {
       int memory_bytes = (vertex_count * 24) + (triangle_count * 12);
       int memory_kb = memory_bytes / 1024;
 
-      // Update node stats in graph widget
+      // Update node stats and parameters in graph widget
       node_graph_widget_->update_node_stats(node_id, vertex_count, triangle_count,
                                             memory_kb, 0.0); // TODO: Add actual cook time
+      node_graph_widget_->update_node_parameters(node_id);
 
       // Update status
       auto *node = node_graph_->get_node(node_id);

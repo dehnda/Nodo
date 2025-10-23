@@ -76,6 +76,12 @@ public:
     void set_triangle_count(int count) { triangle_count_ = count; update(); }
     void set_memory_kb(int kb) { memory_kb_ = kb; update(); }
 
+    // Parameters
+    void set_parameters(const std::vector<std::pair<QString, QString>>& params) {
+        parameters_ = params;
+        update();
+    }
+
     // Pin hit detection
     int get_pin_at_position(const QPointF& pos, bool& is_input) const;
 
@@ -105,6 +111,9 @@ private:
     int vertex_count_ = 0;
     int triangle_count_ = 0;
     int memory_kb_ = 0;
+
+    // Parameters (name, value pairs for display)
+    std::vector<std::pair<QString, QString>> parameters_;
 
     // Visual constants
     static constexpr float NODE_WIDTH = 240.0F;  // Wider for more content
@@ -183,6 +192,9 @@ public:
 
     // Update node statistics (vertices, triangles, memory, cook time)
     void update_node_stats(int node_id, int vertex_count, int triangle_count, int memory_kb, double cook_time_ms);
+
+    // Update node parameters from backend
+    void update_node_parameters(int node_id);
 
     // Node selection
     QVector<int> get_selected_node_ids() const;

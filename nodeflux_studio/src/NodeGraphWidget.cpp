@@ -419,40 +419,40 @@ void NodeGraphicsItem::drawBody(QPainter *painter) {
   painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
   painter->drawLine(0, body_rect.bottom(), NODE_WIDTH, body_rect.bottom());
 
-  // Draw parameters (placeholder - would need actual parameter data)
-  painter->setPen(QColor(160, 160, 168));
+  // Draw parameters from real node data
+  if (parameters_.empty()) {
+    return; // No parameters to display
+  }
+
   QFont param_font = painter->font();
   param_font.setPointSize(9);
   painter->setFont(param_font);
 
-  float param_y = body_rect.top() + 12.0;
-  float param_spacing = 16.0;
+  float param_y = body_rect.top() + 10.0;
+  float param_spacing = 18.0;
+  int max_params = 2; // Show max 2 parameters in body (limited space)
 
-  // Example parameters (would be populated from actual node data)
-  painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft,
-                    "Radius");
-  painter->setPen(QColor(224, 224, 224));
-  param_font.setFamily("monospace");
-  param_font.setBold(false);
-  painter->setFont(param_font);
-  painter->setBrush(QColor(74, 158, 255, 40));
-  painter->drawRoundedRect(QRectF(NODE_WIDTH - 80.0, param_y - 2.0, 64.0, 16.0),
-                           4.0, 4.0);
-  painter->drawText(QRectF(NODE_WIDTH - 76.0, param_y, 56.0, 14.0),
-                    Qt::AlignCenter, "1.0");
+  for (int i = 0; i < std::min(max_params, static_cast<int>(parameters_.size())); ++i) {
+    const auto& [param_name, param_value] = parameters_[i];
 
-  param_y += param_spacing;
-  painter->setPen(QColor(160, 160, 168));
-  param_font.setBold(false);
-  painter->setFont(param_font);
-  painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft,
-                    "Segments");
-  painter->setPen(QColor(224, 224, 224));
-  param_font.setFamily("monospace");
-  painter->setFont(param_font);
-  painter->setBrush(Qt::NoBrush);
-  painter->drawText(QRectF(NODE_WIDTH - 80.0, param_y, 64.0, 14.0),
-                    Qt::AlignCenter, "32");
+    // Draw parameter name (left side)
+    painter->setPen(QColor(160, 160, 168));
+    param_font.setBold(false);
+    painter->setFont(param_font);
+    painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft, param_name);
+
+    // Draw parameter value (right side) with highlighted background
+    painter->setPen(QColor(224, 224, 224));
+    param_font.setFamily("monospace");
+    painter->setFont(param_font);
+    painter->setBrush(QColor(74, 158, 255, 40));
+    painter->drawRoundedRect(QRectF(NODE_WIDTH - 80.0, param_y - 2.0, 64.0, 16.0),
+                             4.0, 4.0);
+    painter->drawText(QRectF(NODE_WIDTH - 76.0, param_y, 56.0, 14.0),
+                      Qt::AlignCenter, param_value);
+
+    param_y += param_spacing;
+  }
 }
 
 void NodeGraphicsItem::drawFooter(QPainter *painter) {
@@ -661,6 +661,55 @@ void NodeGraphWidget::update_node_stats(int node_id, int vertex_count,
   }
 }
 
+void NodeGraphWidget::update_node_parameters(int node_id) {
+  if (graph_ == nullptr) {
+    return;
+  }
+
+  auto it = node_items_.find(node_id);
+  if (it == node_items_.end()) {
+    return;
+  }
+
+  const auto *node = graph_->get_node(node_id);
+  if (node == nullptr) {
+    return;
+  }
+
+  // Convert backend parameters to display format
+  std::vector<std::pair<QString, QString>> params;
+  for (const auto &param : node->get_parameters()) {
+    QString name = QString::fromStdString(param.name);
+    QString value;
+
+    // Format value based on type
+    switch (param.type) {
+    case nodeflux::graph::NodeParameter::Type::Float:
+      value = QString::number(param.float_value, 'f', 2);
+      break;
+    case nodeflux::graph::NodeParameter::Type::Int:
+      value = QString::number(param.int_value);
+      break;
+    case nodeflux::graph::NodeParameter::Type::Bool:
+      value = param.bool_value ? "true" : "false";
+      break;
+    case nodeflux::graph::NodeParameter::Type::String:
+      value = QString::fromStdString(param.string_value);
+      break;
+    case nodeflux::graph::NodeParameter::Type::Vector3:
+      value = QString("(%1, %2, %3)")
+                  .arg(param.vector3_value[0], 0, 'f', 2)
+                  .arg(param.vector3_value[1], 0, 'f', 2)
+                  .arg(param.vector3_value[2], 0, 'f', 2);
+      break;
+    }
+
+    params.push_back({name, value});
+  }
+
+  it->second->set_parameters(params);
+}
+
 void NodeGraphWidget::rebuild_from_graph() {
   // Block signals during rebuild to prevent crashes from selection changed
   // signals when items are being deleted/recreated
@@ -726,6 +775,9 @@ void NodeGraphWidget::create_node_item(int node_id) {
   // Add to scene and tracking
   scene_->addItem(item);
   node_items_[node_id] = item;
+
+  // Update parameters from backend
+  update_node_parameters(node_id);
 }
 
 void NodeGraphWidget::create_connection_item(int connection_id) {
