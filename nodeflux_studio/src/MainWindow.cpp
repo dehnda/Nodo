@@ -17,10 +17,13 @@
 #include <QDockWidget>
 #include <QFile>
 #include <QFileDialog>
+#include <QFrame>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QStatusBar>
+#include <QToolButton>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -59,6 +62,19 @@ MainWindow::~MainWindow() {
 auto MainWindow::setupMenuBar() -> void {
   // Get the menu bar (QMainWindow provides this)
   QMenuBar *menuBar = this->menuBar();
+
+  // Add logo to the left of menu bar
+  auto* logo_label = new QLabel("⚡ NodeFlux", menuBar);
+  logo_label->setStyleSheet(
+    "QLabel {"
+    "  font-size: 16px;"
+    "  font-weight: 700;"
+    "  color: #4a9eff;"
+    "  padding: 4px 12px 4px 8px;"
+    "  margin-right: 8px;"
+    "}"
+  );
+  menuBar->setCornerWidget(logo_label, Qt::TopLeftCorner);
 
   // Create a File menu
   QMenu *fileMenu = menuBar->addMenu("&File");
@@ -138,6 +154,63 @@ auto MainWindow::setupMenuBar() -> void {
   QAction *testGraphAction = graphMenu->addAction("Create &Test Graph");
   connect(testGraphAction, &QAction::triggered, this,
           &MainWindow::onCreateTestGraph);
+
+  // Add icon toolbar to the right corner of menu bar
+  auto* icon_toolbar = new QWidget(menuBar);
+  auto* toolbar_layout = new QHBoxLayout(icon_toolbar);
+  toolbar_layout->setContentsMargins(8, 0, 8, 0);
+  toolbar_layout->setSpacing(4);
+
+  // Helper lambda to create icon buttons
+  auto createIconButton = [](const QString& icon, const QString& tooltip) {
+    auto* btn = new QToolButton();
+    btn->setText(icon);
+    btn->setToolTip(tooltip);
+    btn->setFixedSize(32, 32);
+    btn->setStyleSheet(
+      "QToolButton {"
+      "  background: rgba(255, 255, 255, 0.05);"
+      "  border: 1px solid rgba(255, 255, 255, 0.1);"
+      "  border-radius: 4px;"
+      "  font-size: 16px;"
+      "}"
+      "QToolButton:hover {"
+      "  background: rgba(255, 255, 255, 0.1);"
+      "  border-color: rgba(255, 255, 255, 0.2);"
+      "}"
+      "QToolButton:pressed {"
+      "  background: rgba(255, 255, 255, 0.15);"
+      "}"
+    );
+    return btn;
+  };
+
+  // File operation buttons
+  auto* new_btn = createIconButton("📄", "New Scene");
+  connect(new_btn, &QToolButton::clicked, this, &MainWindow::onNewScene);
+  toolbar_layout->addWidget(new_btn);
+
+  auto* open_btn = createIconButton("📂", "Open Scene");
+  connect(open_btn, &QToolButton::clicked, this, &MainWindow::onOpenScene);
+  toolbar_layout->addWidget(open_btn);
+
+  auto* save_btn = createIconButton("💾", "Save Scene");
+  connect(save_btn, &QToolButton::clicked, this, &MainWindow::onSaveScene);
+  toolbar_layout->addWidget(save_btn);
+
+  // Divider
+  auto* divider = new QFrame();
+  divider->setFrameShape(QFrame::VLine);
+  divider->setStyleSheet("QFrame { background: #3a3a42; margin: 4px 4px; }");
+  divider->setFixedSize(1, 24);
+  toolbar_layout->addWidget(divider);
+
+  // Graph operation button
+  auto* play_btn = createIconButton("▶️", "Execute Graph");
+  connect(play_btn, &QToolButton::clicked, this, &MainWindow::onCreateTestGraph);
+  toolbar_layout->addWidget(play_btn);
+
+  menuBar->setCornerWidget(icon_toolbar, Qt::TopRightCorner);
 }
 
 auto MainWindow::setupDockWidgets() -> void {
