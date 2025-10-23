@@ -23,11 +23,14 @@ PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
   // Title label
   title_label_ = new QLabel("Properties", this);
   title_label_->setStyleSheet("QLabel {"
-                              "   background-color: #3a3a3a;"
-                              "   color: white;"
-                              "   padding: 8px;"
-                              "   font-weight: bold;"
-                              "   font-size: 12px;"
+                              "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+                              "      stop:0 #3a3a40, stop:1 #2e2e34);"
+                              "   color: #e0e0e0;"
+                              "   padding: 12px 16px;"
+                              "   font-weight: 600;"
+                              "   font-size: 13px;"
+                              "   border-bottom: 1px solid rgba(255, 255, 255, 0.1);"
+                              "   letter-spacing: 0.5px;"
                               "}");
   main_layout->addWidget(title_label_);
 
@@ -36,12 +39,39 @@ PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
   scroll_area_->setWidgetResizable(true);
   scroll_area_->setFrameShape(QFrame::NoFrame);
   scroll_area_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  scroll_area_->setStyleSheet(
+      "QScrollArea {"
+      "  background: #2a2a30;"
+      "  border: none;"
+      "}"
+      "QScrollBar:vertical {"
+      "  background: rgba(255, 255, 255, 0.03);"
+      "  width: 10px;"
+      "  border: none;"
+      "  border-radius: 5px;"
+      "  margin: 2px;"
+      "}"
+      "QScrollBar::handle:vertical {"
+      "  background: rgba(255, 255, 255, 0.15);"
+      "  border-radius: 5px;"
+      "  min-height: 30px;"
+      "}"
+      "QScrollBar::handle:vertical:hover {"
+      "  background: rgba(255, 255, 255, 0.25);"
+      "}"
+      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+      "  height: 0px;"
+      "}"
+      "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+      "  background: none;"
+      "}");
 
   // Content widget inside scroll area
   content_widget_ = new QWidget();
+  content_widget_->setStyleSheet("background: #2a2a30;");
   content_layout_ = new QVBoxLayout(content_widget_);
-  content_layout_->setContentsMargins(8, 8, 8, 8);
-  content_layout_->setSpacing(4);
+  content_layout_->setContentsMargins(16, 12, 16, 12);
+  content_layout_->setSpacing(2);
   content_layout_->addStretch();
 
   scroll_area_->setWidget(content_widget_);
@@ -215,13 +245,42 @@ void PropertyPanel::clearProperties() {
   clearLayout();
   current_node_ = nullptr;
   current_node_type_.clear();
+  current_graph_node_ = nullptr;
   title_label_->setText("Properties");
 
-  // Add empty state message
-  auto *empty_label = new QLabel("No node selected", content_widget_);
+  // Add empty state message with icon
+  auto *empty_container = new QWidget(content_widget_);
+  auto *empty_layout = new QVBoxLayout(empty_container);
+  empty_layout->setAlignment(Qt::AlignCenter);
+  empty_layout->setSpacing(12);
+  
+  auto *empty_icon = new QLabel("📋", empty_container);
+  empty_icon->setAlignment(Qt::AlignCenter);
+  empty_icon->setStyleSheet("QLabel { "
+                           "  font-size: 48px; "
+                           "  padding: 20px; "
+                           "}");
+  
+  auto *empty_label = new QLabel("No node selected", empty_container);
   empty_label->setAlignment(Qt::AlignCenter);
-  empty_label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
-  content_layout_->insertWidget(0, empty_label);
+  empty_label->setStyleSheet("QLabel { "
+                            "  color: #606068; "
+                            "  font-size: 13px; "
+                            "  font-weight: 500; "
+                            "}");
+  
+  auto *empty_hint = new QLabel("Select a node to edit its properties", empty_container);
+  empty_hint->setAlignment(Qt::AlignCenter);
+  empty_hint->setStyleSheet("QLabel { "
+                           "  color: #4a4a50; "
+                           "  font-size: 11px; "
+                           "}");
+  
+  empty_layout->addWidget(empty_icon);
+  empty_layout->addWidget(empty_label);
+  empty_layout->addWidget(empty_hint);
+  
+  content_layout_->insertWidget(0, empty_container);
 }
 
 void PropertyPanel::clearLayout() {
@@ -238,19 +297,27 @@ void PropertyPanel::clearLayout() {
 void PropertyPanel::addSeparator() {
   auto *line = new QFrame(content_widget_);
   line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  line->setStyleSheet("QFrame { color: #555; }");
+  line->setFrameShadow(QFrame::Plain);
+  line->setFixedHeight(1);
+  line->setStyleSheet(
+      "QFrame { "
+      "  background-color: rgba(255, 255, 255, 0.06); "
+      "  border: none; "
+      "  margin: 12px 0px; "
+      "}");
   content_layout_->insertWidget(content_layout_->count() - 1, line);
 }
 
 void PropertyPanel::addHeader(const QString &text) {
   auto *header = new QLabel(text, content_widget_);
   header->setStyleSheet("QLabel {"
-                        "   color: #aaa;"
-                        "   font-weight: bold;"
-                        "   font-size: 11px;"
-                        "   padding-top: 8px;"
-                        "   padding-bottom: 4px;"
+                        "   color: #a0a0a8;"
+                        "   font-weight: 600;"
+                        "   font-size: 10px;"
+                        "   letter-spacing: 0.8px;"
+                        "   text-transform: uppercase;"
+                        "   padding-top: 12px;"
+                        "   padding-bottom: 8px;"
                         "}");
   content_layout_->insertWidget(content_layout_->count() - 1, header);
 }
@@ -261,31 +328,73 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
   // Create container widget
   auto *container = new QWidget(content_widget_);
   auto *layout = new QVBoxLayout(container);
-  layout->setContentsMargins(0, 2, 0, 2);
-  layout->setSpacing(2);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
 
   // Label
   auto *param_label = new QLabel(label, container);
-  param_label->setStyleSheet("QLabel { color: #ccc; font-size: 10px; }");
+  param_label->setStyleSheet("QLabel { "
+                             "  color: #e0e0e0; "
+                             "  font-size: 11px; "
+                             "  font-weight: 500; "
+                             "  letter-spacing: 0.3px; "
+                             "}");
   layout->addWidget(param_label);
 
   // Spinbox and slider container
   auto *control_container = new QWidget(container);
   auto *control_layout = new QHBoxLayout(control_container);
   control_layout->setContentsMargins(0, 0, 0, 0);
-  control_layout->setSpacing(4);
+  control_layout->setSpacing(8);
 
   // Spinbox for precise input
   auto *spinbox = new QSpinBox(control_container);
   spinbox->setRange(min, max);
   spinbox->setValue(value);
-  spinbox->setMinimumWidth(60);
-  spinbox->setMaximumWidth(80);
+  spinbox->setMinimumWidth(70);
+  spinbox->setMaximumWidth(90);
+  spinbox->setStyleSheet(
+      "QSpinBox {"
+      "  background: rgba(255, 255, 255, 0.08);"
+      "  border: 1px solid rgba(255, 255, 255, 0.12);"
+      "  border-radius: 6px;"
+      "  padding: 6px 8px;"
+      "  color: #e0e0e0;"
+      "  font-size: 12px;"
+      "  font-weight: 500;"
+      "}"
+      "QSpinBox:focus {"
+      "  background: rgba(255, 255, 255, 0.12);"
+      "  border-color: #4a9eff;"
+      "  outline: none;"
+      "}"
+      "QSpinBox::up-button, QSpinBox::down-button {"
+      "  width: 0px;"
+      "  border: none;"
+      "}");
 
   // Slider for visual adjustment
   auto *slider = new QSlider(Qt::Horizontal, control_container);
   slider->setRange(min, max);
   slider->setValue(value);
+  slider->setStyleSheet(
+      "QSlider::groove:horizontal {"
+      "  background: rgba(255, 255, 255, 0.1);"
+      "  height: 6px;"
+      "  border-radius: 3px;"
+      "}"
+      "QSlider::handle:horizontal {"
+      "  background: #4a9eff;"
+      "  border: 2px solid #2a2a30;"
+      "  width: 16px;"
+      "  height: 16px;"
+      "  margin: -6px 0;"
+      "  border-radius: 8px;"
+      "}"
+      "QSlider::handle:horizontal:hover {"
+      "  background: #6ab4ff;"
+      "  border-color: #3a3a40;"
+      "}");
 
   control_layout->addWidget(spinbox);
   control_layout->addWidget(slider);
@@ -310,19 +419,24 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
   // Create container widget
   auto *container = new QWidget(content_widget_);
   auto *layout = new QVBoxLayout(container);
-  layout->setContentsMargins(0, 2, 0, 2);
-  layout->setSpacing(2);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
 
   // Label
   auto *param_label = new QLabel(label, container);
-  param_label->setStyleSheet("QLabel { color: #ccc; font-size: 10px; }");
+  param_label->setStyleSheet("QLabel { "
+                             "  color: #e0e0e0; "
+                             "  font-size: 11px; "
+                             "  font-weight: 500; "
+                             "  letter-spacing: 0.3px; "
+                             "}");
   layout->addWidget(param_label);
 
   // Spinbox and slider container
   auto *control_container = new QWidget(container);
   auto *control_layout = new QHBoxLayout(control_container);
   control_layout->setContentsMargins(0, 0, 0, 0);
-  control_layout->setSpacing(4);
+  control_layout->setSpacing(8);
 
   // Double spinbox for precise input
   auto *spinbox = new QDoubleSpinBox(control_container);
@@ -330,14 +444,51 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
   spinbox->setValue(value);
   spinbox->setDecimals(3);
   spinbox->setSingleStep(0.1);
-  spinbox->setMinimumWidth(60);
-  spinbox->setMaximumWidth(80);
+  spinbox->setMinimumWidth(70);
+  spinbox->setMaximumWidth(90);
+  spinbox->setStyleSheet(
+      "QDoubleSpinBox {"
+      "  background: rgba(255, 255, 255, 0.08);"
+      "  border: 1px solid rgba(255, 255, 255, 0.12);"
+      "  border-radius: 6px;"
+      "  padding: 6px 8px;"
+      "  color: #e0e0e0;"
+      "  font-size: 12px;"
+      "  font-weight: 500;"
+      "}"
+      "QDoubleSpinBox:focus {"
+      "  background: rgba(255, 255, 255, 0.12);"
+      "  border-color: #4a9eff;"
+      "  outline: none;"
+      "}"
+      "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {"
+      "  width: 0px;"
+      "  border: none;"
+      "}");
 
   // Slider for visual adjustment (map double range to int slider 0-1000)
   auto *slider = new QSlider(Qt::Horizontal, control_container);
   slider->setRange(0, 1000);
   double normalized = (value - min) / (max - min);
   slider->setValue(static_cast<int>(normalized * 1000));
+  slider->setStyleSheet(
+      "QSlider::groove:horizontal {"
+      "  background: rgba(255, 255, 255, 0.1);"
+      "  height: 6px;"
+      "  border-radius: 3px;"
+      "}"
+      "QSlider::handle:horizontal {"
+      "  background: #4a9eff;"
+      "  border: 2px solid #2a2a30;"
+      "  width: 16px;"
+      "  height: 16px;"
+      "  margin: -6px 0;"
+      "  border-radius: 8px;"
+      "}"
+      "QSlider::handle:horizontal:hover {"
+      "  background: #6ab4ff;"
+      "  border-color: #3a3a40;"
+      "}");
 
   control_layout->addWidget(spinbox);
   control_layout->addWidget(slider);
@@ -373,12 +524,35 @@ void PropertyPanel::addBoolParameter(const QString &label, bool value,
   // Create container widget
   auto *container = new QWidget(content_widget_);
   auto *layout = new QHBoxLayout(container);
-  layout->setContentsMargins(0, 2, 0, 2);
+  layout->setContentsMargins(0, 6, 0, 6);
+  layout->setSpacing(8);
 
   // Checkbox
   auto *checkbox = new QCheckBox(label, container);
   checkbox->setChecked(value);
-  checkbox->setStyleSheet("QCheckBox { color: #ccc; }");
+  checkbox->setStyleSheet(
+      "QCheckBox {"
+      "  color: #e0e0e0;"
+      "  font-size: 11px;"
+      "  font-weight: 500;"
+      "  spacing: 8px;"
+      "}"
+      "QCheckBox::indicator {"
+      "  width: 18px;"
+      "  height: 18px;"
+      "  border-radius: 4px;"
+      "  background: rgba(255, 255, 255, 0.08);"
+      "  border: 1px solid rgba(255, 255, 255, 0.12);"
+      "}"
+      "QCheckBox::indicator:checked {"
+      "  background: #4a9eff;"
+      "  border-color: #4a9eff;"
+      "  image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAgM0w0LjUgOC41TDIgNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PC9zdmc+);"
+      "}"
+      "QCheckBox::indicator:hover {"
+      "  background: rgba(255, 255, 255, 0.12);"
+      "  border-color: #4a9eff;"
+      "}");
 
   layout->addWidget(checkbox);
   layout->addStretch();
@@ -396,19 +570,62 @@ void PropertyPanel::addComboParameter(const QString &label, int value,
   // Create container widget
   auto *container = new QWidget(content_widget_);
   auto *layout = new QVBoxLayout(container);
-  layout->setContentsMargins(0, 2, 0, 2);
-  layout->setSpacing(2);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
 
   // Label
   auto *param_label = new QLabel(label, container);
-  param_label->setStyleSheet("QLabel { color: #ccc; font-size: 10px; }");
+  param_label->setStyleSheet("QLabel { "
+                             "  color: #e0e0e0; "
+                             "  font-size: 11px; "
+                             "  font-weight: 500; "
+                             "  letter-spacing: 0.3px; "
+                             "}");
   layout->addWidget(param_label);
 
   // Combo box
   auto *combobox = new QComboBox(container);
   combobox->addItems(options);
   combobox->setCurrentIndex(value);
-  combobox->setMinimumWidth(80);
+  combobox->setMinimumHeight(32);
+  combobox->setStyleSheet(
+      "QComboBox {"
+      "  background: rgba(255, 255, 255, 0.08);"
+      "  border: 1px solid rgba(255, 255, 255, 0.12);"
+      "  border-radius: 6px;"
+      "  padding: 6px 12px;"
+      "  color: #e0e0e0;"
+      "  font-size: 12px;"
+      "  font-weight: 500;"
+      "}"
+      "QComboBox:hover {"
+      "  background: rgba(255, 255, 255, 0.12);"
+      "  border-color: rgba(255, 255, 255, 0.2);"
+      "}"
+      "QComboBox:focus {"
+      "  border-color: #4a9eff;"
+      "  outline: none;"
+      "}"
+      "QComboBox::drop-down {"
+      "  border: none;"
+      "  width: 24px;"
+      "}"
+      "QComboBox::down-arrow {"
+      "  image: none;"
+      "  border-left: 4px solid transparent;"
+      "  border-right: 4px solid transparent;"
+      "  border-top: 6px solid #e0e0e0;"
+      "  margin-right: 8px;"
+      "}"
+      "QComboBox QAbstractItemView {"
+      "  background: #2a2a30;"
+      "  border: 1px solid rgba(255, 255, 255, 0.15);"
+      "  border-radius: 6px;"
+      "  padding: 4px;"
+      "  color: #e0e0e0;"
+      "  selection-background-color: #4a9eff;"
+      "  selection-color: white;"
+      "}");
 
   layout->addWidget(combobox);
 
@@ -714,138 +931,109 @@ void PropertyPanel::buildTransformParameters(nodeflux::graph::GraphNode *node) {
 
   addHeader("Translation");
 
-  // Translate X
+  // Translate X, Y, Z
   auto translate_x_param = node->get_parameter("translate_x");
   double translate_x = (translate_x_param.has_value() &&
                         translate_x_param->type == NodeParameter::Type::Float)
                            ? translate_x_param->float_value
                            : 0.0;
 
-  addDoubleParameter(
-      "Translate X", translate_x, -100.0, 100.0, [this, node](double value) {
-        node->set_parameter(
-            "translate_x",
-            NodeParameter("translate_x", static_cast<float>(value)));
-        emit parameterChanged();
-      });
-
-  // Translate Y
   auto translate_y_param = node->get_parameter("translate_y");
   double translate_y = (translate_y_param.has_value() &&
                         translate_y_param->type == NodeParameter::Type::Float)
                            ? translate_y_param->float_value
                            : 0.0;
 
-  addDoubleParameter(
-      "Translate Y", translate_y, -100.0, 100.0, [this, node](double value) {
-        node->set_parameter(
-            "translate_y",
-            NodeParameter("translate_y", static_cast<float>(value)));
-        emit parameterChanged();
-      });
-
-  // Translate Z
   auto translate_z_param = node->get_parameter("translate_z");
   double translate_z = (translate_z_param.has_value() &&
                         translate_z_param->type == NodeParameter::Type::Float)
                            ? translate_z_param->float_value
                            : 0.0;
 
-  addDoubleParameter(
-      "Translate Z", translate_z, -100.0, 100.0, [this, node](double value) {
-        node->set_parameter(
-            "translate_z",
-            NodeParameter("translate_z", static_cast<float>(value)));
-        emit parameterChanged();
-      });
+  addVector3Parameter("Position", translate_x, translate_y, translate_z,
+                      -100.0, 100.0,
+                      [this, node](double x, double y, double z) {
+                        node->set_parameter(
+                            "translate_x",
+                            NodeParameter("translate_x", static_cast<float>(x)));
+                        node->set_parameter(
+                            "translate_y",
+                            NodeParameter("translate_y", static_cast<float>(y)));
+                        node->set_parameter(
+                            "translate_z",
+                            NodeParameter("translate_z", static_cast<float>(z)));
+                        emit parameterChanged();
+                      });
 
   addHeader("Rotation (Degrees)");
 
-  // Rotate X
+  // Rotate X, Y, Z
   auto rotate_x_param = node->get_parameter("rotate_x");
   double rotate_x = (rotate_x_param.has_value() &&
                      rotate_x_param->type == NodeParameter::Type::Float)
                         ? rotate_x_param->float_value
                         : 0.0;
 
-  addDoubleParameter(
-      "Rotate X", rotate_x, -360.0, 360.0, [this, node](double value) {
-        node->set_parameter(
-            "rotate_x", NodeParameter("rotate_x", static_cast<float>(value)));
-        emit parameterChanged();
-      });
-
-  // Rotate Y
   auto rotate_y_param = node->get_parameter("rotate_y");
   double rotate_y = (rotate_y_param.has_value() &&
                      rotate_y_param->type == NodeParameter::Type::Float)
                         ? rotate_y_param->float_value
                         : 0.0;
 
-  addDoubleParameter(
-      "Rotate Y", rotate_y, -360.0, 360.0, [this, node](double value) {
-        node->set_parameter(
-            "rotate_y", NodeParameter("rotate_y", static_cast<float>(value)));
-        emit parameterChanged();
-      });
-
-  // Rotate Z
   auto rotate_z_param = node->get_parameter("rotate_z");
   double rotate_z = (rotate_z_param.has_value() &&
                      rotate_z_param->type == NodeParameter::Type::Float)
                         ? rotate_z_param->float_value
                         : 0.0;
 
-  addDoubleParameter(
-      "Rotate Z", rotate_z, -360.0, 360.0, [this, node](double value) {
-        node->set_parameter(
-            "rotate_z", NodeParameter("rotate_z", static_cast<float>(value)));
-        emit parameterChanged();
-      });
+  addVector3Parameter("Rotation", rotate_x, rotate_y, rotate_z, -360.0, 360.0,
+                      [this, node](double x, double y, double z) {
+                        node->set_parameter(
+                            "rotate_x",
+                            NodeParameter("rotate_x", static_cast<float>(x)));
+                        node->set_parameter(
+                            "rotate_y",
+                            NodeParameter("rotate_y", static_cast<float>(y)));
+                        node->set_parameter(
+                            "rotate_z",
+                            NodeParameter("rotate_z", static_cast<float>(z)));
+                        emit parameterChanged();
+                      });
 
   addHeader("Scale");
 
-  // Scale X
+  // Scale X, Y, Z
   auto scale_x_param = node->get_parameter("scale_x");
   double scale_x = (scale_x_param.has_value() &&
                     scale_x_param->type == NodeParameter::Type::Float)
                        ? scale_x_param->float_value
                        : 1.0;
 
-  addDoubleParameter(
-      "Scale X", scale_x, 0.01, 10.0, [this, node](double value) {
-        node->set_parameter(
-            "scale_x", NodeParameter("scale_x", static_cast<float>(value)));
-        emit parameterChanged();
-      });
-
-  // Scale Y
   auto scale_y_param = node->get_parameter("scale_y");
   double scale_y = (scale_y_param.has_value() &&
                     scale_y_param->type == NodeParameter::Type::Float)
                        ? scale_y_param->float_value
                        : 1.0;
 
-  addDoubleParameter(
-      "Scale Y", scale_y, 0.01, 10.0, [this, node](double value) {
-        node->set_parameter(
-            "scale_y", NodeParameter("scale_y", static_cast<float>(value)));
-        emit parameterChanged();
-      });
-
-  // Scale Z
   auto scale_z_param = node->get_parameter("scale_z");
   double scale_z = (scale_z_param.has_value() &&
                     scale_z_param->type == NodeParameter::Type::Float)
                        ? scale_z_param->float_value
                        : 1.0;
 
-  addDoubleParameter(
-      "Scale Z", scale_z, 0.01, 10.0, [this, node](double value) {
-        node->set_parameter(
-            "scale_z", NodeParameter("scale_z", static_cast<float>(value)));
-        emit parameterChanged();
-      });
+  addVector3Parameter("Scale", scale_x, scale_y, scale_z, 0.01, 10.0,
+                      [this, node](double x, double y, double z) {
+                        node->set_parameter(
+                            "scale_x",
+                            NodeParameter("scale_x", static_cast<float>(x)));
+                        node->set_parameter(
+                            "scale_y",
+                            NodeParameter("scale_y", static_cast<float>(y)));
+                        node->set_parameter(
+                            "scale_z",
+                            NodeParameter("scale_z", static_cast<float>(z)));
+                        emit parameterChanged();
+                      });
 }
 
 void PropertyPanel::buildArrayParameters(nodeflux::graph::GraphNode *node) {
@@ -1298,4 +1486,146 @@ void PropertyPanel::buildCopyToPointsParameters(
                         NodeParameter("use_point_scale", value ? 1 : 0));
     emit parameterChanged();
   });
+}
+
+void PropertyPanel::addVector3Parameter(
+    const QString &label, double x, double y, double z, double min, double max,
+    std::function<void(double, double, double)> callback) {
+  // Create container widget
+  auto *container = new QWidget(content_widget_);
+  auto *layout = new QVBoxLayout(container);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
+
+  // Label
+  auto *param_label = new QLabel(label, container);
+  param_label->setStyleSheet("QLabel { "
+                             "  color: #e0e0e0; "
+                             "  font-size: 11px; "
+                             "  font-weight: 500; "
+                             "  letter-spacing: 0.3px; "
+                             "}");
+  layout->addWidget(param_label);
+
+  // Create three spinboxes in a row for X, Y, Z
+  auto *xyz_container = new QWidget(container);
+  auto *xyz_layout = new QHBoxLayout(xyz_container);
+  xyz_layout->setContentsMargins(0, 0, 0, 0);
+  xyz_layout->setSpacing(6);
+
+  // X component
+  auto *x_spinbox = new QDoubleSpinBox(xyz_container);
+  x_spinbox->setRange(min, max);
+  x_spinbox->setValue(x);
+  x_spinbox->setDecimals(3);
+  x_spinbox->setSingleStep(0.1);
+  x_spinbox->setPrefix("X: ");
+  x_spinbox->setStyleSheet(
+      "QDoubleSpinBox {"
+      "  background: rgba(255, 100, 100, 0.1);"
+      "  border: 1px solid rgba(255, 100, 100, 0.3);"
+      "  border-radius: 6px;"
+      "  padding: 6px 8px;"
+      "  color: #ff8888;"
+      "  font-size: 11px;"
+      "  font-weight: 600;"
+      "}"
+      "QDoubleSpinBox:focus {"
+      "  background: rgba(255, 100, 100, 0.15);"
+      "  border-color: #ff6464;"
+      "  outline: none;"
+      "}"
+      "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {"
+      "  width: 0px;"
+      "  border: none;"
+      "}");
+
+  // Y component
+  auto *y_spinbox = new QDoubleSpinBox(xyz_container);
+  y_spinbox->setRange(min, max);
+  y_spinbox->setValue(y);
+  y_spinbox->setDecimals(3);
+  y_spinbox->setSingleStep(0.1);
+  y_spinbox->setPrefix("Y: ");
+  y_spinbox->setStyleSheet(
+      "QDoubleSpinBox {"
+      "  background: rgba(100, 255, 100, 0.1);"
+      "  border: 1px solid rgba(100, 255, 100, 0.3);"
+      "  border-radius: 6px;"
+      "  padding: 6px 8px;"
+      "  color: #88ff88;"
+      "  font-size: 11px;"
+      "  font-weight: 600;"
+      "}"
+      "QDoubleSpinBox:focus {"
+      "  background: rgba(100, 255, 100, 0.15);"
+      "  border-color: #64ff64;"
+      "  outline: none;"
+      "}"
+      "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {"
+      "  width: 0px;"
+      "  border: none;"
+      "}");
+
+  // Z component
+  auto *z_spinbox = new QDoubleSpinBox(xyz_container);
+  z_spinbox->setRange(min, max);
+  z_spinbox->setValue(z);
+  z_spinbox->setDecimals(3);
+  z_spinbox->setSingleStep(0.1);
+  z_spinbox->setPrefix("Z: ");
+  z_spinbox->setStyleSheet(
+      "QDoubleSpinBox {"
+      "  background: rgba(100, 100, 255, 0.1);"
+      "  border: 1px solid rgba(100, 100, 255, 0.3);"
+      "  border-radius: 6px;"
+      "  padding: 6px 8px;"
+      "  color: #8888ff;"
+      "  font-size: 11px;"
+      "  font-weight: 600;"
+      "}"
+      "QDoubleSpinBox:focus {"
+      "  background: rgba(100, 100, 255, 0.15);"
+      "  border-color: #6464ff;"
+      "  outline: none;"
+      "}"
+      "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {"
+      "  width: 0px;"
+      "  border: none;"
+      "}");
+
+  xyz_layout->addWidget(x_spinbox);
+  xyz_layout->addWidget(y_spinbox);
+  xyz_layout->addWidget(z_spinbox);
+
+  layout->addWidget(xyz_container);
+
+  // Connect all spinboxes to callback
+  auto trigger_callback = [callback, x_spinbox, y_spinbox, z_spinbox]() {
+    callback(x_spinbox->value(), y_spinbox->value(), z_spinbox->value());
+  };
+
+  connect(x_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          trigger_callback);
+  connect(y_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          trigger_callback);
+  connect(z_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          trigger_callback);
+
+  content_layout_->insertWidget(content_layout_->count() - 1, container);
+}
+
+void PropertyPanel::addInfoLabel(const QString &text) {
+  auto *info = new QLabel(text, content_widget_);
+  info->setWordWrap(true);
+  info->setStyleSheet("QLabel { "
+                     "  background: rgba(74, 158, 255, 0.1); "
+                     "  border: 1px solid rgba(74, 158, 255, 0.2); "
+                     "  border-radius: 6px; "
+                     "  padding: 8px 10px; "
+                     "  color: #8ab4f8; "
+                     "  font-size: 11px; "
+                     "  line-height: 1.4; "
+                     "}");
+  content_layout_->insertWidget(content_layout_->count() - 1, info);
 }
