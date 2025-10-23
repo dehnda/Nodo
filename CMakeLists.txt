@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build options
 option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
-option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
+option(NODEFLUX_BUILD_TESTS "Build unit tests" OFF)
 option(NODEFLUX_BUILD_STUDIO "Build Qt Studio application" ON)
 
 # Add subdirectories
@@ -22,6 +22,21 @@ if(NODEFLUX_BUILD_TESTS)
     find_package(GTest REQUIRED)
     enable_testing()
     add_subdirectory(tests)
+    # Verify target to run tests in the current configuration
+    add_custom_target(verify-release
+        COMMENT "Running unit tests before release build"
+        DEPENDS nodeflux_tests
+        COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --output-on-failure --test-dir ${CMAKE_BINARY_DIR}
+        VERBATIM
+    )
+else()
+    # Stub target that explains how to enable tests
+    add_custom_target(verify-release
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "Tests are disabled. Reconfigure with:"
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "  Conan: -o nodefluxengine:with_tests=True"
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "  CMake: -D NODEFLUX_BUILD_TESTS=ON (auto if using Conan option)"
+        VERBATIM
+    )
 endif()
 
 # Qt Studio Application

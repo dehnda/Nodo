@@ -4,6 +4,6 @@
         "conan": {}
     },
     "include": [
-        "build/Debug/generators/CMakePresets.json"
+        "X:\\programming\\NodeFluxEngine\\build-windows\\build\\generators\\CMakePresets.json"
     ]
 }

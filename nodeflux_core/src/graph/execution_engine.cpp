@@ -16,6 +16,9 @@
 #include "nodeflux/sop/scatter_sop.hpp"
 #include <iostream>
 #include <memory>
+// For trigonometry and pi constant
+#include <cmath>
+#include <numbers>
 
 namespace nodeflux::graph {
 
@@ -29,7 +32,8 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     // Selective execution: only cook nodes needed for display node
     execution_order = graph.get_upstream_dependencies(display_node_id);
     std::cout << "🎯 Selective execution for display node " << display_node_id
-              << " (cooking " << execution_order.size() << " nodes)" << std::endl;
+              << " (cooking " << execution_order.size() << " nodes)"
+              << std::endl;
   } else {
     // No display node: cook everything (fallback to old behavior)
     execution_order = graph.get_execution_order();
@@ -394,8 +398,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
             << "," << rotate_z << ") scale(" << scale_x << "," << scale_y << ","
             << scale_z << ")" << std::endl;
 
-  // Convert degrees to radians
-  constexpr double DEG_TO_RAD = M_PI / 180.0;
+  // Convert degrees to radians (portable, uses C++20 std::numbers::pi)
+  constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
   const double rx = static_cast<double>(rotate_x) * DEG_TO_RAD;
   const double ry = static_cast<double>(rotate_y) * DEG_TO_RAD;
   const double rz = static_cast<double>(rotate_z) * DEG_TO_RAD;
@@ -665,7 +669,7 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_array_node(
     std::cout << "○ Creating radial array: " << count
               << " copies around radius " << radius << std::endl;
 
-    constexpr double DEG_TO_RAD = M_PI / 180.0;
+    constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
     const double angle_step =
         (static_cast<double>(angle) * DEG_TO_RAD) / static_cast<double>(count);
 

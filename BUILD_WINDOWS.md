@@ -83,9 +83,9 @@ cd C:\Dev\NodeFluxEngine
 
 ### Build Steps
 
-#### 1. Open "Developer Command Prompt for VS 2022" or "Developer PowerShell for VS 2022"
+#### 1. Open a shell (no special VS prompt required)
 
-You can find these in the Start Menu under "Visual Studio 2022" folder. This ensures the MSVC compiler is in your PATH.
+The project now uses the Visual Studio CMake generator on Windows, so you don't need to run vcvarsall.bat. Just use a normal PowerShell/CMD.
 
 #### 2. Navigate to the project directory
 
@@ -97,12 +97,12 @@ cd C:\path\to\NodeFluxEngine
 
 **For Debug build:**
 ```powershell
-conan install . --output-folder=build-windows --build=missing -s build_type=Debug
+conan install . --output-folder=build/windows --build=missing -s build_type=Debug
 ```
 
 **For Release build:**
 ```powershell
-conan install . --output-folder=build-windows --build=missing -s build_type=Release
+conan install . --output-folder=build/windows --build=missing -s build_type=Release
 ```
 
 This will download and build all dependencies (Eigen, Qt, CGAL, etc.). **This may take 15-30 minutes the first time.**
@@ -127,25 +127,112 @@ cmake --build --preset conan-debug --parallel
 cmake --build --preset conan-release --parallel
 ```
 
-**OR** build specific targets:
+**OR** build a specific target:
 
 ```powershell
 # Build only the Studio application
 cmake --build --preset conan-release --target nodeflux_studio --parallel
-
-# Build only tests
-cmake --build --preset conan-release --target nodeflux_tests --parallel
 ```
 
-### 6. Run the application
+### 6. Run the application (fix Qt6 DLLs)
+
+On Windows, Qt DLLs (e.g., Qt6Widgets.dll) must be on PATH when you launch the app. The easiest way is to use the Conan Virtual Run Environment.
+
+Option A — use the generated run env scripts (recommended):
 
 ```powershell
-# Debug build
-.\out\build\conan-debug\nodeflux_studio\nodeflux_studio.exe
-
 # Release build
-.\out\build\conan-release\nodeflux_studio\nodeflux_studio.exe
+cmd /c "build\windows\build\generators\conanrun.bat && build\windows\build\nodeflux_studio\nodeflux_studio.exe"
+
+# Debug build
+cmd /c "build\windows\build\generators\conanrunenv-debug-x86_64.bat && build\windows\build\nodeflux_studio\nodeflux_studio.exe"
 ```
+
+If the run env scripts are missing, (re)generate them:
+
+```powershell
+# Release
+conan install . --output-folder=build/windows -s build_type=Release -g VirtualRunEnv
+
+# Debug
+conan install . --output-folder=build/windows -s build_type=Debug -g VirtualRunEnv
+```
+
+Option B — deploy Qt next to the exe (distribution):
+
+- Use Qt's windeployqt (provided by the Conan Qt package) or CMake's Qt deploy helpers to copy the required Qt DLLs into the app folder for shipping. This is typically used for packaging/installer workflows, not for local dev.
+
+### 7. CMake convenience targets (Windows)
+
+- Bundle Qt next to the exe (self-contained folder):
+	```powershell
+	cmake --build --preset conan-release --target deploy-windows
+	```
+	Output: `build/windows/build/nodeflux_studio/Release/deploy/Release`
+
+- Run the Studio via Conan RunEnv (detached, for dev):
+	```powershell
+	cmake --build --preset conan-release --target run-studio
+	```
+
+- Run the deployed Studio (detached):
+	```powershell
+	cmake --build --preset conan-release --target run-studio-deploy
+	```
+
+### 8. Pre-release verification (run tests, then build)
+
+If you want to gate your release build on tests, use one of these options:
+
+- One-liner script (recommended):
+
+```powershell
+pwsh -File tools/buildscripts/windows/verify-release.ps1
+```
+
+This will:
+- Install dependencies with tests enabled
+- Configure CMake
+- Build and run tests
+- Build the Studio (and optionally deploy/run with `-WithDeploy`)
+
+- Or, do it manually via CMake target (after enabling tests):
+
+```powershell
+conan install . --output-folder=build/windows -s build_type=Release -o nodefluxengine:with_tests=True --build=missing
+cmake --preset conan-default
+cmake --build --preset conan-release --target verify-release
+```
+
+If tests are disabled, `verify-release` will print a hint on how to enable them.
+
+### 9. Top-level release script
+
+For an end-to-end release flow (tests → build → optional deploy → optional run → optional zip package), use the top-level script:
+
+```powershell
+# Default: Release build, tests enabled, no deploy
+pwsh -File .\tools\buildscripts\windows\release.ps1
+
+# Skip tests
+pwsh -File .\tools\buildscripts\windows\release.ps1 -SkipTests
+
+# Deploy Qt next to the exe (windeployqt) and run the deployed app
+pwsh -File .\tools\buildscripts\windows\release.ps1 -Deploy -Run
+
+# Deploy and package the deploy folder as a zip (to ./out)
+pwsh -File .\tools\buildscripts\windows\release.ps1 -Deploy -Package
+
+# Use Debug instead of Release
+pwsh -File .\tools\buildscripts\windows\release.ps1 -Configuration Debug
+```
+
+The script handles:
+- Conan install (enabling tests only when not using -SkipTests)
+- CMake configure (conan-default)
+- Test run via the `verify-release` target
+- Building `nodeflux_studio`
+- Optional deploy/run/package steps
 
 ## Alternative: Using Visual Studio IDE
 
@@ -172,14 +259,24 @@ Or reinstall Python with "Add to PATH" option checked.
 
 Make sure you're using "Developer Command Prompt for VS 2022" or "Developer PowerShell for VS 2022", not the regular command prompt.
 
-### Qt plugin errors when running
+### Qt DLL or plugin errors when running
 
-Make sure the Qt DLLs are in your PATH:
-```powershell
-$env:PATH += ";C:\Users\YourUser\.conan2\p\b\qt<hash>\p\bin"
-```
+Run the app through the Conan Run Environment as shown above. It prepends all dependency bin directories (Qt, etc.) to PATH for the duration of the process.
 
-Or copy the Qt DLLs next to your executable.
+## Compilers on Windows (MSVC, Clang-CL, MinGW)
+
+- Default: MSVC via the Visual Studio generator (no vcvars required).
+- Clang-CL (MSVC ABI compatible):
+	- Keep the Qt package as-is (MSVC-built).
+	- In your Conan profile, use MSVC settings but set the CMake toolset to ClangCL:
+		- `tools.cmake.cmaketoolchain:generator=Visual Studio 17 2022`
+		- `tools.cmake.cmaketoolchain:toolset=ClangCL`
+	- Then re-run `conan install` and CMake.
+- MinGW GCC:
+	- You need Qt built for MinGW. Mixing MSVC-built Qt with MinGW-compiled binaries will fail.
+	- Unless you have a MinGW Qt package in your remotes, this path requires building Qt yourself or switching to a distro that provides it (e.g., MSYS2).
+
+Note: If you explicitly want Ninja with MSVC, either run from a Visual Studio Developer Prompt or use the Conan-generated `conanvcvars.bat` (located in `build/windows/build/generators`) to initialize the environment before configuring/building.
 
 ### Slow builds
 
@@ -191,14 +288,14 @@ Or copy the Qt DLLs next to your executable.
 
 ```powershell
 # Remove build directory
-Remove-Item -Recurse -Force build-windows
+Remove-Item -Recurse -Force build/windows
 Remove-Item -Recurse -Force out
 
 # Remove generated presets
 Remove-Item CMakePresets.json -ErrorAction SilentlyContinue
 
 # Start fresh
-conan install . --output-folder=build-windows --build=missing -s build_type=Release
+conan install . --output-folder=build/windows --build=missing -s build_type=Release
 cmake --preset conan-release
 cmake --build --preset conan-release --parallel
 ```
@@ -213,7 +310,7 @@ cmake --build --preset conan-release --parallel
 - Slower runtime performance
 
 ```powershell
-conan install . --output-folder=build-windows --build=missing -s build_type=Debug
+conan install . --output-folder=build/windows --build=missing -s build_type=Debug
 cmake --preset conan-debug
 cmake --build --preset conan-debug --parallel
 ```
@@ -234,13 +331,15 @@ cmake --build --preset conan-release --parallel
 ## Next Steps
 
 After building:
-- Run tests: `.\out\build\conan-release\tests\nodeflux_tests.exe`
 - Package the application with dependencies (see PACKAGING.md - TODO)
 - Create an installer (see INSTALLER.md - TODO)
 
 ## Tips
 
-1. **Keep WSL and Windows builds separate**: Use `build/` for Linux, `build-windows/` for Windows
+1. **Keep WSL and Windows builds separate**: Use `build/` for Linux, `build/windows/` for Windows
 2. **Use Release builds for distribution**: They're optimized and smaller
-3. **Run tests before distributing**: `.\out\build\conan-release\tests\nodeflux_tests.exe`
-4. **Qt deployment**: Use `windeployqt` to package Qt dependencies with your executable
+3. **Qt deployment**: Use `windeployqt` to package Qt dependencies with your executable
+
+> Optional: If you ever need unit tests, enable them explicitly:
+> - Conan: `-o nodefluxengine:with_tests=True`
+> - CMake: tests are auto-toggled by the Conan toolchain; or set `-D NODEFLUX_BUILD_TESTS=ON` manually.

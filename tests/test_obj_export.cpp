@@ -1,8 +1,10 @@
 #include "nodeflux/geometry/sphere_generator.hpp"
 #include "nodeflux/io/obj_exporter.hpp"
-#include <gtest/gtest.h>
+#include <filesystem>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <sstream>
+
 
 using namespace nodeflux;
 
@@ -60,7 +62,8 @@ TEST_F(ObjExportTest, ContainsVertexNormals) {
   int normal_count = 0;
 
   while (std::getline(stream, line)) {
-    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' && line[2] == ' ') {
+    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' &&
+        line[2] == ' ') {
       normal_count++;
     }
   }
@@ -94,13 +97,14 @@ TEST_F(ObjExportTest, ContainsFacesWithNormals) {
 }
 
 TEST_F(ObjExportTest, ExportToFile) {
-  const std::string temp_file = "/tmp/nodeflux_test_export.obj";
+  const auto temp_path =
+      std::filesystem::temp_directory_path() / "nodeflux_test_export.obj";
 
-  bool success = io::ObjExporter::export_mesh(*test_mesh_, temp_file);
+  bool success = io::ObjExporter::export_mesh(*test_mesh_, temp_path.string());
   EXPECT_TRUE(success);
 
   // Verify file exists and is not empty
-  std::ifstream file(temp_file);
+  std::ifstream file(temp_path);
   ASSERT_TRUE(file.is_open());
 
   std::string content((std::istreambuf_iterator<char>(file)),
@@ -116,7 +120,8 @@ TEST_F(ObjExportTest, ExportToFile) {
   file.close();
 
   // Clean up
-  std::remove(temp_file.c_str());
+  std::error_code ec;
+  std::filesystem::remove(temp_path, ec);
 }
 
 TEST_F(ObjExportTest, EmptyMeshReturnsNullopt) {
@@ -167,7 +172,8 @@ TEST_F(ObjExportTest, VerifyNormalMagnitude) {
   std::string line;
 
   while (std::getline(stream, line)) {
-    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' && line[2] == ' ') {
+    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' &&
+        line[2] == ' ') {
       std::istringstream normal_stream(line.substr(3));
       double x = 0.0;
       double y = 0.0;

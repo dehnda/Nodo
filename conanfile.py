@@ -1,6 +1,7 @@
 from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 
+
 class NodeFluxEngineConan(ConanFile):
     name = "nodefluxengine"
     version = "1.0.0"
@@ -8,8 +9,14 @@ class NodeFluxEngineConan(ConanFile):
     # Project settings
     settings = "os", "compiler", "build_type", "arch"
 
+    # Options
+    options = {
+        "with_tests": [True, False],
+    }
+
     # Default options for dependencies
     default_options = {
+        "with_tests": False,
         "boost/*:without_test": True,
         "gtest/*:shared": False,
         "qt/*:shared": True,
@@ -23,17 +30,24 @@ class NodeFluxEngineConan(ConanFile):
 
     def generate(self):
         from conan.tools.cmake import CMakeToolchain
+
         tc = CMakeToolchain(self)
 
-        # Use Ninja on Windows, Unix Makefiles on Linux/Mac
-        if self.settings.os == "Windows":
-            tc.generator = "Ninja"
-            tc.variables["CMAKE_C_COMPILER"] = "cl.exe"
-            tc.variables["CMAKE_CXX_COMPILER"] = "cl.exe"
-        else:
-            # Let CMake choose the default generator on Linux/Mac
-            # or explicitly use Unix Makefiles or Ninja if installed
-            pass
+        # Prefer a generator that does not require a pre-initialized MSVC
+        # environment. Visual Studio generator invokes MSBuild and sets up
+        # the toolchain without needing to run vcvarsall.bat manually.
+        if str(self.settings.os) == "Windows" and str(self.settings.compiler) in (
+            "msvc",
+            "Visual Studio",
+        ):
+            tc.generator = "Visual Studio 17 2022"
+        # On other platforms, let CMake pick a reasonable default (or override
+        # via tools.cmake.cmaketoolchain:generator in profiles).
+
+        # Propagate test toggle to CMake
+        tc.variables["NODEFLUX_BUILD_TESTS"] = (
+            "ON" if bool(self.options.with_tests) else "OFF"
+        )
 
         tc.generate()
 
@@ -48,10 +62,11 @@ class NodeFluxEngineConan(ConanFile):
         self.requires("manifold/3.2.1")
 
         # Qt for UI
-        self.requires("qt/6.7.3")
+        self.requires("qt/6.5.0")
 
-        # Testing (only in debug/when needed)
-        self.requires("gtest/1.14.0")
+        # Testing (optional)
+        if bool(self.options.with_tests):
+            self.requires("gtest/1.14.0")
 
     def layout(self):
         """Define the layout for the build"""
