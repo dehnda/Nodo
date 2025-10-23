@@ -202,7 +202,7 @@ void NodeGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
 int NodeGraphicsItem::get_pin_at_position(const QPointF &pos,
                                           bool &is_input) const {
   constexpr float PIN_CLICK_RADIUS =
-      12.0F; // Slightly larger than visual radius for easier clicking
+      20.0F; // Increased for easier clicking and connection
 
   // Check input pins
   for (int i = 0; i < input_count_; ++i) {

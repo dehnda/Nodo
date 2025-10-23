@@ -14,7 +14,6 @@
 #include <QSpinBox>
 #include <iostream>
 
-
 PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
 
   // Create main layout
