@@ -42,6 +42,11 @@ public:
 
   void clearProperties();
 
+  // Get the currently displayed node
+  nodeflux::graph::GraphNode *getCurrentNode() const {
+    return current_graph_node_;
+  }
+
 signals:
   // Emitted when a parameter changes
   void parameterChanged();

@@ -57,6 +57,7 @@ struct NodeParameter {
 
   Type type;
   std::string name;
+  std::string label; // Display name for UI
 
   // Storage for different types
   union {
@@ -67,18 +68,64 @@ struct NodeParameter {
   std::string string_value;
   std::array<float, 3> vector3_value;
 
+  // UI metadata
+  struct {
+    float float_min = 0.0F;
+    float float_max = 100.0F;
+    int int_min = 0;
+    int int_max = 100;
+  } ui_range;
+
+  std::vector<std::string> string_options; // For combo boxes (int type)
+
   // Constructors for different types
-  explicit NodeParameter(const std::string &name, float value)
-      : type(Type::Float), name(name), float_value(value) {}
-  explicit NodeParameter(const std::string &name, int value)
-      : type(Type::Int), name(name), int_value(value) {}
-  explicit NodeParameter(const std::string &name, bool value)
-      : type(Type::Bool), name(name), bool_value(value) {}
-  explicit NodeParameter(const std::string &name, const std::string &value)
-      : type(Type::String), name(name), string_value(value) {}
+  explicit NodeParameter(const std::string &name, float value,
+                         const std::string &label = "", float min = 0.01F,
+                         float max = 100.0F)
+      : type(Type::Float), name(name), label(label.empty() ? name : label),
+        float_value(value) {
+    ui_range.float_min = min;
+    ui_range.float_max = max;
+  }
+
+  explicit NodeParameter(const std::string &name, int value,
+                         const std::string &label = "", int min = 0,
+                         int max = 100)
+      : type(Type::Int), name(name), label(label.empty() ? name : label),
+        int_value(value) {
+    ui_range.int_min = min;
+    ui_range.int_max = max;
+  }
+
+  explicit NodeParameter(const std::string &name, bool value,
+                         const std::string &label = "")
+      : type(Type::Bool), name(name), label(label.empty() ? name : label),
+        bool_value(value) {}
+
+  explicit NodeParameter(const std::string &name, const std::string &value,
+                         const std::string &label = "")
+      : type(Type::String), name(name), label(label.empty() ? name : label),
+        string_value(value) {}
+
   explicit NodeParameter(const std::string &name,
-                         const std::array<float, 3> &value)
-      : type(Type::Vector3), name(name), vector3_value(value) {}
+                         const std::array<float, 3> &value,
+                         const std::string &label = "", float min = -100.0F,
+                         float max = 100.0F)
+      : type(Type::Vector3), name(name), label(label.empty() ? name : label),
+        vector3_value(value) {
+    ui_range.float_min = min;
+    ui_range.float_max = max;
+  }
+
+  // Constructor for combo box (int with string options)
+  explicit NodeParameter(const std::string &name, int value,
+                         const std::vector<std::string> &options,
+                         const std::string &label = "")
+      : type(Type::Int), name(name), label(label.empty() ? name : label),
+        int_value(value), string_options(options) {
+    ui_range.int_min = 0;
+    ui_range.int_max = static_cast<int>(options.size()) - 1;
+  }
 };
 
 /**

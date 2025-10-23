@@ -12,6 +12,8 @@
 #include <QHBoxLayout>
 #include <QSlider>
 #include <QSpinBox>
+#include <iostream>
+
 
 PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
 
@@ -653,57 +655,124 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
   QString node_name = QString::fromStdString(node->get_name());
   title_label_->setText(node_name + " Properties");
 
-  using nodeflux::graph::NodeType;
+  // Get all parameters from the node
+  const auto &params = node->get_parameters();
 
-  // Build UI based on node type
-  switch (node->get_type()) {
-  case NodeType::Sphere:
-    buildSphereParameters(node);
-    break;
-  case NodeType::Box:
-    buildBoxParameters(node);
-    break;
-  case NodeType::Cylinder:
-    buildCylinderParameters(node);
-    break;
-  case NodeType::Plane:
-    buildPlaneParameters(node);
-    break;
-  case NodeType::Torus:
-    buildTorusParameters(node);
-    break;
-  case NodeType::Transform:
-    buildTransformParameters(node);
-    break;
-  case NodeType::Array:
-    buildArrayParameters(node);
-    break;
-  case NodeType::Boolean:
-    buildBooleanParameters(node);
-    break;
-  case NodeType::Line:
-    buildLineParameters(node);
-    break;
-  case NodeType::PolyExtrude:
-    buildPolyExtrudeParameters(node);
-    break;
-  case NodeType::Resample:
-    buildResampleParameters(node);
-    break;
-  case NodeType::Scatter:
-    buildScatterParameters(node);
-    break;
-  case NodeType::CopyToPoints:
-    buildCopyToPointsParameters(node);
-    break;
-  default:
-    // For other node types, show generic message
-    auto *label = new QLabel(
-        "Parameters not yet implemented for this node type", content_widget_);
+  if (params.empty()) {
+    auto *label = new QLabel("No parameters available", content_widget_);
     label->setAlignment(Qt::AlignCenter);
     label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
     content_layout_->insertWidget(0, label);
-    break;
+    return;
+  }
+
+  addHeader("Parameters");
+
+  // Dynamically create UI for each parameter
+  for (const auto &param : params) {
+    QString label = QString::fromStdString(param.label);
+
+    switch (param.type) {
+    case nodeflux::graph::NodeParameter::Type::Float: {
+      double value = static_cast<double>(param.float_value);
+      double min = static_cast<double>(param.ui_range.float_min);
+      double max = static_cast<double>(param.ui_range.float_max);
+
+      addDoubleParameter(
+          label, value, min, max, [this, node, param](double new_value) {
+            std::cout << "🎚️ Float parameter '" << param.name << "' changed to "
+                      << new_value << "\n";
+            node->set_parameter(param.name,
+                                nodeflux::graph::NodeParameter(
+                                    param.name, static_cast<float>(new_value),
+                                    param.label, param.ui_range.float_min,
+                                    param.ui_range.float_max));
+            emit parameterChanged();
+          });
+      break;
+    }
+
+    case nodeflux::graph::NodeParameter::Type::Int: {
+      // Check if this is a combo box (has string options)
+      if (!param.string_options.empty()) {
+        QStringList options;
+        for (const auto &opt : param.string_options) {
+          options.append(QString::fromStdString(opt));
+        }
+
+        addComboParameter(label, param.int_value, options,
+                          [this, node, param](int new_value) {
+                            std::cout << "🎚️ Combo parameter '" << param.name
+                                      << "' changed to " << new_value << "\n";
+                            node->set_parameter(param.name,
+                                                nodeflux::graph::NodeParameter(
+                                                    param.name, new_value,
+                                                    param.string_options,
+                                                    param.label));
+                            emit parameterChanged();
+                          });
+      } else {
+        // Regular integer parameter
+        addIntParameter(
+            label, param.int_value, param.ui_range.int_min,
+            param.ui_range.int_max, [this, node, param](int new_value) {
+              std::cout << "🎚️ Int parameter '" << param.name << "' changed to "
+                        << new_value << "\n";
+              node->set_parameter(param.name,
+                                  nodeflux::graph::NodeParameter(
+                                      param.name, new_value, param.label,
+                                      param.ui_range.int_min,
+                                      param.ui_range.int_max));
+              emit parameterChanged();
+            });
+      }
+      break;
+    }
+
+    case nodeflux::graph::NodeParameter::Type::Bool: {
+      addBoolParameter(
+          label, param.bool_value, [this, node, param](bool new_value) {
+            std::cout << "🎚️ Bool parameter '" << param.name << "' changed to "
+                      << new_value << "\n";
+            node->set_parameter(param.name,
+                                nodeflux::graph::NodeParameter(
+                                    param.name, new_value, param.label));
+            emit parameterChanged();
+          });
+      break;
+    }
+
+    case nodeflux::graph::NodeParameter::Type::Vector3: {
+      double x = static_cast<double>(param.vector3_value[0]);
+      double y = static_cast<double>(param.vector3_value[1]);
+      double z = static_cast<double>(param.vector3_value[2]);
+      double min = static_cast<double>(param.ui_range.float_min);
+      double max = static_cast<double>(param.ui_range.float_max);
+
+      addVector3Parameter(
+          label, x, y, z, min, max,
+          [this, node, param](double nx, double ny, double nz) {
+            std::cout << "🎚️ Vector3 parameter '" << param.name
+                      << "' changed to (" << nx << ", " << ny << ", " << nz
+                      << ")\n";
+            std::array<float, 3> new_value = {static_cast<float>(nx),
+                                              static_cast<float>(ny),
+                                              static_cast<float>(nz)};
+            node->set_parameter(param.name,
+                                nodeflux::graph::NodeParameter(
+                                    param.name, new_value, param.label,
+                                    param.ui_range.float_min,
+                                    param.ui_range.float_max));
+            emit parameterChanged();
+          });
+      break;
+    }
+
+    case nodeflux::graph::NodeParameter::Type::String: {
+      // String parameters not yet implemented in UI
+      break;
+    }
+    }
   }
 }
 

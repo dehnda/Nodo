@@ -50,31 +50,31 @@ void GraphNode::setup_pins_for_type() {
   // Setup default parameters and pins based on node type
   switch (type_) {
   case NodeType::Sphere:
-    parameters_.emplace_back("radius", 1.0F);
-    parameters_.emplace_back("u_segments", 32);
-    parameters_.emplace_back("v_segments", 16);
+    parameters_.emplace_back("radius", 1.0F, "Radius", 0.01F, 100.0F);
+    parameters_.emplace_back("u_segments", 32, "U Segments", 3, 128);
+    parameters_.emplace_back("v_segments", 16, "V Segments", 2, 64);
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
   case NodeType::Box:
-    parameters_.emplace_back("width", 1.0F);
-    parameters_.emplace_back("height", 1.0F);
-    parameters_.emplace_back("depth", 1.0F);
+    parameters_.emplace_back("width", 1.0F, "Width", 0.01F, 100.0F);
+    parameters_.emplace_back("height", 1.0F, "Height", 0.01F, 100.0F);
+    parameters_.emplace_back("depth", 1.0F, "Depth", 0.01F, 100.0F);
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
   case NodeType::Cylinder:
-    parameters_.emplace_back("radius", 1.0F);
-    parameters_.emplace_back("height", 2.0F);
-    parameters_.emplace_back("segments", 32);
+    parameters_.emplace_back("radius", 1.0F, "Radius", 0.01F, 100.0F);
+    parameters_.emplace_back("height", 2.0F, "Height", 0.01F, 100.0F);
+    parameters_.emplace_back("segments", 32, "Segments", 3, 128);
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
   case NodeType::Extrude:
-    parameters_.emplace_back("distance", 1.0F);
+    parameters_.emplace_back("distance", 1.0F, "Distance", 0.0F, 10.0F);
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
@@ -82,9 +82,9 @@ void GraphNode::setup_pins_for_type() {
     break;
 
   case NodeType::PolyExtrude:
-    parameters_.emplace_back("distance", 1.0F);
-    parameters_.emplace_back("inset", 0.0F);
-    parameters_.emplace_back("individual_faces", 1); // 1=true, 0=false
+    parameters_.emplace_back("distance", 1.0F, "Distance", 0.0F, 10.0F);
+    parameters_.emplace_back("inset", 0.0F, "Inset", 0.0F, 10.0F);
+    parameters_.emplace_back("individual_faces", true, "Individual Faces");
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
@@ -92,8 +92,8 @@ void GraphNode::setup_pins_for_type() {
     break;
 
   case NodeType::Smooth:
-    parameters_.emplace_back("iterations", 5);
-    parameters_.emplace_back("lambda", 0.5F);
+    parameters_.emplace_back("iterations", 5, "Iterations", 1, 100);
+    parameters_.emplace_back("lambda", 0.5F, "Lambda", 0.0F, 1.0F);
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
@@ -101,8 +101,10 @@ void GraphNode::setup_pins_for_type() {
     break;
 
   case NodeType::Boolean:
-    parameters_.emplace_back("operation",
-                             0); // 0=Union, 1=Intersection, 2=Difference
+    parameters_.emplace_back(
+        "operation", 0,
+        std::vector<std::string>{"Union", "Intersection", "Difference"},
+        "Operation");
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "A", 0});
     input_pins_.push_back(
@@ -491,34 +493,53 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
   // Use switch statement to keep names in sync with enum
   // Compiler will warn if we miss a case with -Wswitch-enum
   switch (type) {
-    // Generators
-    case NodeType::Sphere:       return "Sphere";
-    case NodeType::Box:          return "Box";
-    case NodeType::Cylinder:     return "Cylinder";
-    case NodeType::Plane:        return "Plane";
-    case NodeType::Torus:        return "Torus";
-    case NodeType::Line:         return "Line";
+  // Generators
+  case NodeType::Sphere:
+    return "Sphere";
+  case NodeType::Box:
+    return "Box";
+  case NodeType::Cylinder:
+    return "Cylinder";
+  case NodeType::Plane:
+    return "Plane";
+  case NodeType::Torus:
+    return "Torus";
+  case NodeType::Line:
+    return "Line";
 
-    // Modifiers
-    case NodeType::Extrude:      return "Extrude";
-    case NodeType::PolyExtrude:  return "PolyExtrude";
-    case NodeType::Smooth:       return "Smooth";
-    case NodeType::Subdivide:    return "Subdivide";
-    case NodeType::Transform:    return "Transform";
-    case NodeType::Array:        return "Array";
-    case NodeType::Mirror:       return "Mirror";
-    case NodeType::Resample:     return "Resample";
+  // Modifiers
+  case NodeType::Extrude:
+    return "Extrude";
+  case NodeType::PolyExtrude:
+    return "PolyExtrude";
+  case NodeType::Smooth:
+    return "Smooth";
+  case NodeType::Subdivide:
+    return "Subdivide";
+  case NodeType::Transform:
+    return "Transform";
+  case NodeType::Array:
+    return "Array";
+  case NodeType::Mirror:
+    return "Mirror";
+  case NodeType::Resample:
+    return "Resample";
 
-    // Boolean Operations
-    case NodeType::Boolean:      return "Boolean";
+  // Boolean Operations
+  case NodeType::Boolean:
+    return "Boolean";
 
-    // Point Operations
-    case NodeType::Scatter:      return "Scatter";
-    case NodeType::CopyToPoints: return "CopyToPoints";
+  // Point Operations
+  case NodeType::Scatter:
+    return "Scatter";
+  case NodeType::CopyToPoints:
+    return "CopyToPoints";
 
-    // Utilities
-    case NodeType::Merge:        return "Merge";
-    case NodeType::Switch:       return "Switch";
+  // Utilities
+  case NodeType::Merge:
+    return "Merge";
+  case NodeType::Switch:
+    return "Switch";
   }
 
   return "Unknown";

@@ -4,14 +4,12 @@
 #include "StatusBarWidget.h"
 #include "ViewportWidget.h"
 
-
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
 #include <nodeflux/graph/node_graph.hpp>
 #include <nodeflux/nodes/box_node.hpp>
 #include <nodeflux/nodes/cylinder_node.hpp>
 #include <nodeflux/nodes/sphere_node.hpp>
-
 
 #include <QAction>
 #include <QDockWidget>
@@ -24,7 +22,6 @@
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QToolButton>
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), test_sphere_node_(nullptr), test_box_node_(nullptr),
@@ -64,16 +61,14 @@ auto MainWindow::setupMenuBar() -> void {
   QMenuBar *menuBar = this->menuBar();
 
   // Add logo to the left of menu bar
-  auto* logo_label = new QLabel("⚡ NodeFlux", menuBar);
-  logo_label->setStyleSheet(
-    "QLabel {"
-    "  font-size: 16px;"
-    "  font-weight: 700;"
-    "  color: #4a9eff;"
-    "  padding: 4px 12px 4px 8px;"
-    "  margin-right: 8px;"
-    "}"
-  );
+  auto *logo_label = new QLabel("⚡ NodeFlux", menuBar);
+  logo_label->setStyleSheet("QLabel {"
+                            "  font-size: 16px;"
+                            "  font-weight: 700;"
+                            "  color: #4a9eff;"
+                            "  padding: 4px 12px 4px 8px;"
+                            "  margin-right: 8px;"
+                            "}");
   menuBar->setCornerWidget(logo_label, Qt::TopLeftCorner);
 
   // Create a File menu
@@ -156,58 +151,57 @@ auto MainWindow::setupMenuBar() -> void {
           &MainWindow::onCreateTestGraph);
 
   // Add icon toolbar to the right corner of menu bar
-  auto* icon_toolbar = new QWidget(menuBar);
-  auto* toolbar_layout = new QHBoxLayout(icon_toolbar);
+  auto *icon_toolbar = new QWidget(menuBar);
+  auto *toolbar_layout = new QHBoxLayout(icon_toolbar);
   toolbar_layout->setContentsMargins(8, 0, 8, 0);
   toolbar_layout->setSpacing(4);
 
   // Helper lambda to create icon buttons
-  auto createIconButton = [](const QString& icon, const QString& tooltip) {
-    auto* btn = new QToolButton();
+  auto createIconButton = [](const QString &icon, const QString &tooltip) {
+    auto *btn = new QToolButton();
     btn->setText(icon);
     btn->setToolTip(tooltip);
     btn->setFixedSize(32, 32);
-    btn->setStyleSheet(
-      "QToolButton {"
-      "  background: rgba(255, 255, 255, 0.05);"
-      "  border: 1px solid rgba(255, 255, 255, 0.1);"
-      "  border-radius: 4px;"
-      "  font-size: 16px;"
-      "}"
-      "QToolButton:hover {"
-      "  background: rgba(255, 255, 255, 0.1);"
-      "  border-color: rgba(255, 255, 255, 0.2);"
-      "}"
-      "QToolButton:pressed {"
-      "  background: rgba(255, 255, 255, 0.15);"
-      "}"
-    );
+    btn->setStyleSheet("QToolButton {"
+                       "  background: rgba(255, 255, 255, 0.05);"
+                       "  border: 1px solid rgba(255, 255, 255, 0.1);"
+                       "  border-radius: 4px;"
+                       "  font-size: 16px;"
+                       "}"
+                       "QToolButton:hover {"
+                       "  background: rgba(255, 255, 255, 0.1);"
+                       "  border-color: rgba(255, 255, 255, 0.2);"
+                       "}"
+                       "QToolButton:pressed {"
+                       "  background: rgba(255, 255, 255, 0.15);"
+                       "}");
     return btn;
   };
 
   // File operation buttons
-  auto* new_btn = createIconButton("📄", "New Scene");
+  auto *new_btn = createIconButton("📄", "New Scene");
   connect(new_btn, &QToolButton::clicked, this, &MainWindow::onNewScene);
   toolbar_layout->addWidget(new_btn);
 
-  auto* open_btn = createIconButton("📂", "Open Scene");
+  auto *open_btn = createIconButton("📂", "Open Scene");
   connect(open_btn, &QToolButton::clicked, this, &MainWindow::onOpenScene);
   toolbar_layout->addWidget(open_btn);
 
-  auto* save_btn = createIconButton("💾", "Save Scene");
+  auto *save_btn = createIconButton("💾", "Save Scene");
   connect(save_btn, &QToolButton::clicked, this, &MainWindow::onSaveScene);
   toolbar_layout->addWidget(save_btn);
 
   // Divider
-  auto* divider = new QFrame();
+  auto *divider = new QFrame();
   divider->setFrameShape(QFrame::VLine);
   divider->setStyleSheet("QFrame { background: #3a3a42; margin: 4px 4px; }");
   divider->setFixedSize(1, 24);
   toolbar_layout->addWidget(divider);
 
   // Graph operation button
-  auto* play_btn = createIconButton("▶️", "Execute Graph");
-  connect(play_btn, &QToolButton::clicked, this, &MainWindow::onCreateTestGraph);
+  auto *play_btn = createIconButton("▶️", "Execute Graph");
+  connect(play_btn, &QToolButton::clicked, this,
+          &MainWindow::onCreateTestGraph);
   toolbar_layout->addWidget(play_btn);
 
   menuBar->setCornerWidget(icon_toolbar, Qt::TopRightCorner);
@@ -599,9 +593,27 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
     return;
   }
 
+  // Check if we're deleting the currently selected node
+  bool deleted_current_node = false;
+  if (property_panel_ != nullptr &&
+      property_panel_->getCurrentNode() != nullptr) {
+    int current_node_id = property_panel_->getCurrentNode()->get_id();
+    for (int node_id : node_ids) {
+      if (node_id == current_node_id) {
+        deleted_current_node = true;
+        break;
+      }
+    }
+  }
+
   // Remove nodes from backend graph
   for (int node_id : node_ids) {
     node_graph_->remove_node(node_id);
+  }
+
+  // Clear property panel if we deleted the current node
+  if (deleted_current_node && property_panel_ != nullptr) {
+    property_panel_->clearProperties();
   }
 
   // Rebuild visual representation
@@ -685,8 +697,9 @@ void MainWindow::executeAndDisplayNode(int node_id) {
       int memory_kb = memory_bytes / 1024;
 
       // Update node stats and parameters in graph widget
-      node_graph_widget_->update_node_stats(node_id, vertex_count, triangle_count,
-                                            memory_kb, 0.0); // TODO: Add actual cook time
+      node_graph_widget_->update_node_stats(node_id, vertex_count,
+                                            triangle_count, memory_kb,
+                                            0.0); // TODO: Add actual cook time
       node_graph_widget_->update_node_parameters(node_id);
 
       // Update status
@@ -709,7 +722,8 @@ void MainWindow::executeAndDisplayNode(int node_id) {
         status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, msg);
       }
     } else {
-      status_bar_widget_->setStatus(StatusBarWidget::Status::Error, "Node has no mesh output");
+      status_bar_widget_->setStatus(StatusBarWidget::Status::Error,
+                                    "Node has no mesh output");
     }
   } else {
     statusBar()->showMessage("Graph execution failed", 2000);
