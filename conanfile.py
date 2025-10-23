@@ -62,7 +62,7 @@ class NodeFluxEngineConan(ConanFile):
         self.requires("manifold/3.2.1")
 
         # Qt for UI
-        self.requires("qt/6.5.0")
+        self.requires("qt/6.7.0")
 
         # Testing (optional)
         if bool(self.options.with_tests):
