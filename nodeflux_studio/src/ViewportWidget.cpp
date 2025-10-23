@@ -1,8 +1,10 @@
 #include "ViewportWidget.h"
+#include "ViewportOverlay.h"
 #include <nodeflux/core/mesh.hpp>
 
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QTimer>
 #include <QtMath>
 
 // Vertex shader source (GLSL 330)
@@ -112,6 +114,14 @@ ViewportWidget::ViewportWidget(QWidget *parent) : QOpenGLWidget(parent) {
   QSurfaceFormat format;
   format.setSamples(4);
   setFormat(format);
+
+  // Setup overlay widgets
+  setupOverlays();
+
+  // Setup FPS timer
+  fps_timer_ = new QTimer(this);
+  connect(fps_timer_, &QTimer::timeout, this, &ViewportWidget::updateStats);
+  fps_timer_->start(1000); // Update stats every second
 }
 
 ViewportWidget::~ViewportWidget() {
@@ -304,6 +314,9 @@ void ViewportWidget::resizeGL(int width, int height) {
 }
 
 void ViewportWidget::paintGL() {
+  // Increment frame counter for FPS calculation
+  frame_count_++;
+
   // Clear buffers
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1108,4 +1121,70 @@ void ViewportWidget::setShowEdges(bool show) {
 void ViewportWidget::setShowVertices(bool show) {
   show_vertices_ = show;
   update();
+}
+
+// ============================================================================
+// Overlay Management
+// ============================================================================
+
+void ViewportWidget::setupOverlays() {
+  // Create stats overlay (top-left)
+  stats_overlay_ = new ViewportStatsOverlay(this);
+  stats_overlay_->raise();
+
+  // Create controls overlay (top-right)
+  controls_overlay_ = new ViewportControlsOverlay(this);
+  controls_overlay_->raise();
+
+  // Connect controls signals
+  connect(controls_overlay_, &ViewportControlsOverlay::wireframeToggled,
+          this, &ViewportWidget::setWireframeMode);
+  connect(controls_overlay_, &ViewportControlsOverlay::cameraReset,
+          this, &ViewportWidget::resetCamera);
+  connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView,
+          this, &ViewportWidget::fitToView);
+
+  // Create axis gizmo (bottom-left)
+  axis_gizmo_ = new ViewportAxisGizmo(this);
+  axis_gizmo_->raise();
+
+  // Position overlays
+  updateOverlayPositions();
+}
+
+void ViewportWidget::updateOverlayPositions() {
+  if (stats_overlay_) {
+    stats_overlay_->move(12, 12);
+  }
+
+  if (controls_overlay_) {
+    controls_overlay_->move(width() - controls_overlay_->width() - 12, 12);
+  }
+
+  if (axis_gizmo_) {
+    axis_gizmo_->move(20, height() - axis_gizmo_->height() - 20);
+  }
+}
+
+void ViewportWidget::resizeEvent(QResizeEvent* event) {
+  QOpenGLWidget::resizeEvent(event);
+  updateOverlayPositions();
+}
+
+void ViewportWidget::updateStats() {
+  // Calculate FPS
+  current_fps_ = frame_count_;
+  frame_count_ = 0;
+
+  // Update stats overlay
+  if (stats_overlay_) {
+    stats_overlay_->setFPS(current_fps_);
+    stats_overlay_->setVertexCount(vertex_count_);
+    stats_overlay_->setTriangleCount(index_count_ / 3);
+
+    // Calculate approximate memory usage
+    int memory_kb = (vertex_count_ * sizeof(float) * 6 +  // vertices + normals
+                     index_count_ * sizeof(unsigned int)) / 1024;
+    stats_overlay_->setMemoryUsage(QString("%1 KB").arg(memory_kb));
+  }
 }

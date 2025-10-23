@@ -24,6 +24,8 @@ set(STUDIO_SOURCES
     src/PropertyPanel.cpp
     src/NodeGraphWidget.cpp
     src/NodeCreationMenu.cpp
+    src/StatusBarWidget.cpp
+    src/ViewportOverlay.cpp
 )
 
 set(STUDIO_HEADERS
@@ -32,6 +34,8 @@ set(STUDIO_HEADERS
     src/PropertyPanel.h
     src/NodeGraphWidget.h
     src/NodeCreationMenu.h
+    src/StatusBarWidget.h
+    src/ViewportOverlay.h
 )
 
 # Resource files

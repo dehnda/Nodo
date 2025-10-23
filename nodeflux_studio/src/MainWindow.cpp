@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
+#include "StatusBarWidget.h"
 #include "ViewportWidget.h"
 
 
@@ -234,9 +235,19 @@ void MainWindow::onParameterChanged() {
 }
 
 auto MainWindow::setupStatusBar() -> void {
-  // Show status bar with helpful message
-  statusBar()->showMessage(
-      "Ready - Use left mouse to rotate, middle mouse to pan, scroll to zoom");
+  // Create custom status bar widget
+  status_bar_widget_ = new StatusBarWidget(this);
+
+  // Replace default status bar with our custom widget
+  statusBar()->addPermanentWidget(status_bar_widget_, 1);
+
+  // Set initial state
+  status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
+  status_bar_widget_->setNodeCount(0, 17);
+  status_bar_widget_->setHintText("Press Tab or Right-Click to add nodes");
+
+  // Try to get GPU info (placeholder for now)
+  status_bar_widget_->setGPUInfo("Detecting...");
 }
 
 // Slot implementations
@@ -477,6 +488,12 @@ void MainWindow::onCreateTestGraph() {
 void MainWindow::onNodeCreated(int node_id) {
   // Execute the graph and display the new node's output
   executeAndDisplayNode(node_id);
+
+  // Update node count in status bar
+  if (node_graph_ != nullptr && status_bar_widget_ != nullptr) {
+    int node_count = static_cast<int>(node_graph_->get_nodes().size());
+    status_bar_widget_->setNodeCount(node_count, 17);
+  }
 }
 
 void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/,
@@ -520,8 +537,16 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
   // Clear viewport if we deleted the displayed node
   viewport_widget_->clearMesh();
 
+  // Update node count in status bar
+  if (status_bar_widget_ != nullptr) {
+    int node_count = static_cast<int>(node_graph_->get_nodes().size());
+    status_bar_widget_->setNodeCount(node_count, 17);
+  }
+
   QString msg = QString("Deleted %1 node(s)").arg(node_ids.size());
-  statusBar()->showMessage(msg, 2000);
+  if (status_bar_widget_ != nullptr) {
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, msg);
+  }
 }
 
 void MainWindow::onNodeSelectionChanged() {

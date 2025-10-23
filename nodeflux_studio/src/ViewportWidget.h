@@ -9,7 +9,12 @@
 #include <QVector3D>
 #include <memory>
 
-// Forward declare Mesh class
+// Forward declarations
+class ViewportStatsOverlay;
+class ViewportControlsOverlay;
+class ViewportAxisGizmo;
+class QTimer;
+
 namespace nodeflux::core {
 class Mesh;
 }
@@ -56,8 +61,20 @@ protected:
   void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
+  void resizeEvent(QResizeEvent *event) override;
 
 private:
+  // Overlay widgets
+  void setupOverlays();
+  void updateOverlayPositions();
+  void updateStats();
+
+  ViewportStatsOverlay *stats_overlay_;
+  ViewportControlsOverlay *controls_overlay_;
+  ViewportAxisGizmo *axis_gizmo_;
+  QTimer *fps_timer_;
+  int frame_count_ = 0;
+  double current_fps_ = 0.0;
   // OpenGL resources
   std::unique_ptr<QOpenGLShaderProgram> shader_program_;
   std::unique_ptr<QOpenGLShaderProgram>

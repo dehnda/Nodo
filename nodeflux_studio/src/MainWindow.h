@@ -7,6 +7,7 @@
 class ViewportWidget;
 class PropertyPanel;
 class NodeGraphWidget;
+class StatusBarWidget;
 class QDockWidget;
 
 // Forward declare node types
@@ -42,6 +43,7 @@ private:
   ViewportWidget *viewport_widget_;
   PropertyPanel *property_panel_;
   NodeGraphWidget *node_graph_widget_;
+  StatusBarWidget *status_bar_widget_;
   QDockWidget *property_dock_;
   QDockWidget *node_graph_dock_;
 
