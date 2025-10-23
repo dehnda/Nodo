@@ -918,9 +918,9 @@ void ViewportWidget::drawVertices() {
   simple_shader_program_->setUniformValue("view", view_matrix_);
   simple_shader_program_->setUniformValue("projection", projection_matrix_);
   simple_shader_program_->setUniformValue(
-      "color", QVector3D(1.0F, 0.8F, 0.2F)); // Bright yellow/gold
+      "color", QVector3D(0.2F, 0.5F, 0.9F)); // Nice blue
 
-  const float point_size = 12.0F; // Reasonable size - adjust as needed
+  const float point_size = 6.0F; // Reasonable size - adjust as needed
   simple_shader_program_->setUniformValue("point_size", point_size);
 
   vertex_vao_->bind();

@@ -121,7 +121,7 @@ private:
   bool show_vertex_normals_ = false; // Show vertex normals as lines
   bool show_face_normals_ = false;   // Show face normals as lines
   bool wireframe_mode_ = false;
-  bool backface_culling_ = true;
+  bool backface_culling_ = false;
   bool first_mesh_load_ = true;
   bool show_grid_ = true;
   bool show_axes_ = true;
