@@ -264,6 +264,11 @@ void ViewportWidget::setWireframeMode(bool wireframe) {
   update();
 }
 
+void ViewportWidget::setShadingEnabled(bool enabled) {
+  shading_enabled_ = enabled;
+  update();
+}
+
 void ViewportWidget::setBackfaceCulling(bool enabled) {
   backface_culling_ = enabled;
   update();
@@ -354,17 +359,23 @@ void ViewportWidget::paintGL() {
     return;
   }
 
-  // Bind shader and set uniforms
-  shader_program_->bind();
-  shader_program_->setUniformValue("model", model_matrix_);
-  shader_program_->setUniformValue("view", view_matrix_);
-  shader_program_->setUniformValue("projection", projection_matrix_);
+  // Choose shader based on shading mode
+  auto* active_shader = shading_enabled_ ? shader_program_.get() : simple_shader_program_.get();
 
-  // Calculate camera position for lighting
-  QMatrix4x4 view_inverse = view_matrix_.inverted();
-  QVector3D camera_pos = view_inverse.map(QVector3D(0.0F, 0.0F, 0.0F));
-  shader_program_->setUniformValue("view_position", camera_pos);
-  shader_program_->setUniformValue("object_color", QVector3D(0.7F, 0.7F, 0.7F));
+  // Bind shader and set uniforms
+  active_shader->bind();
+  active_shader->setUniformValue("model", model_matrix_);
+  active_shader->setUniformValue("view", view_matrix_);
+  active_shader->setUniformValue("projection", projection_matrix_);
+
+  // Calculate camera position for lighting (only for lit shader)
+  if (shading_enabled_) {
+    QMatrix4x4 view_inverse = view_matrix_.inverted();
+    QVector3D camera_pos = view_inverse.map(QVector3D(0.0F, 0.0F, 0.0F));
+    shader_program_->setUniformValue("view_position", camera_pos);
+  }
+
+  active_shader->setUniformValue("object_color", QVector3D(0.7F, 0.7F, 0.7F));
 
   // Toggle face culling
   if (backface_culling_) {
@@ -391,7 +402,7 @@ void ViewportWidget::paintGL() {
 
   vao_->release();
 
-  shader_program_->release();
+  active_shader->release();
 
   // For point clouds (no faces), always show vertices
   const bool is_point_cloud = (index_count_ == 0 && point_count_ > 0);
@@ -1168,6 +1179,10 @@ void ViewportWidget::setupOverlays() {
   // Connect controls signals
   connect(controls_overlay_, &ViewportControlsOverlay::wireframeToggled, this,
           &ViewportWidget::setWireframeMode);
+  connect(controls_overlay_, &ViewportControlsOverlay::shadingModeChanged, this,
+          [this](const QString& mode) {
+            setShadingEnabled(mode == "smooth");
+          });
   connect(controls_overlay_, &ViewportControlsOverlay::cameraReset, this,
           &ViewportWidget::resetCamera);
   connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView, this,

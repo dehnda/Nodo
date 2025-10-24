@@ -46,6 +46,7 @@ public:
   void setShowVertexNormals(bool show);
   void setShowFaceNormals(bool show);
   void setWireframeMode(bool wireframe);
+  void setShadingEnabled(bool enabled);
   void setBackfaceCulling(bool enabled);
   void setShowEdges(bool show);
   void setShowVertices(bool show);
@@ -126,6 +127,7 @@ private:
   bool show_vertex_normals_ = false; // Show vertex normals as lines
   bool show_face_normals_ = false;   // Show face normals as lines
   bool wireframe_mode_ = false;
+  bool shading_enabled_ = true;      // Enable/disable lighting (smooth shading)
   bool backface_culling_ = false;
   bool first_mesh_load_ = true;
   bool show_grid_ = true;

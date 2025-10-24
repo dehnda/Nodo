@@ -160,6 +160,9 @@ void ViewportControlsOverlay::setupUI() {
         "   color: white;"
         "}"
     );
+    connect(shaded_btn_, &QPushButton::toggled, this, [this](bool checked) {
+        emit shadingModeChanged(checked ? "smooth" : "flat");
+    });
     layout->addWidget(shaded_btn_);
 
     // Separator (visual only)
