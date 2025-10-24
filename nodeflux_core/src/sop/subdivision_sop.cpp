@@ -6,7 +6,11 @@
 namespace nodeflux::sop {
 
 SubdivisionSOP::SubdivisionSOP(const std::string &name)
-    : SOPNode(name, "Subdivision") {}
+    : SOPNode(name, "Subdivision") {
+  // Add input port
+  input_ports_.add_port("0", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+}
 
 std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
   // Get input geometry

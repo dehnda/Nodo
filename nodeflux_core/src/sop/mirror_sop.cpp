@@ -4,7 +4,11 @@
 namespace nodeflux::sop {
 
 MirrorSOP::MirrorSOP(const std::string &name)
-    : SOPNode(name, "Mirror") {}
+    : SOPNode(name, "Mirror") {
+  // Add input port
+  input_ports_.add_port("0", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+}
 
 std::shared_ptr<GeometryData> MirrorSOP::execute() {
   // Get input geometry

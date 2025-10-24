@@ -247,6 +247,14 @@ protected:
   }
 
   /**
+   * @brief Get input data from a specific input port by index
+   */
+  std::shared_ptr<GeometryData>
+  get_input_data(int port_index) const {
+    return get_input_data(std::to_string(port_index));
+  }
+
+  /**
    * @brief Manually set input data (for testing/bridge purposes only)
    * @param port_index Port index (0-based)
    * @param data Geometry data to set

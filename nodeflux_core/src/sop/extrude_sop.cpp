@@ -4,7 +4,11 @@
 namespace nodeflux::sop {
 
 ExtrudeSOP::ExtrudeSOP(const std::string &name)
-    : SOPNode(name, "Extrude") {}
+    : SOPNode(name, "Extrude") {
+  // Add input port
+  input_ports_.add_port("0", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+}
 
 std::shared_ptr<GeometryData> ExtrudeSOP::execute() {
   // Get input geometry
