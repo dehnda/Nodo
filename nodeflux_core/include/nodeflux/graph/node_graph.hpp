@@ -216,6 +216,10 @@ public:
   }
   std::shared_ptr<core::Mesh> get_output_mesh() const { return output_mesh_; }
 
+  // Cook time (execution duration in milliseconds)
+  double get_cook_time() const { return cook_time_ms_; }
+  void set_cook_time(double time_ms) { cook_time_ms_ = time_ms; }
+
 private:
   int id_;
   NodeType type_;
@@ -238,6 +242,9 @@ private:
   // Error state
   bool has_error_ = false;
   std::string error_message_;
+
+  // Performance tracking
+  double cook_time_ms_ = 0.0;
 
   void setup_pins_for_type();
 };

@@ -16,6 +16,7 @@
 #include "nodeflux/sop/scatter_sop.hpp"
 #include <iostream>
 #include <memory>
+#include <chrono>
 // For trigonometry and pi constant
 #include <cmath>
 #include <numbers>
@@ -59,6 +60,9 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     std::cout << "🎯 Executing node " << node_id << " ("
               << static_cast<int>(node->get_type()) << ")" << std::endl;
+
+    // Start timing
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     std::shared_ptr<core::Mesh> result = nullptr;
 
@@ -133,9 +137,18 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     }
     }
 
+    // End timing and calculate duration
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    double cook_time_ms = duration.count() / 1000.0; // Convert to milliseconds
+
+    // Store cook time in node
+    node->set_cook_time(cook_time_ms);
+
     // Store the result or mark error
     if (result) {
-      std::cout << "✅ Node " << node_id << " executed successfully" << '\n';
+      std::cout << "✅ Node " << node_id << " executed successfully (took "
+                << cook_time_ms << " ms)" << '\n';
       result_cache_[node_id] = result;
       node->set_output_mesh(result);
       node->set_error(false); // Clear any previous error

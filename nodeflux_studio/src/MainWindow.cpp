@@ -703,14 +703,17 @@ void MainWindow::executeAndDisplayNode(int node_id) {
       int memory_bytes = (vertex_count * 24) + (triangle_count * 12);
       int memory_kb = memory_bytes / 1024;
 
+      // Get node and cook time
+      auto *node = node_graph_->get_node(node_id);
+      double cook_time_ms = (node != nullptr) ? node->get_cook_time() : 0.0;
+
       // Update node stats and parameters in graph widget
       node_graph_widget_->update_node_stats(node_id, vertex_count,
                                             triangle_count, memory_kb,
-                                            0.0); // TODO: Add actual cook time
+                                            cook_time_ms);
       node_graph_widget_->update_node_parameters(node_id);
 
       // Update status
-      auto *node = node_graph_->get_node(node_id);
       if (node != nullptr) {
         QString msg = QString("Displaying: %1 (%2 vertices, %3 faces)")
                           .arg(QString::fromStdString(node->get_name()))
