@@ -10,6 +10,7 @@
 #include <QFrame>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLineEdit>
 #include <QSlider>
 #include <QSpinBox>
 #include <iostream>
@@ -573,6 +574,50 @@ void PropertyPanel::addBoolParameter(const QString &label, bool value,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
+void PropertyPanel::addStringParameter(
+    const QString &label, const QString &value,
+    std::function<void(const QString &)> callback) {
+  // Create container widget
+  auto *container = new QWidget(content_widget_);
+  auto *layout = new QVBoxLayout(container);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
+
+  // Label
+  auto *label_widget = new QLabel(label, container);
+  label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
+                               "font-weight: 500; }");
+  layout->addWidget(label_widget);
+
+  // Line edit for string input
+  auto *line_edit = new QLineEdit(value, container);
+  line_edit->setStyleSheet(
+      "QLineEdit {"
+      "  background: rgba(255, 255, 255, 0.05);"
+      "  border: 1px solid rgba(255, 255, 255, 0.1);"
+      "  border-radius: 4px;"
+      "  color: #e0e0e0;"
+      "  padding: 6px 8px;"
+      "  font-size: 12px;"
+      "  selection-background-color: #4a9eff;"
+      "}"
+      "QLineEdit:focus {"
+      "  border-color: #4a9eff;"
+      "  background: rgba(255, 255, 255, 0.08);"
+      "}"
+      "QLineEdit:hover {"
+      "  background: rgba(255, 255, 255, 0.07);"
+      "  border-color: rgba(255, 255, 255, 0.15);"
+      "}");
+  layout->addWidget(line_edit);
+
+  // Connect to callback when text changes (on Enter or focus loss)
+  connect(line_edit, &QLineEdit::editingFinished,
+          [callback, line_edit]() { callback(line_edit->text()); });
+
+  content_layout_->insertWidget(content_layout_->count() - 1, container);
+}
+
 void PropertyPanel::addComboParameter(const QString &label, int value,
                                       const QStringList &options,
                                       std::function<void(int)> callback) {
@@ -779,7 +824,19 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
     }
 
     case nodeflux::graph::NodeParameter::Type::String: {
-      // String parameters not yet implemented in UI
+      QString string_value = QString::fromStdString(param.string_value);
+      addStringParameter(label, string_value,
+                         [this, node, param](const QString &new_value) {
+                           std::cout << "🎚️ String parameter '" << param.name
+                                     << "' changed to \"" << new_value.toStdString()
+                                     << "\"\n";
+                           node->set_parameter(
+                               param.name,
+                               nodeflux::graph::NodeParameter(
+                                   param.name, new_value.toStdString(),
+                                   param.label));
+                           emit parameterChanged();
+                         });
       break;
     }
     }
