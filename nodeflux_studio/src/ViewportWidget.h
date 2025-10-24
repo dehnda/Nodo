@@ -52,6 +52,7 @@ public:
 
 signals:
   void gpuInfoDetected(const QString& gpu_info);
+  void fpsUpdated(double fps);
 
 protected:
   // QOpenGLWidget interface
@@ -76,6 +77,7 @@ private:
   ViewportControlsOverlay *controls_overlay_;
   ViewportAxisGizmo *axis_gizmo_;
   QTimer *fps_timer_;
+  QTimer *render_timer_;
   int frame_count_ = 0;
   double current_fps_ = 0.0;
   // OpenGL resources

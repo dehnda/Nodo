@@ -235,6 +235,10 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(viewport_widget_, &ViewportWidget::gpuInfoDetected,
           status_bar_widget_, &StatusBarWidget::setGPUInfo);
 
+  // Connect FPS updates from viewport to status bar
+  connect(viewport_widget_, &ViewportWidget::fpsUpdated,
+          status_bar_widget_, &StatusBarWidget::setFPS);
+
   // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
   node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |

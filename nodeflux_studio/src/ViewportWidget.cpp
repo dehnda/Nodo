@@ -122,6 +122,12 @@ ViewportWidget::ViewportWidget(QWidget *parent) : QOpenGLWidget(parent) {
   fps_timer_ = new QTimer(this);
   connect(fps_timer_, &QTimer::timeout, this, &ViewportWidget::updateStats);
   fps_timer_->start(1000); // Update stats every second
+
+  // Setup continuous render timer (for smooth FPS and animations)
+  render_timer_ = new QTimer(this);
+  connect(render_timer_, &QTimer::timeout, this,
+          QOverload<>::of(&ViewportWidget::update));
+  render_timer_->start(16); // ~60 FPS (16ms per frame)
 }
 
 ViewportWidget::~ViewportWidget() {
@@ -1198,6 +1204,9 @@ void ViewportWidget::updateStats() {
   // Calculate FPS
   current_fps_ = frame_count_;
   frame_count_ = 0;
+
+  // Emit FPS update signal for status bar
+  emit fpsUpdated(current_fps_);
 
   // Update stats overlay
   if (stats_overlay_) {
