@@ -423,29 +423,28 @@ void PropertyPanel::addStringParameter(
   // Label
   auto *label_widget = new QLabel(label, container);
   label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
-                               "font-weight: 500; }");
+                              "font-weight: 500; }");
   layout->addWidget(label_widget);
 
   // Line edit for string input
   auto *line_edit = new QLineEdit(value, container);
-  line_edit->setStyleSheet(
-      "QLineEdit {"
-      "  background: rgba(255, 255, 255, 0.05);"
-      "  border: 1px solid rgba(255, 255, 255, 0.1);"
-      "  border-radius: 4px;"
-      "  color: #e0e0e0;"
-      "  padding: 6px 8px;"
-      "  font-size: 12px;"
-      "  selection-background-color: #4a9eff;"
-      "}"
-      "QLineEdit:focus {"
-      "  border-color: #4a9eff;"
-      "  background: rgba(255, 255, 255, 0.08);"
-      "}"
-      "QLineEdit:hover {"
-      "  background: rgba(255, 255, 255, 0.07);"
-      "  border-color: rgba(255, 255, 255, 0.15);"
-      "}");
+  line_edit->setStyleSheet("QLineEdit {"
+                           "  background: rgba(255, 255, 255, 0.05);"
+                           "  border: 1px solid rgba(255, 255, 255, 0.1);"
+                           "  border-radius: 4px;"
+                           "  color: #e0e0e0;"
+                           "  padding: 6px 8px;"
+                           "  font-size: 12px;"
+                           "  selection-background-color: #4a9eff;"
+                           "}"
+                           "QLineEdit:focus {"
+                           "  border-color: #4a9eff;"
+                           "  background: rgba(255, 255, 255, 0.08);"
+                           "}"
+                           "QLineEdit:hover {"
+                           "  background: rgba(255, 255, 255, 0.07);"
+                           "  border-color: rgba(255, 255, 255, 0.15);"
+                           "}");
   layout->addWidget(line_edit);
 
   // Connect to callback when text changes (on Enter or focus loss)
@@ -644,15 +643,14 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
     case nodeflux::graph::NodeParameter::Type::String: {
       QString string_value = QString::fromStdString(param.string_value);
-      addStringParameter(label, string_value,
-                         [this, node, param](const QString &new_value) {
-                           node->set_parameter(
-                               param.name,
-                               nodeflux::graph::NodeParameter(
-                                   param.name, new_value.toStdString(),
-                                   param.label));
-                           emit parameterChanged();
-                         });
+      addStringParameter(
+          label, string_value, [this, node, param](const QString &new_value) {
+            node->set_parameter(
+                param.name,
+                nodeflux::graph::NodeParameter(
+                    param.name, new_value.toStdString(), param.label));
+            emit parameterChanged();
+          });
       break;
     }
     }

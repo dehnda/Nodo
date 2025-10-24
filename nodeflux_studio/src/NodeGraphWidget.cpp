@@ -92,9 +92,11 @@ void NodeGraphicsItem::paint(QPainter *painter,
   // Get base color from node type
   QColor base_color = getNodeColor();
 
-  // Determine outline color based on selection
+  // Determine outline color based on error state or selection
   QColor outline_color = QColor(255, 255, 255, 40); // Subtle white border
-  if (selected_) {
+  if (has_error_flag_) {
+    outline_color = QColor(239, 68, 68); // Red error (#ef4444)
+  } else if (selected_) {
     outline_color = QColor(74, 158, 255); // Blue selection (#4a9eff)
   }
 
@@ -132,9 +134,14 @@ void NodeGraphicsItem::paint(QPainter *painter,
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
   }
 
-  // Draw selection glow
-  if (selected_) {
-    painter->setPen(QPen(QColor(74, 158, 255, 50), 8.0));
+  // Draw selection or error glow
+  if (has_error_flag_) {
+    painter->setPen(QPen(QColor(239, 68, 68, 80), 8.0)); // Red glow for errors
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRoundedRect(node_rect, 12.0, 12.0);
+  } else if (selected_) {
+    painter->setPen(
+        QPen(QColor(74, 158, 255, 50), 8.0)); // Blue glow for selection
     painter->setBrush(Qt::NoBrush);
     painter->drawRoundedRect(node_rect, 12.0, 12.0);
   }
