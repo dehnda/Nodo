@@ -228,6 +228,13 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(face_normals_action_, &QAction::toggled, viewport_widget_,
           &ViewportWidget::setShowFaceNormals);
 
+  // Create custom status bar widget
+  status_bar_widget_ = new StatusBarWidget(this);
+
+  // Connect GPU info signal from viewport to status bar
+  connect(viewport_widget_, &ViewportWidget::gpuInfoDetected,
+          status_bar_widget_, &StatusBarWidget::setGPUInfo);
+
   // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
   node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
@@ -302,9 +309,6 @@ void MainWindow::onParameterChanged() {
 }
 
 auto MainWindow::setupStatusBar() -> void {
-  // Create custom status bar widget
-  status_bar_widget_ = new StatusBarWidget(this);
-
   // Replace default status bar with our custom widget
   statusBar()->addPermanentWidget(status_bar_widget_, 1);
 
@@ -313,8 +317,7 @@ auto MainWindow::setupStatusBar() -> void {
   status_bar_widget_->setNodeCount(0, 17);
   status_bar_widget_->setHintText("Press Tab or Right-Click to add nodes");
 
-  // Try to get GPU info (placeholder for now)
-  status_bar_widget_->setGPUInfo("Detecting...");
+  // GPU info will be set automatically when viewport initializes via signal
 }
 
 // Slot implementations

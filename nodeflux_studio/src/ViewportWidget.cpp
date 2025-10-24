@@ -266,6 +266,22 @@ void ViewportWidget::setBackfaceCulling(bool enabled) {
 void ViewportWidget::initializeGL() {
   initializeOpenGLFunctions();
 
+  // Detect GPU information
+  const GLubyte *vendor = glGetString(GL_VENDOR);
+  const GLubyte *renderer = glGetString(GL_RENDERER);
+
+  QString gpu_info;
+  if (renderer != nullptr) {
+    gpu_info = QString::fromUtf8(reinterpret_cast<const char *>(renderer));
+  } else if (vendor != nullptr) {
+    gpu_info = QString::fromUtf8(reinterpret_cast<const char *>(vendor));
+  } else {
+    gpu_info = "Unknown";
+  }
+
+  // Emit GPU info to be displayed in status bar
+  emit gpuInfoDetected(gpu_info);
+
   // Query and log point size range
   GLfloat point_size_range[2];
   glGetFloatv(GL_POINT_SIZE_RANGE, point_size_range);

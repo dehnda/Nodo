@@ -50,6 +50,9 @@ public:
   void setShowEdges(bool show);
   void setShowVertices(bool show);
 
+signals:
+  void gpuInfoDetected(const QString& gpu_info);
+
 protected:
   // QOpenGLWidget interface
   void initializeGL() override;
