@@ -30,12 +30,9 @@ public:
    * @param z Translation along Z axis
    */
   void set_translation(double x, double y, double z) {
-    if (translate_x_ != x || translate_y_ != y || translate_z_ != z) {
-      translate_x_ = x;
-      translate_y_ = y;
-      translate_z_ = z;
-      mark_dirty();
-    }
+    set_parameter("translate_x", static_cast<float>(x));
+    set_parameter("translate_y", static_cast<float>(y));
+    set_parameter("translate_z", static_cast<float>(z));
   }
 
   /**
@@ -45,12 +42,9 @@ public:
    * @param z Rotation around Z axis (degrees)
    */
   void set_rotation(double x, double y, double z) {
-    if (rotate_x_ != x || rotate_y_ != y || rotate_z_ != z) {
-      rotate_x_ = x;
-      rotate_y_ = y;
-      rotate_z_ = z;
-      mark_dirty();
-    }
+    set_parameter("rotate_x", static_cast<float>(x));
+    set_parameter("rotate_y", static_cast<float>(y));
+    set_parameter("rotate_z", static_cast<float>(z));
   }
 
   /**
@@ -60,12 +54,9 @@ public:
    * @param z Scale along Z axis
    */
   void set_scale(double x, double y, double z) {
-    if (scale_x_ != x || scale_y_ != y || scale_z_ != z) {
-      scale_x_ = x;
-      scale_y_ = y;
-      scale_z_ = z;
-      mark_dirty();
-    }
+    set_parameter("scale_x", static_cast<float>(x));
+    set_parameter("scale_y", static_cast<float>(y));
+    set_parameter("scale_z", static_cast<float>(z));
   }
 
   /**
@@ -77,9 +68,21 @@ public:
   }
 
   // Getters
-  Eigen::Vector3d get_translation() const { return {translate_x_, translate_y_, translate_z_}; }
-  Eigen::Vector3d get_rotation() const { return {rotate_x_, rotate_y_, rotate_z_}; }
-  Eigen::Vector3d get_scale() const { return {scale_x_, scale_y_, scale_z_}; }
+  Eigen::Vector3d get_translation() const {
+    return {get_parameter<float>("translate_x", 0.0F),
+            get_parameter<float>("translate_y", 0.0F),
+            get_parameter<float>("translate_z", 0.0F)};
+  }
+  Eigen::Vector3d get_rotation() const {
+    return {get_parameter<float>("rotate_x", 0.0F),
+            get_parameter<float>("rotate_y", 0.0F),
+            get_parameter<float>("rotate_z", 0.0F)};
+  }
+  Eigen::Vector3d get_scale() const {
+    return {get_parameter<float>("scale_x", 1.0F),
+            get_parameter<float>("scale_y", 1.0F),
+            get_parameter<float>("scale_z", 1.0F)};
+  }
 
 protected:
   /**
@@ -93,18 +96,7 @@ private:
    */
   Eigen::Matrix4d build_transform_matrix() const;
 
-  // Transform parameters
-  double translate_x_ = 0.0;
-  double translate_y_ = 0.0;
-  double translate_z_ = 0.0;
-
-  double rotate_x_ = 0.0; // degrees
-  double rotate_y_ = 0.0; // degrees
-  double rotate_z_ = 0.0; // degrees
-
-  double scale_x_ = 1.0;
-  double scale_y_ = 1.0;
-  double scale_z_ = 1.0;
+  // No private member variables needed - parameters stored in base class!
 };
 
 } // namespace nodeflux::sop

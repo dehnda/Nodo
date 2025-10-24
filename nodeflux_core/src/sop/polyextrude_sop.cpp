@@ -6,7 +6,33 @@
 namespace nodeflux::sop {
 
 PolyExtrudeSOP::PolyExtrudeSOP(const std::string &name)
-    : SOPNode(name, "PolyExtrude") {}
+    : SOPNode(name, "PolyExtrude") {
+  // Add input port
+  input_ports_.add_port("0", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(
+      define_float_parameter("distance", 1.0F)
+          .label("Distance")
+          .range(0.0, 10.0)
+          .category("Extrusion")
+          .build());
+
+  register_parameter(
+      define_float_parameter("inset", 0.0F)
+          .label("Inset")
+          .range(0.0, 1.0)
+          .category("Extrusion")
+          .build());
+
+  register_parameter(
+      define_int_parameter("individual_faces", 1)
+          .label("Individual Faces")
+          .range(0, 1)
+          .category("Extrusion")
+          .build());
+}
 
 std::shared_ptr<GeometryData> PolyExtrudeSOP::execute() {
   // Get input geometry

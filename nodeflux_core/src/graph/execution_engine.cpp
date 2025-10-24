@@ -14,14 +14,17 @@
 #include "nodeflux/sop/laplacian_sop.hpp"
 #include "nodeflux/sop/line_sop.hpp"
 #include "nodeflux/sop/mirror_sop.hpp"
+#include "nodeflux/sop/noise_displacement_sop.hpp"
 #include "nodeflux/sop/polyextrude_sop.hpp"
 #include "nodeflux/sop/resample_sop.hpp"
 #include "nodeflux/sop/scatter_sop.hpp"
+#include "nodeflux/sop/sop_factory.hpp"
 #include "nodeflux/sop/subdivisions_sop.hpp"
 #include "nodeflux/sop/transform_sop.hpp"
+#include <chrono>
 #include <iostream>
 #include <memory>
-#include <chrono>
+
 // For trigonometry and pi constant
 #include <cmath>
 #include <numbers>
@@ -148,6 +151,11 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       result = execute_copy_to_points_node(*node, inputs);
       break;
     }
+    case NodeType::NoiseDisplacement: {
+      auto inputs = gather_input_meshes(graph, node_id);
+      result = execute_noise_displacement_node(*node, inputs);
+      break;
+    }
     case NodeType::Switch:
     default: {
       // For now, skip unimplemented node types (only Switch remaining)
@@ -157,7 +165,8 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // End timing and calculate duration
     auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+        end_time - start_time);
     double cook_time_ms = duration.count() / 1000.0; // Convert to milliseconds
 
     // Store cook time in node
@@ -374,9 +383,13 @@ ExecutionEngine::execute_line_node(const GraphNode &node) {
             << ") with " << segments << " segments\n";
 
   sop::LineSOP line_sop("LineNode");
-  line_sop.set_start_point(start_x, start_y, start_z);
-  line_sop.set_end_point(end_x, end_y, end_z);
-  line_sop.set_segments(segments);
+  line_sop.set_parameter("start_x", start_x);
+  line_sop.set_parameter("start_y", start_y);
+  line_sop.set_parameter("start_z", start_z);
+  line_sop.set_parameter("end_x", end_x);
+  line_sop.set_parameter("end_y", end_y);
+  line_sop.set_parameter("end_z", end_z);
+  line_sop.set_parameter("segments", segments);
 
   auto geo_data = line_sop.cook();
   if (!geo_data) {
@@ -385,398 +398,109 @@ ExecutionEngine::execute_line_node(const GraphNode &node) {
   return geo_data->get_mesh();
 }
 
+/**
+ * @brief Transfer parameters from GraphNode to SOPNode
+ */
+void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
+                                          sop::SOPNode &sop_node) {
+  // Iterate over all parameters in GraphNode and transfer to SOPNode
+  for (const auto &param : graph_node.get_parameters()) {
+    switch (param.type) {
+    case NodeParameter::Type::Float:
+      sop_node.set_parameter(param.name, param.float_value);
+      break;
+
+    case NodeParameter::Type::Int:
+      sop_node.set_parameter(param.name, param.int_value);
+      break;
+
+    case NodeParameter::Type::Bool:
+      sop_node.set_parameter(param.name, param.bool_value);
+      break;
+
+    case NodeParameter::Type::String:
+      sop_node.set_parameter(param.name, param.string_value);
+      break;
+
+    case NodeParameter::Type::Vector3: {
+      // Convert std::array<float, 3> to Eigen::Vector3f
+      Eigen::Vector3f vec3(param.vector3_value[0], param.vector3_value[1],
+                           param.vector3_value[2]);
+      sop_node.set_parameter(param.name, vec3);
+      break;
+    }
+    }
+  }
+}
+
+/**
+ * @brief Generic SOP node execution (for refactored nodes using SOPFactory)
+ */
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_sop_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+
+  // Create SOP instance via factory
+  auto sop = sop::SOPFactory::create(node.get_type(), node.get_name());
+  if (!sop) {
+    std::cout << "❌ SOP not supported: " << node.get_name() << std::endl;
+    return nullptr;
+  }
+
+  // Transfer parameters from GraphNode to SOP
+  transfer_parameters(node, *sop);
+
+  // Set input geometry (if any)
+  for (size_t i = 0; i < inputs.size(); ++i) {
+    auto input_geo = std::make_shared<sop::GeometryData>(inputs[i]);
+    sop->set_input_data(static_cast<int>(i), input_geo);
+  }
+
+  // Execute SOP
+  auto output_geo = sop->cook();
+
+  if (!output_geo) {
+    std::cout << "❌ SOP execution failed: " << sop->get_last_error()
+              << std::endl;
+    return nullptr;
+  }
+
+  return output_geo->get_mesh();
+}
+
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
-  if (inputs.empty()) {
-    std::cout << "⚠️ Transform node needs input geometry\n";
-    return nullptr;
-  }
-
-  // Get transform parameters
-  auto translate_x_param = node.get_parameter("translate_x");
-  auto translate_y_param = node.get_parameter("translate_y");
-  auto translate_z_param = node.get_parameter("translate_z");
-  auto rotate_x_param = node.get_parameter("rotate_x");
-  auto rotate_y_param = node.get_parameter("rotate_y");
-  auto rotate_z_param = node.get_parameter("rotate_z");
-  auto scale_x_param = node.get_parameter("scale_x");
-  auto scale_y_param = node.get_parameter("scale_y");
-  auto scale_z_param = node.get_parameter("scale_z");
-
-  const float translate_x =
-      translate_x_param.has_value() ? translate_x_param->float_value : 0.0F;
-  const float translate_y =
-      translate_y_param.has_value() ? translate_y_param->float_value : 0.0F;
-  const float translate_z =
-      translate_z_param.has_value() ? translate_z_param->float_value : 0.0F;
-  const float rotate_x =
-      rotate_x_param.has_value() ? rotate_x_param->float_value : 0.0F;
-  const float rotate_y =
-      rotate_y_param.has_value() ? rotate_y_param->float_value : 0.0F;
-  const float rotate_z =
-      rotate_z_param.has_value() ? rotate_z_param->float_value : 0.0F;
-  const float scale_x =
-      scale_x_param.has_value() ? scale_x_param->float_value : 1.0F;
-  const float scale_y =
-      scale_y_param.has_value() ? scale_y_param->float_value : 1.0F;
-  const float scale_z =
-      scale_z_param.has_value() ? scale_z_param->float_value : 1.0F;
-
-  std::cout << "🔄 Transforming geometry (translate: " << translate_x << ","
-            << translate_y << "," << translate_z << ", rotate: " << rotate_x
-            << "," << rotate_y << "," << rotate_z << ", scale: " << scale_x
-            << "," << scale_y << "," << scale_z << ")\n";
-
-  // Create input geometry data
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  // Create and configure TransformSOP
-  sop::TransformSOP transform_sop("TransformNode");
-  transform_sop.set_translation(translate_x, translate_y, translate_z);
-  transform_sop.set_rotation(rotate_x, rotate_y, rotate_z);
-  transform_sop.set_scale(scale_x, scale_y, scale_z);
-
-  // Set input and execute
-  transform_sop.set_input_data(0, input_geo);
-  auto geo_data = transform_sop.cook();
-
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (parameters transferred automatically)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_extrude_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
-  if (inputs.empty()) {
-    std::cout << "⚠️ Extrude node needs input geometry\n";
-    return nullptr;
-  }
-
-  // Get extrude parameters
-  auto distance_param = node.get_parameter("distance");
-  auto mode_param = node.get_parameter("mode");
-  auto inset_param = node.get_parameter("inset");
-  auto direction_x_param = node.get_parameter("direction_x");
-  auto direction_y_param = node.get_parameter("direction_y");
-  auto direction_z_param = node.get_parameter("direction_z");
-
-  const float distance = (distance_param.has_value() &&
-                          distance_param->type == NodeParameter::Type::Float)
-                             ? distance_param->float_value
-                             : 1.0F;
-  const int mode =
-      (mode_param.has_value() && mode_param->type == NodeParameter::Type::Int)
-          ? mode_param->int_value
-          : 0;
-  const float inset = (inset_param.has_value() &&
-                       inset_param->type == NodeParameter::Type::Float)
-                          ? inset_param->float_value
-                          : 0.0F;
-  const float dir_x = (direction_x_param.has_value() &&
-                       direction_x_param->type == NodeParameter::Type::Float)
-                          ? direction_x_param->float_value
-                          : 0.0F;
-  const float dir_y = (direction_y_param.has_value() &&
-                       direction_y_param->type == NodeParameter::Type::Float)
-                          ? direction_y_param->float_value
-                          : 0.0F;
-  const float dir_z = (direction_z_param.has_value() &&
-                       direction_z_param->type == NodeParameter::Type::Float)
-                          ? direction_z_param->float_value
-                          : 1.0F;
-
-  // Map mode to ExtrudeSOP::ExtrusionMode
-  sop::ExtrudeSOP::ExtrusionMode extrude_mode;
-  const char *mode_name;
-  switch (mode) {
-  case 0:
-    extrude_mode = sop::ExtrudeSOP::ExtrusionMode::FACE_NORMALS;
-    mode_name = "FACE_NORMALS";
-    break;
-  case 1:
-    extrude_mode = sop::ExtrudeSOP::ExtrusionMode::UNIFORM_DIRECTION;
-    mode_name = "UNIFORM_DIRECTION";
-    break;
-  case 2:
-    extrude_mode = sop::ExtrudeSOP::ExtrusionMode::REGION_NORMALS;
-    mode_name = "REGION_NORMALS";
-    break;
-  default:
-    extrude_mode = sop::ExtrudeSOP::ExtrusionMode::FACE_NORMALS;
-    mode_name = "FACE_NORMALS";
-    break;
-  }
-
-  std::cout << "⬆️ Extruding geometry (distance: " << distance
-            << ", mode: " << mode_name << ", inset: " << inset << ")\n";
-
-  // Create input geometry data
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  // Create and configure ExtrudeSOP
-  sop::ExtrudeSOP extrude_sop("ExtrudeNode");
-  extrude_sop.set_distance(distance);
-  extrude_sop.set_mode(extrude_mode);
-  extrude_sop.set_inset(inset);
-  if (mode == 1) {
-    extrude_sop.set_direction(Eigen::Vector3d(dir_x, dir_y, dir_z));
-  }
-
-  // Set input and execute
-  extrude_sop.set_input_data(0, input_geo);
-  auto geo_data = extrude_sop.cook();
-
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (parameters transferred automatically)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_smooth_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
-  if (inputs.empty()) {
-    std::cout << "⚠️ Smooth node needs input geometry\n";
-    return nullptr;
-  }
-
-  // Get Laplacian smoothing parameters
-  auto iterations_param = node.get_parameter("iterations");
-  auto lambda_param = node.get_parameter("lambda");
-  auto method_param = node.get_parameter("method");
-  auto mu_param = node.get_parameter("mu");
-  auto preserve_boundaries_param = node.get_parameter("preserve_boundaries");
-
-  const int iterations =
-      (iterations_param.has_value() &&
-       iterations_param->type == NodeParameter::Type::Int)
-          ? iterations_param->int_value
-          : 1;
-  const float lambda =
-      (lambda_param.has_value() &&
-       lambda_param->type == NodeParameter::Type::Float)
-          ? lambda_param->float_value
-          : 0.5F;
-  const int method =
-      (method_param.has_value() &&
-       method_param->type == NodeParameter::Type::Int)
-          ? method_param->int_value
-          : 0;
-  const float mu =
-      (mu_param.has_value() && mu_param->type == NodeParameter::Type::Float)
-          ? mu_param->float_value
-          : -0.53F;
-  const bool preserve_boundaries =
-      (preserve_boundaries_param.has_value() &&
-       preserve_boundaries_param->type == NodeParameter::Type::Int)
-          ? (preserve_boundaries_param->int_value != 0)
-          : true;
-
-  // Map method to LaplacianSOP::SmoothingMethod
-  sop::LaplacianSOP::SmoothingMethod smooth_method;
-  const char *method_name;
-  switch (method) {
-  case 0:
-    smooth_method = sop::LaplacianSOP::SmoothingMethod::UNIFORM;
-    method_name = "UNIFORM";
-    break;
-  case 1:
-    smooth_method = sop::LaplacianSOP::SmoothingMethod::COTANGENT;
-    method_name = "COTANGENT";
-    break;
-  case 2:
-    smooth_method = sop::LaplacianSOP::SmoothingMethod::TAUBIN;
-    method_name = "TAUBIN";
-    break;
-  default:
-    smooth_method = sop::LaplacianSOP::SmoothingMethod::UNIFORM;
-    method_name = "UNIFORM";
-    break;
-  }
-
-  std::cout << "🎨 Smoothing geometry (iterations: " << iterations
-            << ", method: " << method_name << ", lambda: " << lambda << ")\n";
-
-  // Create input geometry data
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  // Create and configure LaplacianSOP
-  sop::LaplacianSOP smooth_sop("SmoothNode");
-  smooth_sop.set_iterations(iterations);
-  smooth_sop.set_lambda(lambda);
-  smooth_sop.set_method(smooth_method);
-  smooth_sop.set_mu(mu);
-  smooth_sop.set_preserve_boundaries(preserve_boundaries);
-
-  // Set input and execute
-  smooth_sop.set_input_data(0, input_geo);
-  auto geo_data = smooth_sop.cook();
-
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (parameters transferred automatically)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_subdivide_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
-  if (inputs.empty()) {
-    std::cout << "⚠️ Subdivide node needs input geometry\n";
-    return nullptr;
-  }
-
-  // Get subdivision parameters
-  auto subdivision_levels_param = node.get_parameter("subdivision_levels");
-  auto preserve_boundaries_param = node.get_parameter("preserve_boundaries");
-
-  const int subdivision_levels =
-      (subdivision_levels_param.has_value() &&
-       subdivision_levels_param->type == NodeParameter::Type::Int)
-          ? subdivision_levels_param->int_value
-          : 1;
-  const bool preserve_boundaries =
-      (preserve_boundaries_param.has_value() &&
-       preserve_boundaries_param->type == NodeParameter::Type::Int)
-          ? (preserve_boundaries_param->int_value != 0)
-          : true;
-
-  std::cout << "🔲 Subdividing geometry (levels: " << subdivision_levels
-            << ", preserve boundaries: " << (preserve_boundaries ? "yes" : "no")
-            << ")\n";
-
-  // Create input geometry data
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  // Create and configure SubdivisionSOP
-  sop::SubdivisionSOP subdivision_sop("SubdivideNode");
-  subdivision_sop.set_subdivision_levels(subdivision_levels);
-  subdivision_sop.set_preserve_boundaries(preserve_boundaries);
-
-  // Set input and execute
-  subdivision_sop.set_input_data(0, input_geo);
-  auto geo_data = subdivision_sop.cook();
-
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (parameters transferred automatically)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_mirror_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
-  if (inputs.empty()) {
-    std::cout << "⚠️ Mirror node needs input geometry\n";
-    return nullptr;
-  }
-
-  // Get mirror parameters
-  auto plane_param = node.get_parameter("plane");
-  auto keep_original_param = node.get_parameter("keep_original");
-  auto custom_point_x_param = node.get_parameter("custom_point_x");
-  auto custom_point_y_param = node.get_parameter("custom_point_y");
-  auto custom_point_z_param = node.get_parameter("custom_point_z");
-  auto custom_normal_x_param = node.get_parameter("custom_normal_x");
-  auto custom_normal_y_param = node.get_parameter("custom_normal_y");
-  auto custom_normal_z_param = node.get_parameter("custom_normal_z");
-
-  const int plane =
-      (plane_param.has_value() && plane_param->type == NodeParameter::Type::Int)
-          ? plane_param->int_value
-          : 2; // Default to YZ plane
-  const bool keep_original =
-      (keep_original_param.has_value() &&
-       keep_original_param->type == NodeParameter::Type::Int)
-          ? (keep_original_param->int_value != 0)
-          : true;
-
-  // Map plane to MirrorSOP::MirrorPlane
-  sop::MirrorSOP::MirrorPlane mirror_plane;
-  const char *plane_name;
-  switch (plane) {
-  case 0:
-    mirror_plane = sop::MirrorSOP::MirrorPlane::XY;
-    plane_name = "XY";
-    break;
-  case 1:
-    mirror_plane = sop::MirrorSOP::MirrorPlane::XZ;
-    plane_name = "XZ";
-    break;
-  case 2:
-    mirror_plane = sop::MirrorSOP::MirrorPlane::YZ;
-    plane_name = "YZ";
-    break;
-  case 3:
-    mirror_plane = sop::MirrorSOP::MirrorPlane::CUSTOM;
-    plane_name = "CUSTOM";
-    break;
-  default:
-    mirror_plane = sop::MirrorSOP::MirrorPlane::YZ;
-    plane_name = "YZ";
-    break;
-  }
-
-  std::cout << "🪞 Mirroring geometry (plane: " << plane_name
-            << ", keep original: " << (keep_original ? "yes" : "no") << ")\n";
-
-  // Create input geometry data
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  // Create and configure MirrorSOP
-  sop::MirrorSOP mirror_sop("MirrorNode");
-  mirror_sop.set_plane(mirror_plane);
-  mirror_sop.set_keep_original(keep_original);
-
-  // Set custom plane if applicable
-  if (plane == 3) {
-    const float point_x =
-        (custom_point_x_param.has_value() &&
-         custom_point_x_param->type == NodeParameter::Type::Float)
-            ? custom_point_x_param->float_value
-            : 0.0F;
-    const float point_y =
-        (custom_point_y_param.has_value() &&
-         custom_point_y_param->type == NodeParameter::Type::Float)
-            ? custom_point_y_param->float_value
-            : 0.0F;
-    const float point_z =
-        (custom_point_z_param.has_value() &&
-         custom_point_z_param->type == NodeParameter::Type::Float)
-            ? custom_point_z_param->float_value
-            : 0.0F;
-    const float normal_x =
-        (custom_normal_x_param.has_value() &&
-         custom_normal_x_param->type == NodeParameter::Type::Float)
-            ? custom_normal_x_param->float_value
-            : 0.0F;
-    const float normal_y =
-        (custom_normal_y_param.has_value() &&
-         custom_normal_y_param->type == NodeParameter::Type::Float)
-            ? custom_normal_y_param->float_value
-            : 1.0F;
-    const float normal_z =
-        (custom_normal_z_param.has_value() &&
-         custom_normal_z_param->type == NodeParameter::Type::Float)
-            ? custom_normal_z_param->float_value
-            : 0.0F;
-
-    mirror_sop.set_custom_plane(
-        core::Vector3(point_x, point_y, point_z),
-        core::Vector3(normal_x, normal_y, normal_z));
-  }
-
-  // Set input and execute
-  mirror_sop.set_input_data(0, input_geo);
-  auto geo_data = mirror_sop.cook();
-
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (parameters transferred automatically)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(
@@ -822,12 +546,21 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(
 
   // Create BooleanSOP and execute
   sop::BooleanSOP boolean_sop("BooleanNode");
-  boolean_sop.set_operation(op_type);
-  boolean_sop.set_mesh_a(inputs[0]);
-  boolean_sop.set_mesh_b(inputs[1]);
 
-  std::shared_ptr<sop::GeometryData> result = boolean_sop.execute();
-  if (!result->is_empty()) {
+  // Set parameters
+  boolean_sop.set_parameter("operation", operation);
+
+  // Create geometry data wrappers
+  auto geo_a = std::make_shared<sop::GeometryData>(inputs[0]);
+  auto geo_b = std::make_shared<sop::GeometryData>(inputs[1]);
+
+  // Set input data using port indices
+  boolean_sop.set_input_data(0, geo_a);
+  boolean_sop.set_input_data(1, geo_b);
+
+  // Cook and get result
+  std::shared_ptr<sop::GeometryData> result = boolean_sop.cook();
+  if (result && !result->is_empty()) {
     return result->get_mesh();
   }
   return nullptr;
@@ -1132,10 +865,11 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
   auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
 
   sop::ResampleSOP resample_sop("ResampleNode");
-  resample_sop.set_mode(mode == 0 ? sop::ResampleSOP::Mode::BY_COUNT
-                                  : sop::ResampleSOP::Mode::BY_LENGTH);
-  resample_sop.set_point_count(point_count);
-  resample_sop.set_segment_length(segment_length);
+
+  // Set parameters
+  resample_sop.set_parameter("mode", mode);
+  resample_sop.set_parameter("point_count", point_count);
+  resample_sop.set_parameter("segment_length", segment_length);
 
   // Manually set input via protected method (bridge hack)
   resample_sop.set_input_data(0, input_geo);
@@ -1259,6 +993,81 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_copy_to_points_node(
   copy_sop.copy_template_to_points(*points_geo, *template_geo, *output_geo,
                                    use_point_normals, use_point_scale,
                                    uniform_scale, scale_attribute);
+
+  // Extract the mesh from the output geometry
+  return output_geo->get_mesh();
+}
+
+std::shared_ptr<core::Mesh> ExecutionEngine::execute_noise_displacement_node(
+    const GraphNode &node,
+    const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
+
+  if (inputs.empty()) {
+    std::cout << "❌ NoiseDisplacement node requires input mesh\n";
+    return nullptr;
+  }
+
+  // Get parameters
+  float amplitude = 0.1F;
+  float frequency = 1.0F;
+  int octaves = 4;
+  float lacunarity = 2.0F;
+  float persistence = 0.5F;
+  int seed = 42;
+
+  auto amplitude_param = node.get_parameter("amplitude");
+  if (amplitude_param.has_value()) {
+    amplitude = amplitude_param->float_value;
+  }
+
+  auto frequency_param = node.get_parameter("frequency");
+  if (frequency_param.has_value()) {
+    frequency = frequency_param->float_value;
+  }
+
+  auto octaves_param = node.get_parameter("octaves");
+  if (octaves_param.has_value()) {
+    octaves = octaves_param->int_value;
+  }
+
+  auto lacunarity_param = node.get_parameter("lacunarity");
+  if (lacunarity_param.has_value()) {
+    lacunarity = lacunarity_param->float_value;
+  }
+
+  auto persistence_param = node.get_parameter("persistence");
+  if (persistence_param.has_value()) {
+    persistence = persistence_param->float_value;
+  }
+
+  auto seed_param = node.get_parameter("seed");
+  if (seed_param.has_value()) {
+    seed = seed_param->int_value;
+  }
+
+  std::cout << "🌊 Applying noise displacement (amplitude=" << amplitude
+            << ", frequency=" << frequency << ", octaves=" << octaves << ")\n";
+
+  // Create noise displacement SOP
+  sop::NoiseDisplacementSOP noise_sop;
+  noise_sop.set_parameter("amplitude", amplitude);
+  noise_sop.set_parameter("frequency", frequency);
+  noise_sop.set_parameter("octaves", octaves);
+  noise_sop.set_parameter("lacunarity", lacunarity);
+  noise_sop.set_parameter("persistence", persistence);
+  noise_sop.set_parameter("seed", seed);
+
+  // Create input geometry data and set it via port
+  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
+  noise_sop.set_input_data(0, input_geo);
+
+  // Execute the SOP
+  auto output_geo = noise_sop.cook();
+
+  if (!output_geo) {
+    std::cout << "❌ Noise displacement failed\n";
+    return nullptr;
+  }
 
   // Extract the mesh from the output geometry
   return output_geo->get_mesh();

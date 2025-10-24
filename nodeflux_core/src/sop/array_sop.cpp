@@ -8,6 +8,100 @@
 
 namespace nodeflux::sop {
 
+ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
+  // Add input port
+  input_ports_.add_port("mesh", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(define_int_parameter("array_type", 0)
+                         .label("Array Type")
+                         .options({"Linear", "Radial", "Grid"})
+                         .category("Array")
+                         .build());
+
+  register_parameter(define_int_parameter("count", 3)
+                         .label("Count")
+                         .range(1, 100)
+                         .category("Array")
+                         .build());
+
+  // Linear array parameters
+  register_parameter(define_float_parameter("linear_offset_x", 1.0F)
+                         .label("Offset X")
+                         .range(-100.0, 100.0)
+                         .category("Linear")
+                         .build());
+
+  register_parameter(define_float_parameter("linear_offset_y", 0.0F)
+                         .label("Offset Y")
+                         .range(-100.0, 100.0)
+                         .category("Linear")
+                         .build());
+
+  register_parameter(define_float_parameter("linear_offset_z", 0.0F)
+                         .label("Offset Z")
+                         .range(-100.0, 100.0)
+                         .category("Linear")
+                         .build());
+
+  // Radial array parameters
+  register_parameter(define_float_parameter("radial_center_x", 0.0F)
+                         .label("Center X")
+                         .range(-100.0, 100.0)
+                         .category("Radial")
+                         .build());
+
+  register_parameter(define_float_parameter("radial_center_y", 0.0F)
+                         .label("Center Y")
+                         .range(-100.0, 100.0)
+                         .category("Radial")
+                         .build());
+
+  register_parameter(define_float_parameter("radial_center_z", 0.0F)
+                         .label("Center Z")
+                         .range(-100.0, 100.0)
+                         .category("Radial")
+                         .build());
+
+  register_parameter(define_float_parameter("radial_radius", 2.0F)
+                         .label("Radius")
+                         .range(0.0, 100.0)
+                         .category("Radial")
+                         .build());
+
+  register_parameter(define_float_parameter("angle_step", 60.0F)
+                         .label("Angle Step")
+                         .range(0.0, 360.0)
+                         .category("Radial")
+                         .build());
+
+  // Grid array parameters
+  register_parameter(define_int_parameter("grid_width", 3)
+                         .label("Grid Width")
+                         .range(1, 50)
+                         .category("Grid")
+                         .build());
+
+  register_parameter(define_int_parameter("grid_height", 3)
+                         .label("Grid Height")
+                         .range(1, 50)
+                         .category("Grid")
+                         .build());
+
+  register_parameter(define_float_parameter("grid_spacing_x", 1.0F)
+                         .label("Spacing X")
+                         .range(0.01, 100.0)
+                         .category("Grid")
+                         .build());
+
+  register_parameter(define_float_parameter("grid_spacing_y", 1.0F)
+                         .label("Spacing Y")
+                         .range(0.01, 100.0)
+                         .category("Grid")
+                         .build());
+}
+
 std::shared_ptr<GeometryData> ArraySOP::execute() {
   // Get input geometry from port
   auto input_geo = get_input_data("mesh");
@@ -27,21 +121,29 @@ std::shared_ptr<GeometryData> ArraySOP::execute() {
   size_t input_vert_count = input_mesh->vertices().rows();
   size_t input_face_count = input_mesh->faces().rows();
 
+  // Read parameters from parameter system
+  const auto array_type =
+      static_cast<ArrayType>(get_parameter<int>("array_type", 0));
+  const int count = get_parameter<int>("count", 3);
+
   // Execute the appropriate array operation
   std::optional<core::Mesh> result_mesh;
-  int effective_count = count_;
+  int effective_count = count;
 
-  switch (array_type_) {
+  switch (array_type) {
   case ArrayType::LINEAR:
-    result_mesh = create_linear_array(*input_mesh);
+    result_mesh = create_linear_array(*input_mesh, count);
     break;
   case ArrayType::RADIAL:
-    result_mesh = create_radial_array(*input_mesh);
+    result_mesh = create_radial_array(*input_mesh, count);
     break;
-  case ArrayType::GRID:
-    effective_count = grid_size_.x() * grid_size_.y();
-    result_mesh = create_grid_array(*input_mesh);
+  case ArrayType::GRID: {
+    const int grid_width = get_parameter<int>("grid_width", 3);
+    const int grid_height = get_parameter<int>("grid_height", 3);
+    effective_count = grid_width * grid_height;
+    result_mesh = create_grid_array(*input_mesh, grid_width, grid_height);
     break;
+  }
   default:
     set_error("Unknown array type");
     return nullptr;
@@ -59,29 +161,35 @@ std::shared_ptr<GeometryData> ArraySOP::execute() {
 
   // Add instance tracking attributes
   add_instance_attributes(output_data, input_vert_count, input_face_count,
-                          effective_count);
+                          effective_count, array_type);
 
   return output_data;
 }
 
 std::optional<core::Mesh>
-ArraySOP::create_linear_array(const core::Mesh &input_mesh) {
+ArraySOP::create_linear_array(const core::Mesh &input_mesh, int count) {
   const auto &input_vertices = input_mesh.vertices();
   const auto &input_faces = input_mesh.faces();
 
+  // Read linear offset parameters
+  const core::Vector3 linear_offset(
+      get_parameter<float>("linear_offset_x", 1.0F),
+      get_parameter<float>("linear_offset_y", 0.0F),
+      get_parameter<float>("linear_offset_z", 0.0F));
+
   // Calculate total size
-  int total_vertices = input_vertices.rows() * count_;
-  int total_faces = input_faces.rows() * count_;
+  int total_vertices = input_vertices.rows() * count;
+  int total_faces = input_faces.rows() * count;
 
   // Prepare output matrices
   core::Mesh::Vertices output_vertices(total_vertices, 3);
   core::Mesh::Faces output_faces(total_faces, 3);
 
   // Copy geometry for each array element
-  for (int i = 0; i < count_; ++i) {
+  for (int i = 0; i < count; ++i) {
     // Calculate offset for this copy
     core::Vector3 current_offset =
-        (linear_offset_ * static_cast<float>(i)).cast<double>();
+        (linear_offset * static_cast<float>(i)).cast<double>();
 
     // Copy vertices with offset
     int vertex_start = i * input_vertices.rows();
@@ -103,29 +211,37 @@ ArraySOP::create_linear_array(const core::Mesh &input_mesh) {
 }
 
 std::optional<core::Mesh>
-ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
+ArraySOP::create_radial_array(const core::Mesh &input_mesh, int count) {
   const auto &input_vertices = input_mesh.vertices();
   const auto &input_faces = input_mesh.faces();
 
+  // Read radial parameters
+  const core::Vector3 radial_center(
+      get_parameter<float>("radial_center_x", 0.0F),
+      get_parameter<float>("radial_center_y", 0.0F),
+      get_parameter<float>("radial_center_z", 0.0F));
+  const float radial_radius = get_parameter<float>("radial_radius", 2.0F);
+  const float angle_step = get_parameter<float>("angle_step", 60.0F);
+
   // Calculate total size
-  int total_vertices = input_vertices.rows() * count_;
-  int total_faces = input_faces.rows() * count_;
+  int total_vertices = input_vertices.rows() * count;
+  int total_faces = input_faces.rows() * count;
 
   // Prepare output matrices
   core::Mesh::Vertices output_vertices(total_vertices, 3);
   core::Mesh::Faces output_faces(total_faces, 3);
 
   // Copy geometry for each array element
-  for (int i = 0; i < count_; ++i) {
+  for (int i = 0; i < count; ++i) {
     // Calculate rotation angle
-    double angle_rad = core::math::degrees_to_radians(angle_step_ * i);
+    double angle_rad = core::math::degrees_to_radians(angle_step * i);
     auto rotation = core::math::rotation_z(angle_rad);
 
     // Calculate position offset (radial positioning)
-    core::Vector3 position_offset = radial_center_.cast<double>();
-    if (radial_radius_ > 0.0F) {
+    core::Vector3 position_offset = radial_center.cast<double>();
+    if (radial_radius > 0.0F) {
       position_offset +=
-          core::math::circular_offset_2d(radial_radius_, angle_rad);
+          core::math::circular_offset_2d(radial_radius, angle_rad);
     }
 
     // Copy vertices with rotation and translation
@@ -151,11 +267,16 @@ ArraySOP::create_radial_array(const core::Mesh &input_mesh) {
 }
 
 std::optional<core::Mesh>
-ArraySOP::create_grid_array(const core::Mesh &input_mesh) {
+ArraySOP::create_grid_array(const core::Mesh &input_mesh, int grid_width,
+                            int grid_height) {
   const auto &input_vertices = input_mesh.vertices();
   const auto &input_faces = input_mesh.faces();
 
-  int grid_count = grid_size_.x() * grid_size_.y();
+  // Read grid spacing parameters
+  const float grid_spacing_x = get_parameter<float>("grid_spacing_x", 1.0F);
+  const float grid_spacing_y = get_parameter<float>("grid_spacing_y", 1.0F);
+
+  int grid_count = grid_width * grid_height;
 
   // Calculate total size
   int total_vertices = input_vertices.rows() * grid_count;
@@ -168,11 +289,10 @@ ArraySOP::create_grid_array(const core::Mesh &input_mesh) {
   int copy_index = 0;
 
   // Copy geometry for each grid position
-  for (int y = 0; y < grid_size_.y(); ++y) {
-    for (int x = 0; x < grid_size_.x(); ++x) {
+  for (int y = 0; y < grid_height; ++y) {
+    for (int x = 0; x < grid_width; ++x) {
       // Calculate grid position offset
-      core::Vector3 grid_offset(x * grid_spacing_.x(), y * grid_spacing_.y(),
-                                0.0);
+      core::Vector3 grid_offset(x * grid_spacing_x, y * grid_spacing_y, 0.0);
 
       // Copy vertices with offset
       int vertex_start = copy_index * input_vertices.rows();
@@ -197,9 +317,10 @@ ArraySOP::create_grid_array(const core::Mesh &input_mesh) {
 }
 
 void ArraySOP::add_instance_attributes(std::shared_ptr<GeometryData> geo_data,
-                                        size_t verts_per_instance,
-                                        size_t faces_per_instance,
-                                        int instance_count) {
+                                       size_t verts_per_instance,
+                                       size_t faces_per_instance,
+                                       int instance_count,
+                                       ArrayType array_type) {
   // Add per-vertex instance ID attribute
   GeometryData::AttributeArray vertex_instance_ids;
   vertex_instance_ids.reserve(verts_per_instance * instance_count);
@@ -224,7 +345,7 @@ void ArraySOP::add_instance_attributes(std::shared_ptr<GeometryData> geo_data,
 
   // Add global metadata
   geo_data->set_global_attribute("instance_count", instance_count);
-  geo_data->set_global_attribute("array_type", static_cast<int>(array_type_));
+  geo_data->set_global_attribute("array_type", static_cast<int>(array_type));
 }
 
 } // namespace nodeflux::sop

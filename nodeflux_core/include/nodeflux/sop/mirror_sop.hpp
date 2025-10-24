@@ -45,17 +45,16 @@ public:
    * @param plane The plane to mirror across
    */
   void set_plane(MirrorPlane plane) {
-    if (plane_ != plane) {
-      plane_ = plane;
-      mark_dirty();
-    }
+    set_parameter("plane", static_cast<int>(plane));
   }
 
   /**
    * @brief Get the current mirror plane
    * @return The current plane
    */
-  MirrorPlane get_plane() const { return plane_; }
+  MirrorPlane get_plane() const {
+    return static_cast<MirrorPlane>(get_parameter<int>("plane", 2));
+  }
 
   /**
    * @brief Set custom mirror plane (for CUSTOM plane type)
@@ -64,9 +63,12 @@ public:
    */
   void set_custom_plane(const core::Vector3 &point,
                         const core::Vector3 &normal) {
-    custom_point_ = point;
-    custom_normal_ = normal;
-    mark_dirty();
+    set_parameter("custom_point_x", static_cast<float>(point.x()));
+    set_parameter("custom_point_y", static_cast<float>(point.y()));
+    set_parameter("custom_point_z", static_cast<float>(point.z()));
+    set_parameter("custom_normal_x", static_cast<float>(normal.x()));
+    set_parameter("custom_normal_y", static_cast<float>(normal.y()));
+    set_parameter("custom_normal_z", static_cast<float>(normal.z()));
   }
 
   /**
@@ -74,10 +76,7 @@ public:
    * @param keep_original If true, result includes both original and mirrored
    */
   void set_keep_original(bool keep_original) {
-    if (keep_original_ != keep_original) {
-      keep_original_ = keep_original;
-      mark_dirty();
-    }
+    set_parameter("keep_original", keep_original ? 1 : 0);
   }
 
   /**

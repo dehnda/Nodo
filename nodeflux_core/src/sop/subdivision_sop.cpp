@@ -10,9 +10,28 @@ SubdivisionSOP::SubdivisionSOP(const std::string &name)
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(
+      define_int_parameter("subdivision_levels", 1)
+          .label("Subdivision Levels")
+          .range(0, 5)
+          .category("Subdivision")
+          .build());
+
+  register_parameter(
+      define_int_parameter("preserve_boundaries", 1)
+          .label("Preserve Boundaries")
+          .range(0, 1)
+          .category("Subdivision")
+          .build());
 }
 
 std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
+  // Sync member variables from parameter system
+  subdivision_levels_ = get_parameter<int>("subdivision_levels", 1);
+  preserve_boundaries_ = (get_parameter<int>("preserve_boundaries", 1) != 0);
+
   // Get input geometry
   auto input_geo = get_input_data(0);
   if (!input_geo) {

@@ -18,7 +18,48 @@ constexpr float SMOOTHSTEP_COEFF_B = 2.0F;
 constexpr double VERTEX_NORMAL_THRESHOLD = 0.1;
 
 NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string &name)
-    : SOPNode(name, "NoiseDisplacement") {}
+    : SOPNode(name, "NoiseDisplacement") {
+  // Add input port
+  input_ports_.add_port("0", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(define_float_parameter("amplitude", 0.1F)
+                         .label("Amplitude")
+                         .range(0.0, 10.0)
+                         .category("Noise")
+                         .build());
+
+  register_parameter(define_float_parameter("frequency", 1.0F)
+                         .label("Frequency")
+                         .range(0.01, 10.0)
+                         .category("Noise")
+                         .build());
+
+  register_parameter(define_int_parameter("octaves", 4)
+                         .label("Octaves")
+                         .range(1, 8)
+                         .category("Noise")
+                         .build());
+
+  register_parameter(define_float_parameter("lacunarity", 2.0F)
+                         .label("Lacunarity")
+                         .range(1.0, 4.0)
+                         .category("Noise")
+                         .build());
+
+  register_parameter(define_float_parameter("persistence", 0.5F)
+                         .label("Persistence")
+                         .range(0.0, 1.0)
+                         .category("Noise")
+                         .build());
+
+  register_parameter(define_int_parameter("seed", 42)
+                         .label("Seed")
+                         .range(0, 10000)
+                         .category("Noise")
+                         .build());
+}
 
 std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
   // Get input geometry
@@ -34,6 +75,14 @@ std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
     return nullptr;
   }
 
+  // Read parameters from parameter system
+  const float amplitude = get_parameter<float>("amplitude", 0.1F);
+  const float frequency = get_parameter<float>("frequency", 1.0F);
+  const int octaves = get_parameter<int>("octaves", 4);
+  const float lacunarity = get_parameter<float>("lacunarity", 2.0F);
+  const float persistence = get_parameter<float>("persistence", 0.5F);
+  const int seed = get_parameter<int>("seed", 42);
+
   // Create a copy of the input mesh
   core::Mesh result = *input_mesh;
 
@@ -44,9 +93,9 @@ std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
     core::Vector3 vertex = vertices.row(i);
 
     // Generate noise value at vertex position
-    float noise_value =
-        fractal_noise(vertex.x() * frequency_, vertex.y() * frequency_,
-                      vertex.z() * frequency_);
+    float noise_value = fractal_noise(
+        vertex.x() * frequency, vertex.y() * frequency, vertex.z() * frequency,
+        seed, frequency, octaves, lacunarity, persistence);
 
     // Calculate displacement direction (outward from origin for sphere-like
     // shapes)
@@ -60,7 +109,7 @@ std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
 
     // Apply displacement using utility function
     core::Vector3 displaced_vertex = core::math::displace_along_direction(
-        vertex, displacement_direction, noise_value * amplitude_);
+        vertex, displacement_direction, noise_value * amplitude);
     vertices.row(i) = displaced_vertex;
   }
 
@@ -68,31 +117,33 @@ std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
   return std::make_shared<GeometryData>(result_mesh);
 }
 
-float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y,
-                                          float pos_z) const {
+float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z,
+                                          int seed, float base_frequency,
+                                          int octaves, float lacunarity,
+                                          float persistence) const {
   float total = 0.0F;
   float max_value = 0.0F;
   float amplitude = 1.0F;
   float frequency = 1.0F;
 
-  for (int i = 0; i < octaves_; ++i) {
-    total +=
-        simple_noise(pos_x * frequency, pos_y * frequency, pos_z * frequency) *
-        amplitude;
+  for (int i = 0; i < octaves; ++i) {
+    total += simple_noise(pos_x * frequency, pos_y * frequency,
+                          pos_z * frequency, seed) *
+             amplitude;
     max_value += amplitude;
-    amplitude *= persistence_;
-    frequency *= lacunarity_;
+    amplitude *= persistence;
+    frequency *= lacunarity;
   }
 
   return total / max_value;
 }
 
-float NoiseDisplacementSOP::simple_noise(float pos_x, float pos_y,
-                                         float pos_z) const {
+float NoiseDisplacementSOP::simple_noise(float pos_x, float pos_y, float pos_z,
+                                         int seed) const {
   // Use seed to vary the noise pattern
-  pos_x += seed_ * SEED_OFFSET_X;
-  pos_y += seed_ * SEED_OFFSET_Y;
-  pos_z += seed_ * SEED_OFFSET_Z;
+  pos_x += seed * SEED_OFFSET_X;
+  pos_y += seed * SEED_OFFSET_Y;
+  pos_z += seed * SEED_OFFSET_Z;
 
   // Simple hash-based noise
   int grid_x = static_cast<int>(std::floor(pos_x));

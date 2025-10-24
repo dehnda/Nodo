@@ -21,19 +21,7 @@ private:
   static constexpr float DEFAULT_DENSITY = 1.0F;
 
 public:
-  explicit ScatterSOP(const std::string &node_name = "scatter")
-      : SOPNode(node_name, "ScatterSOP") {
-
-    // Add input port
-    input_ports_.add_port("input", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
-
-    // Set default parameters
-    set_parameter("point_count", DEFAULT_POINT_COUNT);
-    set_parameter("seed", DEFAULT_SEED);
-    set_parameter("density", DEFAULT_DENSITY);
-    set_parameter("use_face_area", true); // Weight by face area
-  }
+  explicit ScatterSOP(const std::string &node_name = "scatter");
 
   /**
    * @brief Generate scattered points on input geometry

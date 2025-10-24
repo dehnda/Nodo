@@ -3,12 +3,69 @@
  */
 
 #include "nodeflux/graph/node_graph.hpp"
+#include "nodeflux/sop/sop_factory.hpp"
 #include <algorithm>
 #include <functional>
 #include <queue>
 #include <unordered_set>
+#include <variant>
 
 namespace nodeflux::graph {
+
+namespace {
+
+/**
+ * @brief Convert SOP ParameterDefinition to GraphNode NodeParameter
+ */
+NodeParameter
+convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
+  using ParamType = sop::SOPNode::ParameterDefinition::Type;
+
+  switch (def.type) {
+  case ParamType::Float: {
+    float default_val = std::get<float>(def.default_value);
+    return NodeParameter(def.name, default_val, def.label,
+                         static_cast<float>(def.float_min),
+                         static_cast<float>(def.float_max));
+  }
+
+  case ParamType::Int: {
+    int default_val = std::get<int>(def.default_value);
+    if (!def.options.empty()) {
+      // Combo box
+      return NodeParameter(def.name, default_val, def.options, def.label);
+    } else {
+      // Regular int
+      return NodeParameter(def.name, default_val, def.label, def.int_min,
+                           def.int_max);
+    }
+  }
+
+  case ParamType::Bool: {
+    bool default_val = std::get<bool>(def.default_value);
+    return NodeParameter(def.name, default_val, def.label);
+  }
+
+  case ParamType::String: {
+    std::string default_val = std::get<std::string>(def.default_value);
+    return NodeParameter(def.name, default_val, def.label);
+  }
+
+  case ParamType::Vector3: {
+    auto vec3_eigen = std::get<Eigen::Vector3f>(def.default_value);
+    std::array<float, 3> vec3_array = {vec3_eigen.x(), vec3_eigen.y(),
+                                       vec3_eigen.z()};
+    return NodeParameter(def.name, vec3_array, def.label,
+                         static_cast<float>(def.float_min),
+                         static_cast<float>(def.float_max));
+  }
+  }
+
+  // Fallback (should never reach here)
+  return NodeParameter(def.name, 0.0F);
+}
+
+} // anonymous namespace
 
 GraphNode::GraphNode(int node_id, NodeType type, const std::string &name)
     : id_(node_id), type_(type), name_(name) {
@@ -73,13 +130,19 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
-  case NodeType::Extrude:
-    parameters_.emplace_back("distance", 1.0F, "Distance", 0.0F, 10.0F);
+  case NodeType::Extrude: {
+    // Query parameter schema from SOP (single source of truth!)
+    auto param_defs = sop::SOPFactory::get_parameter_schema(NodeType::Extrude);
+    for (const auto &def : param_defs) {
+      parameters_.push_back(convert_parameter_definition(def));
+    }
+    // Setup pins
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
+  }
 
   case NodeType::PolyExtrude:
     parameters_.emplace_back("distance", 1.0F, "Distance", 0.0F, 10.0F);
@@ -91,14 +154,48 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
-  case NodeType::Smooth:
-    parameters_.emplace_back("iterations", 5, "Iterations", 1, 100);
-    parameters_.emplace_back("lambda", 0.5F, "Lambda", 0.0F, 1.0F);
+  case NodeType::Smooth: {
+    // Query parameter schema from SOP (single source of truth!)
+    auto param_defs = sop::SOPFactory::get_parameter_schema(NodeType::Smooth);
+    for (const auto &def : param_defs) {
+      parameters_.push_back(convert_parameter_definition(def));
+    }
+    // Setup pins
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
+  }
+
+  case NodeType::Mirror: {
+    // Query parameter schema from SOP (single source of truth!)
+    auto param_defs = sop::SOPFactory::get_parameter_schema(NodeType::Mirror);
+    for (const auto &def : param_defs) {
+      parameters_.push_back(convert_parameter_definition(def));
+    }
+    // Setup pins
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
+    break;
+  }
+
+  case NodeType::Subdivide: {
+    // Query parameter schema from SOP (single source of truth!)
+    auto param_defs =
+        sop::SOPFactory::get_parameter_schema(NodeType::Subdivide);
+    for (const auto &def : param_defs) {
+      parameters_.push_back(convert_parameter_definition(def));
+    }
+    // Setup pins
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
+    break;
+  }
 
   case NodeType::Boolean:
     parameters_.emplace_back(
@@ -113,21 +210,20 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Result", 0});
     break;
 
-  case NodeType::Transform:
-    parameters_.emplace_back("translate_x", 0.0F);
-    parameters_.emplace_back("translate_y", 0.0F);
-    parameters_.emplace_back("translate_z", 0.0F);
-    parameters_.emplace_back("rotate_x", 0.0F);
-    parameters_.emplace_back("rotate_y", 0.0F);
-    parameters_.emplace_back("rotate_z", 0.0F);
-    parameters_.emplace_back("scale_x", 1.0F);
-    parameters_.emplace_back("scale_y", 1.0F);
-    parameters_.emplace_back("scale_z", 1.0F);
+  case NodeType::Transform: {
+    // Query parameter schema from SOP (single source of truth!)
+    auto param_defs =
+        sop::SOPFactory::get_parameter_schema(NodeType::Transform);
+    for (const auto &def : param_defs) {
+      parameters_.push_back(convert_parameter_definition(def));
+    }
+    // Setup pins
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
     break;
+  }
 
   case NodeType::Plane:
     parameters_.emplace_back("width", 2.0F);
@@ -208,6 +304,20 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Points", 0});
+    break;
+
+  case NodeType::NoiseDisplacement:
+    // Apply procedural noise displacement to mesh vertices
+    parameters_.emplace_back("amplitude", 0.1F, "Amplitude", 0.0F, 10.0F);
+    parameters_.emplace_back("frequency", 1.0F, "Frequency", 0.01F, 10.0F);
+    parameters_.emplace_back("octaves", 4, "Octaves", 1, 8);
+    parameters_.emplace_back("lacunarity", 2.0F, "Lacunarity", 1.0F, 4.0F);
+    parameters_.emplace_back("persistence", 0.5F, "Persistence", 0.0F, 1.0F);
+    parameters_.emplace_back("seed", 42, "Seed", 0, 10000);
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
     break;
 
   case NodeType::CopyToPoints:
@@ -524,6 +634,8 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Mirror";
   case NodeType::Resample:
     return "Resample";
+  case NodeType::NoiseDisplacement:
+    return "NoiseDisplacement";
 
   // Boolean Operations
   case NodeType::Boolean:

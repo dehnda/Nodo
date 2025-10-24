@@ -6,8 +6,30 @@
 
 namespace nodeflux::sop {
 
-ResampleSOP::ResampleSOP(const std::string &name)
-    : SOPNode(name, "Resample") {}
+ResampleSOP::ResampleSOP(const std::string &name) : SOPNode(name, "Resample") {
+  // Add input port
+  input_ports_.add_port("0", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(define_int_parameter("mode", 0)
+                         .label("Mode")
+                         .options({"By Count", "By Length"})
+                         .category("Resample")
+                         .build());
+
+  register_parameter(define_int_parameter("point_count", 10)
+                         .label("Point Count")
+                         .range(2, 1000)
+                         .category("Resample")
+                         .build());
+
+  register_parameter(define_float_parameter("segment_length", 0.1F)
+                         .label("Segment Length")
+                         .range(0.001, 10.0)
+                         .category("Resample")
+                         .build());
+}
 
 // Helper function for calculating curve length
 static float calculate_curve_length(const core::Mesh &mesh) {
@@ -49,11 +71,16 @@ std::shared_ptr<GeometryData> ResampleSOP::execute() {
     return nullptr;
   }
 
+  // Read parameters from parameter system
+  const auto mode = static_cast<Mode>(get_parameter<int>("mode", 0));
+  const int point_count = get_parameter<int>("point_count", 10);
+  const float segment_length = get_parameter<float>("segment_length", 0.1F);
+
   // Determine target point count
-  int target_count = point_count_;
-  if (mode_ == Mode::BY_LENGTH) {
+  int target_count = point_count;
+  if (mode == Mode::BY_LENGTH) {
     target_count =
-        static_cast<int>(std::ceil(total_length / segment_length_)) + 1;
+        static_cast<int>(std::ceil(total_length / segment_length)) + 1;
     if (target_count < 2) {
       target_count = 2;
     }
@@ -122,8 +149,7 @@ std::shared_ptr<GeometryData> ResampleSOP::execute() {
     faces(i, 2) = i + 1; // Degenerate triangle
   }
 
-  auto result_mesh =
-      std::make_shared<core::Mesh>(resampled_vertices, faces);
+  auto result_mesh = std::make_shared<core::Mesh>(resampled_vertices, faces);
   return std::make_shared<GeometryData>(result_mesh);
 }
 

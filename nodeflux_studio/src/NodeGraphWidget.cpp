@@ -58,6 +58,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Array:
   case NodeType::Mirror:
   case NodeType::Resample:
+  case NodeType::NoiseDisplacement:
     return QColor(60, 120, 200); // Blue
 
   // Boolean/Combine - Purple
@@ -1380,9 +1381,8 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::Transform;
   if (type_id == "mirror_sop")
     return NodeType::Mirror;
-  // Note: noise_displacement_sop not yet implemented in execution engine
-  // if (type_id == "noise_displacement_sop")
-  //   return NodeType::NoiseDisplacement;
+  if (type_id == "noise_displacement_sop")
+    return NodeType::NoiseDisplacement;
 
   // Default fallback
   return NodeType::Sphere;

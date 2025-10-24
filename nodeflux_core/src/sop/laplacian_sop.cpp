@@ -12,9 +12,36 @@ LaplacianSOP::LaplacianSOP(const std::string &name)
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(
+      define_int_parameter("iterations", 5)
+          .label("Iterations")
+          .range(1, 100)
+          .category("Smoothing")
+          .build());
+
+  register_parameter(
+      define_float_parameter("lambda", 0.5F)
+          .label("Lambda")
+          .range(0.0, 1.0)
+          .category("Smoothing")
+          .build());
+
+  register_parameter(
+      define_int_parameter("method", 0)
+          .label("Method")
+          .options({"Uniform", "Cotangent", "Taubin"})
+          .category("Smoothing")
+          .build());
 }
 
 std::shared_ptr<GeometryData> LaplacianSOP::execute() {
+  // Sync member variables from parameter system
+  iterations_ = get_parameter<int>("iterations", 5);
+  lambda_ = get_parameter<float>("lambda", 0.5F);
+  method_ = static_cast<SmoothingMethod>(get_parameter<int>("method", 0));
+
   // Get input geometry
   auto input_geo = get_input_data(0);
   if (!input_geo) {

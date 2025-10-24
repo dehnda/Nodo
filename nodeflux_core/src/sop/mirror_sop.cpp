@@ -8,9 +8,82 @@ MirrorSOP::MirrorSOP(const std::string &name)
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(
+      define_int_parameter("plane", 2)
+          .label("Plane")
+          .options({"XY", "XZ", "YZ", "Custom"})
+          .category("Mirror")
+          .build());
+
+  register_parameter(
+      define_int_parameter("keep_original", 1)
+          .label("Keep Original")
+          .range(0, 1)
+          .category("Mirror")
+          .build());
+
+  // Custom plane point
+  register_parameter(
+      define_float_parameter("custom_point_x", 0.0F)
+          .label("Custom Point X")
+          .range(-100.0, 100.0)
+          .category("Custom Plane")
+          .build());
+
+  register_parameter(
+      define_float_parameter("custom_point_y", 0.0F)
+          .label("Custom Point Y")
+          .range(-100.0, 100.0)
+          .category("Custom Plane")
+          .build());
+
+  register_parameter(
+      define_float_parameter("custom_point_z", 0.0F)
+          .label("Custom Point Z")
+          .range(-100.0, 100.0)
+          .category("Custom Plane")
+          .build());
+
+  // Custom plane normal
+  register_parameter(
+      define_float_parameter("custom_normal_x", 0.0F)
+          .label("Custom Normal X")
+          .range(-1.0, 1.0)
+          .category("Custom Plane")
+          .build());
+
+  register_parameter(
+      define_float_parameter("custom_normal_y", 1.0F)
+          .label("Custom Normal Y")
+          .range(-1.0, 1.0)
+          .category("Custom Plane")
+          .build());
+
+  register_parameter(
+      define_float_parameter("custom_normal_z", 0.0F)
+          .label("Custom Normal Z")
+          .range(-1.0, 1.0)
+          .category("Custom Plane")
+          .build());
 }
 
 std::shared_ptr<GeometryData> MirrorSOP::execute() {
+  // Sync member variables from parameter system
+  plane_ = static_cast<MirrorPlane>(get_parameter<int>("plane", 2));
+  keep_original_ = (get_parameter<int>("keep_original", 1) != 0);
+  custom_point_ = core::Vector3(
+      get_parameter<float>("custom_point_x", 0.0F),
+      get_parameter<float>("custom_point_y", 0.0F),
+      get_parameter<float>("custom_point_z", 0.0F)
+  );
+  custom_normal_ = core::Vector3(
+      get_parameter<float>("custom_normal_x", 0.0F),
+      get_parameter<float>("custom_normal_y", 1.0F),
+      get_parameter<float>("custom_normal_z", 0.0F)
+  );
+
   // Get input geometry
   auto input_geo = get_input_data(0);
   if (!input_geo) {

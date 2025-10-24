@@ -9,6 +9,70 @@ TransformSOP::TransformSOP(const std::string &name)
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(
+      define_float_parameter("translate_x", 0.0F)
+          .label("Translate X")
+          .range(-100.0, 100.0)
+          .category("Translation")
+          .build());
+
+  register_parameter(
+      define_float_parameter("translate_y", 0.0F)
+          .label("Translate Y")
+          .range(-100.0, 100.0)
+          .category("Translation")
+          .build());
+
+  register_parameter(
+      define_float_parameter("translate_z", 0.0F)
+          .label("Translate Z")
+          .range(-100.0, 100.0)
+          .category("Translation")
+          .build());
+
+  register_parameter(
+      define_float_parameter("rotate_x", 0.0F)
+          .label("Rotate X")
+          .range(-360.0, 360.0)
+          .category("Rotation")
+          .build());
+
+  register_parameter(
+      define_float_parameter("rotate_y", 0.0F)
+          .label("Rotate Y")
+          .range(-360.0, 360.0)
+          .category("Rotation")
+          .build());
+
+  register_parameter(
+      define_float_parameter("rotate_z", 0.0F)
+          .label("Rotate Z")
+          .range(-360.0, 360.0)
+          .category("Rotation")
+          .build());
+
+  register_parameter(
+      define_float_parameter("scale_x", 1.0F)
+          .label("Scale X")
+          .range(0.01, 10.0)
+          .category("Scale")
+          .build());
+
+  register_parameter(
+      define_float_parameter("scale_y", 1.0F)
+          .label("Scale Y")
+          .range(0.01, 10.0)
+          .category("Scale")
+          .build());
+
+  register_parameter(
+      define_float_parameter("scale_z", 1.0F)
+          .label("Scale Z")
+          .range(0.01, 10.0)
+          .category("Scale")
+          .build());
 }
 
 std::shared_ptr<GeometryData> TransformSOP::execute() {
@@ -32,11 +96,22 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
   // Build transformation matrix (Scale -> Rotate -> Translate)
   auto &vertices = transformed_mesh->vertices();
 
+  // Read parameters from parameter system
+  const double translate_x = get_parameter<float>("translate_x", 0.0F);
+  const double translate_y = get_parameter<float>("translate_y", 0.0F);
+  const double translate_z = get_parameter<float>("translate_z", 0.0F);
+  const double rotate_x = get_parameter<float>("rotate_x", 0.0F);
+  const double rotate_y = get_parameter<float>("rotate_y", 0.0F);
+  const double rotate_z = get_parameter<float>("rotate_z", 0.0F);
+  const double scale_x = get_parameter<float>("scale_x", 1.0F);
+  const double scale_y = get_parameter<float>("scale_y", 1.0F);
+  const double scale_z = get_parameter<float>("scale_z", 1.0F);
+
   // Convert degrees to radians
   constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
-  const double rx = rotate_x_ * DEG_TO_RAD;
-  const double ry = rotate_y_ * DEG_TO_RAD;
-  const double rz = rotate_z_ * DEG_TO_RAD;
+  const double rx = rotate_x * DEG_TO_RAD;
+  const double ry = rotate_y * DEG_TO_RAD;
+  const double rz = rotate_z * DEG_TO_RAD;
 
   // Create rotation matrices
   Eigen::Matrix3d rot_x;
@@ -58,10 +133,10 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
   const Eigen::Matrix3d rotation = rot_z * rot_y * rot_x;
 
   // Scale vector
-  const Eigen::Vector3d scale(scale_x_, scale_y_, scale_z_);
+  const Eigen::Vector3d scale(scale_x, scale_y, scale_z);
 
   // Translation vector
-  const Eigen::Vector3d translation(translate_x_, translate_y_, translate_z_);
+  const Eigen::Vector3d translation(translate_x, translate_y, translate_z);
 
   // Apply transformations to vertices (Scale -> Rotate -> Translate)
   for (int i = 0; i < vertices.rows(); ++i) {
@@ -79,17 +154,28 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
 }
 
 Eigen::Matrix4d TransformSOP::build_transform_matrix() const {
+  // Read parameters from parameter system
+  const double translate_x = get_parameter<float>("translate_x", 0.0F);
+  const double translate_y = get_parameter<float>("translate_y", 0.0F);
+  const double translate_z = get_parameter<float>("translate_z", 0.0F);
+  const double rotate_x = get_parameter<float>("rotate_x", 0.0F);
+  const double rotate_y = get_parameter<float>("rotate_y", 0.0F);
+  const double rotate_z = get_parameter<float>("rotate_z", 0.0F);
+  const double scale_x = get_parameter<float>("scale_x", 1.0F);
+  const double scale_y = get_parameter<float>("scale_y", 1.0F);
+  const double scale_z = get_parameter<float>("scale_z", 1.0F);
+
   // Convert degrees to radians
   constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
-  const double rx = rotate_x_ * DEG_TO_RAD;
-  const double ry = rotate_y_ * DEG_TO_RAD;
-  const double rz = rotate_z_ * DEG_TO_RAD;
+  const double rx = rotate_x * DEG_TO_RAD;
+  const double ry = rotate_y * DEG_TO_RAD;
+  const double rz = rotate_z * DEG_TO_RAD;
 
   // Build individual transformation matrices
   Eigen::Matrix4d scale_mat = Eigen::Matrix4d::Identity();
-  scale_mat(0, 0) = scale_x_;
-  scale_mat(1, 1) = scale_y_;
-  scale_mat(2, 2) = scale_z_;
+  scale_mat(0, 0) = scale_x;
+  scale_mat(1, 1) = scale_y;
+  scale_mat(2, 2) = scale_z;
 
   Eigen::Matrix4d rot_x_mat = Eigen::Matrix4d::Identity();
   rot_x_mat(1, 1) = std::cos(rx);
@@ -110,9 +196,9 @@ Eigen::Matrix4d TransformSOP::build_transform_matrix() const {
   rot_z_mat(1, 1) = std::cos(rz);
 
   Eigen::Matrix4d translate_mat = Eigen::Matrix4d::Identity();
-  translate_mat(0, 3) = translate_x_;
-  translate_mat(1, 3) = translate_y_;
-  translate_mat(2, 3) = translate_z_;
+  translate_mat(0, 3) = translate_x;
+  translate_mat(1, 3) = translate_y;
+  translate_mat(2, 3) = translate_z;
 
   // Combine: Translate * Rotate * Scale
   return translate_mat * rot_z_mat * rot_y_mat * rot_x_mat * scale_mat;

@@ -11,6 +11,11 @@
 #include <memory>
 #include <unordered_map>
 
+// Forward declarations
+namespace nodeflux::sop {
+class SOPNode;
+}
+
 namespace nodeflux::graph {
 
 /**
@@ -113,9 +118,9 @@ private:
   std::shared_ptr<core::Mesh>
   execute_smooth_node(const GraphNode &node,
                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_subdivide_node(const GraphNode &node,
-                         const std::vector<std::shared_ptr<core::Mesh>> &inputs);
+  std::shared_ptr<core::Mesh> execute_subdivide_node(
+      const GraphNode &node,
+      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
   std::shared_ptr<core::Mesh>
   execute_mirror_node(const GraphNode &node,
                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
@@ -137,12 +142,29 @@ private:
   std::shared_ptr<core::Mesh> execute_copy_to_points_node(
       const GraphNode &node,
       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
+  std::shared_ptr<core::Mesh> execute_noise_displacement_node(
+      const GraphNode &node,
+      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
 
   // Helper methods
   std::vector<std::shared_ptr<core::Mesh>>
   gather_input_meshes(const NodeGraph &graph, int node_id);
   void notify_progress(int completed, int total);
   void notify_error(const std::string &error, int node_id);
+
+  /**
+   * @brief Transfer parameters from GraphNode to SOPNode
+   * Automatically converts parameter types and values
+   */
+  void transfer_parameters(const GraphNode &graph_node, sop::SOPNode &sop_node);
+
+  /**
+   * @brief Generic SOP node execution (for refactored nodes)
+   * Creates SOP via factory, transfers parameters, and executes
+   */
+  std::shared_ptr<core::Mesh>
+  execute_sop_node(const GraphNode &node,
+                   const std::vector<std::shared_ptr<core::Mesh>> &inputs);
 };
 
 } // namespace nodeflux::graph

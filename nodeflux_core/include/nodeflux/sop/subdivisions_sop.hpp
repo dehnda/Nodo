@@ -21,23 +21,21 @@ public:
 
   // Configuration methods
   void set_subdivision_levels(int levels) {
-    int clamped = std::max(0, std::min(levels, 4)); // Limit to reasonable range
-    if (subdivision_levels_ != clamped) {
-      subdivision_levels_ = clamped;
-      mark_dirty();
-    }
+    int clamped = std::max(0, std::min(levels, 5)); // Limit to reasonable range
+    set_parameter("subdivision_levels", clamped);
   }
 
   void set_preserve_boundaries(bool preserve) {
-    if (preserve_boundaries_ != preserve) {
-      preserve_boundaries_ = preserve;
-      mark_dirty();
-    }
+    set_parameter("preserve_boundaries", preserve ? 1 : 0);
   }
 
   // Getters
-  int get_subdivision_levels() const { return subdivision_levels_; }
-  bool get_preserve_boundaries() const { return preserve_boundaries_; }
+  int get_subdivision_levels() const {
+    return get_parameter<int>("subdivision_levels", 1);
+  }
+  bool get_preserve_boundaries() const {
+    return (get_parameter<int>("preserve_boundaries", 1) != 0);
+  }
 
 protected:
   /**

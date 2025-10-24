@@ -277,6 +277,8 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Mirror";
   case NodeType::Resample:
     return "Resample";
+  case NodeType::NoiseDisplacement:
+    return "NoiseDisplacement";
   case NodeType::Boolean:
     return "Boolean";
   case NodeType::Scatter:
@@ -322,6 +324,8 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
     return NodeType::Mirror;
   if (type_str == "Resample")
     return NodeType::Resample;
+  if (type_str == "NoiseDisplacement")
+    return NodeType::NoiseDisplacement;
   if (type_str == "Boolean")
     return NodeType::Boolean;
   if (type_str == "Scatter")

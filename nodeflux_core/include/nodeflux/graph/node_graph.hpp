@@ -36,6 +36,7 @@ enum class NodeType {
   Array,
   Mirror,
   Resample,
+  NoiseDisplacement,
 
   // Boolean Operations
   Boolean,

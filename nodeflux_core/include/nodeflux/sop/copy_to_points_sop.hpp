@@ -18,22 +18,7 @@ private:
   static constexpr float DEFAULT_UNIFORM_SCALE = 1.0F;
 
 public:
-  explicit CopyToPointsSOP(const std::string &node_name = "copy_to_points")
-      : SOPNode(node_name, "CopyToPointsSOP") {
-
-    // Add input ports
-    input_ports_.add_port("points", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
-    input_ports_.add_port("template", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
-
-    // Set default parameters
-    set_parameter("use_point_normals", DEFAULT_USE_POINT_NORMALS);
-    set_parameter("use_point_scale", DEFAULT_USE_POINT_SCALE);
-    set_parameter("uniform_scale", DEFAULT_UNIFORM_SCALE);
-    set_parameter("scale_attribute", std::string("point_index"));
-    set_parameter("rotation_attribute", std::string(""));
-  }
+  explicit CopyToPointsSOP(const std::string &node_name = "copy_to_points");
 
   /**
    * @brief Copy template geometry to all point locations

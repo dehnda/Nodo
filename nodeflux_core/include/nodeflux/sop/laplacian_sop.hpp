@@ -36,48 +36,45 @@ public:
    * @param iterations Number of smoothing passes (default: 1)
    */
   void set_iterations(int iterations) {
-    if (iterations_ != iterations) {
-      iterations_ = iterations;
-      mark_dirty();
-    }
+    set_parameter("iterations", iterations);
   }
 
   /**
    * @brief Get number of iterations
    */
-  int get_iterations() const { return iterations_; }
+  int get_iterations() const {
+    return get_parameter<int>("iterations", 5);
+  }
 
   /**
    * @brief Set smoothing strength factor
    * @param lambda Smoothing factor (0.0 = no change, 1.0 = full smoothing)
    */
   void set_lambda(double lambda) {
-    if (lambda_ != lambda) {
-      lambda_ = lambda;
-      mark_dirty();
-    }
+    set_parameter("lambda", static_cast<float>(lambda));
   }
 
   /**
    * @brief Get smoothing strength
    */
-  double get_lambda() const { return lambda_; }
+  double get_lambda() const {
+    return get_parameter<float>("lambda", 0.5F);
+  }
 
   /**
    * @brief Set smoothing method
    * @param method Algorithm variant to use
    */
   void set_method(SmoothingMethod method) {
-    if (method_ != method) {
-      method_ = method;
-      mark_dirty();
-    }
+    set_parameter("method", static_cast<int>(method));
   }
 
   /**
    * @brief Get smoothing method
    */
-  SmoothingMethod get_method() const { return method_; }
+  SmoothingMethod get_method() const {
+    return static_cast<SmoothingMethod>(get_parameter<int>("method", 0));
+  }
 
   /**
    * @brief Set shrinkage prevention factor (for Taubin method)

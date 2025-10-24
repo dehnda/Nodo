@@ -35,64 +35,67 @@ public:
    * @param distance How far to extrude (can be negative for inward)
    */
   void set_distance(double distance) {
-    if (distance_ != distance) {
-      distance_ = distance;
-      mark_dirty();
-    }
+    set_parameter("distance", static_cast<float>(distance));
   }
 
   /**
    * @brief Get extrusion distance
    */
-  double get_distance() const { return distance_; }
+  double get_distance() const {
+    return get_parameter<float>("distance", 1.0F);
+  }
 
   /**
    * @brief Set extrusion direction for uniform mode
    * @param direction Unit vector specifying extrusion direction
    */
   void set_direction(const Eigen::Vector3d &direction) {
-    if (!direction_.isApprox(direction)) {
-      direction_ = direction.normalized();
-      mark_dirty();
-    }
+    Eigen::Vector3d normalized = direction.normalized();
+    set_parameter("direction_x", static_cast<float>(normalized.x()));
+    set_parameter("direction_y", static_cast<float>(normalized.y()));
+    set_parameter("direction_z", static_cast<float>(normalized.z()));
   }
 
   /**
    * @brief Get extrusion direction
    */
-  const Eigen::Vector3d &get_direction() const { return direction_; }
+  Eigen::Vector3d get_direction() const {
+    return Eigen::Vector3d(
+        get_parameter<float>("direction_x", 0.0F),
+        get_parameter<float>("direction_y", 0.0F),
+        get_parameter<float>("direction_z", 1.0F)
+    );
+  }
 
   /**
    * @brief Set extrusion mode
    * @param mode Type of extrusion to perform
    */
   void set_mode(ExtrusionMode mode) {
-    if (mode_ != mode) {
-      mode_ = mode;
-      mark_dirty();
-    }
+    set_parameter("mode", static_cast<int>(mode));
   }
 
   /**
    * @brief Get extrusion mode
    */
-  ExtrusionMode get_mode() const { return mode_; }
+  ExtrusionMode get_mode() const {
+    return static_cast<ExtrusionMode>(get_parameter<int>("mode", 0));
+  }
 
   /**
    * @brief Set inset amount for creating border around extruded faces
    * @param inset Inset distance (0.0 = no inset)
    */
   void set_inset(double inset) {
-    if (inset_ != inset) {
-      inset_ = inset;
-      mark_dirty();
-    }
+    set_parameter("inset", static_cast<float>(inset));
   }
 
   /**
    * @brief Get inset amount
    */
-  double get_inset() const { return inset_; }
+  double get_inset() const {
+    return get_parameter<float>("inset", 0.0F);
+  }
 
 protected:
   /**

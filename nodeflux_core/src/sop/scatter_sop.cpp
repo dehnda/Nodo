@@ -10,6 +10,38 @@ constexpr double TRIANGLE_AREA_FACTOR = 0.5;
 constexpr double BARYCENTRIC_MIN = 0.0;
 constexpr double BARYCENTRIC_NORMALIZE = 1.0;
 
+ScatterSOP::ScatterSOP(const std::string &node_name)
+    : SOPNode(node_name, "Scatter") {
+  // Add input port
+  input_ports_.add_port("input", NodePort::Type::INPUT,
+                        NodePort::DataType::GEOMETRY, this);
+
+  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(define_int_parameter("point_count", 100)
+                         .label("Point Count")
+                         .range(1, 10000)
+                         .category("Scatter")
+                         .build());
+
+  register_parameter(define_int_parameter("seed", 42)
+                         .label("Seed")
+                         .range(0, 99999)
+                         .category("Scatter")
+                         .build());
+
+  register_parameter(define_float_parameter("density", 1.0F)
+                         .label("Density")
+                         .range(0.0, 10.0)
+                         .category("Scatter")
+                         .build());
+
+  register_parameter(define_int_parameter("use_face_area", 1)
+                         .label("Use Face Area")
+                         .range(0, 1)
+                         .category("Scatter")
+                         .build());
+}
+
 void ScatterSOP::scatter_points_on_mesh(const core::Mesh &input_mesh,
                                         GeometryData &output_data,
                                         int point_count, int seed,
