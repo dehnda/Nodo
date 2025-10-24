@@ -57,6 +57,7 @@ private slots:
   void onNewScene();
   void onOpenScene();
   void onSaveScene();
+  void onExportMesh();
   void onExit();
 
   // View menu actions

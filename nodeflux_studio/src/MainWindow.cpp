@@ -7,11 +7,13 @@
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
 #include <nodeflux/graph/node_graph.hpp>
+#include <nodeflux/io/obj_exporter.hpp>
 
 #include <QAction>
 #include <QDockWidget>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -72,12 +74,15 @@ auto MainWindow::setupMenuBar() -> void {
   QAction *openAction = fileMenu->addAction("&Open Scene");
   QAction *saveAction = fileMenu->addAction("&Save Scene");
   fileMenu->addSeparator(); // Visual separator line
+  QAction *exportAction = fileMenu->addAction("&Export Mesh...");
+  fileMenu->addSeparator(); // Visual separator line
   QAction *exitAction = fileMenu->addAction("E&xit");
 
   // Connect actions to our slot functions
   connect(newAction, &QAction::triggered, this, &MainWindow::onNewScene);
   connect(openAction, &QAction::triggered, this, &MainWindow::onOpenScene);
   connect(saveAction, &QAction::triggered, this, &MainWindow::onSaveScene);
+  connect(exportAction, &QAction::triggered, this, &MainWindow::onExportMesh);
   connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
 
   // Create a View menu
@@ -373,6 +378,76 @@ void MainWindow::onSaveScene() {
     QMessageBox::warning(this, "Save Failed",
                          "Failed to save node graph to file.");
     statusBar()->showMessage("Failed to save graph", 3000);
+  }
+}
+
+void MainWindow::onExportMesh() {
+  using nodeflux::io::ObjExporter;
+
+  // Get the display node (the node that's currently being shown in viewport)
+  int display_node_id = node_graph_->get_display_node();
+
+  if (display_node_id < 0) {
+    QMessageBox::information(
+        this, "No Mesh to Export",
+        "Please set a display flag on a node first.\n\n"
+        "Right-click a node in the graph and select 'Set Display' to mark it "
+        "for export.");
+    return;
+  }
+
+  // Get the mesh result for the display node
+  auto mesh_result = execution_engine_->get_node_result(display_node_id);
+
+  if (!mesh_result) {
+    QMessageBox::warning(this, "Export Failed",
+                         "The display node has no mesh output.\n"
+                         "Please execute the graph first.");
+    return;
+  }
+
+  // Check if mesh has geometry
+  if (mesh_result->vertices().rows() == 0) {
+    QMessageBox::warning(this, "Export Failed",
+                         "The display node's mesh is empty.\n"
+                         "Cannot export a mesh with no vertices.");
+    return;
+  }
+
+  // Open file dialog for export location
+  QString file_path = QFileDialog::getSaveFileName(
+      this, "Export Mesh", "", "Wavefront OBJ (*.obj);;All Files (*)");
+
+  if (file_path.isEmpty()) {
+    return; // User cancelled
+  }
+
+  // Add .obj extension if not present
+  if (!file_path.endsWith(".obj", Qt::CaseInsensitive)) {
+    file_path += ".obj";
+  }
+
+  // Export the mesh
+  bool success = ObjExporter::export_mesh(*mesh_result, file_path.toStdString());
+
+  if (success) {
+    int vertex_count = mesh_result->vertices().rows();
+    int face_count = mesh_result->faces().rows();
+    QString message = QString("Mesh exported successfully\n%1 vertices, %2 faces")
+                          .arg(vertex_count)
+                          .arg(face_count);
+    statusBar()->showMessage(
+        QString("Exported to %1 (%2 verts, %3 faces)")
+            .arg(QFileInfo(file_path).fileName())
+            .arg(vertex_count)
+            .arg(face_count),
+        5000);
+    QMessageBox::information(this, "Export Successful", message);
+  } else {
+    QMessageBox::critical(this, "Export Failed",
+                          "Failed to write mesh to file.\n"
+                          "Check file permissions and disk space.");
+    statusBar()->showMessage("Mesh export failed", 3000);
   }
 }
 
