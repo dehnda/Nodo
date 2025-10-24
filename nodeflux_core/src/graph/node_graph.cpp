@@ -357,6 +357,22 @@ int NodeGraph::add_node(NodeType type, const std::string &name) {
   return node_id;
 }
 
+int NodeGraph::add_node_with_id(int node_id, NodeType type, const std::string &name) {
+  // For undo/redo: add node with a specific ID
+  const std::string node_name = name.empty() ? generate_node_name(type) : name;
+
+  auto node = std::make_unique<GraphNode>(node_id, type, node_name);
+  nodes_.push_back(std::move(node));
+
+  // Update next_node_id if necessary to avoid ID conflicts
+  if (node_id >= next_node_id_) {
+    next_node_id_ = node_id + 1;
+  }
+
+  notify_node_changed(node_id);
+  return node_id;
+}
+
 bool NodeGraph::remove_node(int node_id) {
   // Remove all connections to/from this node
   remove_connections_to_node(node_id);

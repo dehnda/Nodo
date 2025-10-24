@@ -1394,3 +1394,11 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
   // Default fallback
   return NodeType::Sphere;
 }
+
+NodeGraphicsItem* NodeGraphWidget::get_node_item_public(int node_id) {
+  auto it = node_items_.find(node_id);
+  if (it != node_items_.end()) {
+    return it->second;
+  }
+  return nullptr;
+}

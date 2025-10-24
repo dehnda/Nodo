@@ -266,6 +266,7 @@ public:
 
   // Node management
   int add_node(NodeType type, const std::string &name = "");
+  int add_node_with_id(int node_id, NodeType type, const std::string &name = ""); // For undo/redo
   bool remove_node(int node_id);
   GraphNode *get_node(int node_id);
   const GraphNode *get_node(int node_id) const;

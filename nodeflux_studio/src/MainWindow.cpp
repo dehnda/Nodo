@@ -3,6 +3,7 @@
 #include "PropertyPanel.h"
 #include "StatusBarWidget.h"
 #include "ViewportWidget.h"
+#include "UndoStack.h"
 
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
@@ -29,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
   node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>();
   execution_engine_ = std::make_unique<nodeflux::graph::ExecutionEngine>();
 
+  // Initialize undo/redo system
+  undo_stack_ = std::make_unique<nodeflux::studio::UndoStack>();
+
   // Load and apply dark theme stylesheet
   QFile styleFile(":/resources/styles/dark_theme.qss");
   if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
@@ -41,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
   setupMenuBar();
   setupDockWidgets();
   setupStatusBar();
+  setupUndoRedo();
 
   // Set window properties
   setWindowTitle("NodeFlux Studio");
@@ -84,6 +89,20 @@ auto MainWindow::setupMenuBar() -> void {
   connect(saveAction, &QAction::triggered, this, &MainWindow::onSaveScene);
   connect(exportAction, &QAction::triggered, this, &MainWindow::onExportMesh);
   connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
+
+  // Create an Edit menu
+  QMenu *editMenu = menuBar->addMenu("&Edit");
+
+  undo_action_ = editMenu->addAction("&Undo");
+  undo_action_->setShortcut(QKeySequence::Undo); // Ctrl+Z
+  undo_action_->setEnabled(false);
+
+  redo_action_ = editMenu->addAction("&Redo");
+  redo_action_->setShortcut(QKeySequence::Redo); // Ctrl+Shift+Z
+  redo_action_->setEnabled(false);
+
+  connect(undo_action_, &QAction::triggered, this, &MainWindow::onUndo);
+  connect(redo_action_, &QAction::triggered, this, &MainWindow::onRedo);
 
   // Create a View menu
   QMenu *viewMenu = menuBar->addMenu("&View");
@@ -688,5 +707,63 @@ void MainWindow::executeAndDisplayNode(int node_id) {
     }
   } else {
     statusBar()->showMessage("Graph execution failed", 2000);
+  }
+}
+
+// Undo/Redo implementation
+void MainWindow::setupUndoRedo() {
+  // No additional setup needed here for now
+  // The undo_stack_ is already initialized in the constructor
+  updateUndoRedoActions();
+}
+
+void MainWindow::onUndo() {
+  if (undo_stack_->can_undo()) {
+    undo_stack_->undo();
+    updateUndoRedoActions();
+
+    // Trigger re-execution and display update
+    int display_node = node_graph_->get_display_node();
+    if (display_node >= 0) {
+      executeAndDisplayNode(display_node);
+    }
+    node_graph_widget_->rebuild_from_graph();
+    updateDisplayFlagVisuals();
+  }
+}
+
+void MainWindow::onRedo() {
+  if (undo_stack_->can_redo()) {
+    undo_stack_->redo();
+    updateUndoRedoActions();
+
+    // Trigger re-execution and display update
+    int display_node = node_graph_->get_display_node();
+    if (display_node >= 0) {
+      executeAndDisplayNode(display_node);
+    }
+    node_graph_widget_->rebuild_from_graph();
+    updateDisplayFlagVisuals();
+  }
+}
+
+void MainWindow::updateUndoRedoActions() {
+  if (undo_action_ && redo_action_) {
+    // Update enabled state
+    undo_action_->setEnabled(undo_stack_->can_undo());
+    redo_action_->setEnabled(undo_stack_->can_redo());
+
+    // Update text with action description
+    if (undo_stack_->can_undo()) {
+      undo_action_->setText(QString("Undo %1").arg(undo_stack_->undo_text()));
+    } else {
+      undo_action_->setText("Undo");
+    }
+
+    if (undo_stack_->can_redo()) {
+      redo_action_->setText(QString("Redo %1").arg(undo_stack_->redo_text()));
+    } else {
+      redo_action_->setText("Redo");
+    }
   }
 }

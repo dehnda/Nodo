@@ -26,6 +26,8 @@ set(STUDIO_SOURCES
     src/NodeCreationMenu.cpp
     src/StatusBarWidget.cpp
     src/ViewportOverlay.cpp
+    src/Command.cpp
+    src/UndoStack.cpp
 )
 
 set(STUDIO_HEADERS
@@ -36,6 +38,8 @@ set(STUDIO_HEADERS
     src/NodeCreationMenu.h
     src/StatusBarWidget.h
     src/ViewportOverlay.h
+    src/Command.h
+    src/UndoStack.h
 )
 
 # Resource files

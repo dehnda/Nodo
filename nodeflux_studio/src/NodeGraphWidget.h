@@ -200,6 +200,13 @@ public:
     QVector<int> get_selected_node_ids() const;
     void clear_selection();
 
+    // Public wrappers for undo/redo commands
+    void create_node_item_public(int node_id) { create_node_item(node_id); }
+    void remove_node_item_public(int node_id) { remove_node_item(node_id); }
+    void create_connection_item_public(int connection_id) { create_connection_item(connection_id); }
+    void remove_connection_item_public(int connection_id) { remove_connection_item(connection_id); }
+    NodeGraphicsItem* get_node_item_public(int node_id);
+
 signals:
     void node_selected(int node_id);
     void node_double_clicked(int node_id);

@@ -10,6 +10,11 @@ class NodeGraphWidget;
 class StatusBarWidget;
 class QDockWidget;
 
+// Undo/Redo system
+namespace nodeflux::studio {
+class UndoStack;
+}
+
 // Forward declare node types
 namespace nodeflux {
 namespace graph {
@@ -29,6 +34,7 @@ private:
   void setupMenuBar();
   void setupDockWidgets();
   void setupStatusBar();
+  void setupUndoRedo();
 
   // Execution helper
   void executeAndDisplayNode(int node_id);
@@ -46,11 +52,18 @@ private:
   std::unique_ptr<nodeflux::graph::NodeGraph> node_graph_;
   std::unique_ptr<nodeflux::graph::ExecutionEngine> execution_engine_;
 
+  // Undo/Redo system
+  std::unique_ptr<nodeflux::studio::UndoStack> undo_stack_;
+
   // View menu actions (stored to connect after viewport creation)
   QAction *edges_action_;
   QAction *vertices_action_;
   QAction *vertex_normals_action_;
   QAction *face_normals_action_;
+
+  // Edit menu actions
+  QAction *undo_action_;
+  QAction *redo_action_;
 
 private slots:
   // File menu actions
@@ -59,6 +72,11 @@ private slots:
   void onSaveScene();
   void onExportMesh();
   void onExit();
+
+  // Edit menu actions
+  void onUndo();
+  void onRedo();
+  void updateUndoRedoActions();
 
   // View menu actions
   void onClearViewport();
