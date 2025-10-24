@@ -32,14 +32,9 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
   if (display_node_id >= 0) {
     // Selective execution: only cook nodes needed for display node
     execution_order = graph.get_upstream_dependencies(display_node_id);
-    std::cout << "🎯 Selective execution for display node " << display_node_id
-              << " (cooking " << execution_order.size() << " nodes)"
-              << std::endl;
   } else {
     // No display node: cook everything (fallback to old behavior)
     execution_order = graph.get_execution_order();
-    std::cout << "🔄 Full execution: " << execution_order.size() << " nodes"
-              << std::endl;
   }
 
   // Clear previous results and errors
@@ -57,9 +52,6 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       std::cout << "❌ Node " << node_id << " not found" << std::endl;
       return false;
     }
-
-    std::cout << "🎯 Executing node " << node_id << " ("
-              << static_cast<int>(node->get_type()) << ")" << std::endl;
 
     // Start timing
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -147,8 +139,6 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // Store the result or mark error
     if (result) {
-      std::cout << "✅ Node " << node_id << " executed successfully (took "
-                << cook_time_ms << " ms)" << '\n';
       result_cache_[node_id] = result;
       node->set_output_mesh(result);
       node->set_error(false); // Clear any previous error

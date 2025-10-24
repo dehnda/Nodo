@@ -728,20 +728,11 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
       addDoubleParameter(
           label, value, min, max, [this, node, param](double new_value) {
-            std::cout << "🎚️ Float parameter '" << param.name << "' changed to "
-                      << new_value << std::endl;
-            std::cout << "   Node ID: " << node->get_id() << std::endl;
-            std::cout << "   Old value: " << param.float_value << std::endl;
             node->set_parameter(param.name,
                                 nodeflux::graph::NodeParameter(
                                     param.name, static_cast<float>(new_value),
                                     param.label, param.ui_range.float_min,
                                     param.ui_range.float_max));
-            auto verify_param = node->get_parameter(param.name);
-            if (verify_param.has_value()) {
-              std::cout << "   Verified new value: "
-                        << verify_param->float_value << std::endl;
-            }
             emit parameterChanged();
           });
       break;
@@ -757,8 +748,6 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
         addComboParameter(label, param.int_value, options,
                           [this, node, param](int new_value) {
-                            std::cout << "🎚️ Combo parameter '" << param.name
-                                      << "' changed to " << new_value << "\n";
                             node->set_parameter(param.name,
                                                 nodeflux::graph::NodeParameter(
                                                     param.name, new_value,
@@ -771,8 +760,6 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
         addIntParameter(
             label, param.int_value, param.ui_range.int_min,
             param.ui_range.int_max, [this, node, param](int new_value) {
-              std::cout << "🎚️ Int parameter '" << param.name << "' changed to "
-                        << new_value << "\n";
               node->set_parameter(param.name,
                                   nodeflux::graph::NodeParameter(
                                       param.name, new_value, param.label,
@@ -787,8 +774,6 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
     case nodeflux::graph::NodeParameter::Type::Bool: {
       addBoolParameter(
           label, param.bool_value, [this, node, param](bool new_value) {
-            std::cout << "🎚️ Bool parameter '" << param.name << "' changed to "
-                      << new_value << "\n";
             node->set_parameter(param.name,
                                 nodeflux::graph::NodeParameter(
                                     param.name, new_value, param.label));
@@ -807,9 +792,6 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
       addVector3Parameter(
           label, x, y, z, min, max,
           [this, node, param](double nx, double ny, double nz) {
-            std::cout << "🎚️ Vector3 parameter '" << param.name
-                      << "' changed to (" << nx << ", " << ny << ", " << nz
-                      << ")\n";
             std::array<float, 3> new_value = {static_cast<float>(nx),
                                               static_cast<float>(ny),
                                               static_cast<float>(nz)};
@@ -827,9 +809,6 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
       QString string_value = QString::fromStdString(param.string_value);
       addStringParameter(label, string_value,
                          [this, node, param](const QString &new_value) {
-                           std::cout << "🎚️ String parameter '" << param.name
-                                     << "' changed to \"" << new_value.toStdString()
-                                     << "\"\n";
                            node->set_parameter(
                                param.name,
                                nodeflux::graph::NodeParameter(
