@@ -80,7 +80,7 @@ void NodeCreationMenu::setupUI() {
 }
 
 void NodeCreationMenu::populateAllNodes() {
-    // Register all 17 existing SOP nodes
+    // Register all 18 existing SOP nodes
     // Using simple Unicode symbols for better font compatibility
 
     // Generators (6 nodes)
@@ -103,8 +103,9 @@ void NodeCreationMenu::populateAllNodes() {
     all_nodes_.append({"Scatter", "scatter_sop", "Array", "∴", {"scatter", "points", "random"}});
     all_nodes_.append({"Copy to Points", "copy_to_points_sop", "Array", "⊕", {"copy", "instance", "points"}});
 
-    // Boolean & Transform (3 nodes)
+    // Boolean & Transform (4 nodes)
     all_nodes_.append({"Boolean", "boolean_sop", "Boolean", "∪", {"boolean", "union", "difference", "intersection"}});
+    all_nodes_.append({"Transform", "transform_sop", "Transform", "↔", {"transform", "move", "rotate", "scale"}});
     all_nodes_.append({"Mirror", "mirror_sop", "Transform", "⇄", {"mirror", "reflect", "symmetry"}});
     all_nodes_.append({"Noise Displacement", "noise_displacement_sop", "Deform", "≈", {"noise", "displace", "perlin"}});
 }

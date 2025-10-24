@@ -1376,11 +1376,13 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::CopyToPoints;
   if (type_id == "boolean_sop")
     return NodeType::Boolean;
+  if (type_id == "transform_sop")
+    return NodeType::Transform;
   if (type_id == "mirror_sop")
     return NodeType::Mirror;
-  if (type_id == "noise_displacement_sop")
-    return NodeType::Transform; // Using Transform as fallback for noise
-                                // displacement
+  // Note: noise_displacement_sop not yet implemented in execution engine
+  // if (type_id == "noise_displacement_sop")
+  //   return NodeType::NoiseDisplacement;
 
   // Default fallback
   return NodeType::Sphere;

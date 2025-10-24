@@ -18,6 +18,7 @@
 #include "nodeflux/sop/resample_sop.hpp"
 #include "nodeflux/sop/scatter_sop.hpp"
 #include "nodeflux/sop/subdivisions_sop.hpp"
+#include "nodeflux/sop/transform_sop.hpp"
 #include <iostream>
 #include <memory>
 #include <chrono>
@@ -388,6 +389,7 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
     const GraphNode &node,
     const std::vector<std::shared_ptr<core::Mesh>> &inputs) {
   if (inputs.empty()) {
+    std::cout << "⚠️ Transform node needs input geometry\n";
     return nullptr;
   }
 
@@ -421,61 +423,28 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
   const float scale_z =
       scale_z_param.has_value() ? scale_z_param->float_value : 1.0F;
 
-  // Create a copy of the input mesh
-  auto transformed_mesh = std::make_shared<core::Mesh>(*inputs[0]);
+  std::cout << "🔄 Transforming geometry (translate: " << translate_x << ","
+            << translate_y << "," << translate_z << ", rotate: " << rotate_x
+            << "," << rotate_y << "," << rotate_z << ", scale: " << scale_x
+            << "," << scale_y << "," << scale_z << ")\n";
 
-  // Build transformation matrix (Scale -> Rotate -> Translate)
-  auto &vertices = transformed_mesh->vertices();
+  // Create input geometry data
+  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
 
-  std::cout << "🔄 Transform: translate(" << translate_x << "," << translate_y
-            << "," << translate_z << ") rotate(" << rotate_x << "," << rotate_y
-            << "," << rotate_z << ") scale(" << scale_x << "," << scale_y << ","
-            << scale_z << ")" << std::endl;
+  // Create and configure TransformSOP
+  sop::TransformSOP transform_sop("TransformNode");
+  transform_sop.set_translation(translate_x, translate_y, translate_z);
+  transform_sop.set_rotation(rotate_x, rotate_y, rotate_z);
+  transform_sop.set_scale(scale_x, scale_y, scale_z);
 
-  // Convert degrees to radians (portable, uses C++20 std::numbers::pi)
-  constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
-  const double rx = static_cast<double>(rotate_x) * DEG_TO_RAD;
-  const double ry = static_cast<double>(rotate_y) * DEG_TO_RAD;
-  const double rz = static_cast<double>(rotate_z) * DEG_TO_RAD;
+  // Set input and execute
+  transform_sop.set_input_data(0, input_geo);
+  auto geo_data = transform_sop.cook();
 
-  // Create rotation matrices
-  Eigen::Matrix3d rot_x;
-  rot_x << 1.0, 0.0, 0.0, 0.0, std::cos(rx), -std::sin(rx), 0.0, std::sin(rx),
-      std::cos(rx);
-
-  Eigen::Matrix3d rot_y;
-  rot_y << std::cos(ry), 0.0, std::sin(ry), 0.0, 1.0, 0.0, -std::sin(ry), 0.0,
-      std::cos(ry);
-
-  Eigen::Matrix3d rot_z;
-  rot_z << std::cos(rz), -std::sin(rz), 0.0, std::sin(rz), std::cos(rz), 0.0,
-      0.0, 0.0, 1.0;
-
-  // Combined rotation matrix (Z * Y * X order)
-  const Eigen::Matrix3d rotation = rot_z * rot_y * rot_x;
-
-  // Scale matrix
-  const Eigen::Vector3d scale(static_cast<double>(scale_x),
-                              static_cast<double>(scale_y),
-                              static_cast<double>(scale_z));
-
-  // Translation vector
-  const Eigen::Vector3d translation(static_cast<double>(translate_x),
-                                    static_cast<double>(translate_y),
-                                    static_cast<double>(translate_z));
-
-  // Apply transformations to vertices (Scale -> Rotate -> Translate)
-  for (int i = 0; i < vertices.rows(); ++i) {
-    Eigen::Vector3d vertex = vertices.row(i).transpose();
-    vertex = vertex.cwiseProduct(scale); // Scale
-    vertex = rotation * vertex;          // Rotate
-    vertex += translation;               // Translate
-    vertices.row(i) = vertex.transpose();
+  if (!geo_data) {
+    return nullptr;
   }
-
-  // Normals will be automatically recomputed when needed since we modified
-  // vertices
-  return transformed_mesh;
+  return geo_data->get_mesh();
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_extrude_node(
