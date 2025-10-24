@@ -41,13 +41,6 @@ set(NODEFLUX_CORE_SOURCES
     # IO
     src/io/obj_exporter.cpp
 
-    # Nodes
-    src/nodes/box_node.cpp
-    src/nodes/cylinder_node.cpp
-    src/nodes/plane_node.cpp
-    src/nodes/sphere_node.cpp
-    src/nodes/torus_node.cpp
-
     # SOPs
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp

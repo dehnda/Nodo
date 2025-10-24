@@ -7,12 +7,6 @@
 #include <memory>
 
 // Forward declare node classes
-namespace nodeflux::nodes {
-class SphereNode;
-class BoxNode;
-class CylinderNode;
-} // namespace nodeflux::nodes
-
 namespace nodeflux::graph {
 class GraphNode;
 class NodeGraph;
@@ -31,12 +25,7 @@ public:
   explicit PropertyPanel(QWidget *parent = nullptr);
   ~PropertyPanel() override = default;
 
-  // Set which node to display/edit (old system)
-  void setSphereNode(nodeflux::nodes::SphereNode *node);
-  void setBoxNode(nodeflux::nodes::BoxNode *node);
-  void setCylinderNode(nodeflux::nodes::CylinderNode *node);
-
-  // Set GraphNode from node graph system (new system)
+  // Set GraphNode from node graph system
   void setGraphNode(nodeflux::graph::GraphNode *node,
                     nodeflux::graph::NodeGraph *graph);
 

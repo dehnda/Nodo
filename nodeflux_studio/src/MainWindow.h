@@ -12,11 +12,6 @@ class QDockWidget;
 
 // Forward declare node types
 namespace nodeflux {
-namespace nodes {
-class SphereNode;
-class BoxNode;
-class CylinderNode;
-} // namespace nodes
 namespace graph {
 class NodeGraph;
 class ExecutionEngine;
@@ -51,11 +46,6 @@ private:
   std::unique_ptr<nodeflux::graph::NodeGraph> node_graph_;
   std::unique_ptr<nodeflux::graph::ExecutionEngine> execution_engine_;
 
-  // Test nodes for property panel demo (owned pointers, deleted in destructor)
-  nodeflux::nodes::SphereNode *test_sphere_node_;
-  nodeflux::nodes::BoxNode *test_box_node_;
-  nodeflux::nodes::CylinderNode *test_cylinder_node_;
-
   // View menu actions (stored to connect after viewport creation)
   QAction *edges_action_;
   QAction *vertices_action_;
@@ -69,10 +59,7 @@ private slots:
   void onSaveScene();
   void onExit();
 
-  // View menu actions (for testing)
-  void onLoadTestSphere();
-  void onLoadTestBox();
-  void onLoadTestCylinder();
+  // View menu actions
   void onClearViewport();
 
   // Debug visualization

@@ -7,9 +7,6 @@
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
 #include <nodeflux/graph/node_graph.hpp>
-#include <nodeflux/nodes/box_node.hpp>
-#include <nodeflux/nodes/cylinder_node.hpp>
-#include <nodeflux/nodes/sphere_node.hpp>
 
 #include <QAction>
 #include <QDockWidget>
@@ -24,8 +21,7 @@
 #include <QToolButton>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), test_sphere_node_(nullptr), test_box_node_(nullptr),
-      test_cylinder_node_(nullptr) {
+    : QMainWindow(parent) {
 
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>();
@@ -50,10 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
-  // Clean up test nodes
-  delete test_sphere_node_;
-  delete test_box_node_;
-  delete test_cylinder_node_;
+  // Cleanup handled by smart pointers
 }
 
 auto MainWindow::setupMenuBar() -> void {
@@ -87,13 +80,9 @@ auto MainWindow::setupMenuBar() -> void {
   connect(saveAction, &QAction::triggered, this, &MainWindow::onSaveScene);
   connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
 
-  // Create a View menu with test primitives
+  // Create a View menu
   QMenu *viewMenu = menuBar->addMenu("&View");
 
-  QAction *sphereAction = viewMenu->addAction("Load Test &Sphere");
-  QAction *boxAction = viewMenu->addAction("Load Test &Box");
-  QAction *cylinderAction = viewMenu->addAction("Load Test &Cylinder");
-  viewMenu->addSeparator();
   QAction *clearAction = viewMenu->addAction("&Clear Viewport");
 
   viewMenu->addSeparator();
@@ -131,11 +120,6 @@ auto MainWindow::setupMenuBar() -> void {
   face_normals_action_->setChecked(false);
 
   // Connect view actions
-  connect(sphereAction, &QAction::triggered, this,
-          &MainWindow::onLoadTestSphere);
-  connect(boxAction, &QAction::triggered, this, &MainWindow::onLoadTestBox);
-  connect(cylinderAction, &QAction::triggered, this,
-          &MainWindow::onLoadTestCylinder);
   connect(clearAction, &QAction::triggered, this, &MainWindow::onClearViewport);
   connect(wireframeAction, &QAction::toggled, this,
           &MainWindow::onToggleWireframe);
@@ -292,24 +276,6 @@ void MainWindow::onParameterChanged() {
   if (!selected_nodes.isEmpty()) {
     executeAndDisplayNode(selected_nodes.first());
   }
-
-  // Legacy support for old test nodes (can be removed later)
-  if (test_sphere_node_ != nullptr) {
-    auto mesh = test_sphere_node_->generate();
-    if (mesh) {
-      viewport_widget_->setMesh(*mesh);
-    }
-  } else if (test_box_node_ != nullptr) {
-    auto mesh = test_box_node_->generate();
-    if (mesh) {
-      viewport_widget_->setMesh(*mesh);
-    }
-  } else if (test_cylinder_node_ != nullptr) {
-    auto mesh = test_cylinder_node_->generate();
-    if (mesh) {
-      viewport_widget_->setMesh(*mesh);
-    }
-  }
 }
 
 auto MainWindow::setupStatusBar() -> void {
@@ -414,101 +380,11 @@ void MainWindow::onExit() {
   close(); // Close the window
 }
 
-// View menu slot implementations (for testing viewport)
-void MainWindow::onLoadTestSphere() {
-  constexpr int STATUS_MSG_DURATION = 2000;
-  using namespace nodeflux::nodes;
-
-  // Clean up old node if exists
-  delete test_sphere_node_;
-
-  // Create a sphere node for editing
-  test_sphere_node_ = new SphereNode(1.0, 32, 16);
-
-  // Set it in the property panel
-  property_panel_->setSphereNode(test_sphere_node_);
-
-  // Generate and display initial mesh
-  auto mesh = test_sphere_node_->generate();
-  if (mesh) {
-    viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage(
-        "Loaded editable sphere - adjust parameters in property panel",
-        STATUS_MSG_DURATION);
-  } else {
-    statusBar()->showMessage("Failed to generate sphere", STATUS_MSG_DURATION);
-  }
-}
-
-void MainWindow::onLoadTestBox() {
-  constexpr int STATUS_MSG_DURATION = 2000;
-  using namespace nodeflux::nodes;
-
-  // Clean up old nodes
-  delete test_sphere_node_;
-  test_sphere_node_ = nullptr;
-  delete test_cylinder_node_;
-  test_cylinder_node_ = nullptr;
-  delete test_box_node_;
-
-  // Create a box node for editing
-  test_box_node_ = new BoxNode(2.0, 1.5, 1.0);
-
-  // Set it in the property panel
-  property_panel_->setBoxNode(test_box_node_);
-
-  // Generate and display initial mesh
-  auto mesh = test_box_node_->generate();
-  if (mesh) {
-    viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage(
-        "Loaded editable box - adjust parameters in property panel",
-        STATUS_MSG_DURATION);
-  } else {
-    statusBar()->showMessage("Failed to generate box", STATUS_MSG_DURATION);
-  }
-}
-
-void MainWindow::onLoadTestCylinder() {
-  constexpr int STATUS_MSG_DURATION = 2000;
-  using namespace nodeflux::nodes;
-
-  // Clean up old nodes
-  delete test_sphere_node_;
-  test_sphere_node_ = nullptr;
-  delete test_box_node_;
-  test_box_node_ = nullptr;
-  delete test_cylinder_node_;
-
-  // Create a cylinder node for editing
-  test_cylinder_node_ = new CylinderNode(0.5, 2.0, 32);
-
-  // Set it in the property panel
-  property_panel_->setCylinderNode(test_cylinder_node_);
-
-  // Generate and display initial mesh
-  auto mesh = test_cylinder_node_->generate();
-  if (mesh) {
-    viewport_widget_->setMesh(*mesh);
-    statusBar()->showMessage(
-        "Loaded editable cylinder - adjust parameters in property panel",
-        STATUS_MSG_DURATION);
-  } else {
-    statusBar()->showMessage("Failed to generate cylinder",
-                             STATUS_MSG_DURATION);
-  }
-}
-
+// View menu slot implementations
 void MainWindow::onClearViewport() {
   constexpr int STATUS_MSG_DURATION = 2000;
   viewport_widget_->clearMesh();
   property_panel_->clearProperties();
-  delete test_sphere_node_;
-  test_sphere_node_ = nullptr;
-  delete test_box_node_;
-  test_box_node_ = nullptr;
-  delete test_cylinder_node_;
-  test_cylinder_node_ = nullptr;
   statusBar()->showMessage("Viewport cleared", STATUS_MSG_DURATION);
 }
 
