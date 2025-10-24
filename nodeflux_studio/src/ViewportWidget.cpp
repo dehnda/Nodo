@@ -93,8 +93,17 @@ out vec4 frag_color;
 uniform vec3 color = vec3(1.0, 1.0, 1.0);
 
 void main() {
-    // Make points render as smooth circles instead of squares
+    // Check if this is a point primitive (gl_PointCoord will be non-zero)
+    // For lines, gl_PointCoord is always (0,0) so we can detect this
     vec2 coord = gl_PointCoord - vec2(0.5);
+
+    // If rendering lines (not points), just output solid color
+    if (gl_PointCoord == vec2(0.0, 0.0)) {
+        frag_color = vec4(color, 1.0);
+        return;
+    }
+
+    // For points: render as smooth circles
     float dist = length(coord);
 
     // Discard pixels outside the circle
@@ -1041,7 +1050,11 @@ void ViewportWidget::drawVertexNormals() {
   vertex_normal_vao->release();
   vertex_normal_buffer->release();
 
-  // Draw vertex normals
+  // Draw vertex normals with proper depth testing
+  glEnable(GL_POLYGON_OFFSET_LINE);
+  glPolygonOffset(-1.0F, -1.0F);
+  glLineWidth(2.0F);
+
   simple_shader_program_->bind();
   simple_shader_program_->setUniformValue("model", model_matrix_);
   simple_shader_program_->setUniformValue("view", view_matrix_);
@@ -1054,6 +1067,9 @@ void ViewportWidget::drawVertexNormals() {
   vertex_normal_vao->release();
 
   simple_shader_program_->release();
+
+  glLineWidth(1.0F);
+  glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
 void ViewportWidget::drawFaceNormals() {
@@ -1138,7 +1154,11 @@ void ViewportWidget::drawFaceNormals() {
   face_normal_vao->release();
   face_normal_buffer->release();
 
-  // Draw face normals
+  // Draw face normals with proper depth testing
+  glEnable(GL_POLYGON_OFFSET_LINE);
+  glPolygonOffset(-1.0F, -1.0F);
+  glLineWidth(2.0F);
+
   simple_shader_program_->bind();
   simple_shader_program_->setUniformValue("model", model_matrix_);
   simple_shader_program_->setUniformValue("view", view_matrix_);
@@ -1151,6 +1171,9 @@ void ViewportWidget::drawFaceNormals() {
   face_normal_vao->release();
 
   simple_shader_program_->release();
+
+  glLineWidth(1.0F);
+  glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
 void ViewportWidget::setShowEdges(bool show) {
