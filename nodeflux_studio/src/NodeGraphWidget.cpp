@@ -1,5 +1,7 @@
 #include "NodeGraphWidget.h"
 #include "NodeCreationMenu.h"
+#include "Command.h"
+#include "UndoStack.h"
 #include <QContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
@@ -169,6 +171,10 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   // Only handle left mouse button for selection and dragging
   // Middle mouse is handled by the view for panning
   if (event->button() == Qt::LeftButton) {
+    // Store starting position for undo/redo
+    drag_start_position_ = pos();
+    is_dragging_ = true;
+
     // Don't modify selection here - let the view handle it
     // Just update our internal selected flag to match Qt's selection state
     set_selected(isSelected());
@@ -191,6 +197,18 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   // Only handle left button release
   if (event->button() == Qt::LeftButton) {
+    // If we were dragging and position changed, we need to create an undo command
+    // This is handled in NodeGraphWidget::on_node_moved_final
+    if (is_dragging_) {
+      QPointF current_pos = pos();
+      // Check if position actually changed (avoid creating command for clicks)
+      if ((current_pos - drag_start_position_).manhattanLength() > 1.0) {
+        // Position changed during drag - emit signal for command creation
+        // We'll handle this via the scene's selectionChanged or a custom signal
+        // For now, just mark that dragging ended
+      }
+      is_dragging_ = false;
+    }
     QGraphicsItem::mouseReleaseEvent(event);
   } else {
     event->ignore();
@@ -928,6 +946,9 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
         return;
       }
 
+      // Store starting position for undo/redo of node movement
+      node_drag_start_positions_[node_item->get_node_id()] = node_item->pos();
+
       // If clicked on node (not on a pin), handle selection explicitly
       bool is_ctrl_held = (event->modifiers() & Qt::ControlModifier);
       bool node_already_selected = node_item->isSelected();
@@ -1103,21 +1124,18 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
           target_node_item->mapFromScene(scene_pos), is_input);
 
       if (pin_index >= 0 && is_input) {
-        // Valid connection target found - create connection in backend
-        if (graph_ != nullptr) {
-          int connection_id = graph_->add_connection(
+        // Valid connection target found - create connection using command
+        if (graph_ != nullptr && undo_stack_ != nullptr) {
+          auto cmd = nodeflux::studio::create_connect_command(
+              this, graph_,
               connection_source_node_->get_node_id(), connection_source_pin_,
               target_node_item->get_node_id(), pin_index);
+          undo_stack_->push(std::move(cmd));
 
-          if (connection_id >= 0) {
-            // Create visual representation
-            create_connection_item(connection_id);
-
-            // Emit signal
-            emit connection_created(connection_source_node_->get_node_id(),
-                                    connection_source_pin_,
-                                    target_node_item->get_node_id(), pin_index);
-          }
+          // Emit signal (command already created the visual representation)
+          emit connection_created(connection_source_node_->get_node_id(),
+                                  connection_source_pin_,
+                                  target_node_item->get_node_id(), pin_index);
         }
       }
     }
@@ -1134,6 +1152,27 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
     connection_source_pin_ = -1;
     event->accept();
     return;
+  }
+
+  // Create move commands for any nodes that were dragged
+  if (event->button() == Qt::LeftButton && !node_drag_start_positions_.empty()) {
+    if (undo_stack_ != nullptr && graph_ != nullptr) {
+      for (const auto& [node_id, start_pos] : node_drag_start_positions_) {
+        // Get current position
+        auto* node_item = get_node_item_public(node_id);
+        if (node_item != nullptr) {
+          QPointF current_pos = node_item->pos();
+          // Only create command if position actually changed
+          if ((current_pos - start_pos).manhattanLength() > 1.0) {
+            auto cmd = nodeflux::studio::create_move_node_command(
+                graph_, node_id, start_pos, current_pos);
+            undo_stack_->push(std::move(cmd));
+          }
+        }
+      }
+    }
+    // Clear drag tracking
+    node_drag_start_positions_.clear();
   }
 
   QGraphicsView::mouseReleaseEvent(event);
@@ -1174,12 +1213,20 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
       }
     }
 
-    // Delete connections from backend and visual
-    for (int conn_id : connection_ids_to_delete) {
-      if (graph_ != nullptr) {
-        graph_->remove_connection(conn_id);
+    // Delete connections using commands if undo_stack is available
+    if (undo_stack_ != nullptr && graph_ != nullptr) {
+      for (int conn_id : connection_ids_to_delete) {
+        auto cmd = nodeflux::studio::create_disconnect_command(this, graph_, conn_id);
+        undo_stack_->push(std::move(cmd));
       }
-      remove_connection_item(conn_id);
+    } else {
+      // Fallback: direct deletion
+      for (int conn_id : connection_ids_to_delete) {
+        if (graph_ != nullptr) {
+          graph_->remove_connection(conn_id);
+        }
+        remove_connection_item(conn_id);
+      }
     }
 
     // Emit signal so MainWindow can handle viewport update
@@ -1187,10 +1234,20 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
       emit connections_deleted(connection_ids_to_delete);
     }
 
-    // Delete selected nodes
-    if (!selected_nodes_.isEmpty()) {
-      emit nodes_deleted(get_selected_node_ids());
+    // Delete selected nodes using commands if undo_stack is available
+    QVector<int> node_ids = get_selected_node_ids();
+    if (undo_stack_ != nullptr && graph_ != nullptr && !node_ids.isEmpty()) {
+      for (int node_id : node_ids) {
+        auto cmd = nodeflux::studio::create_delete_node_command(this, graph_, node_id);
+        undo_stack_->push(std::move(cmd));
+      }
+      // Emit signal so MainWindow can update UI
+      emit nodes_deleted(node_ids);
+    } else if (!node_ids.isEmpty()) {
+      // Fallback: emit signal for old behavior
+      emit nodes_deleted(node_ids);
     }
+
     event->accept();
     return;
   }
@@ -1303,20 +1360,28 @@ void NodeGraphWidget::create_node_at_position(nodeflux::graph::NodeType type,
     return;
   }
 
-  // Create the node in the backend graph
-  int node_id = graph_->add_node(type);
+  // Use undo/redo command if available
+  if (undo_stack_ != nullptr) {
+    auto cmd = nodeflux::studio::create_add_node_command(this, graph_, type, pos);
+    undo_stack_->push(std::move(cmd));
 
-  // Set the position
-  if (auto *backend_node = graph_->get_node(node_id)) {
-    backend_node->set_position(static_cast<float>(pos.x()),
-                               static_cast<float>(pos.y()));
+    // Get the node ID from the command (it was executed during push)
+    // We need to emit the signal for MainWindow
+    // The command already created the visual representation
+    int node_id = graph_->get_nodes().back()->get_id();
+    emit node_created(node_id);
+  } else {
+    // Fallback: direct operation (for backward compatibility)
+    int node_id = graph_->add_node(type);
+
+    if (auto *backend_node = graph_->get_node(node_id)) {
+      backend_node->set_position(static_cast<float>(pos.x()),
+                                 static_cast<float>(pos.y()));
+    }
+
+    create_node_item(node_id);
+    emit node_created(node_id);
   }
-
-  // Create the visual representation
-  create_node_item(node_id);
-
-  // Emit signal for other components
-  emit node_created(node_id);
 }
 
 void NodeGraphWidget::on_scene_selection_changed() {

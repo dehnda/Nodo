@@ -1,7 +1,20 @@
 #pragma once
 
 #include <QString>
+#include <QPointF>
 #include <memory>
+#include <string>
+
+// Forward declarations
+class NodeGraphWidget;
+
+namespace nodeflux {
+namespace graph {
+    class NodeGraph;
+    class NodeParameter;
+    enum class NodeType;
+}
+}
 
 namespace nodeflux::studio {
 
@@ -35,5 +48,51 @@ public:
 protected:
     QString description_;
 };
+
+// Forward declare concrete commands (implementations in Command.cpp)
+class AddNodeCommand;
+class DeleteNodeCommand;
+class MoveNodeCommand;
+class ChangeParameterCommand;
+class ConnectCommand;
+class DisconnectCommand;
+
+// Factory functions to create commands
+std::unique_ptr<Command> create_add_node_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    nodeflux::graph::NodeType type,
+    const QPointF& position);
+
+std::unique_ptr<Command> create_delete_node_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    int node_id);
+
+std::unique_ptr<Command> create_move_node_command(
+    nodeflux::graph::NodeGraph* graph,
+    int node_id,
+    const QPointF& old_pos,
+    const QPointF& new_pos);
+
+std::unique_ptr<Command> create_change_parameter_command(
+    nodeflux::graph::NodeGraph* graph,
+    int node_id,
+    const std::string& param_name,
+    const nodeflux::graph::NodeParameter& old_value,
+    const nodeflux::graph::NodeParameter& new_value);
+
+std::unique_ptr<Command> create_connect_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    int source_id,
+    int source_pin,
+    int target_id,
+    int target_pin);
+
+std::unique_ptr<Command> create_disconnect_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    int connection_id);
 
 } // namespace nodeflux::studio

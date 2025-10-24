@@ -16,6 +16,10 @@ namespace nodeflux::graph {
     enum class NodeType;
 }
 
+namespace nodeflux::studio {
+    class UndoStack;
+}
+
 #include <nodeflux/graph/node_graph.hpp>
 
 // Forward declare NodeCreationMenu
@@ -115,6 +119,10 @@ private:
     // Parameters (name, value pairs for display)
     std::vector<std::pair<QString, QString>> parameters_;
 
+    // Drag tracking for undo/redo
+    QPointF drag_start_position_;
+    bool is_dragging_ = false;
+
     // Visual constants
     static constexpr float NODE_WIDTH = 240.0F;  // Wider for more content
     static constexpr float NODE_HEADER_HEIGHT = 32.0F;
@@ -184,6 +192,10 @@ public:
     void set_graph(nodeflux::graph::NodeGraph* graph);
     nodeflux::graph::NodeGraph* get_graph() const { return graph_; }
 
+    // Undo/Redo management
+    void set_undo_stack(nodeflux::studio::UndoStack* undo_stack) { undo_stack_ = undo_stack; }
+    nodeflux::studio::UndoStack* get_undo_stack() const { return undo_stack_; }
+
     // Rebuild visual representation from backend graph
     void rebuild_from_graph();
 
@@ -234,6 +246,9 @@ private:
     // Backend graph reference (not owned)
     nodeflux::graph::NodeGraph* graph_ = nullptr;
 
+    // Undo/Redo stack reference (not owned)
+    nodeflux::studio::UndoStack* undo_stack_ = nullptr;
+
     // Qt graphics scene
     QGraphicsScene* scene_;
 
@@ -271,6 +286,9 @@ private:
 
     // Context menu position (for node creation)
     QPointF context_menu_scene_pos_;
+
+    // Node drag tracking for undo/redo
+    std::unordered_map<int, QPointF> node_drag_start_positions_;
 
     // Visual settings
     float zoom_factor_ = 1.0F;

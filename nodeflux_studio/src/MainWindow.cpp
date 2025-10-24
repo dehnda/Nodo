@@ -2,8 +2,9 @@
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
 #include "StatusBarWidget.h"
-#include "ViewportWidget.h"
 #include "UndoStack.h"
+#include "ViewportWidget.h"
+
 
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
@@ -23,8 +24,7 @@
 #include <QStatusBar>
 #include <QToolButton>
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodeflux::graph::NodeGraph>();
@@ -244,8 +244,8 @@ auto MainWindow::setupDockWidgets() -> void {
           status_bar_widget_, &StatusBarWidget::setGPUInfo);
 
   // Connect FPS updates from viewport to status bar
-  connect(viewport_widget_, &ViewportWidget::fpsUpdated,
-          status_bar_widget_, &StatusBarWidget::setFPS);
+  connect(viewport_widget_, &ViewportWidget::fpsUpdated, status_bar_widget_,
+          &StatusBarWidget::setFPS);
 
   // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
@@ -255,6 +255,7 @@ auto MainWindow::setupDockWidgets() -> void {
   // Create node graph widget and connect to backend
   node_graph_widget_ = new NodeGraphWidget(this);
   node_graph_widget_->set_graph(node_graph_.get());
+  node_graph_widget_->set_undo_stack(undo_stack_.get());
   node_graph_dock_->setWidget(node_graph_widget_);
 
   // Connect node graph signals
@@ -447,20 +448,21 @@ void MainWindow::onExportMesh() {
   }
 
   // Export the mesh
-  bool success = ObjExporter::export_mesh(*mesh_result, file_path.toStdString());
+  bool success =
+      ObjExporter::export_mesh(*mesh_result, file_path.toStdString());
 
   if (success) {
     int vertex_count = mesh_result->vertices().rows();
     int face_count = mesh_result->faces().rows();
-    QString message = QString("Mesh exported successfully\n%1 vertices, %2 faces")
-                          .arg(vertex_count)
-                          .arg(face_count);
-    statusBar()->showMessage(
-        QString("Exported to %1 (%2 verts, %3 faces)")
-            .arg(QFileInfo(file_path).fileName())
+    QString message =
+        QString("Mesh exported successfully\n%1 vertices, %2 faces")
             .arg(vertex_count)
-            .arg(face_count),
-        5000);
+            .arg(face_count);
+    statusBar()->showMessage(QString("Exported to %1 (%2 verts, %3 faces)")
+                                 .arg(QFileInfo(file_path).fileName())
+                                 .arg(vertex_count)
+                                 .arg(face_count),
+                             5000);
     QMessageBox::information(this, "Export Successful", message);
   } else {
     QMessageBox::critical(this, "Export Failed",
@@ -538,12 +540,18 @@ void MainWindow::onNodeCreated(int node_id) {
     int node_count = static_cast<int>(node_graph_->get_nodes().size());
     status_bar_widget_->setNodeCount(node_count, 17);
   }
+
+  // Update undo/redo actions
+  updateUndoRedoActions();
 }
 
 void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/,
                                      int target_node, int /*target_pin*/) {
   // When a connection is made, execute and display the target node
   executeAndDisplayNode(target_node);
+
+  // Update undo/redo actions
+  updateUndoRedoActions();
 }
 
 void MainWindow::onConnectionsDeleted(QVector<int> /*connection_ids*/) {
@@ -583,17 +591,15 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
     }
   }
 
-  // Remove nodes from backend graph
-  for (int node_id : node_ids) {
-    node_graph_->remove_node(node_id);
-  }
+  // NOTE: Node deletion is now handled by commands in NodeGraphWidget
+  // We only need to update UI here
 
   // Clear property panel if we deleted the current node
   if (deleted_current_node && property_panel_ != nullptr) {
     property_panel_->clearProperties();
   }
 
-  // Rebuild visual representation
+  // Rebuild visual representation (if not using commands, this is already done)
   node_graph_widget_->rebuild_from_graph();
 
   // Clear viewport if we deleted the displayed node
@@ -604,6 +610,9 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
     int node_count = static_cast<int>(node_graph_->get_nodes().size());
     status_bar_widget_->setNodeCount(node_count, 17);
   }
+
+  // Update undo/redo actions
+  updateUndoRedoActions();
 
   QString msg = QString("Deleted %1 node(s)").arg(node_ids.size());
   if (status_bar_widget_ != nullptr) {
@@ -678,9 +687,8 @@ void MainWindow::executeAndDisplayNode(int node_id) {
       double cook_time_ms = (node != nullptr) ? node->get_cook_time() : 0.0;
 
       // Update node stats and parameters in graph widget
-      node_graph_widget_->update_node_stats(node_id, vertex_count,
-                                            triangle_count, memory_kb,
-                                            cook_time_ms);
+      node_graph_widget_->update_node_stats(
+          node_id, vertex_count, triangle_count, memory_kb, cook_time_ms);
       node_graph_widget_->update_node_parameters(node_id);
 
       // Update status

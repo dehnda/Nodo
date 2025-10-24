@@ -327,4 +327,54 @@ private:
     nodeflux::graph::NodeConnection connection_info_;
 };
 
+// Factory function implementations
+std::unique_ptr<Command> create_add_node_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    nodeflux::graph::NodeType type,
+    const QPointF& position) {
+    return std::make_unique<AddNodeCommand>(widget, graph, type, position);
+}
+
+std::unique_ptr<Command> create_delete_node_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    int node_id) {
+    return std::make_unique<DeleteNodeCommand>(widget, graph, node_id);
+}
+
+std::unique_ptr<Command> create_move_node_command(
+    nodeflux::graph::NodeGraph* graph,
+    int node_id,
+    const QPointF& old_pos,
+    const QPointF& new_pos) {
+    return std::make_unique<MoveNodeCommand>(graph, node_id, old_pos, new_pos);
+}
+
+std::unique_ptr<Command> create_change_parameter_command(
+    nodeflux::graph::NodeGraph* graph,
+    int node_id,
+    const std::string& param_name,
+    const nodeflux::graph::NodeParameter& old_value,
+    const nodeflux::graph::NodeParameter& new_value) {
+    return std::make_unique<ChangeParameterCommand>(graph, node_id, param_name, old_value, new_value);
+}
+
+std::unique_ptr<Command> create_connect_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    int source_id,
+    int source_pin,
+    int target_id,
+    int target_pin) {
+    return std::make_unique<ConnectCommand>(widget, graph, source_id, source_pin, target_id, target_pin);
+}
+
+std::unique_ptr<Command> create_disconnect_command(
+    NodeGraphWidget* widget,
+    nodeflux::graph::NodeGraph* graph,
+    int connection_id) {
+    return std::make_unique<DisconnectCommand>(widget, graph, connection_id);
+}
+
 } // namespace nodeflux::studio
