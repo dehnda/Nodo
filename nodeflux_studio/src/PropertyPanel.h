@@ -69,6 +69,8 @@ private:
                         std::function<void(bool)> callback);
   void addStringParameter(const QString &label, const QString &value,
                           std::function<void(const QString &)> callback);
+  void addFilePathParameter(const QString &label, const QString &value,
+                            std::function<void(const QString &)> callback);
   void addComboParameter(const QString &label, int value,
                          const QStringList &options,
                          std::function<void(int)> callback);

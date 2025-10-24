@@ -4,10 +4,12 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFileDialog>
 #include <QFrame>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <iostream>
@@ -454,6 +456,86 @@ void PropertyPanel::addStringParameter(
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
+void PropertyPanel::addFilePathParameter(
+    const QString &label, const QString &value,
+    std::function<void(const QString &)> callback) {
+  // Create container widget
+  auto *container = new QWidget(content_widget_);
+  auto *layout = new QVBoxLayout(container);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
+
+  // Label
+  auto *label_widget = new QLabel(label, container);
+  label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
+                              "font-weight: 500; }");
+  layout->addWidget(label_widget);
+
+  // Horizontal layout for line edit + browse button
+  auto *input_layout = new QHBoxLayout();
+  input_layout->setSpacing(6);
+
+  // Line edit for file path
+  auto *line_edit = new QLineEdit(value, container);
+  line_edit->setStyleSheet("QLineEdit {"
+                           "  background: rgba(255, 255, 255, 0.05);"
+                           "  border: 1px solid rgba(255, 255, 255, 0.1);"
+                           "  border-radius: 4px;"
+                           "  color: #e0e0e0;"
+                           "  padding: 6px 8px;"
+                           "  font-size: 12px;"
+                           "  selection-background-color: #4a9eff;"
+                           "}"
+                           "QLineEdit:focus {"
+                           "  border-color: #4a9eff;"
+                           "  background: rgba(255, 255, 255, 0.08);"
+                           "}"
+                           "QLineEdit:hover {"
+                           "  background: rgba(255, 255, 255, 0.07);"
+                           "  border-color: rgba(255, 255, 255, 0.15);"
+                           "}");
+  input_layout->addWidget(line_edit, 1);
+
+  // Browse button
+  auto *browse_button = new QPushButton("Browse...", container);
+  browse_button->setStyleSheet("QPushButton {"
+                                "  background: rgba(74, 158, 255, 0.15);"
+                                "  border: 1px solid rgba(74, 158, 255, 0.3);"
+                                "  border-radius: 4px;"
+                                "  color: #4a9eff;"
+                                "  padding: 6px 12px;"
+                                "  font-size: 12px;"
+                                "  font-weight: 500;"
+                                "}"
+                                "QPushButton:hover {"
+                                "  background: rgba(74, 158, 255, 0.25);"
+                                "  border-color: rgba(74, 158, 255, 0.5);"
+                                "}"
+                                "QPushButton:pressed {"
+                                "  background: rgba(74, 158, 255, 0.35);"
+                                "}");
+  input_layout->addWidget(browse_button);
+
+  layout->addLayout(input_layout);
+
+  // Connect browse button to open file dialog
+  connect(browse_button, &QPushButton::clicked, [line_edit, callback]() {
+    QString file_path = QFileDialog::getOpenFileName(
+        nullptr, "Select OBJ File", QString(),
+        "OBJ Files (*.obj);;All Files (*)");
+    if (!file_path.isEmpty()) {
+      line_edit->setText(file_path);
+      callback(file_path);
+    }
+  });
+
+  // Connect line edit to callback when text changes (on Enter or focus loss)
+  connect(line_edit, &QLineEdit::editingFinished,
+          [callback, line_edit]() { callback(line_edit->text()); });
+
+  content_layout_->insertWidget(content_layout_->count() - 1, container);
+}
+
 void PropertyPanel::addComboParameter(const QString &label, int value,
                                       const QStringList &options,
                                       std::function<void(int)> callback) {
@@ -643,14 +725,27 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
     case nodeflux::graph::NodeParameter::Type::String: {
       QString string_value = QString::fromStdString(param.string_value);
-      addStringParameter(
-          label, string_value, [this, node, param](const QString &new_value) {
-            node->set_parameter(
-                param.name,
-                nodeflux::graph::NodeParameter(
-                    param.name, new_value.toStdString(), param.label));
-            emit parameterChanged();
-          });
+
+      // Use file path widget for file_path parameters
+      if (param.name == "file_path") {
+        addFilePathParameter(
+            label, string_value, [this, node, param](const QString &new_value) {
+              node->set_parameter(
+                  param.name,
+                  nodeflux::graph::NodeParameter(
+                      param.name, new_value.toStdString(), param.label));
+              emit parameterChanged();
+            });
+      } else {
+        addStringParameter(
+            label, string_value, [this, node, param](const QString &new_value) {
+              node->set_parameter(
+                  param.name,
+                  nodeflux::graph::NodeParameter(
+                      param.name, new_value.toStdString(), param.label));
+              emit parameterChanged();
+            });
+      }
       break;
     }
     }

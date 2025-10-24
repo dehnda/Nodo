@@ -91,6 +91,10 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       result = execute_line_node(*node);
       break;
     }
+    case NodeType::File: {
+      result = execute_sop_node(*node, {});
+      break;
+    }
     case NodeType::Transform: {
       auto inputs = gather_input_meshes(graph, node_id);
       result = execute_transform_node(*node, inputs);

@@ -5,6 +5,7 @@
 #include "nodeflux/sop/boolean_sop.hpp"
 #include "nodeflux/sop/copy_to_points_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
+#include "nodeflux/sop/file_sop.hpp"
 #include "nodeflux/sop/laplacian_sop.hpp"
 #include "nodeflux/sop/line_sop.hpp"
 #include "nodeflux/sop/mirror_sop.hpp"
@@ -61,6 +62,10 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
   // Line generator (has SOP)
   case NodeType::Line:
     return std::make_shared<LineSOP>(name);
+
+  // IO
+  case NodeType::File:
+    return std::make_shared<FileSOP>(name);
 
   // Generators without SOP classes yet - return nullptr
   // These will need wrapper SOPs created

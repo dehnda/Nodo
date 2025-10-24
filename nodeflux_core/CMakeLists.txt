@@ -40,6 +40,7 @@ set(NODEFLUX_CORE_SOURCES
 
     # IO
     src/io/obj_exporter.cpp
+    src/io/obj_importer.cpp
 
     # SOPs
     src/sop/array_sop.cpp

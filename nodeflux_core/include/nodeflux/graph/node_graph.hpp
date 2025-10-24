@@ -27,6 +27,9 @@ enum class NodeType {
   Torus,
   Line,
 
+  // IO
+  File,
+
   // Modifiers
   Extrude,
   PolyExtrude,

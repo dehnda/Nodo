@@ -122,6 +122,13 @@ void GraphNode::setup_pins_for_type() {
         {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
     break;
 
+  case NodeType::File:
+    parameters_.emplace_back("file_path", std::string(""), "File Path");
+    parameters_.emplace_back("reload", false, "Reload");
+    output_pins_.push_back(
+        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
+    break;
+
   case NodeType::Cylinder:
     parameters_.emplace_back("radius", 1.0F, "Radius", 0.01F, 100.0F);
     parameters_.emplace_back("height", 2.0F, "Height", 0.01F, 100.0F);
@@ -632,6 +639,10 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Torus";
   case NodeType::Line:
     return "Line";
+
+  // IO
+  case NodeType::File:
+    return "File";
 
   // Modifiers
   case NodeType::Extrude:

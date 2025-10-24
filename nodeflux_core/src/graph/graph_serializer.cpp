@@ -261,6 +261,8 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Torus";
   case NodeType::Line:
     return "Line";
+  case NodeType::File:
+    return "File";
   case NodeType::Extrude:
     return "Extrude";
   case NodeType::PolyExtrude:
@@ -308,6 +310,8 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
     return NodeType::Torus;
   if (type_str == "Line")
     return NodeType::Line;
+  if (type_str == "File")
+    return NodeType::File;
   if (type_str == "Extrude")
     return NodeType::Extrude;
   if (type_str == "PolyExtrude")
