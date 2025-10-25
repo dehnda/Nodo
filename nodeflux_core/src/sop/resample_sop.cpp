@@ -44,7 +44,7 @@ static core::GeometryContainer mesh_to_container(const core::Mesh &mesh) {
   const auto &faces = mesh.faces();
 
   container.set_point_count(vertices.rows());
-  
+
   // Build topology if faces exist
   if (faces.rows() > 0) {
     size_t vert_idx = 0;

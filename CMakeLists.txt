@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build options
 option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
-option(NODEFLUX_BUILD_TESTS "Build unit tests" OFF)
+option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
 option(NODEFLUX_BUILD_STUDIO "Build Qt Studio application" ON)
 
 # Add subdirectories

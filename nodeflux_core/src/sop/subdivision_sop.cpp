@@ -1,9 +1,10 @@
-#include "nodeflux/sop/subdivisions_sop.hpp"
-#include "nodeflux/core/math.hpp"
-#include "nodeflux/core/types.hpp"
 #include "nodeflux/core/geometry_container.hpp"
+#include "nodeflux/core/math.hpp"
 #include "nodeflux/core/standard_attributes.hpp"
+#include "nodeflux/core/types.hpp"
+#include "nodeflux/sop/subdivisions_sop.hpp"
 #include <vector>
+
 
 namespace attrs = nodeflux::core::standard_attrs;
 
@@ -41,7 +42,7 @@ static core::GeometryContainer mesh_to_container(const core::Mesh &mesh) {
   const auto &faces = mesh.faces();
 
   container.set_point_count(vertices.rows());
-  
+
   // Build topology
   size_t vert_idx = 0;
   for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
@@ -74,19 +75,17 @@ SubdivisionSOP::SubdivisionSOP(const std::string &name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(
-      define_int_parameter("subdivision_levels", 1)
-          .label("Subdivision Levels")
-          .range(0, 5)
-          .category("Subdivision")
-          .build());
+  register_parameter(define_int_parameter("subdivision_levels", 1)
+                         .label("Subdivision Levels")
+                         .range(0, 5)
+                         .category("Subdivision")
+                         .build());
 
-  register_parameter(
-      define_int_parameter("preserve_boundaries", 1)
-          .label("Preserve Boundaries")
-          .range(0, 1)
-          .category("Subdivision")
-          .build());
+  register_parameter(define_int_parameter("preserve_boundaries", 1)
+                         .label("Preserve Boundaries")
+                         .range(0, 1)
+                         .category("Subdivision")
+                         .build());
 }
 
 std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
@@ -102,7 +101,8 @@ std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
   }
 
   // Convert to Mesh for subdivision processing
-  // TODO: When subdivision algorithm supports GeometryContainer directly, remove this
+  // TODO: When subdivision algorithm supports GeometryContainer directly,
+  // remove this
   auto input_mesh = input_geo->get_mesh();
   if (!input_mesh) {
     set_error("Input geometry does not contain a mesh");
@@ -110,9 +110,11 @@ std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
   }
 
   if (subdivision_levels_ == 0) {
-    // No subdivision, return input as GeometryContainer then back to GeometryData
+    // No subdivision, return input as GeometryContainer then back to
+    // GeometryData
     auto container = mesh_to_container(*input_mesh);
-    auto result_mesh = std::make_shared<core::Mesh>(container_to_mesh(container));
+    auto result_mesh =
+        std::make_shared<core::Mesh>(container_to_mesh(container));
     return std::make_shared<GeometryData>(result_mesh);
   }
 
@@ -157,7 +159,8 @@ SubdivisionSOP::apply_catmull_clark_subdivision(const core::Mesh &mesh) {
     core::Vector3 vertex_2 = vertices.row(face(2));
 
     // Calculate face center using utility function
-    core::Vector3 face_center = core::math::triangle_centroid(vertex_0, vertex_1, vertex_2);
+    core::Vector3 face_center =
+        core::math::triangle_centroid(vertex_0, vertex_1, vertex_2);
     int face_center_idx = static_cast<int>(new_vertices.size());
     new_vertices.push_back(face_center);
 

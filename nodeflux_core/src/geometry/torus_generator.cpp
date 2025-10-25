@@ -43,11 +43,18 @@ TorusGenerator::generate(double major_radius, double minor_radius,
   }
 
   core::GeometryContainer container;
-  auto &topology = container.topology();
 
   // Calculate number of vertices
   const int num_vertices = major_segments * minor_segments;
-  topology.set_point_count(num_vertices);
+  container.set_point_count(num_vertices);
+  container.set_vertex_count(num_vertices); // 1:1 mapping for torus
+
+  auto &topology = container.topology();
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < static_cast<size_t>(num_vertices); ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
+  }
 
   // Generate vertices and normals
   std::vector<core::Vec3f> positions;

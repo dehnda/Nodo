@@ -55,8 +55,10 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
 
   // Create GeometryContainer
   core::GeometryContainer container;
+  container.set_point_count(total_vertices);
+  container.set_vertex_count(total_vertices); // 1:1 mapping for cylinder
+
   auto &topology = container.topology();
-  topology.set_point_count(total_vertices);
 
   // Storage for positions
   std::vector<core::Vec3f> positions;
@@ -82,8 +84,8 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const double coord_z = radius * std::sin(angle);
 
       positions.push_back({static_cast<float>(coord_x),
-                          static_cast<float>(coord_y),
-                          static_cast<float>(coord_z)});
+                           static_cast<float>(coord_y),
+                           static_cast<float>(coord_z)});
       ++vertex_index;
     }
   }
@@ -119,10 +121,12 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_vertex_next_ring = next_ring_base + next_segment;
 
       // First triangle
-      primitive_vertices.push_back({current_vertex, next_vertex_next_ring, next_vertex});
+      primitive_vertices.push_back(
+          {current_vertex, next_vertex_next_ring, next_vertex});
 
       // Second triangle
-      primitive_vertices.push_back({current_vertex, current_vertex_next_ring, next_vertex_next_ring});
+      primitive_vertices.push_back(
+          {current_vertex, current_vertex_next_ring, next_vertex_next_ring});
     }
   }
 
@@ -133,7 +137,8 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_segment = (segment + 1) % radial_segments;
 
       // Reversed winding: center, next, current (CCW from top view)
-      primitive_vertices.push_back({top_center, top_ring_base + next_segment, top_ring_base + segment});
+      primitive_vertices.push_back(
+          {top_center, top_ring_base + next_segment, top_ring_base + segment});
     }
   }
 
@@ -144,8 +149,14 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_segment = (segment + 1) % radial_segments;
 
       // Reversed winding: center, current, next (CCW from bottom view)
-      primitive_vertices.push_back({bottom_center, bottom_ring_base + segment, bottom_ring_base + next_segment});
+      primitive_vertices.push_back({bottom_center, bottom_ring_base + segment,
+                                    bottom_ring_base + next_segment});
     }
+  }
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < static_cast<size_t>(total_vertices); ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
   }
 
   // Add primitives to topology
@@ -175,10 +186,10 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
         const double angle = 2.0 * std::numbers::pi *
                              static_cast<double>(segment) /
                              static_cast<double>(radial_segments);
-        // Normal points radially outward (Y component is 0 for straight cylinder)
-        core::Vec3f normal = {static_cast<float>(std::cos(angle)),
-                             0.0F,
-                             static_cast<float>(std::sin(angle))};
+        // Normal points radially outward (Y component is 0 for straight
+        // cylinder)
+        core::Vec3f normal = {static_cast<float>(std::cos(angle)), 0.0F,
+                              static_cast<float>(std::sin(angle))};
         n_span[idx++] = normal;
       }
     }

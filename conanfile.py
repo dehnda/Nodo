@@ -44,11 +44,6 @@ class NodeFluxEngineConan(ConanFile):
         # On other platforms, let CMake pick a reasonable default (or override
         # via tools.cmake.cmaketoolchain:generator in profiles).
 
-        # Propagate test toggle to CMake
-        tc.variables["NODEFLUX_BUILD_TESTS"] = (
-            "ON" if bool(self.options.with_tests) else "OFF"
-        )
-
         tc.generate()
 
     def requirements(self):
@@ -64,9 +59,8 @@ class NodeFluxEngineConan(ConanFile):
         # Qt for UI
         self.requires("qt/6.7.0")
 
-        # Testing (optional)
-        if bool(self.options.with_tests):
-            self.requires("gtest/1.14.0")
+        # Testing
+        self.requires("gtest/1.14.0")
 
     def layout(self):
         """Define the layout for the build"""

@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
-
 using namespace nodeflux;
 
 // Helper to convert GeometryContainer to Mesh
@@ -41,7 +40,8 @@ class ObjExportTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create a simple sphere for testing
-    auto container_result = geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 8);
+    auto container_result =
+        geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 8);
     ASSERT_TRUE(container_result.has_value());
     test_mesh_ = container_to_mesh(*container_result);
   }

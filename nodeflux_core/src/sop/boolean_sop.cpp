@@ -1,8 +1,9 @@
 #include "nodeflux/sop/boolean_sop.hpp"
-#include "nodeflux/geometry/boolean_ops.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
 #include "nodeflux/core/geometry_container.hpp"
+#include "nodeflux/core/standard_attributes.hpp"
+#include "nodeflux/geometry/boolean_ops.hpp"
 #include <iostream>
+
 
 namespace attrs = nodeflux::core::standard_attrs;
 
@@ -42,7 +43,7 @@ mesh_to_container(const core::Mesh &mesh) {
   const auto &faces = mesh.faces();
 
   container->set_point_count(vertices.rows());
-  
+
   // Build topology
   size_t vert_idx = 0;
   for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
@@ -147,7 +148,7 @@ std::shared_ptr<GeometryData> BooleanSOP::execute() {
 
     // Convert result Mesh back to GeometryContainer and then to GeometryData
     auto result_container = mesh_to_container(result_mesh.value());
-    
+
     // Convert container to old GeometryData format
     auto result_mesh_ptr = container_to_mesh(*result_container);
     return std::make_shared<GeometryData>(result_mesh_ptr);

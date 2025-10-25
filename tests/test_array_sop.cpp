@@ -68,8 +68,17 @@ TEST_F(ArraySOPTest, LinearArrayCreation) {
   // Set input data directly on port
   input_port->set_data(input_geometry_);
 
+  std::cerr << "DEBUG: About to call cook()\n";
+  std::cerr << "DEBUG: Input geometry is null? " << (input_geometry_ == nullptr)
+            << "\n";
+  std::cerr << "DEBUG: Port data is null? "
+            << (input_port->get_data() == nullptr) << "\n";
+
   // Execute
   auto result = array_node->cook();
+
+  std::cerr << "DEBUG: cook() returned, result is null? " << (result == nullptr)
+            << "\n";
 
   ASSERT_NE(result, nullptr);
   EXPECT_FALSE(result->is_empty());

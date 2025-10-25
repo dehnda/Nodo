@@ -118,8 +118,15 @@ convert_to_container(const GeometryData &old_data) {
   const auto &faces = mesh->faces();
 
   // Set up topology
+  container->set_point_count(vertices.rows());
+  container->set_vertex_count(vertices.rows()); // 1:1 mapping
+
   auto &topology = container->topology();
-  topology.set_point_count(vertices.rows());
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
+  }
 
   // Add primitives
   for (int i = 0; i < faces.rows(); ++i) {
@@ -149,8 +156,7 @@ convert_from_container(const core::GeometryContainer &container) {
   const auto &topology = container.topology();
 
   // Extract positions
-  auto *p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!p_storage)
     return std::make_shared<GeometryData>(std::make_shared<core::Mesh>());
 
@@ -175,17 +181,42 @@ convert_from_container(const core::GeometryContainer &container) {
 }
 
 std::shared_ptr<GeometryData> ArraySOP::execute() {
+  std::cerr << "DEBUG: ArraySOP::execute() called\n";
+
   // Get input geometry from port
   auto input_geo = get_input_data("mesh");
+
+  std::cerr << "DEBUG: input_geo is null? " << (input_geo == nullptr) << "\n";
+
   if (!input_geo) {
+    // DEBUG: Print port info
+    auto *port = input_ports_.get_port("mesh");
+    std::cerr << "ArraySOP::execute() - input_geo is null!\n";
+    std::cerr << "  Port exists: " << (port != nullptr) << "\n";
+    if (port) {
+      std::cerr << "  Port has data: " << (port->get_data() != nullptr) << "\n";
+    }
     set_error("No input geometry connected");
     return nullptr;
   }
 
   // Convert to GeometryContainer
-  auto input_container = convert_to_container(*input_geo);
-  if (input_container->topology().point_count() == 0) {
-    set_error("Input geometry is empty");
+  std::cerr << "DEBUG: About to convert to container\n";
+
+  try {
+    auto input_container = convert_to_container(*input_geo);
+
+    std::cerr << "DEBUG: Converted to container, point_count = "
+              << input_container->topology().point_count() << "\n";
+
+    if (input_container->topology().point_count() == 0) {
+      set_error("Input geometry is empty");
+      return nullptr;
+    }
+  } catch (const std::exception &e) {
+    std::cerr << "DEBUG: Exception in convert_to_container: " << e.what()
+              << "\n";
+    set_error(std::string("Exception: ") + e.what());
     return nullptr;
   }
 
@@ -254,7 +285,8 @@ std::shared_ptr<GeometryData> ArraySOP::execute() {
 
   // Add position attribute
   output_container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = output_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto *p_storage =
+      output_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage) {
     auto p_span = p_storage->values_writable();
     for (size_t i = 0; i < static_cast<size_t>(output_verts.rows()); ++i) {

@@ -43,8 +43,10 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
   core::GeometryContainer container;
 
   // Set up topology
+  container.set_point_count(num_vertices);
+  container.set_vertex_count(num_vertices); // 1:1 mapping for UV sphere
+
   auto &topology = container.topology();
-  topology.set_point_count(num_vertices);
 
   // Build primitive vertex lists (3 vertices per triangle)
   std::vector<std::vector<int>> primitive_vertices;
@@ -113,6 +115,16 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
     const int next_segment = (segment + 1) % u_segments;
     primitive_vertices.push_back(
         {bottom_pole, last_ring + next_segment, last_ring + segment});
+  }
+
+  // Update counts to actual size
+  const size_t actual_point_count = positions.size();
+  container.set_point_count(actual_point_count);
+  container.set_vertex_count(actual_point_count); // 1:1 mapping
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < actual_point_count; ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
   }
 
   // Set topology primitives
@@ -245,8 +257,15 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
 
   // Scale to desired radius and convert to GeometryContainer
   core::GeometryContainer container;
+  container.set_point_count(vertices.size());
+  container.set_vertex_count(vertices.size()); // 1:1 mapping for icosphere
+
   auto &topology = container.topology();
-  topology.set_point_count(vertices.size());
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < vertices.size(); ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
+  }
 
   // Add primitives
   for (const auto &face : faces) {

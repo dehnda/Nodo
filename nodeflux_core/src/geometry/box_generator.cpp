@@ -8,11 +8,10 @@ namespace nodeflux::geometry {
 thread_local core::Error BoxGenerator::last_error_{
     core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-std::optional<core::GeometryContainer> BoxGenerator::generate(double width, double height,
-                                                 double depth,
-                                                 int width_segments,
-                                                 int height_segments,
-                                                 int depth_segments) {
+std::optional<core::GeometryContainer>
+BoxGenerator::generate(double width, double height, double depth,
+                       int width_segments, int height_segments,
+                       int depth_segments) {
 
   if (width <= 0.0 || height <= 0.0 || depth <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
@@ -75,8 +74,6 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
 
   // Create GeometryContainer
   core::GeometryContainer container;
-  auto &topology = container.topology();
-  topology.set_point_count(total_vertices);
 
   // Storage for positions and primitives
   std::vector<core::Vec3f> positions;
@@ -100,28 +97,47 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
 
   // Generate 6 faces (flip_normal=true for outward-facing normals)
   // Front face (Z = min_corner.z) - faces toward -Z
-  generate_face(positions, primitive_vertices, vertex_index, corners[0], corners[1],
-                corners[2], corners[3], width_segments, height_segments, true);
+  generate_face(positions, primitive_vertices, vertex_index, corners[0],
+                corners[1], corners[2], corners[3], width_segments,
+                height_segments, true);
 
   // Back face (Z = max_corner.z) - faces toward +Z
-  generate_face(positions, primitive_vertices, vertex_index, corners[5], corners[4],
-                corners[7], corners[6], width_segments, height_segments, true);
+  generate_face(positions, primitive_vertices, vertex_index, corners[5],
+                corners[4], corners[7], corners[6], width_segments,
+                height_segments, true);
 
   // Left face (X = min_corner.x) - faces toward -X
-  generate_face(positions, primitive_vertices, vertex_index, corners[4], corners[0],
-                corners[3], corners[7], depth_segments, height_segments, true);
+  generate_face(positions, primitive_vertices, vertex_index, corners[4],
+                corners[0], corners[3], corners[7], depth_segments,
+                height_segments, true);
 
   // Right face (X = max_corner.x) - faces toward +X
-  generate_face(positions, primitive_vertices, vertex_index, corners[1], corners[5],
-                corners[6], corners[2], depth_segments, height_segments, true);
+  generate_face(positions, primitive_vertices, vertex_index, corners[1],
+                corners[5], corners[6], corners[2], depth_segments,
+                height_segments, true);
 
   // Bottom face (Y = min_corner.y) - faces toward -Y
-  generate_face(positions, primitive_vertices, vertex_index, corners[4], corners[5],
-                corners[1], corners[0], width_segments, depth_segments, true);
+  generate_face(positions, primitive_vertices, vertex_index, corners[4],
+                corners[5], corners[1], corners[0], width_segments,
+                depth_segments, true);
 
   // Top face (Y = max_corner.y) - faces toward +Y
-  generate_face(positions, primitive_vertices, vertex_index, corners[3], corners[2],
-                corners[6], corners[7], width_segments, depth_segments, true);
+  generate_face(positions, primitive_vertices, vertex_index, corners[3],
+                corners[2], corners[6], corners[7], width_segments,
+                depth_segments, true);
+
+  // Update point and vertex counts to actual size
+  const size_t actual_point_count = positions.size();
+  container.set_point_count(actual_point_count);  // Use container method!
+  container.set_vertex_count(actual_point_count); // 1:1 mapping
+
+  // Get topology reference for adding primitives
+  auto &topology = container.topology();
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < actual_point_count; ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
+  }
 
   // Add primitives to topology
   for (const auto &prim_verts : primitive_vertices) {
@@ -138,14 +154,15 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
 
   // Calculate and add normals
   // For boxes, we can compute face normals from the corner arrangement
-  container.add_vertex_attribute(attrs::N, core::AttributeType::VEC3F);
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
   auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
 
     // Compute normals by calculating face normals from cross products
     // Since this is a box with flat faces, we can compute per-face normals
-    for (size_t prim_idx = 0; prim_idx < primitive_vertices.size(); ++prim_idx) {
+    for (size_t prim_idx = 0; prim_idx < primitive_vertices.size();
+         ++prim_idx) {
       const auto &verts = primitive_vertices[prim_idx];
       if (verts.size() >= 3) {
         const auto &p0 = positions[verts[0]];
@@ -157,23 +174,23 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
         core::Vec3f edge2 = {p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]};
 
         // Cross product
-        core::Vec3f normal = {
-          edge1[1] * edge2[2] - edge1[2] * edge2[1],
-          edge1[2] * edge2[0] - edge1[0] * edge2[2],
-          edge1[0] * edge2[1] - edge1[1] * edge2[0]
-        };
+        core::Vec3f normal = {edge1[1] * edge2[2] - edge1[2] * edge2[1],
+                              edge1[2] * edge2[0] - edge1[0] * edge2[2],
+                              edge1[0] * edge2[1] - edge1[1] * edge2[0]};
 
         // Normalize
-        float length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+        float length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] +
+                                 normal[2] * normal[2]);
         if (length > 0.0F) {
           normal[0] /= length;
           normal[1] /= length;
           normal[2] /= length;
         }
 
-        // Assign to all vertices of this primitive
-        for (int vert_idx : verts) {
-          n_span[vert_idx] = normal;
+        // Assign to all point indices of this primitive (verts contains point
+        // indices)
+        for (int point_idx : verts) {
+          n_span[point_idx] = normal;
         }
       }
     }
@@ -182,14 +199,12 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   return container;
 }
 
-void BoxGenerator::generate_face(std::vector<core::Vec3f>& positions,
-                                 std::vector<std::vector<int>>& primitive_vertices,
-                                 int &vertex_index,
-                                 const Eigen::Vector3d &corner1,
-                                 const Eigen::Vector3d &corner2,
-                                 const Eigen::Vector3d &corner3,
-                                 const Eigen::Vector3d &corner4, int u_segments,
-                                 int v_segments, bool flip_normal) {
+void BoxGenerator::generate_face(
+    std::vector<core::Vec3f> &positions,
+    std::vector<std::vector<int>> &primitive_vertices, int &vertex_index,
+    const Eigen::Vector3d &corner1, const Eigen::Vector3d &corner2,
+    const Eigen::Vector3d &corner3, const Eigen::Vector3d &corner4,
+    int u_segments, int v_segments, bool flip_normal) {
 
   const int start_vertex = vertex_index;
 
@@ -210,8 +225,8 @@ void BoxGenerator::generate_face(std::vector<core::Vec3f>& positions,
           bottom_edge + v_ratio * (top_edge - bottom_edge);
 
       positions.push_back({static_cast<float>(vertex_pos.x()),
-                          static_cast<float>(vertex_pos.y()),
-                          static_cast<float>(vertex_pos.z())});
+                           static_cast<float>(vertex_pos.y()),
+                           static_cast<float>(vertex_pos.z())});
       ++vertex_index;
     }
   }

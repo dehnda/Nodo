@@ -41,14 +41,21 @@ PlaneGenerator::generate(double width, double height, int width_segments,
   }
 
   core::GeometryContainer container;
-  auto &topology = container.topology();
 
   // Calculate vertices and faces
   const int vertices_per_row = width_segments + 1;
   const int vertices_per_col = height_segments + 1;
   const int total_vertices = vertices_per_row * vertices_per_col;
 
-  topology.set_point_count(total_vertices);
+  container.set_point_count(total_vertices);
+  container.set_vertex_count(total_vertices); // 1:1 mapping for plane
+
+  auto &topology = container.topology();
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < static_cast<size_t>(total_vertices); ++i) {
+    topology.set_vertex_point(i, static_cast<int>(i));
+  }
 
   // Generate vertices
   std::vector<core::Vec3f> positions;

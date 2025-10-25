@@ -56,7 +56,6 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/noise_displacement_sop.cpp
     src/sop/polyextrude_sop.cpp
     src/sop/resample_sop.cpp
-    src/sop/scale_sop.cpp
     src/sop/scatter_sop.cpp
     src/sop/sop_factory.cpp
     src/sop/subdivision_sop.cpp
