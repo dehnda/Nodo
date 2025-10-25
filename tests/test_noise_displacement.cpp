@@ -8,11 +8,37 @@ using namespace nodeflux;
 class NoiseDisplacementTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    // Generate a test sphere
+    // Generate a test sphere (now returns GeometryContainer)
     auto sphere_result =
         geometry::SphereGenerator::generate_uv_sphere(1.0, 16, 8);
     ASSERT_TRUE(sphere_result.has_value());
-    test_sphere_ = std::make_shared<core::Mesh>(*sphere_result);
+
+    // Convert GeometryContainer to Mesh for testing
+    const auto &container = sphere_result.value();
+    const auto &topology = container.topology();
+
+    // Extract positions
+    auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::P);
+    ASSERT_NE(p_storage, nullptr);
+
+    Eigen::MatrixXd vertices(topology.point_count(), 3);
+    auto p_span = p_storage->values();
+    for (size_t i = 0; i < p_span.size(); ++i) {
+      vertices.row(i) = p_span[i].cast<double>();
+    }
+
+    // Extract faces
+    Eigen::MatrixXi faces(topology.primitive_count(), 3);
+    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+         ++prim_idx) {
+      const auto &verts = topology.get_primitive_vertices(prim_idx);
+      for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+        faces(prim_idx, j) = verts[j];
+      }
+    }
+
+    test_sphere_ = std::make_shared<core::Mesh>(vertices, faces);
   }
 
   std::shared_ptr<core::Mesh> test_sphere_;

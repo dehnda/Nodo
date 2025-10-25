@@ -1,7 +1,10 @@
 #include "nodeflux/sop/noise_displacement_sop.hpp"
 #include "nodeflux/core/math.hpp"
+#include "nodeflux/core/standard_attributes.hpp"
 #include "nodeflux/core/types.hpp"
 #include <cmath>
+
+namespace attrs = nodeflux::core::standard_attrs;
 
 namespace nodeflux::sop {
 
@@ -69,10 +72,40 @@ std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
     return nullptr;
   }
 
+  // Convert input to GeometryContainer
+  core::GeometryContainer container;
+
+  // Try to get mesh and convert to container
   auto input_mesh = input_geo->get_mesh();
   if (!input_mesh) {
     set_error("Input geometry does not contain a mesh");
     return nullptr;
+  }
+
+  // Simple conversion: copy vertices and faces to container
+  const auto &vertices = input_mesh->vertices();
+  const auto &faces = input_mesh->faces();
+
+  auto &topology = container.topology();
+  topology.set_point_count(vertices.rows());
+
+  // Add primitives
+  for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
+    std::vector<int> prim_verts;
+    for (int j = 0; j < faces.cols(); ++j) {
+      prim_verts.push_back(faces(face_idx, j));
+    }
+    topology.add_primitive(prim_verts);
+  }
+
+  // Copy P attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    for (int i = 0; i < vertices.rows(); ++i) {
+      p_span[i] = vertices.row(i).cast<float>();
+    }
   }
 
   // Read parameters from parameter system
@@ -83,38 +116,60 @@ std::shared_ptr<GeometryData> NoiseDisplacementSOP::execute() {
   const float persistence = get_parameter<float>("persistence", 0.5F);
   const int seed = get_parameter<int>("seed", 42);
 
-  // Create a copy of the input mesh
-  core::Mesh result = *input_mesh;
+  // Apply noise displacement to P attribute
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
 
-  // Apply noise displacement to vertices
-  auto &vertices = result.vertices();
+    for (size_t i = 0; i < p_span.size(); ++i) {
+      const core::Vec3f &vertex = p_span[i];
 
-  for (int i = 0; i < vertices.rows(); ++i) {
-    core::Vector3 vertex = vertices.row(i);
+      // Generate noise value at vertex position
+      float noise_value =
+          fractal_noise(vertex.x() * frequency, vertex.y() * frequency,
+                        vertex.z() * frequency, seed, frequency, octaves,
+                        lacunarity, persistence);
 
-    // Generate noise value at vertex position
-    float noise_value = fractal_noise(
-        vertex.x() * frequency, vertex.y() * frequency, vertex.z() * frequency,
-        seed, frequency, octaves, lacunarity, persistence);
+      // Calculate displacement direction (outward from origin for sphere-like
+      // shapes)
+      core::Vec3f displacement_direction(0.0F, 0.0F, 1.0F); // Default upward
 
-    // Calculate displacement direction (outward from origin for sphere-like
-    // shapes)
-    core::Vector3 displacement_direction =
-        core::Vector3(0, 0, 1); // Default upward
+      // Use position-based normal for sphere-like shapes
+      if (vertex.norm() > VERTEX_NORMAL_THRESHOLD) {
+        displacement_direction = vertex.normalized();
+      }
 
-    // Use position-based normal for sphere-like shapes
-    if (vertex.norm() > VERTEX_NORMAL_THRESHOLD) {
-      displacement_direction = vertex.normalized();
+      // Apply displacement
+      p_span[i] = vertex + displacement_direction * (noise_value * amplitude);
     }
-
-    // Apply displacement using utility function
-    core::Vector3 displaced_vertex = core::math::displace_along_direction(
-        vertex, displacement_direction, noise_value * amplitude);
-    vertices.row(i) = displaced_vertex;
   }
 
-  auto result_mesh = std::make_shared<core::Mesh>(std::move(result));
-  return std::make_shared<GeometryData>(result_mesh);
+  // Convert back to mesh for output (temporary until full pipeline migrated)
+  auto output_mesh = std::make_shared<core::Mesh>();
+
+  // Copy positions back
+  Eigen::MatrixXd out_vertices(container.topology().point_count(), 3);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values();
+    for (size_t i = 0; i < p_span.size(); ++i) {
+      out_vertices.row(i) = p_span[i].cast<double>();
+    }
+  }
+  output_mesh->vertices() = out_vertices;
+
+  // Copy faces back
+  Eigen::MatrixXi out_faces(container.topology().primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < container.topology().primitive_count();
+       ++prim_idx) {
+    const auto &verts = container.topology().get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      out_faces(prim_idx, j) = verts[j];
+    }
+  }
+  output_mesh->faces() = out_faces;
+
+  auto output_geo = std::make_shared<GeometryData>(output_mesh);
+
+  return output_geo;
 }
 
 float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z,

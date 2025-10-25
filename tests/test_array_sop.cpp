@@ -4,16 +4,47 @@
 
 using namespace nodeflux;
 
+// Helper to convert GeometryContainer to Mesh
+static std::shared_ptr<core::Mesh>
+container_to_mesh(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  if (!p_storage)
+    return nullptr;
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  return std::make_shared<core::Mesh>(vertices, faces);
+}
+
 class ArraySOPTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    // Create a simple sphere for testing
-    auto sphere_mesh = geometry::SphereGenerator::generate_uv_sphere(0.5, 4, 4);
-    ASSERT_TRUE(sphere_mesh.has_value());
+    // Create a simple sphere for testing (now returns GeometryContainer)
+    auto sphere_result =
+        geometry::SphereGenerator::generate_uv_sphere(0.5, 4, 4);
+    ASSERT_TRUE(sphere_result.has_value());
 
-    // Wrap in GeometryData
-    input_geometry_ = std::make_shared<sop::GeometryData>(
-        std::make_shared<core::Mesh>(std::move(*sphere_mesh)));
+    // Convert to Mesh and wrap in GeometryData
+    auto mesh = container_to_mesh(sphere_result.value());
+    ASSERT_NE(mesh, nullptr);
+    input_geometry_ = std::make_shared<sop::GeometryData>(mesh);
   }
 
   std::shared_ptr<sop::GeometryData> input_geometry_;
@@ -23,7 +54,7 @@ TEST_F(ArraySOPTest, LinearArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_array");
 
   // Configure linear array
-  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 5);
   array_node->set_parameter("linear_offset_x", 1.0F);
   array_node->set_parameter("linear_offset_y", 0.0F);
@@ -54,10 +85,10 @@ TEST_F(ArraySOPTest, RadialArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_radial");
 
   // Configure radial array
-  array_node->set_parameter("array_type", 1);  // RADIAL = 1
+  array_node->set_parameter("array_type", 1); // RADIAL = 1
   array_node->set_parameter("count", 8);
   array_node->set_parameter("radial_radius", 2.0F);
-  array_node->set_parameter("angle_step", 45.0F);  // 360/8 = 45 degrees
+  array_node->set_parameter("angle_step", 45.0F); // 360/8 = 45 degrees
 
   // Connect input
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -81,9 +112,9 @@ TEST_F(ArraySOPTest, GridArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_grid");
 
   // Configure grid array
-  array_node->set_parameter("array_type", 2);  // GRID = 2
+  array_node->set_parameter("array_type", 2); // GRID = 2
   array_node->set_parameter("grid_width", 3);
-  array_node->set_parameter("grid_height", 4);  // 3x4 grid = 12 copies
+  array_node->set_parameter("grid_height", 4); // 3x4 grid = 12 copies
   array_node->set_parameter("grid_spacing_x", 1.5F);
   array_node->set_parameter("grid_spacing_y", 2.0F);
 
@@ -109,7 +140,7 @@ TEST_F(ArraySOPTest, InstanceAttributesPresent) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_attrs");
 
   // Configure array
-  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 3);
   array_node->set_parameter("linear_offset_x", 1.0F);
   array_node->set_parameter("linear_offset_y", 0.0F);
@@ -146,7 +177,7 @@ TEST_F(ArraySOPTest, InstanceIDsAreCorrect) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_id_values");
 
   // Configure simple array with 3 copies
-  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 3);
   array_node->set_parameter("linear_offset_x", 1.0F);
   array_node->set_parameter("linear_offset_y", 0.0F);
@@ -186,7 +217,7 @@ TEST_F(ArraySOPTest, CachingWorks) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_cache");
 
   // Configure array
-  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 2);
   array_node->set_parameter("linear_offset_x", 1.0F);
   array_node->set_parameter("linear_offset_y", 0.0F);
@@ -217,7 +248,7 @@ TEST_F(ArraySOPTest, MarkDirtyInvalidatesCache) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_dirty");
 
   // Configure and execute
-  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 2);
 
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -243,7 +274,7 @@ TEST_F(ArraySOPTest, NoInputReturnsError) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_no_input");
 
   // Configure but don't connect input
-  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 2);
 
   // Execute without input

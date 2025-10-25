@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
@@ -63,9 +64,7 @@ public:
    * @brief Set uniform scale
    * @param scale Uniform scale factor
    */
-  void set_uniform_scale(double scale) {
-    set_scale(scale, scale, scale);
-  }
+  void set_uniform_scale(double scale) { set_scale(scale, scale, scale); }
 
   // Getters
   Eigen::Vector3d get_translation() const {

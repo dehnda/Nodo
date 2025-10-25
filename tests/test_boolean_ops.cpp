@@ -5,13 +5,42 @@
 
 using namespace nodeflux;
 
+// Helper to convert GeometryContainer to Mesh
+static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  if (!p_storage)
+    return core::Mesh();
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  return core::Mesh(vertices, faces);
+}
+
 class BooleanOpsTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create test meshes for boolean operations
+    // BoxGenerator still returns Mesh (not migrated yet)
     auto box1_result = geometry::BoxGenerator::generate(1.0, 1.0, 1.0);
     auto box2_result = geometry::BoxGenerator::generate(1.0, 1.0, 1.0);
-    // Use icosphere instead of UV sphere for better closed mesh properties
+    // SphereGenerator now returns GeometryContainer
     auto sphere_result = geometry::SphereGenerator::generate_icosphere(0.8, 2);
 
     ASSERT_TRUE(box1_result.has_value());
@@ -20,7 +49,7 @@ protected:
 
     box1_ = *box1_result;
     box2_ = *box2_result;
-    sphere_ = *sphere_result;
+    sphere_ = container_to_mesh(sphere_result.value());
 
     // Translate box2 for intersection testing
     for (int i = 0; i < box2_.vertices().rows(); ++i) {
