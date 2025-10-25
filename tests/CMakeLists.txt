@@ -20,6 +20,7 @@ add_executable(nodeflux_tests
     test_attribute_types.cpp
     test_attribute_storage.cpp
     test_geometry_container.cpp
+    test_scale_sop.cpp
 )
 
 target_link_libraries(nodeflux_tests
