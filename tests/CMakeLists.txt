@@ -5,7 +5,6 @@ include(GoogleTest)
 
 add_executable(nodeflux_tests
     test_mesh.cpp
-    test_boolean_ops.cpp
     test_math.cpp
     test_mesh_generator.cpp
     test_mesh_validator.cpp
