@@ -5,7 +5,6 @@
 #include "../gpu/gpu_mesh_generator.hpp"
 #include "sop_node.hpp"
 
-
 namespace nodeflux {
 namespace sop {
 

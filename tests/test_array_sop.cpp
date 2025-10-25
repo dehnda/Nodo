@@ -4,36 +4,6 @@
 
 using namespace nodeflux;
 
-// Helper to convert GeometryContainer to Mesh
-static std::shared_ptr<core::Mesh>
-container_to_mesh(const core::GeometryContainer &container) {
-  const auto &topology = container.topology();
-
-  // Extract positions
-  auto *p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
-  if (!p_storage)
-    return nullptr;
-
-  Eigen::MatrixXd vertices(topology.point_count(), 3);
-  auto p_span = p_storage->values();
-  for (size_t i = 0; i < p_span.size(); ++i) {
-    vertices.row(i) = p_span[i].cast<double>();
-  }
-
-  // Extract faces - convert vertex indices to point indices
-  Eigen::MatrixXi faces(topology.primitive_count(), 3);
-  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
-    for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
-      // Convert vertex index to point index
-      faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
-    }
-  }
-
-  return std::make_shared<core::Mesh>(vertices, faces);
-}
-
 class ArraySOPTest : public ::testing::Test {
 protected:
   void SetUp() override {
@@ -50,11 +20,6 @@ protected:
   std::shared_ptr<core::GeometryContainer> input_geometry_;
 };
 
-// TODO: Update these tests to work with GeometryContainer API
-// Tests temporarily disabled during migration from GeometryData to
-// GeometryContainer
-
-/*
 TEST_F(ArraySOPTest, LinearArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_array");
 
@@ -65,37 +30,24 @@ TEST_F(ArraySOPTest, LinearArrayCreation) {
   array_node->set_parameter("linear_offset_y", 0.0F);
   array_node->set_parameter("linear_offset_z", 0.0F);
 
-  // Connect input (simulate node connection)
-  auto input_port = array_node->get_input_ports().get_port("mesh");
+  // Connect input via port
+  auto *input_port = array_node->get_input_ports().get_port("mesh");
   ASSERT_NE(input_port, nullptr);
-
-  // Set input data directly on port
   input_port->set_data(input_geometry_);
-
-  std::cerr << "DEBUG: About to call cook()\n";
-  std::cerr << "DEBUG: Input geometry is null? " << (input_geometry_ == nullptr)
-            << "\n";
-  std::cerr << "DEBUG: Port data is null? "
-            << (input_port->get_data() == nullptr) << "\n";
 
   // Execute
   auto result = array_node->cook();
 
-  std::cerr << "DEBUG: cook() returned, result is null? " << (result == nullptr)
-            << "\n";
-
   ASSERT_NE(result, nullptr);
-  EXPECT_FALSE(result->is_empty());
-
-  auto result_mesh = result->get_mesh();
-  ASSERT_NE(result_mesh, nullptr);
 
   // Verify output has 5 copies
-  size_t input_vertex_count = input_geometry_->get_vertex_count();
-  EXPECT_EQ(result_mesh->vertex_count(), input_vertex_count * 5);
+  size_t input_point_count = input_geometry_->topology().point_count();
+  EXPECT_EQ(result->topology().point_count(), input_point_count * 5);
 }
 
-TEST_F(ArraySOPTest, RadialArrayCreation) {
+// NOTE: Radial and Grid array implementations are stubs that just clone input
+// These tests are disabled until those methods are properly implemented
+TEST_F(ArraySOPTest, DISABLED_RadialArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_radial");
 
   // Configure radial array
@@ -104,25 +56,22 @@ TEST_F(ArraySOPTest, RadialArrayCreation) {
   array_node->set_parameter("radial_radius", 2.0F);
   array_node->set_parameter("angle_step", 45.0F); // 360/8 = 45 degrees
 
-  // Connect input
-  auto input_port = array_node->get_input_ports().get_port("mesh");
+  // Connect input via port
+  auto *input_port = array_node->get_input_ports().get_port("mesh");
+  ASSERT_NE(input_port, nullptr);
   input_port->set_data(input_geometry_);
 
   // Execute
   auto result = array_node->cook();
 
   ASSERT_NE(result, nullptr);
-  EXPECT_FALSE(result->is_empty());
-
-  auto result_mesh = result->get_mesh();
-  ASSERT_NE(result_mesh, nullptr);
 
   // Verify output has 8 copies
-  size_t input_vertex_count = input_geometry_->get_vertex_count();
-  EXPECT_EQ(result_mesh->vertex_count(), input_vertex_count * 8);
+  size_t input_point_count = input_geometry_->topology().point_count();
+  EXPECT_EQ(result->topology().point_count(), input_point_count * 8);
 }
 
-TEST_F(ArraySOPTest, GridArrayCreation) {
+TEST_F(ArraySOPTest, DISABLED_GridArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_grid");
 
   // Configure grid array
@@ -132,100 +81,25 @@ TEST_F(ArraySOPTest, GridArrayCreation) {
   array_node->set_parameter("grid_spacing_x", 1.5F);
   array_node->set_parameter("grid_spacing_y", 2.0F);
 
-  // Connect input
-  auto input_port = array_node->get_input_ports().get_port("mesh");
+  // Connect input via port
+  auto *input_port = array_node->get_input_ports().get_port("mesh");
+  ASSERT_NE(input_port, nullptr);
   input_port->set_data(input_geometry_);
 
   // Execute
   auto result = array_node->cook();
 
   ASSERT_NE(result, nullptr);
-  EXPECT_FALSE(result->is_empty());
-
-  auto result_mesh = result->get_mesh();
-  ASSERT_NE(result_mesh, nullptr);
 
   // Verify output has 12 copies (3x4)
-  size_t input_vertex_count = input_geometry_->get_vertex_count();
-  EXPECT_EQ(result_mesh->vertex_count(), input_vertex_count * 12);
+  size_t input_point_count = input_geometry_->topology().point_count();
+  EXPECT_EQ(result->topology().point_count(), input_point_count * 12);
 }
 
-TEST_F(ArraySOPTest, InstanceAttributesPresent) {
-  auto array_node = std::make_shared<sop::ArraySOP>("test_attrs");
-
-  // Configure array
-  array_node->set_parameter("array_type", 0); // LINEAR = 0
-  array_node->set_parameter("count", 3);
-  array_node->set_parameter("linear_offset_x", 1.0F);
-  array_node->set_parameter("linear_offset_y", 0.0F);
-  array_node->set_parameter("linear_offset_z", 0.0F);
-
-  // Connect input
-  auto input_port = array_node->get_input_ports().get_port("mesh");
-  input_port->set_data(input_geometry_);
-
-  // Execute
-  auto result = array_node->cook();
-  ASSERT_NE(result, nullptr);
-
-  // Check for instance_id vertex attribute
-  auto vertex_instance_ids = result->get_vertex_attribute("instance_id");
-  ASSERT_TRUE(vertex_instance_ids.has_value());
-  EXPECT_EQ(vertex_instance_ids->size(), result->get_vertex_count());
-
-  // Check for instance_id face attribute
-  auto face_instance_ids = result->get_face_attribute("instance_id");
-  ASSERT_TRUE(face_instance_ids.has_value());
-  EXPECT_EQ(face_instance_ids->size(), result->get_face_count());
-
-  // Check for global attributes
-  auto instance_count = result->get_global_attribute("instance_count");
-  ASSERT_TRUE(instance_count.has_value());
-  EXPECT_EQ(std::get<int>(*instance_count), 3);
-
-  auto array_type = result->get_global_attribute("array_type");
-  ASSERT_TRUE(array_type.has_value());
-}
-
-TEST_F(ArraySOPTest, InstanceIDsAreCorrect) {
-  auto array_node = std::make_shared<sop::ArraySOP>("test_id_values");
-
-  // Configure simple array with 3 copies
-  array_node->set_parameter("array_type", 0); // LINEAR = 0
-  array_node->set_parameter("count", 3);
-  array_node->set_parameter("linear_offset_x", 1.0F);
-  array_node->set_parameter("linear_offset_y", 0.0F);
-  array_node->set_parameter("linear_offset_z", 0.0F);
-
-  // Connect input
-  auto input_port = array_node->get_input_ports().get_port("mesh");
-  input_port->set_data(input_geometry_);
-
-  // Execute
-  auto result = array_node->cook();
-  ASSERT_NE(result, nullptr);
-
-  // Get instance IDs
-  auto vertex_instance_ids = result->get_vertex_attribute("instance_id");
-  ASSERT_TRUE(vertex_instance_ids.has_value());
-
-  size_t input_vert_count = input_geometry_->get_vertex_count();
-
-  // Verify first copy has ID 0
-  for (size_t i = 0; i < input_vert_count; ++i) {
-    EXPECT_EQ(std::get<int>((*vertex_instance_ids)[i]), 0);
-  }
-
-  // Verify second copy has ID 1
-  for (size_t i = input_vert_count; i < input_vert_count * 2; ++i) {
-    EXPECT_EQ(std::get<int>((*vertex_instance_ids)[i]), 1);
-  }
-
-  // Verify third copy has ID 2
-  for (size_t i = input_vert_count * 2; i < input_vert_count * 3; ++i) {
-    EXPECT_EQ(std::get<int>((*vertex_instance_ids)[i]), 2);
-  }
-}
+// Note: Instance attributes were part of the old GeometryData system
+// The new GeometryContainer doesn't have a concept of instance_id attributes
+// These tests would need ArraySOP to be updated to add such attributes if
+// needed Skipping attribute-specific tests for now
 
 TEST_F(ArraySOPTest, CachingWorks) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_cache");
@@ -237,8 +111,9 @@ TEST_F(ArraySOPTest, CachingWorks) {
   array_node->set_parameter("linear_offset_y", 0.0F);
   array_node->set_parameter("linear_offset_z", 0.0F);
 
-  // Connect input
-  auto input_port = array_node->get_input_ports().get_port("mesh");
+  // Connect input via port
+  auto *input_port = array_node->get_input_ports().get_port("mesh");
+  ASSERT_NE(input_port, nullptr);
   input_port->set_data(input_geometry_);
 
   // First cook
@@ -265,7 +140,8 @@ TEST_F(ArraySOPTest, MarkDirtyInvalidatesCache) {
   array_node->set_parameter("array_type", 0); // LINEAR = 0
   array_node->set_parameter("count", 2);
 
-  auto input_port = array_node->get_input_ports().get_port("mesh");
+  auto *input_port = array_node->get_input_ports().get_port("mesh");
+  ASSERT_NE(input_port, nullptr);
   input_port->set_data(input_geometry_);
 
   auto result1 = array_node->cook();
@@ -282,7 +158,7 @@ TEST_F(ArraySOPTest, MarkDirtyInvalidatesCache) {
 
   // Results should differ (different point counts)
   EXPECT_NE(result1->topology().point_count(),
-result2->topology().point_count());
+            result2->topology().point_count());
 }
 
 TEST_F(ArraySOPTest, NoInputReturnsError) {
@@ -299,4 +175,3 @@ TEST_F(ArraySOPTest, NoInputReturnsError) {
   EXPECT_EQ(array_node->get_state(), sop::SOPNode::ExecutionState::ERROR);
   EXPECT_FALSE(array_node->get_last_error().empty());
 }
-*/

@@ -202,7 +202,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     }
     case NodeType::NoiseDisplacement: {
       auto inputs = gather_input_meshes(graph, node_id);
-      result = execute_noise_displacement_node(*node, inputs);
+      result = execute_sop_node(*node, inputs);
       break;
     }
     case NodeType::Switch:

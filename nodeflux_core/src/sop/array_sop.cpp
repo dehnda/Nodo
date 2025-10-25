@@ -176,6 +176,12 @@ ArraySOP::create_linear_array(const core::GeometryContainer &input_geo,
   const size_t total_points = input_point_count * count;
 
   result->set_point_count(total_points);
+  result->set_vertex_count(total_points); // 1:1 mapping
+
+  // Set up 1:1 vertex→point mapping
+  for (size_t i = 0; i < total_points; ++i) {
+    result->topology().set_vertex_point(i, static_cast<int>(i));
+  }
 
   // Add position attribute
   result->add_point_attribute("P", core::AttributeType::VEC3F);
