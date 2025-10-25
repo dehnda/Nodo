@@ -935,15 +935,21 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_scatter_node(
   scatter_sop.set_parameter("density", density);
   scatter_sop.set_parameter("use_face_area", use_face_area);
 
-  // Create input geometry data
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
+  // Convert input Mesh to GeometryContainer
+  auto input_geo_data = std::make_shared<sop::GeometryData>(inputs[0]);
+  auto input_container = scatter_sop.convert_to_container(*input_geo_data);
 
-  // Manually call the scatter function
-  auto output_geo = std::make_shared<sop::GeometryData>();
-  scatter_sop.scatter_points_on_mesh(*inputs[0], *output_geo, point_count, seed,
-                                     density, use_face_area);
+  if (!input_container) {
+    return nullptr;
+  }
 
-  // Extract the mesh from the output geometry
+  // Call scatter with GeometryContainer approach
+  core::GeometryContainer output_container;
+  scatter_sop.scatter_points_on_mesh(*input_container, output_container,
+                                     point_count, seed, density, use_face_area);
+
+  // Convert back to GeometryData and extract mesh
+  auto output_geo = scatter_sop.convert_from_container(output_container);
   return output_geo->get_mesh();
 }
 

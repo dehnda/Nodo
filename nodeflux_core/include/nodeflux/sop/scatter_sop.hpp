@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../core/geometry_attributes.hpp"
+#include "../core/geometry_container.hpp"
+#include "../core/standard_attributes.hpp"
 #include "sop_node.hpp"
 #include <random>
 
@@ -12,6 +14,8 @@ namespace nodeflux::sop {
  * This SOP generates random points distributed across the surface of input
  * geometry, with support for density control, seed values, and attribute-driven
  * distribution.
+ *
+ * Migrated to use unified attribute system (GeometryContainer).
  */
 class ScatterSOP : public SOPNode {
 private:
@@ -25,6 +29,7 @@ public:
 
   /**
    * @brief Generate scattered points on input geometry
+   * Uses new GeometryContainer attribute system
    */
   std::shared_ptr<GeometryData> execute() override {
     auto input_data = get_input_data("input");
@@ -43,22 +48,45 @@ public:
     float density = get_parameter<float>("density");
     bool use_face_area = get_parameter<bool>("use_face_area");
 
-    // Create output geometry
-    auto output_data = std::make_shared<GeometryData>();
+    // Convert input to GeometryContainer
+    auto input_container = convert_to_container(*input_data);
+    if (!input_container) {
+      return nullptr;
+    }
 
-    // Generate scattered points
-    scatter_points_on_mesh(*input_mesh, *output_data, point_count, seed,
+    // Create output GeometryContainer
+    core::GeometryContainer output_geo;
+
+    // Generate scattered points using new attribute system
+    scatter_points_on_mesh(*input_container, output_geo, point_count, seed,
                            density, use_face_area);
 
-    return output_data;
+    // Convert to GeometryData for compatibility (temporary bridge)
+    return convert_from_container(output_geo);
   }
 
   /**
-   * @brief Scatter points across mesh surface
+   * @brief Scatter points across mesh surface (new attribute system)
    */
-  void scatter_points_on_mesh(const core::Mesh &input_mesh,
-                              GeometryData &output_data, int point_count,
-                              int seed, float density, bool use_face_area);
+  void scatter_points_on_mesh(const core::GeometryContainer &input_geo,
+                              core::GeometryContainer &output_geo,
+                              int point_count, int seed, float density,
+                              bool use_face_area);
+
+  /**
+   * @brief Convert old GeometryData to GeometryContainer (temporary bridge)
+   */
+  std::unique_ptr<core::GeometryContainer>
+  convert_to_container(const GeometryData &old_data);
+
+  /**
+   * @brief Convert GeometryContainer to GeometryData (temporary bridge)
+   *
+   * This allows compatibility with existing pipeline while we migrate SOPs.
+   * Public so execution engine can use it during migration phase.
+   */
+  std::shared_ptr<GeometryData>
+  convert_from_container(const core::GeometryContainer &container);
 
 private:
   /**
@@ -67,20 +95,18 @@ private:
   std::vector<double> calculate_face_areas(const core::Mesh &mesh);
 
   /**
+   * @brief Calculate face areas from GeometryContainer
+   */
+  std::vector<double>
+  calculate_face_areas_from_container(const core::GeometryContainer &geo);
+
+  /**
    * @brief Generate random point on triangle face
    */
   core::Vector3 random_point_on_triangle(const core::Vector3 &v0,
                                          const core::Vector3 &v1,
                                          const core::Vector3 &v2,
                                          std::mt19937 &generator);
-
-  /**
-   * @brief Interpolate attributes at scattered point
-   */
-  void interpolate_attributes_at_point(
-      const core::GeometryAttributes &input_attrs,
-      core::GeometryAttributes &output_attrs, int face_index,
-      const core::Vector3 &barycentric_coords, size_t output_point_index);
 };
 
 } // namespace nodeflux::sop
