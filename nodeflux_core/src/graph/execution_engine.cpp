@@ -348,7 +348,7 @@ ExecutionEngine::execute_plane_node(const GraphNode &node) {
       1); // height_segments - could be made configurable
 
   if (plane_result.has_value()) {
-    return std::make_shared<core::Mesh>(plane_result.value());
+    return convert_container_to_mesh(plane_result.value());
   }
 
   return nullptr;
@@ -380,7 +380,7 @@ ExecutionEngine::execute_torus_node(const GraphNode &node) {
       major_segments, minor_segments);
 
   if (torus_result.has_value()) {
-    return std::make_shared<core::Mesh>(torus_result.value());
+    return convert_container_to_mesh(torus_result.value());
   }
 
   return nullptr;
@@ -426,24 +426,57 @@ ExecutionEngine::execute_line_node(const GraphNode &node) {
                            ? segments_param->int_value
                            : 10;
 
+  if (segments < 1) {
+    std::cerr << "Error: Line segments must be at least 1" << std::endl;
+    return nullptr;
+  }
+
   std::cout << "📏 Creating line from (" << start_x << ", " << start_y << ", "
             << start_z << ") to (" << end_x << ", " << end_y << ", " << end_z
             << ") with " << segments << " segments\n";
 
-  sop::LineSOP line_sop("LineNode");
-  line_sop.set_parameter("start_x", start_x);
-  line_sop.set_parameter("start_y", start_y);
-  line_sop.set_parameter("start_z", start_z);
-  line_sop.set_parameter("end_x", end_x);
-  line_sop.set_parameter("end_y", end_y);
-  line_sop.set_parameter("end_z", end_z);
-  line_sop.set_parameter("segments", segments);
+  // Create GeometryContainer with line geometry
+  core::GeometryContainer container;
+  auto &topology = container.topology();
 
-  auto geo_data = line_sop.cook();
-  if (!geo_data) {
-    return nullptr;
+  const int num_points = segments + 1;
+  topology.set_point_count(num_points);
+
+  // Generate positions along the line
+  std::vector<core::Vec3f> positions;
+  positions.reserve(num_points);
+
+  for (int i = 0; i < num_points; ++i) {
+    const float t = static_cast<float>(i) / static_cast<float>(segments);
+    const float x = start_x + t * (end_x - start_x);
+    const float y = start_y + t * (end_y - start_y);
+    const float z = start_z + t * (end_z - start_z);
+    positions.push_back({x, y, z});
   }
-  return geo_data->get_mesh();
+
+  // Create line edges as primitives (degenerate triangles)
+  // Format: [i, i+1, i+1] indicates line edge from i to i+1
+  for (int i = 0; i < segments; ++i) {
+    topology.add_primitive({i, i + 1, i + 1});
+  }
+
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
+
+  // Lines don't have meaningful normals, but add zero normals for consistency
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+    std::fill(n_span.begin(), n_span.end(), core::Vec3f{0.0F, 0.0F, 0.0F});
+  }
+
+  return convert_container_to_mesh(container);
 }
 
 /**

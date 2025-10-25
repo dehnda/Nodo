@@ -1,12 +1,12 @@
 #pragma once
 
 #include "../core/error.hpp"
-#include "../core/mesh.hpp"
+#include "../core/geometry_container.hpp"
 #include <optional>
 
 namespace nodeflux::geometry {
 
-/// @brief Generates torus (donut-shaped) meshes
+/// @brief Generates torus (donut-shaped) geometry
 class TorusGenerator {
 public:
   // Default parameter constants
@@ -15,16 +15,19 @@ public:
   static constexpr int DEFAULT_MAJOR_SEGMENTS = 48;
   static constexpr int DEFAULT_MINOR_SEGMENTS = 12;
 
-  /// @brief Generate a torus mesh
-  /// @param major_radius The radius from the center of the torus to the center of the tube
+  /// @brief Generate a torus geometry
+  /// @param major_radius The radius from the center of the torus to the center
+  /// of the tube
   /// @param minor_radius The radius of the tube
   /// @param major_segments Number of segments around the major circumference
-  /// @param minor_segments Number of segments around the minor circumference (tube)
-  /// @return Generated torus mesh or nullopt on error
-  static std::optional<core::Mesh> generate(double major_radius = DEFAULT_MAJOR_RADIUS,
-                                           double minor_radius = DEFAULT_MINOR_RADIUS,
-                                           int major_segments = DEFAULT_MAJOR_SEGMENTS,
-                                           int minor_segments = DEFAULT_MINOR_SEGMENTS);
+  /// @param minor_segments Number of segments around the minor circumference
+  /// (tube)
+  /// @return Generated torus as GeometryContainer or nullopt on error
+  static std::optional<core::GeometryContainer>
+  generate(double major_radius = DEFAULT_MAJOR_RADIUS,
+           double minor_radius = DEFAULT_MINOR_RADIUS,
+           int major_segments = DEFAULT_MAJOR_SEGMENTS,
+           int minor_segments = DEFAULT_MINOR_SEGMENTS);
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error

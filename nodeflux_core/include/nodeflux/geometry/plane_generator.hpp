@@ -1,24 +1,23 @@
 #pragma once
 
 #include "../core/error.hpp"
-#include "../core/mesh.hpp"
+#include "../core/geometry_container.hpp"
 #include <optional>
 
 namespace nodeflux::geometry {
 
-/// @brief Generates plane/grid meshes
+/// @brief Generates plane/grid geometry
 class PlaneGenerator {
 public:
-  /// @brief Generate a plane mesh
+  /// @brief Generate a plane geometry
   /// @param width The width of the plane
   /// @param height The height of the plane
   /// @param width_segments Number of segments along the width
   /// @param height_segments Number of segments along the height
-  /// @return Generated plane mesh or nullopt on error
-  static std::optional<core::Mesh> generate(double width = 2.0,
-                                            double height = 2.0,
-                                            int width_segments = 1,
-                                            int height_segments = 1);
+  /// @return Generated plane as GeometryContainer or nullopt on error
+  static std::optional<core::GeometryContainer>
+  generate(double width = 2.0, double height = 2.0, int width_segments = 1,
+           int height_segments = 1);
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error

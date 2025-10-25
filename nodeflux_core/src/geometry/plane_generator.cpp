@@ -1,14 +1,16 @@
 #include "../../include/nodeflux/geometry/plane_generator.hpp"
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::geometry {
 
 // Thread-local storage for error reporting
 thread_local core::Error PlaneGenerator::last_error_{
     core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-std::optional<core::Mesh> PlaneGenerator::generate(double width, double height,
-                                                   int width_segments,
-                                                   int height_segments) {
+std::optional<core::GeometryContainer>
+PlaneGenerator::generate(double width, double height, int width_segments,
+                         int height_segments) {
 
   if (width <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
@@ -38,19 +40,20 @@ std::optional<core::Mesh> PlaneGenerator::generate(double width, double height,
     return std::nullopt;
   }
 
-  core::Mesh mesh;
+  core::GeometryContainer container;
+  auto &topology = container.topology();
 
   // Calculate vertices and faces
   const int vertices_per_row = width_segments + 1;
   const int vertices_per_col = height_segments + 1;
   const int total_vertices = vertices_per_row * vertices_per_col;
-  const int total_faces = width_segments * height_segments * 2;
 
-  mesh.vertices().resize(total_vertices, 3);
-  mesh.faces().resize(total_faces, 3);
+  topology.set_point_count(total_vertices);
 
   // Generate vertices
-  int vertex_index = 0;
+  std::vector<core::Vec3f> positions;
+  positions.reserve(total_vertices);
+
   const double half_width = width * 0.5;
   const double half_height = height * 0.5;
 
@@ -66,16 +69,13 @@ std::optional<core::Mesh> PlaneGenerator::generate(double width, double height,
           (static_cast<double>(col) / static_cast<double>(width_segments)) *
               width;
 
-      mesh.vertices()(vertex_index, 0) = coord_x;
-      mesh.vertices()(vertex_index, 1) = 0.0; // Plane lies in XZ plane
-      mesh.vertices()(vertex_index, 2) = coord_z;
-      ++vertex_index;
+      positions.push_back({static_cast<float>(coord_x),
+                           0.0F, // Plane lies in XZ plane
+                           static_cast<float>(coord_z)});
     }
   }
 
   // Generate faces
-  int face_index = 0;
-
   for (int row = 0; row < height_segments; ++row) {
     for (int col = 0; col < width_segments; ++col) {
       const int top_left = (row * vertices_per_row) + col;
@@ -84,20 +84,33 @@ std::optional<core::Mesh> PlaneGenerator::generate(double width, double height,
       const int bottom_right = bottom_left + 1;
 
       // First triangle (top-left, bottom-left, top-right)
-      mesh.faces()(face_index, 0) = top_left;
-      mesh.faces()(face_index, 1) = bottom_left;
-      mesh.faces()(face_index, 2) = top_right;
-      ++face_index;
+      topology.add_primitive({top_left, bottom_left, top_right});
 
       // Second triangle (top-right, bottom-left, bottom-right)
-      mesh.faces()(face_index, 0) = top_right;
-      mesh.faces()(face_index, 1) = bottom_left;
-      mesh.faces()(face_index, 2) = bottom_right;
-      ++face_index;
+      topology.add_primitive({top_right, bottom_left, bottom_right});
     }
   }
 
-  return mesh;
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
+
+  // Add N (normal) attribute - plane has uniform normal pointing up (Y+)
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+    const core::Vec3f up_normal{0.0F, 1.0F, 0.0F};
+    for (size_t i = 0; i < positions.size(); ++i) {
+      n_span[i] = up_normal;
+    }
+  }
+
+  return container;
 }
 
 const core::Error &PlaneGenerator::last_error() { return last_error_; }
