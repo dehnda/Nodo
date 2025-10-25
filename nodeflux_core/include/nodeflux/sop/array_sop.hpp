@@ -1,8 +1,6 @@
 #pragma once
 
 #include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/mesh.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
 
 #include <optional>
@@ -30,20 +28,16 @@ public:
   /**
    * @brief Execute the array operation (SOPNode override)
    */
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
-  std::optional<core::Mesh> create_linear_array(const core::Mesh &input_mesh,
-                                                int count);
-  std::optional<core::Mesh> create_radial_array(const core::Mesh &input_mesh,
-                                                int count);
-  std::optional<core::Mesh> create_grid_array(const core::Mesh &input_mesh,
-                                              int grid_width, int grid_height);
-
-  void add_instance_attributes(std::shared_ptr<GeometryData> geo_data,
-                               size_t verts_per_instance,
-                               size_t faces_per_instance, int instance_count,
-                               ArrayType array_type);
+  std::unique_ptr<core::GeometryContainer>
+  create_linear_array(const core::GeometryContainer &input_geo, int count);
+  std::unique_ptr<core::GeometryContainer>
+  create_radial_array(const core::GeometryContainer &input_geo, int count);
+  std::unique_ptr<core::GeometryContainer>
+  create_grid_array(const core::GeometryContainer &input_geo, int grid_width,
+                    int grid_height);
 };
 
 } // namespace nodeflux::sop

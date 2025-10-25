@@ -2,7 +2,6 @@
 
 #include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/mesh.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
 #include <memory>
 #include <string>
@@ -50,7 +49,7 @@ protected:
   /**
    * @brief Execute the poly-extrude operation (SOPNode override)
    */
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
   float distance_ = 1.0F;

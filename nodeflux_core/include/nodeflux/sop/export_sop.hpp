@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../core/geometry_container.hpp"
 #include "../io/obj_exporter.hpp"
 #include "sop_node.hpp"
 #include <filesystem>
@@ -18,7 +19,7 @@ namespace sop {
  */
 class ExportSOP : public SOPNode {
 private:
-  static constexpr const char* DEFAULT_PATH = "";
+  static constexpr const char *DEFAULT_PATH = "";
 
 public:
   explicit ExportSOP(const std::string &node_name = "export")
@@ -58,15 +59,16 @@ protected:
   /**
    * @brief Execute export (pass-through node with side effect)
    */
-  std::shared_ptr<GeometryData> execute() override {
+  std::shared_ptr<core::GeometryContainer> execute() override {
     // Get input geometry
     auto input = get_input_data(0);
-    if (!input || !input->get_mesh()) {
+    if (!input) {
       set_error("No input geometry to export");
       return nullptr;
     }
 
-    const std::string file_path = get_parameter<std::string>("file_path", DEFAULT_PATH);
+    const std::string file_path =
+        get_parameter<std::string>("file_path", DEFAULT_PATH);
     const bool should_export = get_parameter<bool>("export_now", false);
 
     // Reset export flag
@@ -94,14 +96,41 @@ protected:
       try {
         // Export based on file format
         if (extension == ".obj") {
-          bool success = io::ObjExporter::export_mesh(*input->get_mesh(), file_path);
+          // Convert GeometryContainer to Mesh for export
+          auto *positions =
+              input->get_point_attribute_typed<Eigen::Vector3f>("P");
+          if (!positions) {
+            set_error("Input geometry missing position attribute");
+            return input;
+          }
+
+          const auto &topology = input->topology();
+          auto pos_span = positions->values();
+
+          // Build Mesh
+          Eigen::MatrixXd vertices(topology.point_count(), 3);
+          for (size_t i = 0; i < pos_span.size(); ++i) {
+            vertices.row(i) = pos_span[i].cast<double>();
+          }
+
+          Eigen::MatrixXi faces(topology.primitive_count(), 3);
+          for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+               ++prim_idx) {
+            const auto &verts = topology.get_primitive_vertices(prim_idx);
+            for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+              faces(prim_idx, j) = verts[j];
+            }
+          }
+
+          core::Mesh mesh(vertices, faces);
+          bool success = io::ObjExporter::export_mesh(mesh, file_path);
           if (!success) {
             set_error("Failed to export OBJ file: " + file_path);
             return input; // Still pass through input even on error
           }
         } else {
           set_error("Unsupported file format: " + extension +
-                   " (Supported: .obj)");
+                    " (Supported: .obj)");
           return input; // Still pass through input even on error
         }
 

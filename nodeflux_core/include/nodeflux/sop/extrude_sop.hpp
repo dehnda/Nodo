@@ -2,7 +2,6 @@
 
 #include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/mesh.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
 #include <Eigen/Dense>
 #include <memory>
@@ -42,9 +41,7 @@ public:
   /**
    * @brief Get extrusion distance
    */
-  double get_distance() const {
-    return get_parameter<float>("distance", 1.0F);
-  }
+  double get_distance() const { return get_parameter<float>("distance", 1.0F); }
 
   /**
    * @brief Set extrusion direction for uniform mode
@@ -61,11 +58,9 @@ public:
    * @brief Get extrusion direction
    */
   Eigen::Vector3d get_direction() const {
-    return Eigen::Vector3d(
-        get_parameter<float>("direction_x", 0.0F),
-        get_parameter<float>("direction_y", 0.0F),
-        get_parameter<float>("direction_z", 1.0F)
-    );
+    return Eigen::Vector3d(get_parameter<float>("direction_x", 0.0F),
+                           get_parameter<float>("direction_y", 0.0F),
+                           get_parameter<float>("direction_z", 1.0F));
   }
 
   /**
@@ -94,15 +89,13 @@ public:
   /**
    * @brief Get inset amount
    */
-  double get_inset() const {
-    return get_parameter<float>("inset", 0.0F);
-  }
+  double get_inset() const { return get_parameter<float>("inset", 0.0F); }
 
 protected:
   /**
    * @brief Execute the extrusion operation (SOPNode override)
    */
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
   /// Extrude faces along their individual normals
@@ -121,10 +114,10 @@ private:
   void apply_inset(core::Mesh &mesh, double inset_amount);
 
   // Extrusion parameters
-  double distance_ = 1.0;                             ///< Extrusion distance
-  Eigen::Vector3d direction_{0.0, 0.0, 1.0};          ///< Uniform direction
-  ExtrusionMode mode_ = ExtrusionMode::FACE_NORMALS;  ///< Extrusion algorithm
-  double inset_ = 0.0;                                ///< Inset amount
+  double distance_ = 1.0;                            ///< Extrusion distance
+  Eigen::Vector3d direction_{0.0, 0.0, 1.0};         ///< Uniform direction
+  ExtrusionMode mode_ = ExtrusionMode::FACE_NORMALS; ///< Extrusion algorithm
+  double inset_ = 0.0;                               ///< Inset amount
 };
 
 } // namespace nodeflux::sop

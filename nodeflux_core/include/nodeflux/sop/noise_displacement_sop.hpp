@@ -1,8 +1,6 @@
 #pragma once
 
 #include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/mesh.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
 #include <Eigen/Dense>
 #include <memory>
@@ -25,7 +23,7 @@ protected:
   /**
    * @brief Execute the noise displacement operation (SOPNode override)
    */
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
   // Noise generation functions

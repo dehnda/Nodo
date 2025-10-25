@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../core/geometry_container.hpp"
 #include "../geometry/sphere_generator.hpp"
 #include "../gpu/gpu_mesh_generator.hpp"
 #include "sop_node.hpp"
+
 
 namespace nodeflux {
 namespace sop {
@@ -53,7 +55,7 @@ protected:
   /**
    * @brief Execute sphere generation
    */
-  std::shared_ptr<GeometryData> execute() override {
+  std::shared_ptr<core::GeometryContainer> execute() override {
     const float radius = get_parameter<float>("radius", DEFAULT_RADIUS);
     const int segments = get_parameter<int>("segments", DEFAULT_SEGMENTS);
     const int rings = get_parameter<int>("rings", DEFAULT_RINGS);
@@ -89,17 +91,42 @@ protected:
         return nullptr;
       }
 
-      // Create GeometryData container
-      auto geometry_data = std::make_shared<GeometryData>(mesh);
+      // Convert Mesh to GeometryContainer
+      auto container = std::make_shared<core::GeometryContainer>();
+      const auto &vertices = mesh->vertices();
+      const auto &faces = mesh->faces();
 
-      // Set some basic attributes
-      geometry_data->set_global_attribute("primitive_type",
-                                          std::string("sphere"));
-      geometry_data->set_global_attribute("radius", radius);
-      geometry_data->set_global_attribute("segments", segments);
-      geometry_data->set_global_attribute("rings", rings);
+      // Set topology
+      container->topology().set_point_count(vertices.rows());
+      for (int i = 0; i < faces.rows(); ++i) {
+        std::vector<int> prim_verts = {faces(i, 0), faces(i, 1), faces(i, 2)};
+        container->topology().add_primitive(prim_verts);
+      }
 
-      return geometry_data;
+      // Add positions
+      container->add_point_attribute("P", core::AttributeType::VEC3F);
+      auto *positions =
+          container->get_point_attribute_typed<Eigen::Vector3f>("P");
+      if (positions) {
+        auto pos_span = positions->values_writable();
+        for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+          pos_span[i] = vertices.row(i).cast<float>();
+        }
+      }
+
+      // Add normals
+      const auto &normals = mesh->vertex_normals();
+      container->add_point_attribute("N", core::AttributeType::VEC3F);
+      auto *normal_attr =
+          container->get_point_attribute_typed<Eigen::Vector3f>("N");
+      if (normal_attr) {
+        auto norm_span = normal_attr->values_writable();
+        for (size_t i = 0; i < static_cast<size_t>(normals.rows()); ++i) {
+          norm_span[i] = normals.row(i).cast<float>();
+        }
+      }
+
+      return container;
 
     } catch (const std::exception &exception) {
       set_error("Exception during sphere generation: " +

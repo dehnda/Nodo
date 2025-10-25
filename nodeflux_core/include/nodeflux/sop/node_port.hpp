@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nodeflux/sop/geometry_data.hpp"
+#include "nodeflux/core/geometry_container.hpp"
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -15,14 +15,14 @@ class SOPNode; // Forward declaration
  * @brief Connection point for data flow between SOP nodes
  *
  * NodePorts represent input and output connections on SOP nodes,
- * enabling the flow of GeometryData through the procedural network.
+ * enabling the flow of GeometryContainer through the procedural network.
  */
 class NodePort {
 public:
   enum class Type { INPUT, OUTPUT };
 
   enum class DataType {
-    GEOMETRY, // GeometryData
+    GEOMETRY, // GeometryContainer
     PARAMETER // Various parameter types
   };
 
@@ -39,7 +39,7 @@ private:
   std::vector<NodePort *> connected_inputs_;
 
   // Cached data for this port
-  mutable std::shared_ptr<GeometryData> cached_data_;
+  mutable std::shared_ptr<core::GeometryContainer> cached_data_;
   mutable bool cache_valid_ = false;
 
 public:
@@ -147,7 +147,7 @@ public:
    * For input ports: gets data from connected output
    * For output ports: gets data from owner node computation
    */
-  std::shared_ptr<GeometryData> get_data() const {
+  std::shared_ptr<core::GeometryContainer> get_data() const {
     if (cache_valid_ && cached_data_) {
       return cached_data_;
     }
@@ -163,7 +163,7 @@ public:
   /**
    * @brief Set data on this port (typically for output ports)
    */
-  void set_data(std::shared_ptr<GeometryData> data) {
+  void set_data(std::shared_ptr<core::GeometryContainer> data) {
     cached_data_ = std::move(data);
     cache_valid_ = true;
   }

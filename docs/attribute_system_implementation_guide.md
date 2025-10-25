@@ -1800,133 +1800,246 @@ TEST(AttributeSystemIntegrationTest, PerformanceComparison) {
 
 # Phase 2: Integration (Weeks 5-8)
 
-**Goal**: Integrate new attribute system into GeometryData and migrate all 18 SOPs
+**Goal**: Remove GeometryData wrapper and use GeometryContainer directly in all SOPs
 
-**Strategy**: One SOP at a time, keep everything working
+**Strategy**: Direct replacement - eliminate the wrapper layer entirely
 
 ---
 
-## Week 5: GeometryData Integration
+## Week 5: Direct GeometryContainer Integration
 
-### Task 5.1: Replace GeometryData with GeometryContainer
+### Task 5.1: Update SOP Node Base Class
 
-**Strategy**: Direct migration - replace old GeometryData entirely with GeometryContainer
+**Strategy**: Change SOPNode to use GeometryContainer directly, remove GeometryData
 
-**File**: `nodeflux_core/include/nodeflux/sop/geometry_data.hpp` (REPLACE)
+**File**: `nodeflux_core/include/nodeflux/sop/sop_node.hpp` (MODIFY)
 
-**New Implementation**:
+**Changes**:
+
+```cpp
+// OLD:
+virtual std::shared_ptr<GeometryData> execute() = 0;
+
+std::shared_ptr<GeometryData> cook() {
+    // ... caching logic
+    return execute();
+}
+
+// NEW:
+virtual std::shared_ptr<core::GeometryContainer> execute() = 0;
+
+std::shared_ptr<core::GeometryContainer> cook() {
+    // ... caching logic (unchanged)
+    return execute();
+}
+```
+
+**File**: `nodeflux_core/include/nodeflux/sop/node_port.hpp` (MODIFY)
+
+**Changes**:
+
+```cpp
+// OLD:
+class NodePort {
+    mutable std::shared_ptr<GeometryData> cached_data_;
+
+    std::shared_ptr<GeometryData> get_data() const;
+    void set_data(std::shared_ptr<GeometryData> data);
+};
+
+// NEW:
+class NodePort {
+    mutable std::shared_ptr<core::GeometryContainer> cached_data_;
+
+    std::shared_ptr<core::GeometryContainer> get_data() const;
+    void set_data(std::shared_ptr<core::GeometryContainer> data);
+};
+```
+
+**Success Criteria**:
+- ✅ SOPNode base class uses GeometryContainer
+- ✅ NodePort stores GeometryContainer
+- ✅ No GeometryData references in base classes
+
+**Time estimate**: 1 day
+
+---
+
+### Task 5.2: Create SOP Utilities (No Mesh/GeometryData conversions!)
+
+**File**: `nodeflux_core/include/nodeflux/sop/sop_utils.hpp` (NEW)
+
+**Helper functions - GeometryContainer only**:
 
 ```cpp
 #pragma once
 
 #include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/mesh.hpp"
-#include <memory>
+#include <span>
 
 namespace nodeflux::sop {
 
 /**
- * @brief Unified container for all geometry data types in the SOP system
- *
- * This is now a thin wrapper around GeometryContainer, providing
- * backward-compatible API while using the new attribute system internally.
+ * @brief Initialize standard mesh attributes
  */
-class GeometryData {
-private:
-    Type type_ = Type::EMPTY;
-    std::shared_ptr<core::Mesh> mesh_data_;  // Keep for mesh operations
-    core::GeometryContainer container_;      // NEW: The actual geometry storage
+inline void ensure_standard_attributes(core::GeometryContainer* container) {
+    // Ensure position attribute exists
+    if (!container->has_point_attribute(core::standard_attrs::P)) {
+        container->add_point_attribute(core::standard_attrs::P,
+                                      core::AttributeType::VEC3F);
+    }
+}
 
-public:
-    enum class Type { MESH, POINT_CLOUD, CURVE, EMPTY };
+/**
+ * @brief Get positions as span for fast iteration
+ */
+inline std::span<core::Vec3f> get_positions(core::GeometryContainer* container) {
+    auto* positions = container->get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::P);
+    if (!positions) {
+        throw std::runtime_error("Position attribute 'P' not found");
+    }
+    return std::span<core::Vec3f>(positions->data(), positions->size());
+}
 
-    GeometryData() = default;
+inline std::span<const core::Vec3f> get_positions(const core::GeometryContainer* container) {
+    auto* positions = container->get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::P);
+    if (!positions) {
+        throw std::runtime_error("Position attribute 'P' not found");
+    }
+    return std::span<const core::Vec3f>(positions->data(), positions->size());
+}
 
-    /**
-     * @brief Create GeometryData from a mesh
-     */
-    explicit GeometryData(std::shared_ptr<core::Mesh> mesh)
-        : type_(Type::MESH), mesh_data_(std::move(mesh)) {
-        // Sync mesh to container
-        sync_mesh_to_container();
+/**
+ * @brief Get normals as span (creates if doesn't exist)
+ */
+inline std::span<core::Vec3f> get_or_create_normals(core::GeometryContainer* container) {
+    if (!container->has_point_attribute(core::standard_attrs::N)) {
+        container->add_point_attribute(core::standard_attrs::N,
+                                      core::AttributeType::VEC3F);
     }
 
-    /**
-     * @brief Get the geometry type
-     */
-    Type get_type() const { return type_; }
+    auto* normals = container->get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::N);
+    return std::span<core::Vec3f>(normals->data(), normals->size());
+}
 
-    /**
-     * @brief Check if geometry data is empty
-     */
-    bool is_empty() const { return type_ == Type::EMPTY; }
-
-    /**
-     * @brief Get the mesh data (if type is MESH)
-     */
-    std::shared_ptr<core::Mesh> get_mesh() const { return mesh_data_; }
-
-    /**
-     * @brief Set mesh data
-     */
-    void set_mesh(std::shared_ptr<core::Mesh> mesh) {
-        mesh_data_ = std::move(mesh);
-        type_ = Type::MESH;
-        sync_mesh_to_container();
+/**
+ * @brief Get colors as span (creates if doesn't exist)
+ */
+inline std::span<core::Vec3f> get_or_create_colors(core::GeometryContainer* container) {
+    if (!container->has_point_attribute(core::standard_attrs::Cd)) {
+        container->add_point_attribute(core::standard_attrs::Cd,
+                                      core::AttributeType::VEC3F);
     }
 
-    /**
-     * @brief Direct access to geometry container (NEW API)
-     */
-    core::GeometryContainer& container() { return container_; }
-    const core::GeometryContainer& container() const { return container_; }
+    auto* colors = container->get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::Cd);
+    return std::span<core::Vec3f>(colors->data(), colors->size());
+}
 
-    /**
-     * @brief Get vertex count
-     */
-    int get_vertex_count() const {
-        return static_cast<int>(container_.point_count());
+/**
+ * @brief Compute face normals for a geometry
+ */
+inline void compute_face_normals(core::GeometryContainer* container) {
+    auto positions = get_positions(container);
+    const auto& topo = container->topology();
+
+    // Add primitive normal attribute
+    if (!container->has_primitive_attribute(core::standard_attrs::N)) {
+        container->add_primitive_attribute(core::standard_attrs::N,
+                                          core::AttributeType::VEC3F);
     }
 
-    /**
-     * @brief Get face count
-     */
-    int get_face_count() const {
-        return static_cast<int>(container_.primitive_count());
-    }
+    auto* normals = container->get_primitive_attribute_typed<core::Vec3f>(
+        core::standard_attrs::N);
 
-    /**
-     * @brief Clone geometry data
-     */
-    std::shared_ptr<GeometryData> clone() const {
-        auto cloned = std::make_shared<GeometryData>();
-        cloned->type_ = type_;
-        if (mesh_data_) {
-            cloned->mesh_data_ = std::make_shared<core::Mesh>(*mesh_data_);
+    // Compute normal for each face
+    for (size_t i = 0; i < topo.primitive_count(); ++i) {
+        auto verts = topo.primitive_vertices(i);
+        if (verts.size() >= 3) {
+            const auto& p0 = positions[verts[0]];
+            const auto& p1 = positions[verts[1]];
+            const auto& p2 = positions[verts[2]];
+
+            core::Vec3f edge1(p1.x() - p0.x(), p1.y() - p0.y(), p1.z() - p0.z());
+            core::Vec3f edge2(p2.x() - p0.x(), p2.y() - p0.y(), p2.z() - p0.z());
+
+            // Cross product
+            core::Vec3f normal(
+                edge1.y() * edge2.z() - edge1.z() * edge2.y(),
+                edge1.z() * edge2.x() - edge1.x() * edge2.z(),
+                edge1.x() * edge2.y() - edge1.y() * edge2.x()
+            );
+
+            // Normalize
+            float len = std::sqrt(normal.x()*normal.x() +
+                                 normal.y()*normal.y() +
+                                 normal.z()*normal.z());
+            if (len > 0.0f) {
+                normal.x() /= len;
+                normal.y() /= len;
+                normal.z() /= len;
+            }
+
+            (*normals)[i] = normal;
         }
-        cloned->container_ = container_.clone();
-        return cloned;
+    }
+}
+
+/**
+ * @brief Compute smooth vertex normals (average of adjacent face normals)
+ */
+inline void compute_vertex_normals(core::GeometryContainer* container) {
+    // First compute face normals
+    compute_face_normals(container);
+
+    auto* face_normals = container->get_primitive_attribute_typed<core::Vec3f>(
+        core::standard_attrs::N);
+
+    // Create vertex normals (point attribute)
+    auto vertex_normals = get_or_create_normals(container);
+
+    // Zero out
+    for (auto& n : vertex_normals) {
+        n = core::Vec3f(0, 0, 0);
     }
 
-private:
-    /**
-     * @brief Sync mesh vertices to container position attribute
-     */
-    void sync_mesh_to_container() {
-        if (!mesh_data_) return;
+    // Accumulate face normals to vertices
+    const auto& topo = container->topology();
+    for (size_t i = 0; i < topo.primitive_count(); ++i) {
+        auto verts = topo.primitive_vertices(i);
+        const auto& fn = (*face_normals)[i];
 
-        const auto& vertices = mesh_data_->vertices();
-        const auto& faces = mesh_data_->faces();
+        for (int v : verts) {
+            vertex_normals[v].x() += fn.x();
+            vertex_normals[v].y() += fn.y();
+            vertex_normals[v].z() += fn.z();
+        }
+    }
 
-        // Set topology
-        container_.set_point_count(vertices.rows());
-        container_.set_vertex_count(vertices.rows());  // 1:1 for simple meshes
+    // Normalize
+    for (auto& n : vertex_normals) {
+        float len = std::sqrt(n.x()*n.x() + n.y()*n.y() + n.z()*n.z());
+        if (len > 0.0f) {
+            n.x() /= len;
+            n.y() /= len;
+            n.z() /= len;
+        }
+    }
+}
 
-        // Add faces
-        for (int i = 0; i < faces.rows(); ++i) {
-            std::vector<int> face_verts = {
-                faces(i, 0), faces(i, 1), faces(i, 2)
-            };
+} // namespace nodeflux::sop
+```
+
+**Success Criteria**:
+- ✅ Helper functions simplify SOP migration
+- ✅ NO Mesh conversions - pure GeometryContainer
+- ✅ Includes normal computation (replaces Mesh functionality)
+- ✅ Standard attribute access is easy
+
+**Time estimate**: 1 day;
             container_.add_polygon(face_verts);
         }
 
@@ -1953,113 +2066,6 @@ private:
         if (!container_.has_point_attribute(core::standard_attrs::P)) return;
 
         auto* positions = container_.get_point_attribute_typed<core::Vec3f>(
-            core::standard_attrs::P);
-
-        auto& vertices = mesh_data_->vertices();
-        for (size_t i = 0; i < positions->size(); ++i) {
-            const auto& pos = (*positions)[i];
-            vertices(i, 0) = pos.x();
-            vertices(i, 1) = pos.y();
-            vertices(i, 2) = pos.z();
-        }
-    }
-};
-
-} // namespace nodeflux::sop
-```
-
-**Success Criteria**:
-- ✅ GeometryData uses GeometryContainer internally
-- ✅ Mesh synchronization works both ways
-- ✅ Clean API without feature flags
-- ✅ Direct migration path
-
-**Time estimate**: 2 days
-
----
-
-### Task 5.2: SOP Migration Utilities
-
-**File**: `nodeflux_core/include/nodeflux/sop/sop_utils.hpp` (NEW)
-
-**Helper functions for SOP migration**:
-
-```cpp
-#pragma once
-
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
-
-namespace nodeflux::sop {
-
-/**
- * @brief Initialize standard mesh attributes
- */
-inline void ensure_standard_attributes(GeometryData* geo) {
-    auto& container = geo->container();
-
-    // Ensure position attribute exists
-    if (!container.has_point_attribute(core::standard_attrs::P)) {
-        container.add_point_attribute(core::standard_attrs::P,
-                                      core::AttributeType::VEC3F);
-    }
-}
-
-/**
- * @brief Get positions as span for fast iteration
- */
-inline std::span<core::Vec3f> get_positions(GeometryData* geo) {
-    auto& container = geo->container();
-    auto* positions = container.get_point_attribute_typed<core::Vec3f>(
-        core::standard_attrs::P);
-    if (!positions) {
-        throw std::runtime_error("Position attribute 'P' not found");
-    }
-    return std::span<core::Vec3f>(positions->data(), positions->size());
-}
-
-/**
- * @brief Get normals as span (creates if doesn't exist)
- */
-inline std::span<core::Vec3f> get_or_create_normals(GeometryData* geo) {
-    auto& container = geo->container();
-
-    if (!container.has_point_attribute(core::standard_attrs::N)) {
-        container.add_point_attribute(core::standard_attrs::N,
-                                      core::AttributeType::VEC3F);
-    }
-
-    auto* normals = container.get_point_attribute_typed<core::Vec3f>(
-        core::standard_attrs::N);
-    return std::span<core::Vec3f>(normals->data(), normals->size());
-}
-
-/**
- * @brief Get colors as span (creates if doesn't exist)
- */
-inline std::span<core::Vec3f> get_or_create_colors(GeometryData* geo) {
-    auto& container = geo->container();
-
-    if (!container.has_point_attribute(core::standard_attrs::Cd)) {
-        container.add_point_attribute(core::standard_attrs::Cd,
-                                      core::AttributeType::VEC3F);
-    }
-
-    auto* colors = container.get_point_attribute_typed<core::Vec3f>(
-        core::standard_attrs::Cd);
-    return std::span<core::Vec3f>(colors->data(), colors->size());
-}
-
-} // namespace nodeflux::sop
-```
-
-**Success Criteria**:
-- ✅ Helper functions simplify SOP migration
-- ✅ Standard attribute access is easy
-- ✅ Auto-creation of common attributes
-
-**Time estimate**: 1 day
-
 ---
 
 ## Week 6-7: SOP Migration (First Half)
@@ -2102,14 +2108,14 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
 
 **AFTER** (migrated code):
 ```cpp
-std::shared_ptr<GeometryData> TransformSOP::execute() {
+std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
     auto input = get_input_data(0);
-    auto output = std::make_shared<GeometryData>(*input);
+    auto output = std::make_shared<core::GeometryContainer>(*input);
 
-    // Use new container API directly
+    // Use new container API directly - much simpler!
     auto positions = sop::get_positions(output.get());
 
-    // Transform using standard "P" attribute
+    // Transform positions
     for (auto& pos : positions) {
         pos.x() += translation_.x();
         pos.y() += translation_.y();
@@ -2121,14 +2127,16 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
 ```
 
 **Per-SOP Checklist**:
-- [ ] Use GeometryContainer API via GeometryData::container()
-- [ ] Replace mesh vertex access with position attributes
-- [ ] Use typed spans instead of variants
+- [ ] Change return type to `std::shared_ptr<core::GeometryContainer>`
+- [ ] Use GeometryContainer directly (no wrapper)
+- [ ] Use typed spans instead of mesh vertices
 - [ ] Use helper functions from sop_utils.hpp
 - [ ] Update tests
 - [ ] Verify output matches old behavior
 
 **Time estimate per SOP**: 0.5-1 day (4-5 SOPs per week)
+
+**Important**: SOPs now work directly with GeometryContainer - no Mesh, no GeometryData!
 
 ---
 
@@ -2146,8 +2154,7 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
 ### Task 8.1: Comprehensive Testing
 
 **Full regression test suite**:
-- All 18 SOPs with new system enabled
-- Compare outputs: old vs new
+- All 18 SOPs with new system
 - Performance benchmarks
 - Memory usage comparison
 
@@ -2155,7 +2162,7 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
 - ✅ All SOPs migrated
 - ✅ All tests pass
 - ✅ No performance regression
-- ✅ Outputs match exactly
+- ✅ Clean codebase (no Mesh or GeometryData)
 
 **Time estimate**: Week 8
 
@@ -2163,33 +2170,31 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
 
 # Phase 3: Performance & Polish (Weeks 9-12)
 
-**Goal**: Remove old system, optimize, add advanced features
+**Goal**: Cleanup, optimize, add advanced features
 
 ---
 
-## Week 9: Remove Old System
+## Week 9: Cleanup and Optimization
 
-### Task 9.1: Delete Old Attribute Storage
+### Task 9.1: Delete Legacy Code
 
-**Changes to GeometryData**:
-```cpp
-// DELETE THESE:
-AttributeMap vertex_attributes_;
-AttributeMap face_attributes_;
-AttributeMap global_attributes_;
+**Delete these files entirely**:
+- `nodeflux_core/include/nodeflux/core/mesh.hpp`
+- `nodeflux_core/src/core/mesh.cpp`
+- `nodeflux_core/include/nodeflux/sop/geometry_data.hpp`
+- `nodeflux_core/src/sop/geometry_data.cpp` (if exists)
 
-// DELETE old methods:
-std::optional<AttributeArray> get_vertex_attribute(...);
-void set_vertex_attribute(...);
-// etc.
-```
+**Update ExecutionEngine**:
+- Remove all Mesh conversion helpers
+- Use GeometryContainer directly throughout
 
 **Success Criteria**:
-- ✅ Old storage removed
-- ✅ All SOPs still work
-- ✅ Codebase cleaner
+- ✅ No Mesh or GeometryData references remain
+- ✅ All SOPs work with GeometryContainer
+- ✅ Codebase is cleaner
+- ✅ Build succeeds
 
-**Time estimate**: 2 days
+**Time estimate**: 1 day
 
 ---
 

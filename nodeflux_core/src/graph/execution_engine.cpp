@@ -531,22 +531,45 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_sop_node(
   // Transfer parameters from GraphNode to SOP
   transfer_parameters(node, *sop);
 
-  // Set input geometry (if any)
+  // Convert Mesh inputs to GeometryContainer for SOPs
   for (size_t i = 0; i < inputs.size(); ++i) {
-    auto input_geo = std::make_shared<sop::GeometryData>(inputs[i]);
-    sop->set_input_data(static_cast<int>(i), input_geo);
+    // Convert Mesh to GeometryContainer
+    auto container = std::make_shared<core::GeometryContainer>();
+    if (inputs[i] && !inputs[i]->empty()) {
+      const auto &vertices = inputs[i]->vertices();
+      const auto &faces = inputs[i]->faces();
+
+      container->topology().set_point_count(vertices.rows());
+      for (int f = 0; f < faces.rows(); ++f) {
+        std::vector<int> prim_verts = {faces(f, 0), faces(f, 1), faces(f, 2)};
+        container->topology().add_primitive(prim_verts);
+      }
+
+      container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+      auto *positions =
+          container->get_point_attribute_typed<Eigen::Vector3f>(attrs::P);
+      if (positions) {
+        auto pos_span = positions->values_writable();
+        for (size_t p = 0; p < static_cast<size_t>(vertices.rows()); ++p) {
+          pos_span[p] = vertices.row(p).cast<float>();
+        }
+      }
+    }
+    sop->set_input_data(static_cast<int>(i), container);
   }
 
   // Execute SOP
-  auto output_geo = sop->cook();
+  auto output_container = sop->cook();
 
-  if (!output_geo) {
+  if (!output_container) {
     std::cout << "❌ SOP execution failed: " << sop->get_last_error()
               << std::endl;
     return nullptr;
   }
 
-  return output_geo->get_mesh();
+  // Convert GeometryContainer back to Mesh for now (until full pipeline
+  // migrated)
+  return convert_container_to_mesh(*output_container);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_transform_node(
@@ -625,26 +648,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_boolean_node(
   std::cout << "🔀 Boolean operation: " << op_name << " on " << inputs.size()
             << " meshes" << std::endl;
 
-  // Create BooleanSOP and execute
-  sop::BooleanSOP boolean_sop("BooleanNode");
-
-  // Set parameters
-  boolean_sop.set_parameter("operation", operation);
-
-  // Create geometry data wrappers
-  auto geo_a = std::make_shared<sop::GeometryData>(inputs[0]);
-  auto geo_b = std::make_shared<sop::GeometryData>(inputs[1]);
-
-  // Set input data using port indices
-  boolean_sop.set_input_data(0, geo_a);
-  boolean_sop.set_input_data(1, geo_b);
-
-  // Cook and get result
-  std::shared_ptr<sop::GeometryData> result = boolean_sop.cook();
-  if (result && !result->is_empty()) {
-    return result->get_mesh();
-  }
-  return nullptr;
+  // Use generic SOP execution (handles Mesh<->GeometryContainer conversion)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_merge_node(
@@ -894,22 +899,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_polyextrude_node(
   std::cout << "🔄 Poly-extruding faces (distance: " << distance
             << ", inset: " << inset << ")\n";
 
-  // For bridge: wrap input and execute directly
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  sop::PolyExtrudeSOP polyextrude_sop("PolyExtrudeNode");
-  polyextrude_sop.set_distance(distance);
-  polyextrude_sop.set_inset(inset);
-  polyextrude_sop.set_individual_faces(individual_faces);
-
-  // Manually set input via protected method (bridge hack)
-  polyextrude_sop.set_input_data(0, input_geo);
-
-  auto geo_data = polyextrude_sop.cook();
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (handles Mesh<->GeometryContainer conversion)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
@@ -942,24 +933,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_resample_node(
   const char *mode_name = (mode == 0) ? "BY_COUNT" : "BY_LENGTH";
   std::cout << "🔄 Resampling geometry (mode: " << mode_name << ")\n";
 
-  // For bridge: wrap input and execute directly
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-
-  sop::ResampleSOP resample_sop("ResampleNode");
-
-  // Set parameters
-  resample_sop.set_parameter("mode", mode);
-  resample_sop.set_parameter("point_count", point_count);
-  resample_sop.set_parameter("segment_length", segment_length);
-
-  // Manually set input via protected method (bridge hack)
-  resample_sop.set_input_data(0, input_geo);
-
-  auto geo_data = resample_sop.cook();
-  if (!geo_data) {
-    return nullptr;
-  }
-  return geo_data->get_mesh();
+  // Use generic SOP execution (handles Mesh<->GeometryContainer conversion)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_scatter_node(
@@ -1000,29 +975,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_scatter_node(
   std::cout << "🌱 Scattering " << point_count << " points (seed=" << seed
             << ", density=" << density << ")\n";
 
-  // Create scatter SOP
-  sop::ScatterSOP scatter_sop;
-  scatter_sop.set_parameter("point_count", point_count);
-  scatter_sop.set_parameter("seed", seed);
-  scatter_sop.set_parameter("density", density);
-  scatter_sop.set_parameter("use_face_area", use_face_area);
-
-  // Convert input Mesh to GeometryContainer
-  auto input_geo_data = std::make_shared<sop::GeometryData>(inputs[0]);
-  auto input_container = scatter_sop.convert_to_container(*input_geo_data);
-
-  if (!input_container) {
-    return nullptr;
-  }
-
-  // Call scatter with GeometryContainer approach
-  core::GeometryContainer output_container;
-  scatter_sop.scatter_points_on_mesh(*input_container, output_container,
-                                     point_count, seed, density, use_face_area);
-
-  // Convert back to GeometryData and extract mesh
-  auto output_geo = scatter_sop.convert_from_container(output_container);
-  return output_geo->get_mesh();
+  // Use generic SOP execution (handles Mesh<->GeometryContainer conversion)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_copy_to_points_node(
@@ -1064,25 +1018,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_copy_to_points_node(
   std::cout << "📋 Copying template to points (scale=" << uniform_scale
             << ")\n";
 
-  // Create copy to points SOP
-  sop::CopyToPointsSOP copy_sop;
-  copy_sop.set_parameter("use_point_normals", use_point_normals);
-  copy_sop.set_parameter("use_point_scale", use_point_scale);
-  copy_sop.set_parameter("uniform_scale", uniform_scale);
-  copy_sop.set_parameter("scale_attribute", scale_attribute);
-
-  // Create geometry data
-  auto points_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-  auto template_geo = std::make_shared<sop::GeometryData>(inputs[1]);
-
-  // Manually call the copy function
-  auto output_geo = std::make_shared<sop::GeometryData>();
-  copy_sop.copy_template_to_points(*points_geo, *template_geo, *output_geo,
-                                   use_point_normals, use_point_scale,
-                                   uniform_scale, scale_attribute);
-
-  // Extract the mesh from the output geometry
-  return output_geo->get_mesh();
+  // Use generic SOP execution (handles Mesh<->GeometryContainer conversion)
+  return execute_sop_node(node, inputs);
 }
 
 std::shared_ptr<core::Mesh> ExecutionEngine::execute_noise_displacement_node(
@@ -1135,29 +1072,8 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_noise_displacement_node(
   std::cout << "🌊 Applying noise displacement (amplitude=" << amplitude
             << ", frequency=" << frequency << ", octaves=" << octaves << ")\n";
 
-  // Create noise displacement SOP
-  sop::NoiseDisplacementSOP noise_sop;
-  noise_sop.set_parameter("amplitude", amplitude);
-  noise_sop.set_parameter("frequency", frequency);
-  noise_sop.set_parameter("octaves", octaves);
-  noise_sop.set_parameter("lacunarity", lacunarity);
-  noise_sop.set_parameter("persistence", persistence);
-  noise_sop.set_parameter("seed", seed);
-
-  // Create input geometry data and set it via port
-  auto input_geo = std::make_shared<sop::GeometryData>(inputs[0]);
-  noise_sop.set_input_data(0, input_geo);
-
-  // Execute the SOP
-  auto output_geo = noise_sop.cook();
-
-  if (!output_geo) {
-    std::cout << "❌ Noise displacement failed\n";
-    return nullptr;
-  }
-
-  // Extract the mesh from the output geometry
-  return output_geo->get_mesh();
+  // Use generic SOP execution (handles Mesh<->GeometryContainer conversion)
+  return execute_sop_node(node, inputs);
 }
 
 std::vector<std::shared_ptr<core::Mesh>>

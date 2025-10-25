@@ -1,6 +1,8 @@
 #include "nodeflux/sop/line_sop.hpp"
+#include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/math.hpp"
 #include <Eigen/Dense>
+#include <memory>
 
 namespace attrs = nodeflux::core::standard_attrs;
 
@@ -51,40 +53,7 @@ LineSOP::LineSOP(const std::string &name) : SOPNode(name, "Line") {
                          .build());
 }
 
-// Helper to convert GeometryContainer to GeometryData (bridge for migration)
-static std::shared_ptr<GeometryData>
-convert_from_container(const core::GeometryContainer &container) {
-  const auto &topology = container.topology();
-
-  // Extract positions
-  auto *p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
-  if (!p_storage)
-    return std::make_shared<GeometryData>(std::make_shared<core::Mesh>());
-
-  Eigen::MatrixXd vertices(topology.point_count(), 3);
-  auto p_span = p_storage->values();
-  for (size_t i = 0; i < p_span.size(); ++i) {
-    vertices.row(i) = p_span[i].cast<double>();
-  }
-
-  // Extract primitives (line segments represented as degenerate triangles)
-  Eigen::MatrixXi faces(topology.primitive_count(), 3);
-  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &verts = topology.get_primitive_vertices(prim_idx);
-    if (verts.size() >= 2) {
-      // Line segment: [i, i+1, i+1] (degenerate triangle marker)
-      faces(prim_idx, 0) = verts[0];
-      faces(prim_idx, 1) = verts[1];
-      faces(prim_idx, 2) = verts[1]; // Duplicate last vertex to mark as line
-    }
-  }
-
-  auto mesh = std::make_shared<core::Mesh>(vertices, faces);
-  return std::make_shared<GeometryData>(mesh);
-}
-
-std::shared_ptr<GeometryData> LineSOP::execute() {
+std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
   // Read parameters from parameter system
   const float start_x = get_parameter<float>("start_x", 0.0F);
   const float start_y = get_parameter<float>("start_y", 0.0F);
@@ -133,8 +102,7 @@ std::shared_ptr<GeometryData> LineSOP::execute() {
     std::copy(positions.begin(), positions.end(), p_span.begin());
   }
 
-  // Convert back to GeometryData for compatibility
-  return convert_from_container(container);
+  return std::make_shared<core::GeometryContainer>(std::move(container));
 }
 
 } // namespace nodeflux::sop

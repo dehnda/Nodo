@@ -69,48 +69,29 @@ TransformSOP::TransformSOP(const std::string &name)
                          .build());
 }
 
-std::shared_ptr<GeometryData> TransformSOP::execute() {
-  // Get input geometry
-  auto input_geo = get_input_data(0);
-  if (!input_geo) {
+std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
+  // Get input geometry (already a GeometryContainer)
+  auto input_container = get_input_data(0);
+  if (!input_container) {
     set_error("No input geometry connected");
     return nullptr;
   }
 
-  // Convert input to GeometryContainer
-  core::GeometryContainer container;
+  // Create output container as a deep copy of input
+  auto output_container =
+      std::make_shared<core::GeometryContainer>(input_container->clone());
 
-  // Try to get mesh and convert to container
-  auto input_mesh = input_geo->get_mesh();
-  if (!input_mesh) {
-    set_error("Input geometry does not contain a mesh");
+  // Get point attribute for positions
+  if (!output_container->has_point_attribute("P")) {
+    set_error("Input geometry has no position attribute");
     return nullptr;
   }
 
-  // Simple conversion: copy vertices and faces to container
-  const auto &vertices = input_mesh->vertices();
-  const auto &faces = input_mesh->faces();
-
-  auto &topology = container.topology();
-  topology.set_point_count(vertices.rows());
-
-  // Add primitives and vertices
-  for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
-    std::vector<int> prim_verts;
-    for (int j = 0; j < faces.cols(); ++j) {
-      prim_verts.push_back(faces(face_idx, j));
-    }
-    topology.add_primitive(prim_verts);
-  }
-
-  // Copy P attribute
-  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
-  if (p_storage != nullptr) {
-    auto p_span = p_storage->values_writable();
-    for (int i = 0; i < vertices.rows(); ++i) {
-      p_span[i] = vertices.row(i).cast<float>();
-    }
+  auto *p_attr =
+      output_container->get_point_attribute_typed<Eigen::Vector3f>("P");
+  if (!p_attr) {
+    set_error("Position attribute has wrong type");
+    return nullptr;
   }
 
   // Read transform parameters
@@ -153,59 +134,31 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
   const Eigen::Vector3d translation(translate_x, translate_y, translate_z);
 
   // Transform P attribute
-  if (p_storage != nullptr) {
-    auto p_span = p_storage->values_writable();
-    for (size_t i = 0; i < p_span.size(); ++i) {
-      Eigen::Vector3d vertex = p_span[i].cast<double>();
-      vertex = vertex.cwiseProduct(scale); // Scale
-      vertex = rotation * vertex;          // Rotate
-      vertex += translation;               // Translate
-      p_span[i] = vertex.cast<float>();
-    }
+  auto positions_span = p_attr->values_writable();
+  for (size_t i = 0; i < positions_span.size(); ++i) {
+    Eigen::Vector3d vertex = positions_span[i].cast<double>();
+    vertex = vertex.cwiseProduct(scale); // Scale
+    vertex = rotation * vertex;          // Rotate
+    vertex += translation;               // Translate
+    positions_span[i] = vertex.cast<float>();
   }
 
   // Transform N attribute if present (rotation only, no scale or translation)
-  if (container.has_point_attribute(attrs::N)) {
-    auto *n_storage =
-        container.get_point_attribute_typed<core::Vec3f>(attrs::N);
-    if (n_storage != nullptr) {
-      auto n_span = n_storage->values_writable();
-      for (size_t i = 0; i < n_span.size(); ++i) {
-        Eigen::Vector3d normal = n_span[i].cast<double>();
+  if (output_container->has_point_attribute("N")) {
+    auto *n_attr =
+        output_container->get_point_attribute_typed<Eigen::Vector3f>("N");
+    if (n_attr) {
+      auto normals_span = n_attr->values_writable();
+      for (size_t i = 0; i < normals_span.size(); ++i) {
+        Eigen::Vector3d normal = normals_span[i].cast<double>();
         normal = rotation * normal; // Rotate only
         normal.normalize();         // Renormalize
-        n_span[i] = normal.cast<float>();
+        normals_span[i] = normal.cast<float>();
       }
     }
   }
 
-  // Convert back to mesh for output (temporary until full pipeline migrated)
-  auto output_mesh = std::make_shared<core::Mesh>();
-
-  // Copy positions back
-  Eigen::MatrixXd out_vertices(container.topology().point_count(), 3);
-  if (p_storage != nullptr) {
-    auto p_span = p_storage->values();
-    for (size_t i = 0; i < p_span.size(); ++i) {
-      out_vertices.row(i) = p_span[i].cast<double>();
-    }
-  }
-  output_mesh->vertices() = out_vertices;
-
-  // Copy faces back
-  Eigen::MatrixXi out_faces(container.topology().primitive_count(), 3);
-  for (size_t prim_idx = 0; prim_idx < container.topology().primitive_count();
-       ++prim_idx) {
-    const auto &verts = container.topology().get_primitive_vertices(prim_idx);
-    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
-      out_faces(prim_idx, j) = verts[j];
-    }
-  }
-  output_mesh->faces() = out_faces;
-
-  auto output_geo = std::make_shared<GeometryData>(output_mesh);
-
-  return output_geo;
+  return output_container;
 }
 
 Eigen::Matrix4d TransformSOP::build_transform_matrix() const {

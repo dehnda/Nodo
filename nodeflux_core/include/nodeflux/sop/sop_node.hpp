@@ -1,6 +1,7 @@
 #pragma once
 
 #include "node_port.hpp"
+#include "nodeflux/core/geometry_container.hpp"
 #include <Eigen/Dense>
 #include <chrono>
 #include <memory>
@@ -45,21 +46,21 @@ public:
   struct ParameterDefinition {
     enum class Type { Float, Int, Bool, String, Vector3 };
 
-    std::string name;                  // Internal identifier
-    std::string label;                 // UI display name
-    std::string category;              // UI grouping (optional)
-    Type type;                         // Data type
-    ParameterValue default_value;      // Default value
+    std::string name;             // Internal identifier
+    std::string label;            // UI display name
+    std::string category;         // UI grouping (optional)
+    Type type;                    // Data type
+    ParameterValue default_value; // Default value
 
     // UI hints
     double float_min = 0.0;
     double float_max = 100.0;
     int int_min = 0;
     int int_max = 100;
-    std::vector<std::string> options;  // For combo boxes (int type)
+    std::vector<std::string> options; // For combo boxes (int type)
 
-    ParameterDefinition(const std::string& n, Type t, ParameterValue def)
-      : name(n), label(n), type(t), default_value(def) {}
+    ParameterDefinition(const std::string &n, Type t, ParameterValue def)
+        : name(n), label(n), type(t), default_value(def) {}
   };
 
   /**
@@ -69,29 +70,29 @@ public:
   public:
     ParameterBuilder(ParameterDefinition def) : def_(std::move(def)) {}
 
-    ParameterBuilder& label(const std::string& lbl) {
+    ParameterBuilder &label(const std::string &lbl) {
       def_.label = lbl;
       return *this;
     }
 
-    ParameterBuilder& category(const std::string& cat) {
+    ParameterBuilder &category(const std::string &cat) {
       def_.category = cat;
       return *this;
     }
 
-    ParameterBuilder& range(double min, double max) {
+    ParameterBuilder &range(double min, double max) {
       def_.float_min = min;
       def_.float_max = max;
       return *this;
     }
 
-    ParameterBuilder& range(int min, int max) {
+    ParameterBuilder &range(int min, int max) {
       def_.int_min = min;
       def_.int_max = max;
       return *this;
     }
 
-    ParameterBuilder& options(const std::vector<std::string>& opts) {
+    ParameterBuilder &options(const std::vector<std::string> &opts) {
       def_.options = opts;
       def_.int_min = 0;
       def_.int_max = static_cast<int>(opts.size()) - 1;
@@ -221,16 +222,14 @@ public:
   /**
    * @brief Get all parameter definitions (schema)
    */
-  const std::vector<ParameterDefinition>& get_parameter_definitions() const {
+  const std::vector<ParameterDefinition> &get_parameter_definitions() const {
     return parameter_definitions_;
   }
 
   /**
    * @brief Get parameter map (current values)
    */
-  const ParameterMap& get_parameters() const {
-    return parameters_;
-  }
+  const ParameterMap &get_parameters() const { return parameters_; }
 
   /**
    * @brief Mark node as dirty (needs recomputation)
@@ -252,7 +251,7 @@ public:
    * This is the main execution entry point. It handles caching,
    * dependency resolution, and error handling.
    */
-  std::shared_ptr<GeometryData> cook() {
+  std::shared_ptr<core::GeometryContainer> cook() {
     // Return cached result if clean
     if (state_ == ExecutionState::CLEAN && main_output_->is_cache_valid()) {
       return main_output_->get_data();
@@ -308,8 +307,9 @@ protected:
    * @brief Pure virtual function for node-specific computation
    *
    * Derived classes must implement this to define their behavior.
+   * @return GeometryContainer with topology and attributes
    */
-  virtual std::shared_ptr<GeometryData> execute() = 0;
+  virtual std::shared_ptr<core::GeometryContainer> execute() = 0;
 
   /**
    * @brief Set error message
@@ -322,39 +322,47 @@ protected:
   /**
    * @brief Define a float parameter with fluent builder API
    */
-  ParameterBuilder define_float_parameter(const std::string& name, float default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Float, default_value);
+  ParameterBuilder define_float_parameter(const std::string &name,
+                                          float default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Float,
+                            default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define an int parameter with fluent builder API
    */
-  ParameterBuilder define_int_parameter(const std::string& name, int default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Int, default_value);
+  ParameterBuilder define_int_parameter(const std::string &name,
+                                        int default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Int,
+                            default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define a bool parameter with fluent builder API
    */
-  ParameterBuilder define_bool_parameter(const std::string& name, bool default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Bool, default_value);
+  ParameterBuilder define_bool_parameter(const std::string &name,
+                                         bool default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Bool,
+                            default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define a string parameter with fluent builder API
    */
-  ParameterBuilder define_string_parameter(const std::string& name, const std::string& default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::String, default_value);
+  ParameterBuilder define_string_parameter(const std::string &name,
+                                           const std::string &default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::String,
+                            default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Register a parameter definition and initialize its value
    */
-  void register_parameter(const ParameterDefinition& def) {
+  void register_parameter(const ParameterDefinition &def) {
     parameter_definitions_.push_back(def);
     parameters_[def.name] = def.default_value;
   }
@@ -362,7 +370,7 @@ protected:
   /**
    * @brief Get input data from a specific input port
    */
-  std::shared_ptr<GeometryData>
+  std::shared_ptr<core::GeometryContainer>
   get_input_data(const std::string &port_name) const {
     auto *port = input_ports_.get_port(port_name);
     return (port != nullptr) ? port->get_data() : nullptr;
@@ -371,7 +379,7 @@ protected:
   /**
    * @brief Get input data from a specific input port by index
    */
-  std::shared_ptr<GeometryData>
+  std::shared_ptr<core::GeometryContainer>
   get_input_data(int port_index) const {
     return get_input_data(std::to_string(port_index));
   }
@@ -382,7 +390,7 @@ protected:
    * @param data Geometry data to set
    */
   void set_input_data(int port_index,
-                      std::shared_ptr<GeometryData> data) {
+                      std::shared_ptr<core::GeometryContainer> data) {
     auto *port = input_ports_.get_port(std::to_string(port_index));
     if (port != nullptr) {
       port->set_data(std::move(data));

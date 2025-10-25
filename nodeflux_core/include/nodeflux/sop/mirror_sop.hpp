@@ -1,9 +1,7 @@
 #pragma once
 
 #include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/mesh.hpp"
 #include "nodeflux/core/types.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
 
 #include <Eigen/Dense>
@@ -39,7 +37,7 @@ public:
    * @brief Construct a new Mirror SOP
    * @param name Node name for debugging
    */
-  explicit MirrorSOP(const std::string& name = "mirror");
+  explicit MirrorSOP(const std::string &name = "mirror");
 
   /**
    * @brief Set the mirror plane
@@ -97,7 +95,7 @@ protected:
   /**
    * @brief Execute the mirror operation (SOPNode override)
    */
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
   /**

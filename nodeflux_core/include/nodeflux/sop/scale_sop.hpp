@@ -35,7 +35,7 @@ public:
   void set_normalize_normals(bool enabled) { normalize_normals_ = enabled; }
 
 protected:
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
   // Scale factors
@@ -46,23 +46,6 @@ private:
   // Options
   bool scale_from_origin_ = true;
   bool normalize_normals_ = true;
-
-  /**
-   * @brief Helper: Convert old GeometryData to GeometryContainer
-   *
-   * This is a temporary bridge until all SOPs use GeometryContainer directly.
-   * Shows how to migrate from the old Mesh-based system.
-   */
-  std::unique_ptr<core::GeometryContainer>
-  convert_to_container(const GeometryData &old_data);
-
-  /**
-   * @brief Helper: Convert GeometryContainer back to old GeometryData
-   *
-   * Temporary bridge for compatibility with existing pipeline.
-   */
-  std::shared_ptr<GeometryData>
-  convert_from_container(const core::GeometryContainer &container);
 };
 
 } // namespace nodeflux::sop

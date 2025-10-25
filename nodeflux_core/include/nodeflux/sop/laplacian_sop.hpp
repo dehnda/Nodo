@@ -2,13 +2,11 @@
 
 #include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/mesh.hpp"
-#include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <memory>
 #include <string>
-
 
 namespace nodeflux::sop {
 
@@ -110,7 +108,7 @@ protected:
   /**
    * @brief Execute the smoothing operation (SOPNode override)
    */
-  std::shared_ptr<GeometryData> execute() override;
+  std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
   /// Apply uniform Laplacian smoothing
