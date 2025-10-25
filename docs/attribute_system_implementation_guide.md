@@ -1808,144 +1808,255 @@ TEST(AttributeSystemIntegrationTest, PerformanceComparison) {
 
 ## Week 5: GeometryData Integration
 
-### Task 5.1: Enhance GeometryData
+### Task 5.1: Replace GeometryData with GeometryContainer
 
-**File**: `nodeflux_core/include/nodeflux/sop/geometry_data.hpp` (MODIFY)
+**Strategy**: Direct migration - replace old GeometryData entirely with GeometryContainer
 
-**Changes**:
+**File**: `nodeflux_core/include/nodeflux/sop/geometry_data.hpp` (REPLACE)
+
+**New Implementation**:
 
 ```cpp
+#pragma once
+
+#include "nodeflux/core/geometry_container.hpp"
+#include "nodeflux/core/mesh.hpp"
+#include <memory>
+
+namespace nodeflux::sop {
+
+/**
+ * @brief Unified container for all geometry data types in the SOP system
+ *
+ * This is now a thin wrapper around GeometryContainer, providing
+ * backward-compatible API while using the new attribute system internally.
+ */
 class GeometryData {
 private:
     Type type_ = Type::EMPTY;
-    std::shared_ptr<core::Mesh> mesh_data_;
-
-    // NEW: Use GeometryAttributes
-    core::GeometryAttributes attributes_;
-
-    // OLD: Keep for backward compatibility (temporary)
-    AttributeMap vertex_attributes_;
-    AttributeMap face_attributes_;
-    AttributeMap global_attributes_;
-    bool use_new_system_ = false;  // Feature flag
+    std::shared_ptr<core::Mesh> mesh_data_;  // Keep for mesh operations
+    core::GeometryContainer container_;      // NEW: The actual geometry storage
 
 public:
-    // NEW: Enable new attribute system
-    void enable_new_attributes() { use_new_system_ = true; }
-    bool using_new_attributes() const { return use_new_system_; }
+    enum class Type { MESH, POINT_CLOUD, CURVE, EMPTY };
 
-    // NEW: Access to GeometryAttributes
-    core::GeometryAttributes& attributes() { return attributes_; }
-    const core::GeometryAttributes& attributes() const { return attributes_; }
+    GeometryData() = default;
 
-    // NEW: Modern API
-    template<typename T>
-    std::span<T> get_attribute(const std::string& name, core::ElementClass cls) {
-        if (!use_new_system_) {
-            throw std::runtime_error("New attribute system not enabled");
+    /**
+     * @brief Create GeometryData from a mesh
+     */
+    explicit GeometryData(std::shared_ptr<core::Mesh> mesh)
+        : type_(Type::MESH), mesh_data_(std::move(mesh)) {
+        // Sync mesh to container
+        sync_mesh_to_container();
+    }
+
+    /**
+     * @brief Get the geometry type
+     */
+    Type get_type() const { return type_; }
+
+    /**
+     * @brief Check if geometry data is empty
+     */
+    bool is_empty() const { return type_ == Type::EMPTY; }
+
+    /**
+     * @brief Get the mesh data (if type is MESH)
+     */
+    std::shared_ptr<core::Mesh> get_mesh() const { return mesh_data_; }
+
+    /**
+     * @brief Set mesh data
+     */
+    void set_mesh(std::shared_ptr<core::Mesh> mesh) {
+        mesh_data_ = std::move(mesh);
+        type_ = Type::MESH;
+        sync_mesh_to_container();
+    }
+
+    /**
+     * @brief Direct access to geometry container (NEW API)
+     */
+    core::GeometryContainer& container() { return container_; }
+    const core::GeometryContainer& container() const { return container_; }
+
+    /**
+     * @brief Get vertex count
+     */
+    int get_vertex_count() const {
+        return static_cast<int>(container_.point_count());
+    }
+
+    /**
+     * @brief Get face count
+     */
+    int get_face_count() const {
+        return static_cast<int>(container_.primitive_count());
+    }
+
+    /**
+     * @brief Clone geometry data
+     */
+    std::shared_ptr<GeometryData> clone() const {
+        auto cloned = std::make_shared<GeometryData>();
+        cloned->type_ = type_;
+        if (mesh_data_) {
+            cloned->mesh_data_ = std::make_shared<core::Mesh>(*mesh_data_);
         }
-        return attributes_.get_attribute_view<T>(name, cls);
+        cloned->container_ = container_.clone();
+        return cloned;
     }
 
-    // NEW: Standard attribute shortcuts
-    std::span<Vector3> get_positions() {
-        return attributes_.get_positions();
-    }
+private:
+    /**
+     * @brief Sync mesh vertices to container position attribute
+     */
+    void sync_mesh_to_container() {
+        if (!mesh_data_) return;
 
-    std::span<Vector3> get_normals() {
-        return attributes_.get_normals();
-    }
+        const auto& vertices = mesh_data_->vertices();
+        const auto& faces = mesh_data_->faces();
 
-    // OLD API: Keep working for backward compatibility
-    std::optional<AttributeArray> get_vertex_attribute(const std::string& name) const {
-        // Delegate to old storage if new system not enabled
-        if (!use_new_system_) {
-            auto it = vertex_attributes_.find(name);
-            return it != vertex_attributes_.end()
-                ? std::make_optional(it->second)
-                : std::nullopt;
+        // Set topology
+        container_.set_point_count(vertices.rows());
+        container_.set_vertex_count(vertices.rows());  // 1:1 for simple meshes
+
+        // Add faces
+        for (int i = 0; i < faces.rows(); ++i) {
+            std::vector<int> face_verts = {
+                faces(i, 0), faces(i, 1), faces(i, 2)
+            };
+            container_.add_polygon(face_verts);
         }
 
-        // TODO: Sync from new system to old format
-        return std::nullopt;
+        // Initialize position attribute
+        if (!container_.has_point_attribute(core::standard_attrs::P)) {
+            container_.add_point_attribute(core::standard_attrs::P,
+                                          core::AttributeType::VEC3F);
+        }
+
+        // Copy positions
+        auto* positions = container_.get_point_attribute_typed<core::Vec3f>(
+            core::standard_attrs::P);
+        for (int i = 0; i < vertices.rows(); ++i) {
+            (*positions)[i] = core::Vec3f(
+                vertices(i, 0), vertices(i, 1), vertices(i, 2));
+        }
     }
 
-    // ... keep all old methods working
+    /**
+     * @brief Sync container positions back to mesh
+     */
+    void sync_container_to_mesh() {
+        if (!mesh_data_) return;
+        if (!container_.has_point_attribute(core::standard_attrs::P)) return;
+
+        auto* positions = container_.get_point_attribute_typed<core::Vec3f>(
+            core::standard_attrs::P);
+
+        auto& vertices = mesh_data_->vertices();
+        for (size_t i = 0; i < positions->size(); ++i) {
+            const auto& pos = (*positions)[i];
+            vertices(i, 0) = pos.x();
+            vertices(i, 1) = pos.y();
+            vertices(i, 2) = pos.z();
+        }
+    }
 };
+
+} // namespace nodeflux::sop
 ```
 
 **Success Criteria**:
-- ✅ GeometryData has both old and new systems
-- ✅ Feature flag to switch between them
-- ✅ Old API still works
-- ✅ New API accessible when enabled
+- ✅ GeometryData uses GeometryContainer internally
+- ✅ Mesh synchronization works both ways
+- ✅ Clean API without feature flags
+- ✅ Direct migration path
 
-**Time estimate**: 3 days
+**Time estimate**: 2 days
 
 ---
 
 ### Task 5.2: SOP Migration Utilities
 
-**File**: `nodeflux_core/include/nodeflux/sop/attribute_migration_utils.hpp`
+**File**: `nodeflux_core/include/nodeflux/sop/sop_utils.hpp` (NEW)
 
-**Helper functions**:
+**Helper functions for SOP migration**:
 
 ```cpp
+#pragma once
+
+#include "nodeflux/core/geometry_container.hpp"
+#include "nodeflux/sop/geometry_data.hpp"
+
 namespace nodeflux::sop {
 
 /**
- * @brief Initialize standard attributes for a mesh
+ * @brief Initialize standard mesh attributes
  */
-inline void initialize_standard_mesh_attributes(GeometryData* geo, size_t vertex_count) {
-    auto& attrs = geo->attributes();
+inline void ensure_standard_attributes(GeometryData* geo) {
+    auto& container = geo->container();
 
-    // Set topology
-    attrs.topology().set_point_count(vertex_count);
-    attrs.topology().set_vertex_count(vertex_count);  // 1:1 initially
-
-    // Add standard position attribute
-    attrs.add_attribute<Vector3>(
-        core::StandardAttributes::POSITION,
-        core::ElementClass::POINT
-    );
-}
-
-/**
- * @brief Copy mesh vertices to position attribute
- */
-inline void sync_mesh_to_attributes(GeometryData* geo) {
-    auto mesh = geo->get_mesh();
-    if (!mesh) return;
-
-    auto positions = geo->get_positions();
-    const auto& vertices = mesh->vertices();
-
-    for (int i = 0; i < vertices.rows(); ++i) {
-        positions[i] = vertices.row(i).transpose();
+    // Ensure position attribute exists
+    if (!container.has_point_attribute(core::standard_attrs::P)) {
+        container.add_point_attribute(core::standard_attrs::P,
+                                      core::AttributeType::VEC3F);
     }
 }
 
 /**
- * @brief Copy position attribute back to mesh
+ * @brief Get positions as span for fast iteration
  */
-inline void sync_attributes_to_mesh(GeometryData* geo) {
-    auto mesh = geo->get_mesh();
-    if (!mesh) return;
-
-    auto positions = geo->get_positions();
-    auto& vertices = mesh->vertices();
-
-    for (int i = 0; i < vertices.rows(); ++i) {
-        vertices.row(i) = positions[i].transpose();
+inline std::span<core::Vec3f> get_positions(GeometryData* geo) {
+    auto& container = geo->container();
+    auto* positions = container.get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::P);
+    if (!positions) {
+        throw std::runtime_error("Position attribute 'P' not found");
     }
+    return std::span<core::Vec3f>(positions->data(), positions->size());
+}
+
+/**
+ * @brief Get normals as span (creates if doesn't exist)
+ */
+inline std::span<core::Vec3f> get_or_create_normals(GeometryData* geo) {
+    auto& container = geo->container();
+
+    if (!container.has_point_attribute(core::standard_attrs::N)) {
+        container.add_point_attribute(core::standard_attrs::N,
+                                      core::AttributeType::VEC3F);
+    }
+
+    auto* normals = container.get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::N);
+    return std::span<core::Vec3f>(normals->data(), normals->size());
+}
+
+/**
+ * @brief Get colors as span (creates if doesn't exist)
+ */
+inline std::span<core::Vec3f> get_or_create_colors(GeometryData* geo) {
+    auto& container = geo->container();
+
+    if (!container.has_point_attribute(core::standard_attrs::Cd)) {
+        container.add_point_attribute(core::standard_attrs::Cd,
+                                      core::AttributeType::VEC3F);
+    }
+
+    auto* colors = container.get_point_attribute_typed<core::Vec3f>(
+        core::standard_attrs::Cd);
+    return std::span<core::Vec3f>(colors->data(), colors->size());
 }
 
 } // namespace nodeflux::sop
 ```
 
 **Success Criteria**:
-- ✅ Utilities make migration easier
-- ✅ Can sync between mesh and attributes
+- ✅ Helper functions simplify SOP migration
+- ✅ Standard attribute access is easy
+- ✅ Auto-creation of common attributes
 
 **Time estimate**: 1 day
 
@@ -1995,35 +2106,27 @@ std::shared_ptr<GeometryData> TransformSOP::execute() {
     auto input = get_input_data(0);
     auto output = std::make_shared<GeometryData>(*input);
 
-    // Enable new attribute system
-    output->enable_new_attributes();
-
-    // Initialize if needed
-    if (!output->attributes().has_attribute(StandardAttributes::POSITION, ElementClass::POINT)) {
-        initialize_standard_mesh_attributes(output.get(), output->get_vertex_count());
-        sync_mesh_to_attributes(output.get());
-    }
+    // Use new container API directly
+    auto positions = sop::get_positions(output.get());
 
     // Transform using standard "P" attribute
-    auto positions = output->get_positions();
-    for (Vector3& pos : positions) {
-        pos += translation_;
+    for (auto& pos : positions) {
+        pos.x() += translation_.x();
+        pos.y() += translation_.y();
+        pos.z() += translation_.z();
     }
-
-    // Sync back to mesh (temporary, until mesh is removed)
-    sync_attributes_to_mesh(output.get());
 
     return output;
 }
 ```
 
 **Per-SOP Checklist**:
-- [ ] Enable new attribute system
-- [ ] Replace attribute access with standard names
-- [ ] Use typed views instead of variants
+- [ ] Use GeometryContainer API via GeometryData::container()
+- [ ] Replace mesh vertex access with position attributes
+- [ ] Use typed spans instead of variants
+- [ ] Use helper functions from sop_utils.hpp
 - [ ] Update tests
 - [ ] Verify output matches old behavior
-- [ ] Document changes
 
 **Time estimate per SOP**: 0.5-1 day (4-5 SOPs per week)
 
