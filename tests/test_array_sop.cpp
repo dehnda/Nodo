@@ -23,9 +23,11 @@ TEST_F(ArraySOPTest, LinearArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_array");
 
   // Configure linear array
-  array_node->set_array_type(sop::ArraySOP::ArrayType::LINEAR);
-  array_node->set_count(5);
-  array_node->set_linear_offset({1.0F, 0.0F, 0.0F});
+  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("count", 5);
+  array_node->set_parameter("linear_offset_x", 1.0F);
+  array_node->set_parameter("linear_offset_y", 0.0F);
+  array_node->set_parameter("linear_offset_z", 0.0F);
 
   // Connect input (simulate node connection)
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -52,10 +54,10 @@ TEST_F(ArraySOPTest, RadialArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_radial");
 
   // Configure radial array
-  array_node->set_array_type(sop::ArraySOP::ArrayType::RADIAL);
-  array_node->set_count(8);
-  array_node->set_radial_radius(2.0F);
-  array_node->set_angle_step(45.0F);  // 360/8 = 45 degrees
+  array_node->set_parameter("array_type", 1);  // RADIAL = 1
+  array_node->set_parameter("count", 8);
+  array_node->set_parameter("radial_radius", 2.0F);
+  array_node->set_parameter("angle_step", 45.0F);  // 360/8 = 45 degrees
 
   // Connect input
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -79,9 +81,11 @@ TEST_F(ArraySOPTest, GridArrayCreation) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_grid");
 
   // Configure grid array
-  array_node->set_array_type(sop::ArraySOP::ArrayType::GRID);
-  array_node->set_grid_size(3, 4);  // 3x4 grid = 12 copies
-  array_node->set_grid_spacing(1.5F, 2.0F);
+  array_node->set_parameter("array_type", 2);  // GRID = 2
+  array_node->set_parameter("grid_width", 3);
+  array_node->set_parameter("grid_height", 4);  // 3x4 grid = 12 copies
+  array_node->set_parameter("grid_spacing_x", 1.5F);
+  array_node->set_parameter("grid_spacing_y", 2.0F);
 
   // Connect input
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -105,9 +109,11 @@ TEST_F(ArraySOPTest, InstanceAttributesPresent) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_attrs");
 
   // Configure array
-  array_node->set_array_type(sop::ArraySOP::ArrayType::LINEAR);
-  array_node->set_count(3);
-  array_node->set_linear_offset({1.0F, 0.0F, 0.0F});
+  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("count", 3);
+  array_node->set_parameter("linear_offset_x", 1.0F);
+  array_node->set_parameter("linear_offset_y", 0.0F);
+  array_node->set_parameter("linear_offset_z", 0.0F);
 
   // Connect input
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -140,9 +146,11 @@ TEST_F(ArraySOPTest, InstanceIDsAreCorrect) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_id_values");
 
   // Configure simple array with 3 copies
-  array_node->set_array_type(sop::ArraySOP::ArrayType::LINEAR);
-  array_node->set_count(3);
-  array_node->set_linear_offset({1.0F, 0.0F, 0.0F});
+  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("count", 3);
+  array_node->set_parameter("linear_offset_x", 1.0F);
+  array_node->set_parameter("linear_offset_y", 0.0F);
+  array_node->set_parameter("linear_offset_z", 0.0F);
 
   // Connect input
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -178,9 +186,11 @@ TEST_F(ArraySOPTest, CachingWorks) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_cache");
 
   // Configure array
-  array_node->set_array_type(sop::ArraySOP::ArrayType::LINEAR);
-  array_node->set_count(2);
-  array_node->set_linear_offset({1.0F, 0.0F, 0.0F});
+  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("count", 2);
+  array_node->set_parameter("linear_offset_x", 1.0F);
+  array_node->set_parameter("linear_offset_y", 0.0F);
+  array_node->set_parameter("linear_offset_z", 0.0F);
 
   // Connect input
   auto input_port = array_node->get_input_ports().get_port("mesh");
@@ -207,8 +217,8 @@ TEST_F(ArraySOPTest, MarkDirtyInvalidatesCache) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_dirty");
 
   // Configure and execute
-  array_node->set_array_type(sop::ArraySOP::ArrayType::LINEAR);
-  array_node->set_count(2);
+  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("count", 2);
 
   auto input_port = array_node->get_input_ports().get_port("mesh");
   input_port->set_data(input_geometry_);
@@ -218,7 +228,7 @@ TEST_F(ArraySOPTest, MarkDirtyInvalidatesCache) {
   EXPECT_EQ(array_node->get_state(), sop::SOPNode::ExecutionState::CLEAN);
 
   // Change parameter - should mark dirty
-  array_node->set_count(3);
+  array_node->set_parameter("count", 3);
   EXPECT_EQ(array_node->get_state(), sop::SOPNode::ExecutionState::DIRTY);
 
   // Cook again - should recalculate
@@ -233,8 +243,8 @@ TEST_F(ArraySOPTest, NoInputReturnsError) {
   auto array_node = std::make_shared<sop::ArraySOP>("test_no_input");
 
   // Configure but don't connect input
-  array_node->set_array_type(sop::ArraySOP::ArrayType::LINEAR);
-  array_node->set_count(2);
+  array_node->set_parameter("array_type", 0);  // LINEAR = 0
+  array_node->set_parameter("count", 2);
 
   // Execute without input
   auto result = array_node->cook();
