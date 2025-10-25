@@ -160,25 +160,28 @@ public:
 
   /**
    * @brief Get element by index (read-only)
+   * Inline for maximum performance in tight loops
    */
-  const T &operator[](size_t index) const { return data_[index]; }
+  inline const T &operator[](size_t index) const { return data_[index]; }
 
   /**
    * @brief Get element by index (writable)
+   * Inline for maximum performance in tight loops
    */
-  T &operator[](size_t index) { return data_[index]; }
+  inline T &operator[](size_t index) { return data_[index]; }
 
   /**
    * @brief Get element with bounds checking
    */
-  const T &at(size_t index) const { return data_.at(index); }
-  T &at(size_t index) { return data_.at(index); }
+  inline const T &at(size_t index) const { return data_.at(index); }
+  inline T &at(size_t index) { return data_.at(index); }
 
   /**
    * @brief Get all values as a span (zero-cost view)
+   * Inline for zero overhead
    */
-  std::span<const T> values() const { return data_; }
-  std::span<T> values_writable() { return data_; }
+  inline std::span<const T> values() const { return data_; }
+  inline std::span<T> values_writable() { return data_; }
 
   /**
    * @brief Set value at index
@@ -216,8 +219,7 @@ private:
 };
 
 // Specialization for string (slightly different default handling)
-template <>
-class AttributeStorage<std::string> : public IAttributeStorage {
+template <> class AttributeStorage<std::string> : public IAttributeStorage {
 public:
   explicit AttributeStorage(AttributeDescriptor desc)
       : descriptor_(std::move(desc)) {}

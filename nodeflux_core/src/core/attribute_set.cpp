@@ -29,7 +29,7 @@ void AttributeSet::clear_all() {
 }
 
 bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
-                                  InterpolationMode interpolation) {
+                                 InterpolationMode interpolation) {
   std::string name_str(name);
 
   // Check if already exists
@@ -109,22 +109,17 @@ std::vector<std::string> AttributeSet::attribute_names() const {
 }
 
 IAttributeStorage *AttributeSet::get_storage(std::string_view name) {
+  // Fast path: inline string conversion for hot path
   std::string name_str(name);
-  auto it = attributes_.find(name_str);
-  if (it == attributes_.end()) {
-    return nullptr;
-  }
-  return it->second.get();
+  auto iter = attributes_.find(name_str);
+  return (iter != attributes_.end()) ? iter->second.get() : nullptr;
 }
 
 const IAttributeStorage *
 AttributeSet::get_storage(std::string_view name) const {
   std::string name_str(name);
-  auto it = attributes_.find(name_str);
-  if (it == attributes_.end()) {
-    return nullptr;
-  }
-  return it->second.get();
+  auto iter = attributes_.find(name_str);
+  return (iter != attributes_.end()) ? iter->second.get() : nullptr;
 }
 
 AttributeSet AttributeSet::clone() const {

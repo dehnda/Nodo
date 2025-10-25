@@ -17,8 +17,8 @@ namespace nodeflux::core {
  *
  * Architecture:
  * - ElementTopology: Point/Vertex/Primitive structure (who connects to whom)
- * - AttributeSet per element class: Typed attribute storage (positions, normals,
- * etc.)
+ * - AttributeSet per element class: Typed attribute storage (positions,
+ * normals, etc.)
  *
  * Standard workflow:
  * 1. Create topology (set_point_count, set_vertex_count, add_primitives)
@@ -97,9 +97,9 @@ public:
   // Attribute Management - Point Attributes
   // ============================================================================
 
-  bool add_point_attribute(std::string_view name, AttributeType type,
-                           InterpolationMode interpolation =
-                               InterpolationMode::LINEAR) {
+  bool add_point_attribute(
+      std::string_view name, AttributeType type,
+      InterpolationMode interpolation = InterpolationMode::LINEAR) {
     return point_attrs_.add_attribute(name, type, interpolation);
   }
 
@@ -134,9 +134,9 @@ public:
   // Attribute Management - Vertex Attributes
   // ============================================================================
 
-  bool add_vertex_attribute(std::string_view name, AttributeType type,
-                            InterpolationMode interpolation =
-                                InterpolationMode::LINEAR) {
+  bool add_vertex_attribute(
+      std::string_view name, AttributeType type,
+      InterpolationMode interpolation = InterpolationMode::LINEAR) {
     return vertex_attrs_.add_attribute(name, type, interpolation);
   }
 
@@ -171,9 +171,9 @@ public:
   // Attribute Management - Primitive Attributes
   // ============================================================================
 
-  bool add_primitive_attribute(std::string_view name, AttributeType type,
-                                InterpolationMode interpolation =
-                                    InterpolationMode::LINEAR) {
+  bool add_primitive_attribute(
+      std::string_view name, AttributeType type,
+      InterpolationMode interpolation = InterpolationMode::LINEAR) {
     return primitive_attrs_.add_attribute(name, type, interpolation);
   }
 
@@ -209,9 +209,9 @@ public:
   // Attribute Management - Detail (Global) Attributes
   // ============================================================================
 
-  bool add_detail_attribute(std::string_view name, AttributeType type,
-                            InterpolationMode interpolation =
-                                InterpolationMode::LINEAR) {
+  bool add_detail_attribute(
+      std::string_view name, AttributeType type,
+      InterpolationMode interpolation = InterpolationMode::LINEAR) {
     return detail_attrs_.add_attribute(name, type, interpolation);
   }
 
