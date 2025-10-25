@@ -30,8 +30,9 @@ public:
    * @param owner Which element class owns this attribute
    * @param interpolation How to interpolate values
    */
-  AttributeDescriptor(std::string name, AttributeType type, ElementClass owner,
-                      InterpolationMode interpolation = InterpolationMode::LINEAR);
+  AttributeDescriptor(
+      std::string name, AttributeType type, ElementClass owner,
+      InterpolationMode interpolation = InterpolationMode::LINEAR);
 
   // Getters
   const std::string &name() const { return name_; }
@@ -85,8 +86,17 @@ public:
     if (!has_default_ || sizeof(T) != element_size()) {
       return std::nullopt;
     }
+    // Use placement new + copy constructor instead of memcpy for proper object
+    // initialization
     T result;
-    std::memcpy(&result, default_value_.data(), sizeof(T));
+    if constexpr (std::is_trivially_copyable_v<T>) {
+      std::memcpy(&result, default_value_.data(), sizeof(T));
+    } else {
+      // For non-trivially copyable types (like Eigen), use proper copy
+      // construction
+      const T *source = reinterpret_cast<const T *>(default_value_.data());
+      result = *source;
+    }
     return result;
   }
 
@@ -161,13 +171,14 @@ public:
                              ElementClass owner)
       : desc_(std::move(name), type, owner) {}
 
-  AttributeDescriptorBuilder &
-  interpolation(InterpolationMode mode) {
-    desc_ = AttributeDescriptor(desc_.name(), desc_.type(), desc_.owner(), mode);
+  AttributeDescriptorBuilder &interpolation(InterpolationMode mode) {
+    desc_ =
+        AttributeDescriptor(desc_.name(), desc_.type(), desc_.owner(), mode);
     return *this;
   }
 
-  template <typename T> AttributeDescriptorBuilder &default_value(const T &value) {
+  template <typename T>
+  AttributeDescriptorBuilder &default_value(const T &value) {
     desc_.set_default(value);
     return *this;
   }
