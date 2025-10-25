@@ -18,6 +18,7 @@ add_executable(nodeflux_tests
     test_noise_displacement.cpp
     test_element_topology.cpp
     test_attribute_types.cpp
+    test_attribute_storage.cpp
 )
 
 target_link_libraries(nodeflux_tests
