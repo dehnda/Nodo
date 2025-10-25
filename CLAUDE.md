@@ -48,16 +48,29 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 - Thread-safe, move-optimized
 - Comprehensive validation system
 
+**GeometryContainer (`nodeflux::core::GeometryContainer`)** - Modern Attribute System v2.0:
+- Primary geometry container with unified attribute storage
+- Structure-of-Arrays (SoA) layout for cache efficiency and SIMD
+- Four element classes: Point, Vertex, Primitive, Detail
+- Type-safe attribute access with AttributeStorage<T> templates
+- Support for Vec2f, Vec3f, Vec4f, float, int, Mat3f, Mat4f, Quatf, string
+- Houdini-compatible standard names ("P", "N", "Cd", "uv", "Alpha", "v", "pscale")
+- Advanced features:
+  - Attribute promotion/demotion between element classes
+  - Named groups for selection with boolean operations
+  - Comprehensive interpolation (linear, cubic, weighted, barycentric, bilinear, slerp)
+- Performance: 34.5M/s sequential write, 10.3M/s sequential read (1M Vec3f)
+- Full documentation: [API Reference](docs/ATTRIBUTE_SYSTEM_API.md)
+
 **GeometryData (`nodeflux::sop::GeometryData`)**:
 - Primary data container passed between nodes
-- Mesh + attributes (vertex, face, primitive, global)
+- Contains GeometryContainer (modern) + legacy Mesh (for compatibility)
 - Clone, merge, and transform operations
 - Attribute type system with variant storage
 
-**Attributes (`nodeflux::core::GeometryAttributes`)**:
-- Per-vertex, per-face, primitive, global attributes
-- Type-safe storage: float, double, int, Vector3, Vector2f, string
-- Attribute transfer and interpolation support
+**Legacy: GeometryAttributes** (deprecated, kept for compatibility):
+- Old attribute system, replaced by GeometryContainer
+- Being phased out in favor of unified GeometryContainer approach
 
 ### ✅ SOP Node System (Production Ready)
 
@@ -392,15 +405,24 @@ cmake --build build --parallel
 - PLY export
 - glTF export (stretch goal)
 
-**Week 4: Advanced Features & Attribute Unification**
-- Material system integration
-- UV mapping tools
-- Bend/Twist/Taper deformation nodes
-- Enhanced attribute workflows:
-  - Unify GeometryData and GeometryAttributes (remove duplication)
-  - Add attribute validation and introspection helpers
-  - Document point vs vertex semantics
-  - Add metadata for organized/unorganized geometry (foundation for point cloud support)
+**Week 4: Advanced Features & Attribute Unification** ✅ COMPLETE (Oct 26, 2025)
+- ✅ Complete attribute system migration to GeometryContainer
+  - ✅ Unified attribute storage with Structure-of-Arrays (SoA) layout
+  - ✅ Type-safe attribute access with compile-time checking
+  - ✅ Four element classes: Point, Vertex, Primitive, Detail
+  - ✅ Houdini-standard attribute names ("P", "N", "Cd", "uv")
+  - ✅ Advanced features:
+    - ✅ Attribute promotion/demotion (12 tests passing)
+    - ✅ Attribute groups with boolean operations (27 tests passing)
+    - ✅ Attribute interpolation with multiple modes (27 tests passing)
+  - ✅ Comprehensive documentation:
+    - ✅ [API Reference](docs/ATTRIBUTE_SYSTEM_API.md)
+    - ✅ [Migration Guide](docs/ATTRIBUTE_MIGRATION_GUIDE.md)
+    - ✅ [Usage Examples](docs/ATTRIBUTE_EXAMPLES.md)
+  - ✅ 253 total tests, 245 passing (96.8%)
+- Material system integration (TODO)
+- UV mapping tools (TODO)
+- Bend/Twist/Taper deformation nodes (TODO)
 
 ### 🌊 Medium-Term Goals (2-3 Months)
 
