@@ -162,7 +162,13 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
     const size_t total_points = input_pos_span.size() * 2;
     const size_t total_prims = input_topology.primitive_count() * 2;
 
-    output_topology.set_point_count(total_points);
+    output->set_point_count(total_points);
+    output->set_vertex_count(total_points); // 1:1 mapping
+
+    // Set up 1:1 vertex→point mapping
+    for (size_t i = 0; i < total_points; ++i) {
+      output_topology.set_vertex_point(i, static_cast<int>(i));
+    }
 
     // Add original primitives
     for (size_t i = 0; i < input_topology.primitive_count(); ++i) {
@@ -214,7 +220,13 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
 
   } else {
     // Only mirrored version
-    output_topology.set_point_count(mirrored_positions.size());
+    output->set_point_count(mirrored_positions.size());
+    output->set_vertex_count(mirrored_positions.size()); // 1:1 mapping
+
+    // Set up 1:1 vertex→point mapping
+    for (size_t i = 0; i < mirrored_positions.size(); ++i) {
+      output_topology.set_vertex_point(i, static_cast<int>(i));
+    }
 
     // Add mirrored primitives with flipped winding
     for (size_t i = 0; i < input_topology.primitive_count(); ++i) {

@@ -539,12 +539,25 @@ std::shared_ptr<core::Mesh> ExecutionEngine::execute_sop_node(
       const auto &vertices = inputs[i]->vertices();
       const auto &faces = inputs[i]->faces();
 
-      container->topology().set_point_count(vertices.rows());
+      // For simple meshes from Mesh format:
+      // - Points are the unique vertex positions
+      // - Each face references points directly (no split normals/UVs)
+      // - We create a 1:1 vertex-to-point mapping
+      container->set_point_count(vertices.rows());
+      container->set_vertex_count(vertices.rows());
+
+      // Set up vertex→point mapping (1:1 for simple mesh)
+      for (int v = 0; v < vertices.rows(); ++v) {
+        container->topology().set_vertex_point(v, v);
+      }
+
+      // Build primitives with vertex indices (which map 1:1 to point indices)
       for (int f = 0; f < faces.rows(); ++f) {
         std::vector<int> prim_verts = {faces(f, 0), faces(f, 1), faces(f, 2)};
         container->topology().add_primitive(prim_verts);
       }
 
+      // Add positions as point attribute
       container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
       auto *positions =
           container->get_point_attribute_typed<Eigen::Vector3f>(attrs::P);
