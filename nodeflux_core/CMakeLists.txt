@@ -122,3 +122,26 @@ install(TARGETS nodeflux_core
 )
 
 install(DIRECTORY include/ DESTINATION include)
+
+# ============================================================================
+# Benchmarks
+# ============================================================================
+
+# Attribute system benchmark
+add_executable(benchmark_attributes
+    src/benchmarks/benchmark_attributes.cpp
+)
+
+target_link_libraries(benchmark_attributes
+    PRIVATE
+        nodeflux_core
+)
+
+target_compile_features(benchmark_attributes PRIVATE cxx_std_20)
+
+# Compiler warnings for benchmarks
+if(MSVC)
+    target_compile_options(benchmark_attributes PRIVATE /W4)
+else()
+    target_compile_options(benchmark_attributes PRIVATE -Wall -Wextra -Wpedantic)
+endif()
