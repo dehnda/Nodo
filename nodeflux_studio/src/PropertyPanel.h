@@ -67,9 +67,13 @@ private:
                           double max, std::function<void(double)> callback);
   void addBoolParameter(const QString &label, bool value,
                         std::function<void(bool)> callback);
+  void addButtonParameter(const QString &label,
+                          std::function<void()> callback);
   void addStringParameter(const QString &label, const QString &value,
                           std::function<void(const QString &)> callback);
   void addFilePathParameter(const QString &label, const QString &value,
+                            std::function<void(const QString &)> callback);
+  void addFileSaveParameter(const QString &label, const QString &value,
                             std::function<void(const QString &)> callback);
   void addComboParameter(const QString &label, int value,
                          const QStringList &options,

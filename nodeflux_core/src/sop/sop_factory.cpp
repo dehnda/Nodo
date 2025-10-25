@@ -4,6 +4,7 @@
 #include "nodeflux/sop/array_sop.hpp"
 #include "nodeflux/sop/boolean_sop.hpp"
 #include "nodeflux/sop/copy_to_points_sop.hpp"
+#include "nodeflux/sop/export_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
 #include "nodeflux/sop/file_sop.hpp"
 #include "nodeflux/sop/laplacian_sop.hpp"
@@ -66,6 +67,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
   // IO
   case NodeType::File:
     return std::make_shared<FileSOP>(name);
+  case NodeType::Export:
+    return std::make_shared<ExportSOP>(name);
 
   // Generators without SOP classes yet - return nullptr
   // These will need wrapper SOPs created

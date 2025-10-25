@@ -29,6 +29,7 @@ enum class NodeType {
 
   // IO
   File,
+  Export,
 
   // Modifiers
   Extrude,

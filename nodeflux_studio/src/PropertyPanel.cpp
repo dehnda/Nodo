@@ -413,6 +413,42 @@ void PropertyPanel::addBoolParameter(const QString &label, bool value,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
+void PropertyPanel::addButtonParameter(const QString &label,
+                                       std::function<void()> callback) {
+  // Create container widget
+  auto *container = new QWidget(content_widget_);
+  auto *layout = new QVBoxLayout(container);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
+
+  // Button
+  auto *button = new QPushButton(label, container);
+  button->setStyleSheet("QPushButton {"
+                        "  background: rgba(74, 158, 255, 0.15);"
+                        "  border: 1px solid rgba(74, 158, 255, 0.3);"
+                        "  border-radius: 4px;"
+                        "  color: #4a9eff;"
+                        "  padding: 8px 16px;"
+                        "  font-size: 12px;"
+                        "  font-weight: 500;"
+                        "  min-height: 32px;"
+                        "}"
+                        "QPushButton:hover {"
+                        "  background: rgba(74, 158, 255, 0.25);"
+                        "  border-color: rgba(74, 158, 255, 0.5);"
+                        "}"
+                        "QPushButton:pressed {"
+                        "  background: rgba(74, 158, 255, 0.35);"
+                        "}");
+
+  layout->addWidget(button);
+
+  // Connect to callback
+  connect(button, &QPushButton::clicked, [callback]() { callback(); });
+
+  content_layout_->insertWidget(content_layout_->count() - 1, container);
+}
+
 void PropertyPanel::addStringParameter(
     const QString &label, const QString &value,
     std::function<void(const QString &)> callback) {
@@ -522,6 +558,86 @@ void PropertyPanel::addFilePathParameter(
   connect(browse_button, &QPushButton::clicked, [line_edit, callback]() {
     QString file_path = QFileDialog::getOpenFileName(
         nullptr, "Select OBJ File", QString(),
+        "OBJ Files (*.obj);;All Files (*)");
+    if (!file_path.isEmpty()) {
+      line_edit->setText(file_path);
+      callback(file_path);
+    }
+  });
+
+  // Connect line edit to callback when text changes (on Enter or focus loss)
+  connect(line_edit, &QLineEdit::editingFinished,
+          [callback, line_edit]() { callback(line_edit->text()); });
+
+  content_layout_->insertWidget(content_layout_->count() - 1, container);
+}
+
+void PropertyPanel::addFileSaveParameter(
+    const QString &label, const QString &value,
+    std::function<void(const QString &)> callback) {
+  // Create container widget
+  auto *container = new QWidget(content_widget_);
+  auto *layout = new QVBoxLayout(container);
+  layout->setContentsMargins(0, 4, 0, 4);
+  layout->setSpacing(6);
+
+  // Label
+  auto *label_widget = new QLabel(label, container);
+  label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
+                              "font-weight: 500; }");
+  layout->addWidget(label_widget);
+
+  // Horizontal layout for line edit + browse button
+  auto *input_layout = new QHBoxLayout();
+  input_layout->setSpacing(6);
+
+  // Line edit for file path
+  auto *line_edit = new QLineEdit(value, container);
+  line_edit->setStyleSheet("QLineEdit {"
+                           "  background: rgba(255, 255, 255, 0.05);"
+                           "  border: 1px solid rgba(255, 255, 255, 0.1);"
+                           "  border-radius: 4px;"
+                           "  color: #e0e0e0;"
+                           "  padding: 6px 8px;"
+                           "  font-size: 12px;"
+                           "  selection-background-color: #4a9eff;"
+                           "}"
+                           "QLineEdit:focus {"
+                           "  border-color: #4a9eff;"
+                           "  background: rgba(255, 255, 255, 0.08);"
+                           "}"
+                           "QLineEdit:hover {"
+                           "  background: rgba(255, 255, 255, 0.07);"
+                           "  border-color: rgba(255, 255, 255, 0.15);"
+                           "}");
+  input_layout->addWidget(line_edit, 1);
+
+  // Save button
+  auto *save_button = new QPushButton("Save As...", container);
+  save_button->setStyleSheet("QPushButton {"
+                              "  background: rgba(74, 158, 255, 0.15);"
+                              "  border: 1px solid rgba(74, 158, 255, 0.3);"
+                              "  border-radius: 4px;"
+                              "  color: #4a9eff;"
+                              "  padding: 6px 12px;"
+                              "  font-size: 12px;"
+                              "  font-weight: 500;"
+                              "}"
+                              "QPushButton:hover {"
+                              "  background: rgba(74, 158, 255, 0.25);"
+                              "  border-color: rgba(74, 158, 255, 0.5);"
+                              "}"
+                              "QPushButton:pressed {"
+                              "  background: rgba(74, 158, 255, 0.35);"
+                              "}");
+  input_layout->addWidget(save_button);
+
+  layout->addLayout(input_layout);
+
+  // Connect save button to open file save dialog
+  connect(save_button, &QPushButton::clicked, [line_edit, callback]() {
+    QString file_path = QFileDialog::getSaveFileName(
+        nullptr, "Save OBJ File", QString(),
         "OBJ Files (*.obj);;All Files (*)");
     if (!file_path.isEmpty()) {
       line_edit->setText(file_path);
@@ -690,6 +806,12 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
     }
 
     case nodeflux::graph::NodeParameter::Type::Bool: {
+      // Skip export_now parameter for Export nodes (we'll add a button instead)
+      if (node->get_type() == nodeflux::graph::NodeType::Export &&
+          param.name == "export_now") {
+        break;
+      }
+
       addBoolParameter(
           label, param.bool_value, [this, node, param](bool new_value) {
             node->set_parameter(param.name,
@@ -726,16 +848,30 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
     case nodeflux::graph::NodeParameter::Type::String: {
       QString string_value = QString::fromStdString(param.string_value);
 
-      // Use file path widget for file_path parameters
+      // Use file dialogs for file_path parameters
       if (param.name == "file_path") {
-        addFilePathParameter(
-            label, string_value, [this, node, param](const QString &new_value) {
-              node->set_parameter(
-                  param.name,
-                  nodeflux::graph::NodeParameter(
-                      param.name, new_value.toStdString(), param.label));
-              emit parameterChanged();
-            });
+        // Check if this is an Export node (use Save dialog) or File node (use Open dialog)
+        bool is_export_node = (node->get_type() == nodeflux::graph::NodeType::Export);
+
+        if (is_export_node) {
+          addFileSaveParameter(
+              label, string_value, [this, node, param](const QString &new_value) {
+                node->set_parameter(
+                    param.name,
+                    nodeflux::graph::NodeParameter(
+                        param.name, new_value.toStdString(), param.label));
+                emit parameterChanged();
+              });
+        } else {
+          addFilePathParameter(
+              label, string_value, [this, node, param](const QString &new_value) {
+                node->set_parameter(
+                    param.name,
+                    nodeflux::graph::NodeParameter(
+                        param.name, new_value.toStdString(), param.label));
+                emit parameterChanged();
+              });
+        }
       } else {
         addStringParameter(
             label, string_value, [this, node, param](const QString &new_value) {
@@ -749,6 +885,18 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
       break;
     }
     }
+  }
+
+  // Add Export button for Export nodes
+  if (node->get_type() == nodeflux::graph::NodeType::Export) {
+    addSeparator();
+    addButtonParameter("Export Now", [this, node]() {
+      // Trigger export by setting export_now parameter to true
+      node->set_parameter("export_now",
+                          nodeflux::graph::NodeParameter("export_now", true, "Export Now"));
+      // Emit signal to trigger graph update
+      emit parameterChanged();
+    });
   }
 }
 

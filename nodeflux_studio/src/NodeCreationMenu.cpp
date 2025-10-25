@@ -91,8 +91,9 @@ void NodeCreationMenu::populateAllNodes() {
     all_nodes_.append({"Torus", "torus_sop", "Generator", "◯", {"primitive", "torus", "donut"}});
     all_nodes_.append({"Line", "line_sop", "Generator", "─", {"primitive", "line", "curve"}});
 
-    // IO (1 node)
+    // IO (2 nodes)
     all_nodes_.append({"File", "file_sop", "IO", "📁", {"file", "import", "load", "obj"}});
+    all_nodes_.append({"Export", "export_sop", "IO", "💾", {"export", "save", "write", "obj"}});
 
     // Modifiers (5 nodes)
     all_nodes_.append({"Smooth (Laplacian)", "laplacian_sop", "Modifier", "⚙", {"smooth", "laplacian", "relax"}});

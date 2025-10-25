@@ -1433,6 +1433,8 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::Line;
   if (type_id == "file_sop")
     return NodeType::File;
+  if (type_id == "export_sop")
+    return NodeType::Export;
   if (type_id == "laplacian_sop")
     return NodeType::Smooth;
   if (type_id == "subdivision_sop")
