@@ -29,7 +29,47 @@
 #include <cmath>
 #include <numbers>
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::graph {
+
+// Temporary helper to convert GeometryContainer to core::Mesh
+// TODO: Remove this once all execution pipeline migrated to GeometryContainer
+static std::shared_ptr<core::Mesh>
+convert_container_to_mesh(const core::GeometryContainer &container) {
+  // Get positions from container
+  auto *positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (positions == nullptr) {
+    return std::make_shared<core::Mesh>(); // Empty mesh
+  }
+
+  size_t point_count = container.topology().point_count();
+  size_t prim_count = container.topology().primitive_count();
+
+  // Create mesh
+  core::Mesh::Vertices vertices(point_count, 3);
+  core::Mesh::Faces faces(prim_count, 3);
+
+  // Copy positions
+  for (size_t i = 0; i < point_count; ++i) {
+    const auto &pos = (*positions)[i];
+    vertices(i, 0) = pos.x();
+    vertices(i, 1) = pos.y();
+    vertices(i, 2) = pos.z();
+  }
+
+  // Copy face indices
+  for (size_t i = 0; i < prim_count; ++i) {
+    const auto prim_verts = container.topology().get_primitive_vertices(i);
+    if (prim_verts.size() >= 3) {
+      faces(i, 0) = prim_verts[0];
+      faces(i, 1) = prim_verts[1];
+      faces(i, 2) = prim_verts[2];
+    }
+  }
+
+  return std::make_shared<core::Mesh>(vertices, faces);
+}
 
 bool ExecutionEngine::execute_graph(NodeGraph &graph) {
   // Get display node (if set, only execute its dependencies)
@@ -234,11 +274,10 @@ ExecutionEngine::execute_sphere_node(const GraphNode &node) {
 
   if (sphere_result.has_value()) {
     std::cout << "✅ Sphere generated successfully" << std::endl;
-    return std::make_shared<core::Mesh>(sphere_result.value());
-  } else {
-    std::cout << "❌ Sphere generation failed" << std::endl;
+    return convert_container_to_mesh(sphere_result.value());
   }
 
+  std::cout << "❌ Sphere generation failed" << std::endl;
   return nullptr;
 }
 
@@ -256,11 +295,11 @@ ExecutionEngine::execute_box_node(const GraphNode &node) {
   std::cout << "📦 Creating box with width=" << width << ", height=" << height
             << ", depth=" << depth << std::endl;
 
-  auto box_result = geometry::MeshGenerator::box(
+  auto box_container = geometry::MeshGenerator::box(
       Eigen::Vector3d(-width / 2, -height / 2, -depth / 2),
       Eigen::Vector3d(width / 2, height / 2, depth / 2));
 
-  return std::make_shared<core::Mesh>(box_result);
+  return convert_container_to_mesh(box_container);
 }
 
 std::shared_ptr<core::Mesh>
@@ -285,7 +324,7 @@ ExecutionEngine::execute_cylinder_node(const GraphNode &node) {
       static_cast<double>(radius), segments);
 
   if (cylinder_result.has_value()) {
-    return std::make_shared<core::Mesh>(cylinder_result.value());
+    return convert_container_to_mesh(cylinder_result.value());
   }
 
   return nullptr;

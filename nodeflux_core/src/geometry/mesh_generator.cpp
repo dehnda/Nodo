@@ -8,68 +8,111 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::geometry {
 
 // Thread-local storage for error reporting
 thread_local core::Error MeshGenerator::last_error_{
     core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-core::Mesh MeshGenerator::box(const Eigen::Vector3d &min_corner,
-                              const Eigen::Vector3d &max_corner) {
-  // Create vertices for a box (8 vertices)
-  core::Mesh::Vertices vertices(8, 3);
+core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d &min_corner,
+                                           const Eigen::Vector3d &max_corner) {
+  core::GeometryContainer container;
 
-  // Define the 8 corners of the box
-  vertices.row(0) =
-      Eigen::Vector3d(min_corner.x(), min_corner.y(), min_corner.z());
-  vertices.row(1) =
-      Eigen::Vector3d(max_corner.x(), min_corner.y(), min_corner.z());
-  vertices.row(2) =
-      Eigen::Vector3d(max_corner.x(), max_corner.y(), min_corner.z());
-  vertices.row(3) =
-      Eigen::Vector3d(min_corner.x(), max_corner.y(), min_corner.z());
-  vertices.row(4) =
-      Eigen::Vector3d(min_corner.x(), min_corner.y(), max_corner.z());
-  vertices.row(5) =
-      Eigen::Vector3d(max_corner.x(), min_corner.y(), max_corner.z());
-  vertices.row(6) =
-      Eigen::Vector3d(max_corner.x(), max_corner.y(), max_corner.z());
-  vertices.row(7) =
-      Eigen::Vector3d(min_corner.x(), max_corner.y(), max_corner.z());
+  // Set up topology - 8 vertices, 12 triangular faces
+  auto &topology = container.topology();
+  topology.set_point_count(8);
 
-  // Create faces for a box (12 triangular faces, 2 per face of the cube)
-  core::Mesh::Faces faces(12, 3);
+  // Store positions
+  std::vector<core::Vec3f> positions = {
+      {static_cast<float>(min_corner.x()), static_cast<float>(min_corner.y()),
+       static_cast<float>(min_corner.z())}, // 0
+      {static_cast<float>(max_corner.x()), static_cast<float>(min_corner.y()),
+       static_cast<float>(min_corner.z())}, // 1
+      {static_cast<float>(max_corner.x()), static_cast<float>(max_corner.y()),
+       static_cast<float>(min_corner.z())}, // 2
+      {static_cast<float>(min_corner.x()), static_cast<float>(max_corner.y()),
+       static_cast<float>(min_corner.z())}, // 3
+      {static_cast<float>(min_corner.x()), static_cast<float>(min_corner.y()),
+       static_cast<float>(max_corner.z())}, // 4
+      {static_cast<float>(max_corner.x()), static_cast<float>(min_corner.y()),
+       static_cast<float>(max_corner.z())}, // 5
+      {static_cast<float>(max_corner.x()), static_cast<float>(max_corner.y()),
+       static_cast<float>(max_corner.z())}, // 6
+      {static_cast<float>(min_corner.x()), static_cast<float>(max_corner.y()),
+       static_cast<float>(max_corner.z())} // 7
+  };
 
-  // Front face (z = min_corner.z)
-  faces.row(0) = Eigen::Vector3i(0, 1, 2);
-  faces.row(1) = Eigen::Vector3i(0, 2, 3);
+  // Add faces (12 triangles, 2 per cube face)
+  // Front face (z = min)
+  topology.add_primitive({0, 1, 2});
+  topology.add_primitive({0, 2, 3});
+  // Back face (z = max)
+  topology.add_primitive({4, 7, 6});
+  topology.add_primitive({4, 6, 5});
+  // Left face (x = min)
+  topology.add_primitive({0, 3, 7});
+  topology.add_primitive({0, 7, 4});
+  // Right face (x = max)
+  topology.add_primitive({1, 5, 6});
+  topology.add_primitive({1, 6, 2});
+  // Bottom face (y = min)
+  topology.add_primitive({0, 4, 5});
+  topology.add_primitive({0, 5, 1});
+  // Top face (y = max)
+  topology.add_primitive({3, 2, 6});
+  topology.add_primitive({3, 6, 7});
 
-  // Back face (z = max_corner.z)
-  faces.row(2) = Eigen::Vector3i(4, 7, 6);
-  faces.row(3) = Eigen::Vector3i(4, 6, 5);
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
 
-  // Left face (x = min_corner.x)
-  faces.row(4) = Eigen::Vector3i(0, 3, 7);
-  faces.row(5) = Eigen::Vector3i(0, 7, 4);
+  // Add N (normal) attribute - box has face normals, but we'll use per-vertex
+  // averaged normals For a box, corner vertices touch 3 faces, so we average
+  // those face normals
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
 
-  // Right face (x = max_corner.x)
-  faces.row(6) = Eigen::Vector3i(1, 5, 6);
-  faces.row(7) = Eigen::Vector3i(1, 6, 2);
+    // Face normals for a box (6 faces)
+    const core::Vec3f normals[8] = {
+        {-1.0F, -1.0F, -1.0F}, // 0: min corner (front-bottom-left)
+        {1.0F, -1.0F, -1.0F},  // 1: front-bottom-right
+        {1.0F, 1.0F, -1.0F},   // 2: front-top-right
+        {-1.0F, 1.0F, -1.0F},  // 3: front-top-left
+        {-1.0F, -1.0F, 1.0F},  // 4: back-bottom-left
+        {1.0F, -1.0F, 1.0F},   // 5: back-bottom-right
+        {1.0F, 1.0F, 1.0F},    // 6: back-top-right
+        {-1.0F, 1.0F, 1.0F}    // 7: back-top-left
+    };
 
-  // Bottom face (y = min_corner.y)
-  faces.row(8) = Eigen::Vector3i(0, 4, 5);
-  faces.row(9) = Eigen::Vector3i(0, 5, 1);
+    // Normalize and copy
+    for (size_t i = 0; i < 8; ++i) {
+      core::Vec3f normal = normals[i];
+      const float length =
+          std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) +
+                    (normal[2] * normal[2]));
+      if (length > 0.0F) {
+        normal[0] /= length;
+        normal[1] /= length;
+        normal[2] /= length;
+      }
+      n_span[i] = normal;
+    }
+  }
 
-  // Top face (y = max_corner.y)
-  faces.row(10) = Eigen::Vector3i(3, 2, 6);
-  faces.row(11) = Eigen::Vector3i(3, 6, 7);
-
-  return core::Mesh(std::move(vertices), std::move(faces));
+  return container;
 }
 
-std::optional<core::Mesh> MeshGenerator::sphere(const Eigen::Vector3d &center,
-                                                double radius,
-                                                int subdivisions) {
+std::optional<core::GeometryContainer>
+MeshGenerator::sphere(const Eigen::Vector3d &center, double radius,
+                      int subdivisions) {
   if (!validate_sphere_params(radius, subdivisions)) {
     return std::nullopt;
   }
@@ -80,19 +123,30 @@ std::optional<core::Mesh> MeshGenerator::sphere(const Eigen::Vector3d &center,
     return std::nullopt;
   }
 
+  // Get the container
+  auto container = std::move(result.value());
+
   // Translate the sphere to the desired center if needed
   if (center != Eigen::Vector3d::Zero()) {
-    core::Mesh mesh = result.value();
-    for (int i = 0; i < mesh.vertices().rows(); ++i) {
-      mesh.vertices().row(i) += center.transpose();
+    auto *positions =
+        container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+    if (positions != nullptr) {
+      auto p_span = positions->values_writable();
+      const core::Vec3f offset{static_cast<float>(center.x()),
+                               static_cast<float>(center.y()),
+                               static_cast<float>(center.z())};
+      for (size_t i = 0; i < p_span.size(); ++i) {
+        p_span[i][0] += offset[0];
+        p_span[i][1] += offset[1];
+        p_span[i][2] += offset[2];
+      }
     }
-    return mesh;
   }
 
-  return result;
+  return container;
 }
 
-std::optional<core::Mesh>
+std::optional<core::GeometryContainer>
 MeshGenerator::cylinder(const Eigen::Vector3d &bottom_center,
                         const Eigen::Vector3d &top_center, double radius,
                         int segments) {
@@ -106,106 +160,199 @@ MeshGenerator::cylinder(const Eigen::Vector3d &bottom_center,
 
 const core::Error &MeshGenerator::last_error() { return last_error_; }
 
-core::Mesh MeshGenerator::generate_icosphere(const Eigen::Vector3d &center,
-                                             double radius, int subdivisions) {
-  // Simple sphere approximation - create an octahedron and project vertices to
-  // sphere This is a simplified implementation
+core::GeometryContainer
+MeshGenerator::generate_icosphere(const Eigen::Vector3d &center, double radius,
+                                  int subdivisions) {
+  // Simple octahedron approximation projected to sphere
+  // This is a simplified implementation - for real icosphere use
+  // SphereGenerator
 
-  const int num_vertices = 6; // octahedron has 6 vertices
-  const int num_faces = 8;    // octahedron has 8 faces
+  core::GeometryContainer container;
+  auto &topology = container.topology();
 
-  core::Mesh::Vertices vertices(num_vertices, 3);
-  core::Mesh::Faces faces(num_faces, 3);
+  // Octahedron has 6 vertices
+  topology.set_point_count(6);
 
-  // Octahedron vertices
-  vertices.row(0) = center + Eigen::Vector3d(radius, 0, 0);  // +X
-  vertices.row(1) = center + Eigen::Vector3d(-radius, 0, 0); // -X
-  vertices.row(2) = center + Eigen::Vector3d(0, radius, 0);  // +Y
-  vertices.row(3) = center + Eigen::Vector3d(0, -radius, 0); // -Y
-  vertices.row(4) = center + Eigen::Vector3d(0, 0, radius);  // +Z
-  vertices.row(5) = center + Eigen::Vector3d(0, 0, -radius); // -Z
+  // Store positions (octahedron vertices)
+  std::vector<core::Vec3f> positions = {
+      {static_cast<float>(center.x() + radius), static_cast<float>(center.y()),
+       static_cast<float>(center.z())}, // +X
+      {static_cast<float>(center.x() - radius), static_cast<float>(center.y()),
+       static_cast<float>(center.z())}, // -X
+      {static_cast<float>(center.x()), static_cast<float>(center.y() + radius),
+       static_cast<float>(center.z())}, // +Y
+      {static_cast<float>(center.x()), static_cast<float>(center.y() - radius),
+       static_cast<float>(center.z())}, // -Y
+      {static_cast<float>(center.x()), static_cast<float>(center.y()),
+       static_cast<float>(center.z() + radius)}, // +Z
+      {static_cast<float>(center.x()), static_cast<float>(center.y()),
+       static_cast<float>(center.z() - radius)} // -Z
+  };
 
-  // Octahedron faces
-  faces.row(0) = Eigen::Vector3i(0, 2, 4); // +X, +Y, +Z
-  faces.row(1) = Eigen::Vector3i(0, 4, 3); // +X, +Z, -Y
-  faces.row(2) = Eigen::Vector3i(0, 3, 5); // +X, -Y, -Z
-  faces.row(3) = Eigen::Vector3i(0, 5, 2); // +X, -Z, +Y
-  faces.row(4) = Eigen::Vector3i(1, 4, 2); // -X, +Z, +Y
-  faces.row(5) = Eigen::Vector3i(1, 3, 4); // -X, -Y, +Z
-  faces.row(6) = Eigen::Vector3i(1, 5, 3); // -X, -Z, -Y
-  faces.row(7) = Eigen::Vector3i(1, 2, 5); // -X, +Y, -Z
+  // Octahedron faces (8 faces)
+  topology.add_primitive({0, 2, 4}); // +X, +Y, +Z
+  topology.add_primitive({0, 4, 3}); // +X, +Z, -Y
+  topology.add_primitive({0, 3, 5}); // +X, -Y, -Z
+  topology.add_primitive({0, 5, 2}); // +X, -Z, +Y
+  topology.add_primitive({1, 4, 2}); // -X, +Z, +Y
+  topology.add_primitive({1, 3, 4}); // -X, -Y, +Z
+  topology.add_primitive({1, 5, 3}); // -X, -Z, -Y
+  topology.add_primitive({1, 2, 5}); // -X, +Y, -Z
 
-  return core::Mesh(std::move(vertices), std::move(faces));
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
+
+  // Add N (normal) attribute - for octahedron, normals point from center
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+    const core::Vec3f center_vec{static_cast<float>(center.x()),
+                                 static_cast<float>(center.y()),
+                                 static_cast<float>(center.z())};
+
+    for (size_t i = 0; i < positions.size(); ++i) {
+      core::Vec3f normal = {positions[i][0] - center_vec[0],
+                            positions[i][1] - center_vec[1],
+                            positions[i][2] - center_vec[2]};
+      const float length =
+          std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) +
+                    (normal[2] * normal[2]));
+      if (length > 0.0F) {
+        normal[0] /= length;
+        normal[1] /= length;
+        normal[2] /= length;
+      }
+      n_span[i] = normal;
+    }
+  }
+
+  return container;
 }
 
-core::Mesh
+core::GeometryContainer
 MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
                                           const Eigen::Vector3d &top_center,
                                           double radius, int segments) {
-  // Simple cylinder implementation
-  const int num_vertices =
-      segments * 2 + 2;               // bottom ring + top ring + 2 centers
-  const int num_faces = segments * 4; // sides + bottom cap + top cap
+  core::GeometryContainer container;
+  auto &topology = container.topology();
 
-  core::Mesh::Vertices vertices(num_vertices, 3);
-  core::Mesh::Faces faces(num_faces, 3);
+  // Vertices: 2 centers + segments for bottom ring + segments for top ring
+  const int num_vertices = (segments * 2) + 2;
+  topology.set_point_count(num_vertices);
 
-  const Eigen::Vector3d axis = (top_center - bottom_center).normalized();
-  const double height = (top_center - bottom_center).norm();
+  std::vector<core::Vec3f> positions;
+  positions.reserve(num_vertices);
 
-  // Generate vertices
-  int vertex_idx = 0;
+  // Bottom center (index 0)
+  positions.push_back({static_cast<float>(bottom_center.x()),
+                       static_cast<float>(bottom_center.y()),
+                       static_cast<float>(bottom_center.z())});
 
-  // Bottom center
-  vertices.row(vertex_idx++) = bottom_center;
+  // Top center (index 1)
+  positions.push_back({static_cast<float>(top_center.x()),
+                       static_cast<float>(top_center.y()),
+                       static_cast<float>(top_center.z())});
 
-  // Top center
-  vertices.row(vertex_idx++) = top_center;
-
-  // Bottom ring
+  // Bottom ring (indices 2 to 2+segments-1)
   for (int i = 0; i < segments; ++i) {
-    double angle = 2.0 * M_PI * i / segments;
-    Eigen::Vector3d offset(radius * cos(angle), radius * sin(angle), 0);
-    vertices.row(vertex_idx++) = bottom_center + offset;
+    const double angle =
+        2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+    const Eigen::Vector3d offset(radius * std::cos(angle),
+                                 radius * std::sin(angle), 0);
+    const Eigen::Vector3d pos = bottom_center + offset;
+    positions.push_back({static_cast<float>(pos.x()),
+                         static_cast<float>(pos.y()),
+                         static_cast<float>(pos.z())});
   }
 
-  // Top ring
+  // Top ring (indices 2+segments to 2+segments*2-1)
   for (int i = 0; i < segments; ++i) {
-    double angle = 2.0 * M_PI * i / segments;
-    Eigen::Vector3d offset(radius * cos(angle), radius * sin(angle), 0);
-    vertices.row(vertex_idx++) = top_center + offset;
+    const double angle =
+        2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+    const Eigen::Vector3d offset(radius * std::cos(angle),
+                                 radius * std::sin(angle), 0);
+    const Eigen::Vector3d pos = top_center + offset;
+    positions.push_back({static_cast<float>(pos.x()),
+                         static_cast<float>(pos.y()),
+                         static_cast<float>(pos.z())});
   }
 
-  // Generate faces (simplified)
-  int face_idx = 0;
-
+  // Generate faces
   // Bottom cap
   for (int i = 0; i < segments; ++i) {
-    int next = (i + 1) % segments;
-    faces.row(face_idx++) = Eigen::Vector3i(0, 2 + i, 2 + next);
+    const int next = (i + 1) % segments;
+    topology.add_primitive({0, 2 + i, 2 + next});
   }
 
   // Top cap
   for (int i = 0; i < segments; ++i) {
-    int next = (i + 1) % segments;
-    faces.row(face_idx++) =
-        Eigen::Vector3i(1, 2 + segments + next, 2 + segments + i);
+    const int next = (i + 1) % segments;
+    topology.add_primitive({1, 2 + segments + next, 2 + segments + i});
   }
 
-  // Side faces
+  // Side faces (two triangles per segment)
   for (int i = 0; i < segments; ++i) {
-    int next = (i + 1) % segments;
-    int bottom_i = 2 + i;
-    int bottom_next = 2 + next;
-    int top_i = 2 + segments + i;
-    int top_next = 2 + segments + next;
+    const int next = (i + 1) % segments;
+    const int bottom_i = 2 + i;
+    const int bottom_next = 2 + next;
+    const int top_i = 2 + segments + i;
+    const int top_next = 2 + segments + next;
 
-    // Two triangles per side
-    faces.row(face_idx++) = Eigen::Vector3i(bottom_i, top_i, top_next);
-    faces.row(face_idx++) = Eigen::Vector3i(bottom_i, top_next, bottom_next);
+    topology.add_primitive({bottom_i, top_i, top_next});
+    topology.add_primitive({bottom_i, top_next, bottom_next});
   }
 
-  return core::Mesh(std::move(vertices), std::move(faces));
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
+
+  // Add N (normal) attribute
+  // Centers have normals pointing down/up, ring vertices have radial normals
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+
+    const Eigen::Vector3d axis = (top_center - bottom_center).normalized();
+
+    // Bottom center normal (pointing down)
+    n_span[0] = {static_cast<float>(-axis.x()), static_cast<float>(-axis.y()),
+                 static_cast<float>(-axis.z())};
+
+    // Top center normal (pointing up)
+    n_span[1] = {static_cast<float>(axis.x()), static_cast<float>(axis.y()),
+                 static_cast<float>(axis.z())};
+
+    // Bottom ring normals (radial outward)
+    for (int i = 0; i < segments; ++i) {
+      const double angle =
+          2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+      const float nx = static_cast<float>(std::cos(angle));
+      const float ny = static_cast<float>(std::sin(angle));
+      n_span[2 + i] = {nx, ny, 0.0F};
+    }
+
+    // Top ring normals (same radial pattern)
+    for (int i = 0; i < segments; ++i) {
+      const double angle =
+          2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+      const float nx = static_cast<float>(std::cos(angle));
+      const float ny = static_cast<float>(std::sin(angle));
+      n_span[2 + segments + i] = {nx, ny, 0.0F};
+    }
+  }
+
+  return container;
 }
 
 bool MeshGenerator::validate_sphere_params(double radius, int subdivisions) {

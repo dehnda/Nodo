@@ -3,6 +3,8 @@
 #include <map>
 #include <numbers>
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::geometry {
 
 // Thread-local storage for error reporting
@@ -15,9 +17,9 @@ constexpr int DEFAULT_V_SEGMENTS = 16;
 constexpr int DEFAULT_SUBDIVISIONS = 2;
 constexpr int MAX_SUBDIVISIONS = 6;
 
-std::optional<core::Mesh> SphereGenerator::generate_uv_sphere(double radius,
-                                                              int u_segments,
-                                                              int v_segments) {
+std::optional<core::GeometryContainer>
+SphereGenerator::generate_uv_sphere(double radius, int u_segments,
+                                    int v_segments) {
 
   if (radius <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
@@ -33,22 +35,28 @@ std::optional<core::Mesh> SphereGenerator::generate_uv_sphere(double radius,
     return std::nullopt;
   }
 
-  core::Mesh mesh;
-
   // Calculate number of vertices and faces
-  const int num_vertices = (v_segments - 1) * u_segments + 2; // +2 for poles
+  const int num_vertices = ((v_segments - 1) * u_segments) + 2; // +2 for poles
   const int num_faces = 2 * u_segments * (v_segments - 1);
 
-  mesh.vertices().resize(num_vertices, 3);
-  mesh.faces().resize(num_faces, 3);
+  // Create GeometryContainer
+  core::GeometryContainer container;
 
-  // Generate vertices
-  int vertex_index = 0;
+  // Set up topology
+  auto &topology = container.topology();
+  topology.set_point_count(num_vertices);
 
+  // Build primitive vertex lists (3 vertices per triangle)
+  std::vector<std::vector<int>> primitive_vertices;
+  primitive_vertices.reserve(num_faces);
+
+  // Temporary storage for positions and normals (we'll calculate both)
+  std::vector<core::Vec3f> positions;
+  positions.reserve(num_vertices);
+
+  // Generate vertex positions
   // Top pole
-  mesh.vertices()(vertex_index++, 0) = 0.0;
-  mesh.vertices()(vertex_index - 1, 1) = radius;
-  mesh.vertices()(vertex_index - 1, 2) = 0.0;
+  positions.push_back({0.0F, static_cast<float>(radius), 0.0F});
 
   // Middle rings
   for (int ring = 1; ring < v_segments; ++ring) {
@@ -64,66 +72,86 @@ std::optional<core::Mesh> SphereGenerator::generate_uv_sphere(double radius,
       const double coord_x = ring_radius * std::cos(theta);
       const double coord_z = ring_radius * std::sin(theta);
 
-      mesh.vertices()(vertex_index, 0) = coord_x;
-      mesh.vertices()(vertex_index, 1) = coord_y;
-      mesh.vertices()(vertex_index, 2) = coord_z;
-      ++vertex_index;
+      positions.push_back({static_cast<float>(coord_x),
+                           static_cast<float>(coord_y),
+                           static_cast<float>(coord_z)});
     }
   }
 
   // Bottom pole
-  mesh.vertices()(vertex_index, 0) = 0.0;
-  mesh.vertices()(vertex_index, 1) = -radius;
-  mesh.vertices()(vertex_index, 2) = 0.0;
+  positions.push_back({0.0F, static_cast<float>(-radius), 0.0F});
 
   // Generate faces
-  int face_index = 0;
-
   // Top cap faces
   for (int segment = 0; segment < u_segments; ++segment) {
     const int next_segment = (segment + 1) % u_segments;
-    mesh.faces()(face_index, 0) = 0; // Top pole
-    mesh.faces()(face_index, 1) = 1 + segment;
-    mesh.faces()(face_index, 2) = 1 + next_segment;
-    ++face_index;
+    primitive_vertices.push_back({0, 1 + segment, 1 + next_segment});
   }
 
   // Middle faces
   for (int ring = 0; ring < v_segments - 2; ++ring) {
     for (int segment = 0; segment < u_segments; ++segment) {
       const int next_segment = (segment + 1) % u_segments;
-      const int current_ring = 1 + ring * u_segments;
-      const int next_ring = 1 + (ring + 1) * u_segments;
+      const int current_ring = 1 + (ring * u_segments);
+      const int next_ring = 1 + ((ring + 1) * u_segments);
 
       // First triangle
-      mesh.faces()(face_index, 0) = current_ring + segment;
-      mesh.faces()(face_index, 1) = next_ring + segment;
-      mesh.faces()(face_index, 2) = current_ring + next_segment;
-      ++face_index;
+      primitive_vertices.push_back({current_ring + segment, next_ring + segment,
+                                    current_ring + next_segment});
 
       // Second triangle
-      mesh.faces()(face_index, 0) = current_ring + next_segment;
-      mesh.faces()(face_index, 1) = next_ring + segment;
-      mesh.faces()(face_index, 2) = next_ring + next_segment;
-      ++face_index;
+      primitive_vertices.push_back({current_ring + next_segment,
+                                    next_ring + segment,
+                                    next_ring + next_segment});
     }
   }
 
   // Bottom cap faces
   const int bottom_pole = num_vertices - 1;
-  const int last_ring = 1 + (v_segments - 2) * u_segments;
+  const int last_ring = 1 + ((v_segments - 2) * u_segments);
   for (int segment = 0; segment < u_segments; ++segment) {
     const int next_segment = (segment + 1) % u_segments;
-    mesh.faces()(face_index, 0) = bottom_pole; // Bottom pole
-    mesh.faces()(face_index, 1) = last_ring + next_segment;
-    mesh.faces()(face_index, 2) = last_ring + segment;
-    ++face_index;
+    primitive_vertices.push_back(
+        {bottom_pole, last_ring + next_segment, last_ring + segment});
   }
 
-  return mesh;
+  // Set topology primitives
+  for (const auto &prim_verts : primitive_vertices) {
+    topology.add_primitive(prim_verts);
+  }
+
+  // Create P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
+
+  // Create N (normal) attribute - for spheres, normals point from center
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+    for (size_t i = 0; i < positions.size(); ++i) {
+      // Normalize position to get normal (sphere centered at origin)
+      core::Vec3f normal = positions[i];
+      const float length =
+          std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) +
+                    (normal[2] * normal[2]));
+      if (length > 0.0F) {
+        normal[0] /= length;
+        normal[1] /= length;
+        normal[2] /= length;
+      }
+      n_span[i] = normal;
+    }
+  }
+
+  return container;
 }
 
-std::optional<core::Mesh>
+std::optional<core::GeometryContainer>
 SphereGenerator::generate_icosphere(double radius, int subdivisions) {
 
   if (radius <= 0.0) {
@@ -215,25 +243,43 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
     faces = std::move(new_faces);
   }
 
-  // Scale to desired radius and convert to mesh
-  core::Mesh mesh;
-  mesh.vertices().resize(vertices.size(), 3);
-  mesh.faces().resize(faces.size(), 3);
+  // Scale to desired radius and convert to GeometryContainer
+  core::GeometryContainer container;
+  auto &topology = container.topology();
+  topology.set_point_count(vertices.size());
 
-  for (size_t i = 0; i < vertices.size(); ++i) {
-    const auto scaled_vertex = vertices[i] * radius;
-    mesh.vertices()(i, 0) = scaled_vertex.x();
-    mesh.vertices()(i, 1) = scaled_vertex.y();
-    mesh.vertices()(i, 2) = scaled_vertex.z();
+  // Add primitives
+  for (const auto &face : faces) {
+    topology.add_primitive({face[0], face[1], face[2]});
   }
 
-  for (size_t i = 0; i < faces.size(); ++i) {
-    mesh.faces()(i, 0) = faces[i][0];
-    mesh.faces()(i, 1) = faces[i][1];
-    mesh.faces()(i, 2) = faces[i][2];
+  // Create position attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < vertices.size(); ++i) {
+      const auto scaled_vertex = vertices[i] * radius;
+      p_span[i] = {static_cast<float>(scaled_vertex.x()),
+                   static_cast<float>(scaled_vertex.y()),
+                   static_cast<float>(scaled_vertex.z())};
+    }
   }
 
-  return mesh;
+  // Create normal attribute (for icosphere, normals are normalized positions)
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+    for (size_t i = 0; i < vertices.size(); ++i) {
+      // vertices are already normalized unit vectors
+      n_span[i] = {static_cast<float>(vertices[i].x()),
+                   static_cast<float>(vertices[i].y()),
+                   static_cast<float>(vertices[i].z())};
+    }
+  }
+
+  return container;
 }
 
 const core::Error &SphereGenerator::last_error() { return last_error_; }

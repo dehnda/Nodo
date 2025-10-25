@@ -1,29 +1,31 @@
 #pragma once
 
 #include "../core/error.hpp"
+#include "../core/geometry_container.hpp"
 #include "../core/mesh.hpp"
 #include <optional>
+
 
 namespace nodeflux::geometry {
 
 /// @brief Generates sphere meshes using UV sphere algorithm
 class SphereGenerator {
 public:
-  /// @brief Generate a UV sphere mesh
+  /// @brief Generate a UV sphere mesh as GeometryContainer
   /// @param radius The radius of the sphere
   /// @param u_segments Number of horizontal segments (longitude divisions)
   /// @param v_segments Number of vertical segments (latitude divisions)
-  /// @return Generated sphere mesh or nullopt on error
-  static std::optional<core::Mesh> generate_uv_sphere(double radius = 1.0,
-                                                      int u_segments = 32,
-                                                      int v_segments = 16);
+  /// @return Generated sphere as GeometryContainer or nullopt on error
+  static std::optional<core::GeometryContainer>
+  generate_uv_sphere(double radius = 1.0, int u_segments = 32,
+                     int v_segments = 16);
 
-  /// @brief Generate an icosphere mesh (geodesic sphere)
+  /// @brief Generate an icosphere mesh (geodesic sphere) as GeometryContainer
   /// @param radius The radius of the sphere
   /// @param subdivisions Number of subdivision levels (0-4 recommended)
-  /// @return Generated icosphere mesh or nullopt on error
-  static std::optional<core::Mesh> generate_icosphere(double radius = 1.0,
-                                                      int subdivisions = 2);
+  /// @return Generated icosphere as GeometryContainer or nullopt on error
+  static std::optional<core::GeometryContainer>
+  generate_icosphere(double radius = 1.0, int subdivisions = 2);
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error
