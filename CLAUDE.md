@@ -10,7 +10,7 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 
 **Core Achievement**: We have built a complete, working procedural mesh generation system that rivals industry tools.
 
-- **17 Working SOP Nodes** - Full procedural workflow capability
+- **18 Working SOP Nodes** - Full procedural workflow capability
 - **Qt Studio Application** - Visual node editor with 3D viewport
 - **Complete Data Flow System** - Smart caching and dependency resolution
 - **Comprehensive Testing** - 59 unit tests covering all major systems
@@ -74,7 +74,7 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 - Multiple port types: GEOMETRY, TRANSFORM, SCALAR, etc.
 - Connection validation and data flow
 
-### ✅ Implemented SOP Nodes (17 Total)
+### ✅ Implemented SOP Nodes (18 Total)
 
 **Location**: `nodeflux_core/include/nodeflux/sop/`
 
@@ -82,6 +82,10 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 - `sphere_sop.hpp` - UV sphere and icosphere variants
 - `line_sop.hpp` - Line generation (Oct 20, 2025)
 - Plus: Box, Cylinder, Plane, Torus (in `/nodes/` directory)
+
+**IO (2 nodes)**:
+- `file_sop.hpp` - File import (OBJ support)
+- `export_sop.hpp` - File export with manual export button (Oct 25, 2025)
 
 **Deformation/Modifiers (5 nodes)**:
 - `extrude_sop.hpp` (341 lines) - Face extrusion with caps
@@ -95,7 +99,7 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 - `scatter_sop.hpp` - Random point distribution (Oct 20)
 - `copy_to_points_sop.hpp` - Instance geometry to points (Oct 20)
 
-**Boolean/Transform (4 nodes)**:
+**Boolean/Transform (3 nodes)**:
 - `boolean_sop.hpp` - Union/Intersection/Difference with BVH
 - `mirror_sop.hpp` (194 lines) - Mirror across planes
 - Transform nodes (built into system)
@@ -151,7 +155,9 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 ### ✅ Import/Export (OBJ Complete)
 
 **OBJ Format** (`nodeflux_core/include/nodeflux/io/`):
-- Full Wavefront OBJ export
+- Full Wavefront OBJ export via ExportSOP
+- Manual export trigger with "Export Now" button in property panel
+- Pass-through node design (geometry flows to output)
 - Vertex positions, normals, texture coordinates
 - Face topology
 
@@ -354,20 +360,24 @@ cmake --build build --parallel
 
 ### 🎯 Near-Term Priorities (Next 4 Weeks)
 
-**Week 1: Architecture Refactoring** 🔥 HIGH PRIORITY
-- Migrate legacy SOP nodes to inherit from SOPNode base class
-  - ✅ BooleanSOP (complete - fixed switch bug)
-  - ⚠️ MirrorSOP (legacy standalone)
-  - ⚠️ ArraySOP (legacy standalone)
-  - ⚠️ ExtrudeSOP (legacy standalone)
-  - ⚠️ LaplacianSOP (legacy standalone)
-  - ⚠️ LineSOP (legacy standalone)
-  - ⚠️ NoiseDisplacementSOP (legacy standalone)
-  - ⚠️ PolyExtrudeSOP (legacy standalone)
-  - ⚠️ ResampleSOP (legacy standalone)
-  - ⚠️ SubdivisionSOP (legacy standalone)
-- Update ExecutionEngine bridges for modernized SOPs
-- Unified port-based data flow for all nodes
+**Week 1: Architecture Refactoring** ✅ COMPLETE
+- ✅ All SOP nodes migrated to modern SOPNode base class (13 total)
+  - ✅ BooleanSOP - Modern parameters, input ports
+  - ✅ MirrorSOP - Modern parameters, input ports
+  - ✅ ArraySOP - Modern parameters, input ports (tests updated Oct 2025)
+  - ✅ ExtrudeSOP - Modern parameters, input ports
+  - ✅ LaplacianSOP - Modern parameters, input ports
+  - ✅ LineSOP - Modern parameters, input ports
+  - ✅ NoiseDisplacementSOP - Modern parameters, input ports
+  - ✅ PolyExtrudeSOP - Modern parameters, input ports
+  - ✅ ResampleSOP - Modern parameters, input ports
+  - ✅ SubdivisionSOP - Modern parameters, input ports
+  - ✅ TransformSOP - Modern parameters, input ports
+  - ✅ ScatterSOP - Modern parameters, input ports
+  - ✅ CopyToPointsSOP - Modern parameters, input ports
+- ✅ ExecutionEngine bridges updated for all SOPs
+- ✅ Unified port-based data flow across all nodes
+- ✅ ExportSOP added with manual export button (Oct 2025)
 
 **Week 2: UI/UX Enhancements**
 - Node selection/picking in viewport
@@ -515,7 +525,10 @@ std::optional<std::shared_ptr<GeometryData>> MyNodeSOP::cook() {
 
 ## Current Development Activity
 
-**Recent Commits** (Oct 19-21, 2025):
+**Recent Commits** (Oct 19-25, 2025):
+- Export SOP with manual "Export Now" button (Oct 25)
+- ArraySOP test suite migration to modern parameter API (Oct 25)
+- Architecture refactoring completed - all 13 SOPs modernized (Oct 25)
 - Node name refactoring
 - Copy to Points & Scatter nodes
 - Dark theme for Studio
