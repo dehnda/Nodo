@@ -7,6 +7,34 @@
 
 using namespace nodeflux;
 
+// Helper to convert GeometryContainer to Mesh
+static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  if (!p_storage)
+    return core::Mesh();
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  return core::Mesh(vertices, faces);
+}
+
 class PrimitiveGeneratorTest : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -16,28 +44,31 @@ protected:
 
 // Box Generator Tests
 TEST_F(PrimitiveGeneratorTest, BoxGeneration) {
-    auto mesh_result = geometry::BoxGenerator::generate(2.0, 1.5, 0.8);
+    auto container_result = geometry::BoxGenerator::generate(2.0, 1.5, 0.8);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }
 
 TEST_F(PrimitiveGeneratorTest, BoxWithDifferentDimensions) {
-    auto mesh_result = geometry::BoxGenerator::generate(3.0, 2.0, 1.5);
+    auto container_result = geometry::BoxGenerator::generate(3.0, 2.0, 1.5);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }
 
 // Sphere Generator Tests
 TEST_F(PrimitiveGeneratorTest, SphereGeneration) {
-    auto mesh_result = geometry::SphereGenerator::generate_uv_sphere(1.5, 16, 8);
+    auto container_result = geometry::SphereGenerator::generate_uv_sphere(1.5, 16, 8);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }
 
 // Cylinder Generator Tests
@@ -51,26 +82,29 @@ TEST_F(PrimitiveGeneratorTest, CylinderGeneration) {
 
 // Plane Generator Tests
 TEST_F(PrimitiveGeneratorTest, PlaneGeneration) {
-    auto mesh_result = geometry::PlaneGenerator::generate(2.0, 1.5, 4, 3);
+    auto container_result = geometry::PlaneGenerator::generate(2.0, 1.5, 4, 3);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }
 
 // Torus Generator Tests
 TEST_F(PrimitiveGeneratorTest, TorusGeneration) {
-    auto mesh_result = geometry::TorusGenerator::generate(1.0, 0.3, 24, 12);
+    auto container_result = geometry::TorusGenerator::generate(1.0, 0.3, 24, 12);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }
 
 TEST_F(PrimitiveGeneratorTest, TorusWithDifferentParameters) {
-    auto mesh_result = geometry::TorusGenerator::generate(2.0, 0.5, 48, 16);
+    auto container_result = geometry::TorusGenerator::generate(2.0, 0.5, 48, 16);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }

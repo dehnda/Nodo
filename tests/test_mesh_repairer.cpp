@@ -5,6 +5,34 @@
 
 using namespace nodeflux;
 
+// Helper to convert GeometryContainer to Mesh
+static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  if (!p_storage)
+    return core::Mesh();
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  return core::Mesh(vertices, faces);
+}
+
 class MeshRepairerTest : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -121,7 +149,7 @@ TEST_F(MeshRepairerTest, CleanMeshUnchanged) {
     // Generate a clean box mesh
     auto box_result = geometry::BoxGenerator::generate(1.0, 1.0, 1.0);
     ASSERT_TRUE(box_result.has_value());
-    auto clean_mesh = *box_result;
+    auto clean_mesh = container_to_mesh(*box_result);
     
     auto original_vertex_count = clean_mesh.vertices().rows();
     auto original_face_count = clean_mesh.faces().rows();

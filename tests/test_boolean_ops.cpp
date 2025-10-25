@@ -37,18 +37,17 @@ class BooleanOpsTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create test meshes for boolean operations
-    // BoxGenerator still returns Mesh (not migrated yet)
+    // All generators now return GeometryContainer
     auto box1_result = geometry::BoxGenerator::generate(1.0, 1.0, 1.0);
     auto box2_result = geometry::BoxGenerator::generate(1.0, 1.0, 1.0);
-    // SphereGenerator now returns GeometryContainer
     auto sphere_result = geometry::SphereGenerator::generate_icosphere(0.8, 2);
 
     ASSERT_TRUE(box1_result.has_value());
     ASSERT_TRUE(box2_result.has_value());
     ASSERT_TRUE(sphere_result.has_value());
 
-    box1_ = *box1_result;
-    box2_ = *box2_result;
+    box1_ = container_to_mesh(*box1_result);
+    box2_ = container_to_mesh(*box2_result);
     sphere_ = container_to_mesh(sphere_result.value());
 
     // Translate box2 for intersection testing

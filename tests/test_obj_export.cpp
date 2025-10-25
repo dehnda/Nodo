@@ -8,26 +8,55 @@
 
 using namespace nodeflux;
 
+// Helper to convert GeometryContainer to Mesh
+static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  if (!p_storage)
+    return core::Mesh();
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  return core::Mesh(vertices, faces);
+}
+
 class ObjExportTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create a simple sphere for testing
-    test_mesh_ = geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 8);
-    ASSERT_TRUE(test_mesh_.has_value());
+    auto container_result = geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 8);
+    ASSERT_TRUE(container_result.has_value());
+    test_mesh_ = container_to_mesh(*container_result);
   }
 
-  std::optional<core::Mesh> test_mesh_;
+  core::Mesh test_mesh_;
 };
 
 TEST_F(ObjExportTest, ExportToString) {
-  auto obj_string = io::ObjExporter::mesh_to_obj_string(*test_mesh_);
+  auto obj_string = io::ObjExporter::mesh_to_obj_string(test_mesh_);
 
   ASSERT_TRUE(obj_string.has_value());
   EXPECT_FALSE(obj_string->empty());
 }
 
 TEST_F(ObjExportTest, ContainsVertexPositions) {
-  auto obj_string = io::ObjExporter::mesh_to_obj_string(*test_mesh_);
+  auto obj_string = io::ObjExporter::mesh_to_obj_string(test_mesh_);
 
   ASSERT_TRUE(obj_string.has_value());
 
@@ -45,11 +74,11 @@ TEST_F(ObjExportTest, ContainsVertexPositions) {
     }
   }
 
-  EXPECT_EQ(vertex_count, test_mesh_->vertex_count());
+  EXPECT_EQ(vertex_count, test_mesh_.vertex_count());
 }
 
 TEST_F(ObjExportTest, ContainsVertexNormals) {
-  auto obj_string = io::ObjExporter::mesh_to_obj_string(*test_mesh_);
+  auto obj_string = io::ObjExporter::mesh_to_obj_string(test_mesh_);
 
   ASSERT_TRUE(obj_string.has_value());
 
@@ -68,11 +97,11 @@ TEST_F(ObjExportTest, ContainsVertexNormals) {
     }
   }
 
-  EXPECT_EQ(normal_count, test_mesh_->vertex_count());
+  EXPECT_EQ(normal_count, test_mesh_.vertex_count());
 }
 
 TEST_F(ObjExportTest, ContainsFacesWithNormals) {
-  auto obj_string = io::ObjExporter::mesh_to_obj_string(*test_mesh_);
+  auto obj_string = io::ObjExporter::mesh_to_obj_string(test_mesh_);
 
   ASSERT_TRUE(obj_string.has_value());
 
@@ -93,14 +122,14 @@ TEST_F(ObjExportTest, ContainsFacesWithNormals) {
     }
   }
 
-  EXPECT_EQ(face_count, test_mesh_->face_count());
+  EXPECT_EQ(face_count, test_mesh_.face_count());
 }
 
 TEST_F(ObjExportTest, ExportToFile) {
   const auto temp_path =
       std::filesystem::temp_directory_path() / "nodeflux_test_export.obj";
 
-  bool success = io::ObjExporter::export_mesh(*test_mesh_, temp_path.string());
+  bool success = io::ObjExporter::export_mesh(test_mesh_, temp_path.string());
   EXPECT_TRUE(success);
 
   // Verify file exists and is not empty
@@ -132,7 +161,7 @@ TEST_F(ObjExportTest, EmptyMeshReturnsNullopt) {
 }
 
 TEST_F(ObjExportTest, VerifyOneBasedIndexing) {
-  auto obj_string = io::ObjExporter::mesh_to_obj_string(*test_mesh_);
+  auto obj_string = io::ObjExporter::mesh_to_obj_string(test_mesh_);
 
   ASSERT_TRUE(obj_string.has_value());
 
@@ -163,7 +192,7 @@ TEST_F(ObjExportTest, VerifyOneBasedIndexing) {
 }
 
 TEST_F(ObjExportTest, VerifyNormalMagnitude) {
-  auto obj_string = io::ObjExporter::mesh_to_obj_string(*test_mesh_);
+  auto obj_string = io::ObjExporter::mesh_to_obj_string(test_mesh_);
 
   ASSERT_TRUE(obj_string.has_value());
 

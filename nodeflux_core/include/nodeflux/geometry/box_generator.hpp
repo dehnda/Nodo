@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/mesh.hpp"
+#include "../core/geometry_container.hpp"
 #include "../core/error.hpp"
 #include <optional>
 
@@ -9,15 +9,15 @@ namespace nodeflux::geometry {
 /// @brief Generates box/cube meshes with configurable subdivisions
 class BoxGenerator {
 public:
-    /// @brief Generate a box mesh
+    /// @brief Generate a box mesh as GeometryContainer
     /// @param width The width of the box (X dimension)
     /// @param height The height of the box (Y dimension)
     /// @param depth The depth of the box (Z dimension)
     /// @param width_segments Number of subdivisions along width
     /// @param height_segments Number of subdivisions along height
     /// @param depth_segments Number of subdivisions along depth
-    /// @return Generated box mesh or nullopt on error
-    static std::optional<core::Mesh> generate(
+    /// @return Generated box as GeometryContainer or nullopt on error
+    static std::optional<core::GeometryContainer> generate(
         double width = 2.0,
         double height = 2.0,
         double depth = 2.0,
@@ -26,14 +26,14 @@ public:
         int depth_segments = 1
     );
 
-    /// @brief Generate a box mesh from min/max corners
+    /// @brief Generate a box mesh from min/max corners as GeometryContainer
     /// @param min_corner Minimum corner coordinates
     /// @param max_corner Maximum corner coordinates
     /// @param width_segments Number of subdivisions along width
     /// @param height_segments Number of subdivisions along height
     /// @param depth_segments Number of subdivisions along depth
-    /// @return Generated box mesh or nullopt on error
-    static std::optional<core::Mesh> generate_from_bounds(
+    /// @return Generated box as GeometryContainer or nullopt on error
+    static std::optional<core::GeometryContainer> generate_from_bounds(
         const Eigen::Vector3d& min_corner,
         const Eigen::Vector3d& max_corner,
         int width_segments = 1,
@@ -48,12 +48,12 @@ public:
 private:
     static void set_last_error(const core::Error& error);
     static thread_local core::Error last_error_;
-    
+
     // Helper function to generate a subdivided quad face
     static void generate_face(
-        core::Mesh& mesh,
+        std::vector<core::Vec3f>& positions,
+        std::vector<std::vector<int>>& primitive_vertices,
         int& vertex_index,
-        int& face_index,
         const Eigen::Vector3d& corner1,
         const Eigen::Vector3d& corner2,
         const Eigen::Vector3d& corner3,
