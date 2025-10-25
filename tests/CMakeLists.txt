@@ -19,6 +19,9 @@ add_executable(nodeflux_tests
     test_element_topology.cpp
     test_attribute_types.cpp
     test_attribute_storage.cpp
+    test_attribute_promotion.cpp
+    test_attribute_group.cpp
+    test_attribute_interpolation.cpp
     test_geometry_container.cpp
     test_attribute_system_integration.cpp
     test_execution_engine_bridge.cpp
