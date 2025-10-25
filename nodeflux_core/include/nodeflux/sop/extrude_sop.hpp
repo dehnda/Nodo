@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"

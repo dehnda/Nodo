@@ -1,6 +1,8 @@
 #include "nodeflux/sop/mirror_sop.hpp"
 #include "nodeflux/core/math.hpp"
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::sop {
 
 MirrorSOP::MirrorSOP(const std::string &name)
@@ -69,6 +71,90 @@ MirrorSOP::MirrorSOP(const std::string &name)
           .build());
 }
 
+// Helper to convert GeometryData to GeometryContainer (bridge for migration)
+static std::unique_ptr<core::GeometryContainer>
+convert_to_container(const GeometryData &old_data) {
+  auto container = std::make_unique<core::GeometryContainer>();
+
+  auto mesh = old_data.get_mesh();
+  if (!mesh || mesh->empty()) {
+    return container;
+  }
+
+  const auto &vertices = mesh->vertices();
+  const auto &faces = mesh->faces();
+
+  // Set up topology
+  auto &topology = container->topology();
+  topology.set_point_count(vertices.rows());
+
+  // Add primitives
+  for (int i = 0; i < faces.rows(); ++i) {
+    std::vector<int> prim_verts(3);
+    for (int j = 0; j < 3; ++j) {
+      prim_verts[j] = faces(i, j);
+    }
+    topology.add_primitive(prim_verts);
+  }
+
+  // Add position attribute
+  container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+      p_span[i] = vertices.row(i).cast<float>();
+    }
+  }
+
+  // Add normals if available
+  try {
+    const auto &normals = mesh->vertex_normals();
+    container->add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+    auto *n_storage = container->get_point_attribute_typed<core::Vec3f>(attrs::N);
+    if (n_storage) {
+      auto n_span = n_storage->values_writable();
+      for (size_t i = 0; i < static_cast<size_t>(normals.rows()); ++i) {
+        n_span[i] = normals.row(i).cast<float>();
+      }
+    }
+  } catch (...) {
+    // No normals available
+  }
+
+  return container;
+}
+
+// Helper to convert GeometryContainer to GeometryData (bridge for migration)
+static std::shared_ptr<GeometryData>
+convert_from_container(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!p_storage)
+    return std::make_shared<GeometryData>(std::make_shared<core::Mesh>());
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  auto mesh = std::make_shared<core::Mesh>(vertices, faces);
+  return std::make_shared<GeometryData>(mesh);
+}
+
 std::shared_ptr<GeometryData> MirrorSOP::execute() {
   // Sync member variables from parameter system
   plane_ = static_cast<MirrorPlane>(get_parameter<int>("plane", 2));
@@ -91,14 +177,12 @@ std::shared_ptr<GeometryData> MirrorSOP::execute() {
     return nullptr;
   }
 
-  auto input_mesh = input_geo->get_mesh();
-  if (!input_mesh) {
-    set_error("Input geometry does not contain a mesh");
+  // Convert to GeometryContainer
+  auto input_container = convert_to_container(*input_geo);
+  if (input_container->topology().point_count() == 0) {
+    set_error("Input geometry is empty");
     return nullptr;
   }
-
-  const auto &original_vertices = input_mesh->vertices();
-  const auto &original_faces = input_mesh->faces();
 
   // Determine mirror plane
   core::Vector3 plane_point;
@@ -119,64 +203,142 @@ std::shared_ptr<GeometryData> MirrorSOP::execute() {
     break;
   case MirrorPlane::CUSTOM:
     plane_point = custom_point_;
-    plane_normal = custom_normal_;
+    plane_normal = custom_normal_.normalized();
     break;
   }
 
-  // Create mirrored vertices matrix
-  core::Mesh::Vertices mirrored_vertices(original_vertices.rows(), 3);
+  // Get input positions and topology
+  auto *input_positions = input_container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!input_positions) {
+    set_error("Input geometry missing position attribute");
+    return nullptr;
+  }
 
-  for (int i = 0; i < original_vertices.rows(); ++i) {
-    core::Vector3 vertex = original_vertices.row(i);
+  const auto &input_topology = input_container->topology();
+  auto input_pos_span = input_positions->values();
+
+  // Create output container
+  core::GeometryContainer output_container;
+  auto &output_topology = output_container.topology();
+
+  // Calculate mirrored positions
+  std::vector<core::Vec3f> mirrored_positions;
+  mirrored_positions.reserve(input_pos_span.size());
+
+  for (const auto &pos : input_pos_span) {
+    core::Vector3 vertex(pos[0], pos[1], pos[2]);
     core::Vector3 mirrored = core::math::mirror_point_across_plane(
         vertex, plane_point, plane_normal);
-    mirrored_vertices.row(i) = mirrored;
+    mirrored_positions.push_back({static_cast<float>(mirrored.x()),
+                                  static_cast<float>(mirrored.y()),
+                                  static_cast<float>(mirrored.z())});
   }
 
-  // Build result mesh
+  // Mirror normals if present
+  std::vector<core::Vec3f> mirrored_normals;
+  auto *input_normals = input_container->get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (input_normals) {
+    auto input_norm_span = input_normals->values();
+    mirrored_normals.reserve(input_norm_span.size());
+
+    for (const auto &norm : input_norm_span) {
+      core::Vector3 normal(norm[0], norm[1], norm[2]);
+      // Mirror normals (reflection across plane, but don't translate)
+      core::Vector3 mirrored_n = normal - 2.0 * normal.dot(plane_normal) * plane_normal;
+      mirrored_normals.push_back({static_cast<float>(mirrored_n.x()),
+                                  static_cast<float>(mirrored_n.y()),
+                                  static_cast<float>(mirrored_n.z())});
+    }
+  }
+
+  // Build output based on keep_original flag
   if (keep_original_) {
-    // Combine original and mirrored
-    const int total_vertices =
-        original_vertices.rows() + mirrored_vertices.rows();
-    const int total_faces = original_faces.rows() + original_faces.rows();
+    // Combine original + mirrored
+    const size_t total_points = input_pos_span.size() * 2;
+    const size_t total_prims = input_topology.primitive_count() * 2;
 
-    core::Mesh::Vertices result_vertices(total_vertices, 3);
-    core::Mesh::Faces result_faces(total_faces, 3);
+    output_topology.set_point_count(total_points);
 
-    // Copy original data
-    result_vertices.topRows(original_vertices.rows()) = original_vertices;
-    result_faces.topRows(original_faces.rows()) = original_faces;
-
-    // Add mirrored vertices
-    result_vertices.bottomRows(mirrored_vertices.rows()) = mirrored_vertices;
-
-    // Add mirrored faces (with flipped winding)
-    const int vertex_offset = original_vertices.rows();
-    for (int i = 0; i < original_faces.rows(); ++i) {
-      result_faces(original_faces.rows() + i, 0) =
-          original_faces(i, 0) + vertex_offset;
-      result_faces(original_faces.rows() + i, 1) =
-          original_faces(i, 2) + vertex_offset; // Flip winding
-      result_faces(original_faces.rows() + i, 2) =
-          original_faces(i, 1) + vertex_offset;
+    // Add original primitives
+    for (size_t i = 0; i < input_topology.primitive_count(); ++i) {
+      output_topology.add_primitive(input_topology.get_primitive_vertices(i));
     }
 
-    auto result_mesh = std::make_shared<core::Mesh>(std::move(result_vertices),
-                                                     std::move(result_faces));
-    return std::make_shared<GeometryData>(result_mesh);
+    // Add mirrored primitives (with flipped winding)
+    const int vertex_offset = input_pos_span.size();
+    for (size_t i = 0; i < input_topology.primitive_count(); ++i) {
+      const auto &orig_verts = input_topology.get_primitive_vertices(i);
+      std::vector<int> mirrored_verts(orig_verts.size());
+      // Flip winding order for correct normals
+      mirrored_verts[0] = orig_verts[0] + vertex_offset;
+      mirrored_verts[1] = orig_verts[2] + vertex_offset; // Swap 1 and 2
+      mirrored_verts[2] = orig_verts[1] + vertex_offset;
+      output_topology.add_primitive(mirrored_verts);
+    }
+
+    // Add combined positions
+    output_container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+    auto *out_positions = output_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+    if (out_positions) {
+      auto out_pos_span = out_positions->values_writable();
+      // Copy original
+      std::copy(input_pos_span.begin(), input_pos_span.end(), out_pos_span.begin());
+      // Copy mirrored
+      std::copy(mirrored_positions.begin(), mirrored_positions.end(),
+                out_pos_span.begin() + input_pos_span.size());
+    }
+
+    // Add combined normals if available
+    if (!mirrored_normals.empty()) {
+      output_container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+      auto *out_normals = output_container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+      if (out_normals) {
+        auto out_norm_span = out_normals->values_writable();
+        auto input_norm_span = input_normals->values();
+        // Copy original normals
+        std::copy(input_norm_span.begin(), input_norm_span.end(), out_norm_span.begin());
+        // Copy mirrored normals
+        std::copy(mirrored_normals.begin(), mirrored_normals.end(),
+                  out_norm_span.begin() + input_norm_span.size());
+      }
+    }
+
+  } else {
+    // Only mirrored version
+    output_topology.set_point_count(mirrored_positions.size());
+
+    // Add mirrored primitives with flipped winding
+    for (size_t i = 0; i < input_topology.primitive_count(); ++i) {
+      const auto &orig_verts = input_topology.get_primitive_vertices(i);
+      std::vector<int> mirrored_verts(orig_verts.size());
+      // Flip winding order
+      mirrored_verts[0] = orig_verts[0];
+      mirrored_verts[1] = orig_verts[2]; // Swap 1 and 2
+      mirrored_verts[2] = orig_verts[1];
+      output_topology.add_primitive(mirrored_verts);
+    }
+
+    // Add mirrored positions
+    output_container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+    auto *out_positions = output_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+    if (out_positions) {
+      auto out_pos_span = out_positions->values_writable();
+      std::copy(mirrored_positions.begin(), mirrored_positions.end(), out_pos_span.begin());
+    }
+
+    // Add mirrored normals if available
+    if (!mirrored_normals.empty()) {
+      output_container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+      auto *out_normals = output_container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+      if (out_normals) {
+        auto out_norm_span = out_normals->values_writable();
+        std::copy(mirrored_normals.begin(), mirrored_normals.end(), out_norm_span.begin());
+      }
+    }
   }
 
-  // Only mirrored version with flipped faces
-  core::Mesh::Faces flipped_faces(original_faces.rows(), 3);
-  for (int i = 0; i < original_faces.rows(); ++i) {
-    flipped_faces(i, 0) = original_faces(i, 0);
-    flipped_faces(i, 1) = original_faces(i, 2); // Flip winding
-    flipped_faces(i, 2) = original_faces(i, 1);
-  }
-
-  auto result_mesh = std::make_shared<core::Mesh>(std::move(mirrored_vertices),
-                                                   std::move(flipped_faces));
-  return std::make_shared<GeometryData>(result_mesh);
+  // Convert back to GeometryData for compatibility
+  return convert_from_container(output_container);
 }
 
 std::string MirrorSOP::plane_to_string(MirrorPlane plane) {

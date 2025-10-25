@@ -2,13 +2,15 @@
 #include <cmath>
 #include <numbers>
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::geometry {
 
 // Thread-local storage for error reporting
 thread_local core::Error CylinderGenerator::last_error_{
     core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-std::optional<core::Mesh>
+std::optional<core::GeometryContainer>
 CylinderGenerator::generate(double radius, double height, int radial_segments,
                             int height_segments, bool top_cap,
                             bool bottom_cap) {
@@ -41,8 +43,6 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
     return std::nullopt;
   }
 
-  core::Mesh mesh;
-
   // Calculate vertices and faces count
   const int ring_vertices = (height_segments + 1) * radial_segments;
   const int cap_vertices = (top_cap ? 1 : 0) + (bottom_cap ? 1 : 0);
@@ -53,8 +53,16 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       (top_cap ? radial_segments : 0) + (bottom_cap ? radial_segments : 0);
   const int total_faces = side_faces + cap_faces;
 
-  mesh.vertices().resize(total_vertices, 3);
-  mesh.faces().resize(total_faces, 3);
+  // Create GeometryContainer
+  core::GeometryContainer container;
+  auto &topology = container.topology();
+  topology.set_point_count(total_vertices);
+
+  // Storage for positions
+  std::vector<core::Vec3f> positions;
+  positions.reserve(total_vertices);
+  std::vector<std::vector<int>> primitive_vertices;
+  primitive_vertices.reserve(total_faces);
 
   // Generate vertices
   int vertex_index = 0;
@@ -73,9 +81,9 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const double coord_x = radius * std::cos(angle);
       const double coord_z = radius * std::sin(angle);
 
-      mesh.vertices()(vertex_index, 0) = coord_x;
-      mesh.vertices()(vertex_index, 1) = coord_y;
-      mesh.vertices()(vertex_index, 2) = coord_z;
+      positions.push_back({static_cast<float>(coord_x),
+                          static_cast<float>(coord_y),
+                          static_cast<float>(coord_z)});
       ++vertex_index;
     }
   }
@@ -86,23 +94,17 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
 
   if (top_cap) {
     top_center = vertex_index;
-    mesh.vertices()(vertex_index, 0) = 0.0;
-    mesh.vertices()(vertex_index, 1) = height * 0.5;
-    mesh.vertices()(vertex_index, 2) = 0.0;
+    positions.push_back({0.0F, static_cast<float>(height * 0.5), 0.0F});
     ++vertex_index;
   }
 
   if (bottom_cap) {
     bottom_center = vertex_index;
-    mesh.vertices()(vertex_index, 0) = 0.0;
-    mesh.vertices()(vertex_index, 1) = -height * 0.5;
-    mesh.vertices()(vertex_index, 2) = 0.0;
+    positions.push_back({0.0F, static_cast<float>(-height * 0.5), 0.0F});
     ++vertex_index;
   }
 
   // Generate faces
-  int face_index = 0;
-
   // Side faces
   for (int height_ring = 0; height_ring < height_segments; ++height_ring) {
     for (int segment = 0; segment < radial_segments; ++segment) {
@@ -117,48 +119,82 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_vertex_next_ring = next_ring_base + next_segment;
 
       // First triangle
-      mesh.faces()(face_index, 0) = current_vertex;
-      mesh.faces()(face_index, 1) = next_vertex_next_ring;
-      mesh.faces()(face_index, 2) = next_vertex;
-      ++face_index;
+      primitive_vertices.push_back({current_vertex, next_vertex_next_ring, next_vertex});
 
       // Second triangle
-      mesh.faces()(face_index, 0) = current_vertex;
-      mesh.faces()(face_index, 1) = current_vertex_next_ring;
-      mesh.faces()(face_index, 2) = next_vertex_next_ring;
-      ++face_index;
+      primitive_vertices.push_back({current_vertex, current_vertex_next_ring, next_vertex_next_ring});
     }
   }
 
-  // Top cap faces (fixed winding order for outward normal)
+  // Top cap faces
   if (top_cap) {
     const int top_ring_base = height_segments * radial_segments;
     for (int segment = 0; segment < radial_segments; ++segment) {
       const int next_segment = (segment + 1) % radial_segments;
 
       // Reversed winding: center, next, current (CCW from top view)
-      mesh.faces()(face_index, 0) = top_center;
-      mesh.faces()(face_index, 1) = top_ring_base + next_segment;
-      mesh.faces()(face_index, 2) = top_ring_base + segment;
-      ++face_index;
+      primitive_vertices.push_back({top_center, top_ring_base + next_segment, top_ring_base + segment});
     }
   }
 
-  // Bottom cap faces (fixed winding order for outward normal)
+  // Bottom cap faces
   if (bottom_cap) {
     const int bottom_ring_base = 0; // First ring
     for (int segment = 0; segment < radial_segments; ++segment) {
       const int next_segment = (segment + 1) % radial_segments;
 
       // Reversed winding: center, current, next (CCW from bottom view)
-      mesh.faces()(face_index, 0) = bottom_center;
-      mesh.faces()(face_index, 1) = bottom_ring_base + segment;
-      mesh.faces()(face_index, 2) = bottom_ring_base + next_segment;
-      ++face_index;
+      primitive_vertices.push_back({bottom_center, bottom_ring_base + segment, bottom_ring_base + next_segment});
     }
   }
 
-  return mesh;
+  // Add primitives to topology
+  for (const auto &prim_verts : primitive_vertices) {
+    topology.add_primitive(prim_verts);
+  }
+
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
+  }
+
+  // Calculate and add normals
+  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (n_storage != nullptr) {
+    auto n_span = n_storage->values_writable();
+
+    // For cylinders, side normals point outward from the axis
+    // Ring vertices (excluding cap centers)
+    int idx = 0;
+    for (int height_ring = 0; height_ring <= height_segments; ++height_ring) {
+      for (int segment = 0; segment < radial_segments; ++segment) {
+        const double angle = 2.0 * std::numbers::pi *
+                             static_cast<double>(segment) /
+                             static_cast<double>(radial_segments);
+        // Normal points radially outward (Y component is 0 for straight cylinder)
+        core::Vec3f normal = {static_cast<float>(std::cos(angle)),
+                             0.0F,
+                             static_cast<float>(std::sin(angle))};
+        n_span[idx++] = normal;
+      }
+    }
+
+    // Top cap center normal (pointing up)
+    if (top_cap) {
+      n_span[idx++] = {0.0F, 1.0F, 0.0F};
+    }
+
+    // Bottom cap center normal (pointing down)
+    if (bottom_cap) {
+      n_span[idx++] = {0.0F, -1.0F, 0.0F};
+    }
+  }
+
+  return container;
 }
 
 const core::Error &CylinderGenerator::last_error() { return last_error_; }

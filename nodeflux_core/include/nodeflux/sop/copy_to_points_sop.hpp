@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/geometry_attributes.hpp"
+#include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
 
 namespace nodeflux::sop {

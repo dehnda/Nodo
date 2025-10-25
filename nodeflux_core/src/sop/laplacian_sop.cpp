@@ -1,9 +1,12 @@
 #include "nodeflux/sop/laplacian_sop.hpp"
+#include "nodeflux/core/attribute_types.hpp"
 #include "nodeflux/core/types.hpp"
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+
+namespace attrs = nodeflux::core::standard_attrs;
 
 namespace nodeflux::sop {
 
@@ -14,26 +17,122 @@ LaplacianSOP::LaplacianSOP(const std::string &name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(
-      define_int_parameter("iterations", 5)
-          .label("Iterations")
-          .range(1, 100)
-          .category("Smoothing")
-          .build());
+  register_parameter(define_int_parameter("iterations", 5)
+                         .label("Iterations")
+                         .range(1, 100)
+                         .category("Smoothing")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("lambda", 0.5F)
-          .label("Lambda")
-          .range(0.0, 1.0)
-          .category("Smoothing")
-          .build());
+  register_parameter(define_float_parameter("lambda", 0.5F)
+                         .label("Lambda")
+                         .range(0.0, 1.0)
+                         .category("Smoothing")
+                         .build());
 
-  register_parameter(
-      define_int_parameter("method", 0)
-          .label("Method")
-          .options({"Uniform", "Cotangent", "Taubin"})
-          .category("Smoothing")
-          .build());
+  register_parameter(define_int_parameter("method", 0)
+                         .label("Method")
+                         .options({"Uniform", "Cotangent", "Taubin"})
+                         .category("Smoothing")
+                         .build());
+}
+
+// Helper to convert GeometryContainer to GeometryData (bridge for migration)
+static std::shared_ptr<GeometryData>
+convert_from_container(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!p_storage) {
+    return nullptr;
+  }
+  const auto &p_span = p_storage->values();
+
+  // Build vertex matrix
+  Eigen::MatrixXd vertices(p_span.size(), 3);
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Build face matrix
+  std::vector<std::vector<int>> face_list;
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+    face_list.push_back(prim_verts);
+  }
+
+  // Convert to Eigen::MatrixXi
+  int max_verts_per_face = 0;
+  for (const auto &face : face_list) {
+    if (face.size() > max_verts_per_face) {
+      max_verts_per_face = face.size();
+    }
+  }
+
+  Eigen::MatrixXi faces(face_list.size(), max_verts_per_face);
+  faces.setConstant(-1); // Fill with -1 for unused slots
+
+  for (size_t f = 0; f < face_list.size(); ++f) {
+    for (size_t v = 0; v < face_list[f].size(); ++v) {
+      faces(static_cast<int>(f), static_cast<int>(v)) = face_list[f][v];
+    }
+  }
+
+  auto mesh = std::make_shared<core::Mesh>(vertices, faces);
+  return std::make_shared<GeometryData>(mesh);
+}
+
+// Helper to convert input GeometryData → GeometryContainer (temporary bridge)
+static std::unique_ptr<core::GeometryContainer>
+convert_to_container(const GeometryData &old_data) {
+  auto container = std::make_unique<core::GeometryContainer>();
+
+  // Get old mesh
+  auto mesh = old_data.get_mesh();
+  if (!mesh) {
+    return container;
+  }
+
+  const auto &vertices = mesh->vertices();
+  const auto &faces = mesh->faces();
+
+  // Set topology
+  size_t point_count = vertices.rows();
+  size_t face_count = faces.rows();
+
+  container->set_point_count(point_count);
+
+  // Calculate total vertices
+  size_t total_vertices = 0;
+  for (int i = 0; i < faces.rows(); ++i) {
+    total_vertices += faces.cols(); // Assuming fixed size (triangles/quads)
+  }
+  container->set_vertex_count(total_vertices);
+
+  // Build topology
+  size_t vert_idx = 0;
+  for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
+    std::vector<int> prim_verts;
+
+    for (int j = 0; j < faces.cols(); ++j) {
+      int point_idx = faces(face_idx, j);
+      container->topology().set_vertex_point(vert_idx, point_idx);
+      prim_verts.push_back(static_cast<int>(vert_idx));
+      ++vert_idx;
+    }
+
+    container->add_primitive(prim_verts);
+  }
+
+  // Copy positions
+  container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *positions = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+
+  for (int i = 0; i < vertices.rows(); ++i) {
+    (*positions)[i] = vertices.row(i).cast<float>();
+  }
+
+  return container;
 }
 
 std::shared_ptr<GeometryData> LaplacianSOP::execute() {
@@ -49,14 +148,9 @@ std::shared_ptr<GeometryData> LaplacianSOP::execute() {
     return nullptr;
   }
 
-  auto input_mesh = input_geo->get_mesh();
-  if (!input_mesh) {
-    set_error("Input geometry does not contain a mesh");
-    return nullptr;
-  }
-
-  if (input_mesh->vertices().rows() == 0) {
-    set_error("Input mesh has no vertices");
+  auto input_container = convert_to_container(*input_geo);
+  if (input_container->topology().point_count() == 0) {
+    set_error("Input geometry has no points");
     return nullptr;
   }
 
@@ -65,25 +159,61 @@ std::shared_ptr<GeometryData> LaplacianSOP::execute() {
     return nullptr;
   }
 
-  const auto &original_vertices = input_mesh->vertices();
-  const auto &faces = input_mesh->faces();
+  const auto *p_storage =
+      input_container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto positions_span = p_storage->values();
+
+  // Convert span to Eigen::MatrixXd
+  Eigen::MatrixXd positions(positions_span.size(), 3);
+  for (size_t i = 0; i < positions_span.size(); ++i) {
+    positions.row(i) = positions_span[i].cast<double>();
+  }
+
+  // Get faces from topology - check if all triangles
+  const auto &topology = input_container->topology();
+  std::vector<std::array<int, 3>> tri_faces;
+  tri_faces.reserve(topology.primitive_count());
+
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    if (verts.size() != 3) {
+      set_error("Laplacian smoothing requires triangulated mesh");
+      return nullptr;
+    }
+    tri_faces.push_back({static_cast<int>(verts[0]), static_cast<int>(verts[1]),
+                         static_cast<int>(verts[2])});
+  }
+
+  // Convert to Eigen matrix
+  Eigen::MatrixXi faces(tri_faces.size(), 3);
+  for (size_t i = 0; i < tri_faces.size(); ++i) {
+    faces.row(i) << tri_faces[i][0], tri_faces[i][1], tri_faces[i][2];
+  }
 
   Eigen::MatrixXd smoothed_vertices;
 
   switch (method_) {
   case SmoothingMethod::UNIFORM:
-    smoothed_vertices = apply_uniform_laplacian(original_vertices, faces);
+    smoothed_vertices = apply_uniform_laplacian(positions, faces);
     break;
   case SmoothingMethod::COTANGENT:
-    smoothed_vertices = apply_cotangent_laplacian(original_vertices, faces);
+    smoothed_vertices = apply_cotangent_laplacian(positions, faces);
     break;
   case SmoothingMethod::TAUBIN:
-    smoothed_vertices = apply_taubin_smoothing(original_vertices, faces);
+    smoothed_vertices = apply_taubin_smoothing(positions, faces);
     break;
   }
 
-  auto result_mesh = std::make_shared<core::Mesh>(smoothed_vertices, faces);
-  return std::make_shared<GeometryData>(result_mesh);
+  // Write smoothed positions back to container
+  auto *p_storage_writable =
+      input_container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto positions_writable = p_storage_writable->values_writable();
+
+  for (size_t i = 0; i < positions_writable.size(); ++i) {
+    positions_writable[i] = smoothed_vertices.row(i).cast<float>();
+  }
+
+  return convert_from_container(*input_container);
 }
 
 Eigen::MatrixXd

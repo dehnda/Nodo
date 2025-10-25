@@ -21,12 +21,13 @@ container_to_mesh(const core::GeometryContainer &container) {
     vertices.row(i) = p_span[i].cast<double>();
   }
 
-  // Extract faces
+  // Extract faces - convert vertex indices to point indices
   Eigen::MatrixXi faces(topology.primitive_count(), 3);
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &verts = topology.get_primitive_vertices(prim_idx);
-    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
-      faces(prim_idx, j) = verts[j];
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
+      // Convert vertex index to point index
+      faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
     }
   }
 

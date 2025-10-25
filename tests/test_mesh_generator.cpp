@@ -23,12 +23,13 @@ static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
     vertices.row(i) = p_span[i].cast<double>();
   }
 
-  // Extract faces
+  // Extract faces - convert vertex indices to point indices
   Eigen::MatrixXi faces(topology.primitive_count(), 3);
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &verts = topology.get_primitive_vertices(prim_idx);
-    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
-      faces(prim_idx, j) = verts[j];
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
+      // Convert vertex index to point index
+      faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
     }
   }
 
@@ -119,19 +120,20 @@ TEST_F(MeshGeneratorTest, SphereIcospherGeneration) {
 
 TEST_F(MeshGeneratorTest, CylinderGeneration) {
     // Generate cylinder with radius=size_, height=size_, segments=subdivisions_
-    auto result = geometry::CylinderGenerator::generate(size_, size_, subdivisions_);
+    auto container_result = geometry::CylinderGenerator::generate(size_, size_, subdivisions_);
 
-    ASSERT_TRUE(result.has_value());
-    EXPECT_GT(result->vertices().rows(), 0);
-    EXPECT_GT(result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto result = container_to_mesh(*container_result);
+    EXPECT_GT(result.vertices().rows(), 0);
+    EXPECT_GT(result.faces().rows(), 0);
 
     // Check that vertices are within reasonable bounds
     // Cylinder may have caps, so Z range might be larger than expected
-    Eigen::Vector3d min_bound = result->vertices().row(0).transpose();
-    Eigen::Vector3d max_bound = result->vertices().row(0).transpose();
+    Eigen::Vector3d min_bound = result.vertices().row(0).transpose();
+    Eigen::Vector3d max_bound = result.vertices().row(0).transpose();
 
-    for (int i = 1; i < result->vertices().rows(); ++i) {
-        Eigen::Vector3d vertex = result->vertices().row(i).transpose();
+    for (int i = 1; i < result.vertices().rows(); ++i) {
+        Eigen::Vector3d vertex = result.vertices().row(i).transpose();
         min_bound = min_bound.cwiseMin(vertex);
         max_bound = max_bound.cwiseMax(vertex);
     }

@@ -8,6 +8,7 @@
 using namespace nodeflux;
 
 // Helper to convert GeometryContainer to Mesh
+// Helper to convert GeometryContainer to Mesh
 static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
   const auto &topology = container.topology();
 
@@ -23,12 +24,13 @@ static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
     vertices.row(i) = p_span[i].cast<double>();
   }
 
-  // Extract faces
+  // Extract faces - convert vertex indices to point indices
   Eigen::MatrixXi faces(topology.primitive_count(), 3);
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &verts = topology.get_primitive_vertices(prim_idx);
-    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
-      faces(prim_idx, j) = verts[j];
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
+      // Convert vertex index to point index
+      faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
     }
   }
 
@@ -73,11 +75,12 @@ TEST_F(PrimitiveGeneratorTest, SphereGeneration) {
 
 // Cylinder Generator Tests
 TEST_F(PrimitiveGeneratorTest, CylinderGeneration) {
-    auto mesh_result = geometry::CylinderGenerator::generate(0.5, 2.0, 12);
+    auto container_result = geometry::CylinderGenerator::generate(0.5, 2.0, 12);
 
-    ASSERT_TRUE(mesh_result.has_value());
-    EXPECT_GT(mesh_result->vertices().rows(), 0);
-    EXPECT_GT(mesh_result->faces().rows(), 0);
+    ASSERT_TRUE(container_result.has_value());
+    auto mesh = container_to_mesh(*container_result);
+    EXPECT_GT(mesh.vertices().rows(), 0);
+    EXPECT_GT(mesh.faces().rows(), 0);
 }
 
 // Plane Generator Tests

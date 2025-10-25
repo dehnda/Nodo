@@ -1,5 +1,8 @@
 #include "nodeflux/sop/extrude_sop.hpp"
+#include "nodeflux/core/math.hpp"
 #include <iostream>
+
+namespace attrs = nodeflux::core::standard_attrs;
 
 namespace nodeflux::sop {
 
@@ -54,6 +57,90 @@ ExtrudeSOP::ExtrudeSOP(const std::string &name)
           .build());
 }
 
+// Helper to convert GeometryData to GeometryContainer (bridge for migration)
+static std::unique_ptr<core::GeometryContainer>
+convert_to_container(const GeometryData &old_data) {
+  auto container = std::make_unique<core::GeometryContainer>();
+
+  auto mesh = old_data.get_mesh();
+  if (!mesh || mesh->empty()) {
+    return container;
+  }
+
+  const auto &vertices = mesh->vertices();
+  const auto &faces = mesh->faces();
+
+  // Set up topology
+  auto &topology = container->topology();
+  topology.set_point_count(vertices.rows());
+
+  // Add primitives
+  for (int i = 0; i < faces.rows(); ++i) {
+    std::vector<int> prim_verts(3);
+    for (int j = 0; j < 3; ++j) {
+      prim_verts[j] = faces(i, j);
+    }
+    topology.add_primitive(prim_verts);
+  }
+
+  // Add position attribute
+  container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+      p_span[i] = vertices.row(i).cast<float>();
+    }
+  }
+
+  // Add normals if available
+  try {
+    const auto &normals = mesh->vertex_normals();
+    container->add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+    auto *n_storage = container->get_point_attribute_typed<core::Vec3f>(attrs::N);
+    if (n_storage) {
+      auto n_span = n_storage->values_writable();
+      for (size_t i = 0; i < static_cast<size_t>(normals.rows()); ++i) {
+        n_span[i] = normals.row(i).cast<float>();
+      }
+    }
+  } catch (...) {
+    // No normals available
+  }
+
+  return container;
+}
+
+// Helper to convert GeometryContainer to GeometryData (bridge for migration)
+static std::shared_ptr<GeometryData>
+convert_from_container(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!p_storage)
+    return std::make_shared<GeometryData>(std::make_shared<core::Mesh>());
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
+      faces(prim_idx, j) = verts[j];
+    }
+  }
+
+  auto mesh = std::make_shared<core::Mesh>(vertices, faces);
+  return std::make_shared<GeometryData>(mesh);
+}
+
 std::shared_ptr<GeometryData> ExtrudeSOP::execute() {
   // Sync member variables from parameter system
   distance_ = get_parameter<float>("distance", 1.0F);
@@ -72,13 +159,14 @@ std::shared_ptr<GeometryData> ExtrudeSOP::execute() {
     return nullptr;
   }
 
-  auto input_mesh = input_geo->get_mesh();
-  if (!input_mesh) {
-    set_error("Input geometry does not contain a mesh");
+  // Convert to GeometryContainer
+  auto input_container = convert_to_container(*input_geo);
+  if (input_container->topology().point_count() == 0) {
+    set_error("Input geometry is empty");
     return nullptr;
   }
 
-  if (input_mesh->faces().rows() == 0) {
+  if (input_container->topology().primitive_count() == 0) {
     set_error("Input mesh has no faces to extrude");
     return nullptr;
   }
@@ -88,6 +176,8 @@ std::shared_ptr<GeometryData> ExtrudeSOP::execute() {
     return nullptr;
   }
 
+  // For now, convert to Mesh for extrusion (TODO: refactor to use GeometryContainer directly)
+  auto input_mesh = input_geo->get_mesh();
   core::Mesh result;
 
   switch (mode_) {
@@ -107,8 +197,36 @@ std::shared_ptr<GeometryData> ExtrudeSOP::execute() {
     apply_inset(result, inset_);
   }
 
-  auto result_mesh = std::make_shared<core::Mesh>(std::move(result));
-  return std::make_shared<GeometryData>(result_mesh);
+  // Convert result Mesh to GeometryContainer
+  core::GeometryContainer output_container;
+  auto &output_topology = output_container.topology();
+
+  const auto &vertices = result.vertices();
+  const auto &faces = result.faces();
+
+  output_topology.set_point_count(vertices.rows());
+
+  // Add primitives
+  for (int i = 0; i < faces.rows(); ++i) {
+    std::vector<int> prim_verts(3);
+    for (int j = 0; j < 3; ++j) {
+      prim_verts[j] = faces(i, j);
+    }
+    output_topology.add_primitive(prim_verts);
+  }
+
+  // Add position attribute
+  output_container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = output_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+      p_span[i] = vertices.row(i).cast<float>();
+    }
+  }
+
+  // Convert back to GeometryData for compatibility
+  return convert_from_container(output_container);
 }
 
 core::Mesh ExtrudeSOP::extrude_face_normals(const core::Mesh &input) {

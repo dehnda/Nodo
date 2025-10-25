@@ -1,6 +1,8 @@
 #include "../../include/nodeflux/sop/copy_to_points_sop.hpp"
 #include "../../include/nodeflux/core/math.hpp"
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::sop {
 
 // Constants for copy operations
@@ -45,10 +47,61 @@ CopyToPointsSOP::CopyToPointsSOP(const std::string &node_name)
                          .build());
 }
 
+// Helper to convert GeometryData to GeometryContainer (bridge for migration)
+static std::unique_ptr<core::GeometryContainer>
+convert_to_container(const GeometryData &old_data) {
+  auto container = std::make_unique<core::GeometryContainer>();
+
+  auto mesh = old_data.get_mesh();
+  if (!mesh || mesh->empty()) {
+    return container;
+  }
+
+  const auto &vertices = mesh->vertices();
+  const auto &faces = mesh->faces();
+
+  // Set up topology
+  auto &topology = container->topology();
+  topology.set_point_count(vertices.rows());
+
+  // Add primitives
+  for (int i = 0; i < faces.rows(); ++i) {
+    std::vector<int> prim_verts(3);
+    for (int j = 0; j < 3; ++j) {
+      prim_verts[j] = faces(i, j);
+    }
+    topology.add_primitive(prim_verts);
+  }
+
+  // Add position attribute
+  container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+      p_span[i] = vertices.row(i).cast<float>();
+    }
+  }
+
+  return container;
+}
+
 void CopyToPointsSOP::copy_template_to_points(
     const GeometryData &points_data, const GeometryData &template_data,
     GeometryData &output_data, bool use_point_normals, bool use_point_scale,
     float uniform_scale, const std::string &scale_attribute) {
+
+  // Convert inputs to GeometryContainer for validation
+  auto points_container = convert_to_container(points_data);
+  auto template_container = convert_to_container(template_data);
+
+  if (template_container->topology().point_count() == 0) {
+    return; // No template geometry
+  }
+
+  if (points_container->topology().point_count() == 0) {
+    return; // No points to copy to
+  }
 
   auto template_mesh = template_data.get_mesh();
   if (!template_mesh || template_mesh->empty()) {

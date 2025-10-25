@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/core/mesh.hpp"
 #include "nodeflux/sop/geometry_data.hpp"
 #include "nodeflux/sop/sop_node.hpp"
@@ -7,6 +8,7 @@
 #include <Eigen/Sparse>
 #include <memory>
 #include <string>
+
 
 namespace nodeflux::sop {
 
@@ -42,9 +44,7 @@ public:
   /**
    * @brief Get number of iterations
    */
-  int get_iterations() const {
-    return get_parameter<int>("iterations", 5);
-  }
+  int get_iterations() const { return get_parameter<int>("iterations", 5); }
 
   /**
    * @brief Set smoothing strength factor
@@ -57,9 +57,7 @@ public:
   /**
    * @brief Get smoothing strength
    */
-  double get_lambda() const {
-    return get_parameter<float>("lambda", 0.5F);
-  }
+  double get_lambda() const { return get_parameter<float>("lambda", 0.5F); }
 
   /**
    * @brief Set smoothing method
@@ -128,12 +126,13 @@ private:
                                          const Eigen::MatrixXi &faces);
 
   /// Build uniform Laplacian matrix
-  Eigen::SparseMatrix<double> build_uniform_laplacian(const Eigen::MatrixXi &faces,
-                                                      int num_vertices);
+  Eigen::SparseMatrix<double>
+  build_uniform_laplacian(const Eigen::MatrixXi &faces, int num_vertices);
 
   /// Build cotangent-weighted Laplacian matrix
-  Eigen::SparseMatrix<double> build_cotangent_laplacian(const Eigen::MatrixXd &vertices,
-                                                        const Eigen::MatrixXi &faces);
+  Eigen::SparseMatrix<double>
+  build_cotangent_laplacian(const Eigen::MatrixXd &vertices,
+                            const Eigen::MatrixXi &faces);
 
   /// Find boundary vertices
   std::vector<bool> find_boundary_vertices(const Eigen::MatrixXi &faces,
@@ -145,11 +144,11 @@ private:
                                     const Eigen::Vector3d &opposite);
 
   // Smoothing parameters
-  int iterations_ = 1;                         ///< Number of smoothing passes
-  double lambda_ = 0.5;                        ///< Smoothing strength
-  double mu_ = -0.53;                          ///< Shrinkage prevention
+  int iterations_ = 1;  ///< Number of smoothing passes
+  double lambda_ = 0.5; ///< Smoothing strength
+  double mu_ = -0.53;   ///< Shrinkage prevention
   SmoothingMethod method_ = SmoothingMethod::UNIFORM; ///< Algorithm
-  bool preserve_boundaries_ = true;            ///< Keep boundary fixed
+  bool preserve_boundaries_ = true;                   ///< Keep boundary fixed
 };
 
 } // namespace nodeflux::sop

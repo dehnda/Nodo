@@ -1,9 +1,71 @@
 #include "nodeflux/sop/subdivisions_sop.hpp"
 #include "nodeflux/core/math.hpp"
 #include "nodeflux/core/types.hpp"
+#include "nodeflux/core/geometry_container.hpp"
+#include "nodeflux/core/standard_attributes.hpp"
 #include <vector>
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::sop {
+
+// Helper to convert GeometryContainer to Mesh for subdivision
+static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!p_storage)
+    return core::Mesh();
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
+      faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
+    }
+  }
+
+  return core::Mesh(vertices, faces);
+}
+
+// Helper to convert Mesh back to GeometryContainer
+static core::GeometryContainer mesh_to_container(const core::Mesh &mesh) {
+  core::GeometryContainer container;
+  const auto &vertices = mesh.vertices();
+  const auto &faces = mesh.faces();
+
+  container.set_point_count(vertices.rows());
+  
+  // Build topology
+  size_t vert_idx = 0;
+  for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
+    std::vector<int> prim_verts;
+    for (int j = 0; j < faces.cols(); ++j) {
+      int point_idx = faces(face_idx, j);
+      container.topology().set_vertex_point(vert_idx, point_idx);
+      prim_verts.push_back(static_cast<int>(vert_idx));
+      ++vert_idx;
+    }
+    container.add_primitive(prim_verts);
+  }
+
+  // Copy positions
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (positions) {
+    for (int i = 0; i < vertices.rows(); ++i) {
+      (*positions)[i] = vertices.row(i).cast<float>();
+    }
+  }
+
+  return container;
+}
 
 SubdivisionSOP::SubdivisionSOP(const std::string &name)
     : SOPNode(name, "Subdivision") {
@@ -39,6 +101,8 @@ std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
     return nullptr;
   }
 
+  // Convert to Mesh for subdivision processing
+  // TODO: When subdivision algorithm supports GeometryContainer directly, remove this
   auto input_mesh = input_geo->get_mesh();
   if (!input_mesh) {
     set_error("Input geometry does not contain a mesh");
@@ -46,8 +110,10 @@ std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
   }
 
   if (subdivision_levels_ == 0) {
-    // No subdivision, return copy
-    return std::make_shared<GeometryData>(input_mesh);
+    // No subdivision, return input as GeometryContainer then back to GeometryData
+    auto container = mesh_to_container(*input_mesh);
+    auto result_mesh = std::make_shared<core::Mesh>(container_to_mesh(container));
+    return std::make_shared<GeometryData>(result_mesh);
   }
 
   // Apply subdivision iteratively
@@ -61,7 +127,9 @@ std::shared_ptr<GeometryData> SubdivisionSOP::execute() {
     result = std::move(*subdivided);
   }
 
-  auto result_mesh = std::make_shared<core::Mesh>(std::move(result));
+  // Convert to GeometryContainer and back to GeometryData
+  auto container = mesh_to_container(result);
+  auto result_mesh = std::make_shared<core::Mesh>(container_to_mesh(container));
   return std::make_shared<GeometryData>(result_mesh);
 }
 

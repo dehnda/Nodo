@@ -6,6 +6,8 @@
 #include <cmath>
 #include <iostream>
 
+namespace attrs = nodeflux::core::standard_attrs;
+
 namespace nodeflux::sop {
 
 ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
@@ -102,6 +104,76 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .build());
 }
 
+// Helper to convert GeometryData to GeometryContainer (bridge for migration)
+static std::unique_ptr<core::GeometryContainer>
+convert_to_container(const GeometryData &old_data) {
+  auto container = std::make_unique<core::GeometryContainer>();
+
+  auto mesh = old_data.get_mesh();
+  if (!mesh || mesh->empty()) {
+    return container;
+  }
+
+  const auto &vertices = mesh->vertices();
+  const auto &faces = mesh->faces();
+
+  // Set up topology
+  auto &topology = container->topology();
+  topology.set_point_count(vertices.rows());
+
+  // Add primitives
+  for (int i = 0; i < faces.rows(); ++i) {
+    std::vector<int> prim_verts(3);
+    for (int j = 0; j < 3; ++j) {
+      prim_verts[j] = faces(i, j);
+    }
+    topology.add_primitive(prim_verts);
+  }
+
+  // Add position attribute
+  container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
+      p_span[i] = vertices.row(i).cast<float>();
+    }
+  }
+
+  return container;
+}
+
+// Helper to convert GeometryContainer to GeometryData (bridge for migration)
+static std::shared_ptr<GeometryData>
+convert_from_container(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!p_storage)
+    return std::make_shared<GeometryData>(std::make_shared<core::Mesh>());
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract faces - convert vertex indices to point indices
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
+      // Convert vertex index to point index
+      faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
+    }
+  }
+
+  auto mesh = std::make_shared<core::Mesh>(vertices, faces);
+  return std::make_shared<GeometryData>(mesh);
+}
+
 std::shared_ptr<GeometryData> ArraySOP::execute() {
   // Get input geometry from port
   auto input_geo = get_input_data("mesh");
@@ -110,7 +182,14 @@ std::shared_ptr<GeometryData> ArraySOP::execute() {
     return nullptr;
   }
 
-  // Extract mesh from GeometryData
+  // Convert to GeometryContainer
+  auto input_container = convert_to_container(*input_geo);
+  if (input_container->topology().point_count() == 0) {
+    set_error("Input geometry is empty");
+    return nullptr;
+  }
+
+  // Extract mesh from GeometryData (for array processing)
   auto input_mesh = input_geo->get_mesh();
   if (!input_mesh) {
     set_error("Input geometry does not contain a mesh");
@@ -155,9 +234,36 @@ std::shared_ptr<GeometryData> ArraySOP::execute() {
     return nullptr;
   }
 
-  // Wrap result in GeometryData
-  auto output_mesh = std::make_shared<core::Mesh>(std::move(*result_mesh));
-  auto output_data = std::make_shared<GeometryData>(output_mesh);
+  // Convert result to GeometryContainer
+  core::GeometryContainer output_container;
+  auto &output_topology = output_container.topology();
+
+  const auto &output_verts = result_mesh->vertices();
+  const auto &output_faces = result_mesh->faces();
+
+  output_topology.set_point_count(output_verts.rows());
+
+  // Add primitives
+  for (int i = 0; i < output_faces.rows(); ++i) {
+    std::vector<int> prim_verts(3);
+    for (int j = 0; j < 3; ++j) {
+      prim_verts[j] = output_faces(i, j);
+    }
+    output_topology.add_primitive(prim_verts);
+  }
+
+  // Add position attribute
+  output_container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = output_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage) {
+    auto p_span = p_storage->values_writable();
+    for (size_t i = 0; i < static_cast<size_t>(output_verts.rows()); ++i) {
+      p_span[i] = output_verts.row(i).cast<float>();
+    }
+  }
+
+  // Convert back to GeometryData for compatibility
+  auto output_data = convert_from_container(output_container);
 
   // Add instance tracking attributes
   add_instance_attributes(output_data, input_vert_count, input_face_count,

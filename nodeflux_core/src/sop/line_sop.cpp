@@ -1,5 +1,8 @@
 #include "nodeflux/sop/line_sop.hpp"
+#include "nodeflux/core/math.hpp"
 #include <Eigen/Dense>
+
+namespace attrs = nodeflux::core::standard_attrs;
 
 namespace nodeflux::sop {
 
@@ -48,6 +51,39 @@ LineSOP::LineSOP(const std::string &name) : SOPNode(name, "Line") {
                          .build());
 }
 
+// Helper to convert GeometryContainer to GeometryData (bridge for migration)
+static std::shared_ptr<GeometryData>
+convert_from_container(const core::GeometryContainer &container) {
+  const auto &topology = container.topology();
+
+  // Extract positions
+  auto *p_storage =
+      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (!p_storage)
+    return std::make_shared<GeometryData>(std::make_shared<core::Mesh>());
+
+  Eigen::MatrixXd vertices(topology.point_count(), 3);
+  auto p_span = p_storage->values();
+  for (size_t i = 0; i < p_span.size(); ++i) {
+    vertices.row(i) = p_span[i].cast<double>();
+  }
+
+  // Extract primitives (line segments represented as degenerate triangles)
+  Eigen::MatrixXi faces(topology.primitive_count(), 3);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &verts = topology.get_primitive_vertices(prim_idx);
+    if (verts.size() >= 2) {
+      // Line segment: [i, i+1, i+1] (degenerate triangle marker)
+      faces(prim_idx, 0) = verts[0];
+      faces(prim_idx, 1) = verts[1];
+      faces(prim_idx, 2) = verts[1]; // Duplicate last vertex to mark as line
+    }
+  }
+
+  auto mesh = std::make_shared<core::Mesh>(vertices, faces);
+  return std::make_shared<GeometryData>(mesh);
+}
+
 std::shared_ptr<GeometryData> LineSOP::execute() {
   // Read parameters from parameter system
   const float start_x = get_parameter<float>("start_x", 0.0F);
@@ -65,30 +101,40 @@ std::shared_ptr<GeometryData> LineSOP::execute() {
 
   const int num_points = segments + 1;
 
-  // Create vertices along the line
-  Eigen::MatrixXd vertices(num_points, 3);
+  // Create GeometryContainer
+  core::GeometryContainer container;
+  auto &topology = container.topology();
+
+  // Set point count
+  topology.set_point_count(num_points);
+
+  // Create line segment primitives (2 vertices per edge)
+  for (int i = 0; i < segments; ++i) {
+    topology.add_primitive({i, i + 1});
+  }
+
+  // Calculate positions along the line
+  std::vector<core::Vec3f> positions;
+  positions.reserve(num_points);
 
   for (int i = 0; i < num_points; ++i) {
     const float t = static_cast<float>(i) / static_cast<float>(segments);
-    vertices(i, 0) = start_x + t * (end_x - start_x);
-    vertices(i, 1) = start_y + t * (end_y - start_y);
-    vertices(i, 2) = start_z + t * (end_z - start_z);
+    const float x = start_x + t * (end_x - start_x);
+    const float y = start_y + t * (end_y - start_y);
+    const float z = start_z + t * (end_z - start_z);
+    positions.push_back({x, y, z});
   }
 
-  // Create edges as line segments (store as degenerate triangles for
-  // compatibility) Face format: [i, i+1, i+1] indicates this is a line edge
-  // from i to i+1
-  Eigen::MatrixXi faces(segments, 3);
-
-  for (int i = 0; i < segments; ++i) {
-    faces(i, 0) = i;
-    faces(i, 1) = i + 1;
-    faces(i, 2) = i + 1; // Degenerate triangle marker for line edge
+  // Add P (position) attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (p_storage != nullptr) {
+    auto p_span = p_storage->values_writable();
+    std::copy(positions.begin(), positions.end(), p_span.begin());
   }
 
-  auto result_mesh =
-      std::make_shared<core::Mesh>(std::move(vertices), std::move(faces));
-  return std::make_shared<GeometryData>(result_mesh);
+  // Convert back to GeometryData for compatibility
+  return convert_from_container(container);
 }
 
 } // namespace nodeflux::sop
