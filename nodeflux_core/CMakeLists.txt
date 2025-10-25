@@ -16,6 +16,7 @@ find_package(nlohmann_json REQUIRED)
 # Core library sources
 set(NODEFLUX_CORE_SOURCES
     # Core
+    src/core/element_topology.cpp
     src/core/error.cpp
     src/core/geometry_attributes.cpp
     src/core/math.cpp
