@@ -43,8 +43,14 @@ protected:
   std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
-  std::optional<core::Mesh>
-  apply_catmull_clark_subdivision(const core::Mesh &mesh);
+  void apply_simple_subdivision(core::GeometryContainer &container);
+  void apply_catmull_clark(core::GeometryContainer &container,
+                           bool preserve_boundaries);
+
+  void add_triangle(core::GeometryContainer &container, int p0, int p1,
+                    int p2);
+  void add_quad(core::GeometryContainer &container, int p0, int p1, int p2,
+                int p3);
 
   int subdivision_levels_ = 1;
   bool preserve_boundaries_ = true;

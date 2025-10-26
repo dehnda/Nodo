@@ -276,34 +276,73 @@ void ViewportWidget::setGeometry(
         continue;
       }
 
-      // Triangle primitives (3+ vertices)
-      for (int vert_idx : prim_verts) {
-        // Validate vertex index
-        if (vert_idx < 0 ||
-            static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
-          qDebug() << "ERROR: Vertex index" << vert_idx
-                   << "out of range (max:" << topology.vertex_count() - 1
-                   << ")";
-          continue;
+      // Triangle/polygon primitives (3+ vertices)
+      // For quads (4 vertices), we need to triangulate: 0-1-2 and 0-2-3
+      // For triangles (3 vertices), just use as-is
+      // For n-gons (5+ vertices), fan triangulation from first vertex
+      
+      if (prim_verts.size() == 3) {
+        // Triangle: add all 3 vertices
+        for (int vert_idx : prim_verts) {
+          if (vert_idx < 0 ||
+              static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
+            continue;
+          }
+          int point_idx = topology.get_vertex_point(vert_idx);
+          if (point_idx < 0 ||
+              static_cast<size_t>(point_idx) >= pos_values.size()) {
+            continue;
+          }
+          const auto &pos = pos_values[point_idx];
+          vertex_data.push_back(pos.x());
+          vertex_data.push_back(pos.y());
+          vertex_data.push_back(pos.z());
+          index_data.push_back(static_cast<unsigned int>(vertex_index++));
         }
-
-        int point_idx = topology.get_vertex_point(vert_idx);
-
-        // Validate point index
-        if (point_idx < 0 ||
-            static_cast<size_t>(point_idx) >= pos_values.size()) {
-          qDebug() << "ERROR: Point index" << point_idx
-                   << "out of range (max:" << pos_values.size() - 1 << ")";
-          continue;
+      } else if (prim_verts.size() == 4) {
+        // Quad: triangulate as 0-1-2 and 0-2-3
+        const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
+        
+        for (int local_idx : tri_indices) {
+          int vert_idx = prim_verts[local_idx];
+          if (vert_idx < 0 ||
+              static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
+            continue;
+          }
+          int point_idx = topology.get_vertex_point(vert_idx);
+          if (point_idx < 0 ||
+              static_cast<size_t>(point_idx) >= pos_values.size()) {
+            continue;
+          }
+          const auto &pos = pos_values[point_idx];
+          vertex_data.push_back(pos.x());
+          vertex_data.push_back(pos.y());
+          vertex_data.push_back(pos.z());
+          index_data.push_back(static_cast<unsigned int>(vertex_index++));
         }
-
-        const auto &pos = pos_values[point_idx];
-
-        vertex_data.push_back(pos.x());
-        vertex_data.push_back(pos.y());
-        vertex_data.push_back(pos.z());
-
-        index_data.push_back(static_cast<unsigned int>(vertex_index++));
+      } else if (prim_verts.size() > 4) {
+        // N-gon: fan triangulation from first vertex
+        for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
+          const std::array<size_t, 3> tri_local = {0, i, i + 1};
+          
+          for (size_t local_idx : tri_local) {
+            int vert_idx = prim_verts[local_idx];
+            if (vert_idx < 0 ||
+                static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
+              continue;
+            }
+            int point_idx = topology.get_vertex_point(vert_idx);
+            if (point_idx < 0 ||
+                static_cast<size_t>(point_idx) >= pos_values.size()) {
+              continue;
+            }
+            const auto &pos = pos_values[point_idx];
+            vertex_data.push_back(pos.x());
+            vertex_data.push_back(pos.y());
+            vertex_data.push_back(pos.z());
+            index_data.push_back(static_cast<unsigned int>(vertex_index++));
+          }
+        }
       }
     }
 
@@ -329,12 +368,35 @@ void ViewportWidget::setGeometry(
           continue;
         }
 
-        for (int vert_idx : prim_verts) {
-          const auto &normal = normal_values[vert_idx];
-
-          normal_data.push_back(normal.x());
-          normal_data.push_back(normal.y());
-          normal_data.push_back(normal.z());
+        // Match the triangulation pattern used above
+        if (prim_verts.size() == 3) {
+          // Triangle
+          for (int vert_idx : prim_verts) {
+            const auto &normal = normal_values[vert_idx];
+            normal_data.push_back(normal.x());
+            normal_data.push_back(normal.y());
+            normal_data.push_back(normal.z());
+          }
+        } else if (prim_verts.size() == 4) {
+          // Quad: triangulated as 0-1-2, 0-2-3
+          const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
+          for (int local_idx : tri_indices) {
+            const auto &normal = normal_values[prim_verts[local_idx]];
+            normal_data.push_back(normal.x());
+            normal_data.push_back(normal.y());
+            normal_data.push_back(normal.z());
+          }
+        } else if (prim_verts.size() > 4) {
+          // N-gon: fan triangulation
+          for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
+            const std::array<size_t, 3> tri_local = {0, i, i + 1};
+            for (size_t local_idx : tri_local) {
+              const auto &normal = normal_values[prim_verts[local_idx]];
+              normal_data.push_back(normal.x());
+              normal_data.push_back(normal.y());
+              normal_data.push_back(normal.z());
+            }
+          }
         }
       }
     } else if (point_normals != nullptr) {
@@ -350,13 +412,38 @@ void ViewportWidget::setGeometry(
           continue;
         }
 
-        for (int vert_idx : prim_verts) {
-          int point_idx = topology.get_vertex_point(vert_idx);
-          const auto &normal = normal_values[point_idx];
-
-          normal_data.push_back(normal.x());
-          normal_data.push_back(normal.y());
-          normal_data.push_back(normal.z());
+        // Match the triangulation pattern
+        if (prim_verts.size() == 3) {
+          // Triangle
+          for (int vert_idx : prim_verts) {
+            int point_idx = topology.get_vertex_point(vert_idx);
+            const auto &normal = normal_values[point_idx];
+            normal_data.push_back(normal.x());
+            normal_data.push_back(normal.y());
+            normal_data.push_back(normal.z());
+          }
+        } else if (prim_verts.size() == 4) {
+          // Quad: triangulated as 0-1-2, 0-2-3
+          const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
+          for (int local_idx : tri_indices) {
+            int point_idx = topology.get_vertex_point(prim_verts[local_idx]);
+            const auto &normal = normal_values[point_idx];
+            normal_data.push_back(normal.x());
+            normal_data.push_back(normal.y());
+            normal_data.push_back(normal.z());
+          }
+        } else if (prim_verts.size() > 4) {
+          // N-gon: fan triangulation
+          for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
+            const std::array<size_t, 3> tri_local = {0, i, i + 1};
+            for (size_t local_idx : tri_local) {
+              int point_idx = topology.get_vertex_point(prim_verts[local_idx]);
+              const auto &normal = normal_values[point_idx];
+              normal_data.push_back(normal.x());
+              normal_data.push_back(normal.y());
+              normal_data.push_back(normal.z());
+            }
+          }
         }
       }
     } else {
@@ -366,7 +453,7 @@ void ViewportWidget::setGeometry(
         const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
 
         if (prim_verts.size() >= 3) {
-          // Compute face normal
+          // Compute face normal from first 3 vertices
           int point_idx_0 = topology.get_vertex_point(prim_verts[0]);
           int point_idx_1 = topology.get_vertex_point(prim_verts[1]);
           int point_idx_2 = topology.get_vertex_point(prim_verts[2]);
@@ -379,11 +466,29 @@ void ViewportWidget::setGeometry(
           nodeflux::core::Vec3f edge2 = vertex_2 - vertex_0;
           nodeflux::core::Vec3f normal = edge1.cross(edge2).normalized();
 
-          // Use same normal for all vertices in this face
-          for (size_t i = 0; i < prim_verts.size(); ++i) {
-            normal_data.push_back(normal.x());
-            normal_data.push_back(normal.y());
-            normal_data.push_back(normal.z());
+          // Match triangulation pattern: use same normal for all triangulated vertices
+          if (prim_verts.size() == 3) {
+            // Triangle: 3 vertices
+            for (int i = 0; i < 3; ++i) {
+              normal_data.push_back(normal.x());
+              normal_data.push_back(normal.y());
+              normal_data.push_back(normal.z());
+            }
+          } else if (prim_verts.size() == 4) {
+            // Quad: triangulated as 2 triangles = 6 vertices
+            for (int i = 0; i < 6; ++i) {
+              normal_data.push_back(normal.x());
+              normal_data.push_back(normal.y());
+              normal_data.push_back(normal.z());
+            }
+          } else if (prim_verts.size() > 4) {
+            // N-gon: fan triangulation = (n-2) * 3 vertices
+            const int num_tris = static_cast<int>(prim_verts.size()) - 2;
+            for (int i = 0; i < num_tris * 3; ++i) {
+              normal_data.push_back(normal.x());
+              normal_data.push_back(normal.y());
+              normal_data.push_back(normal.z());
+            }
           }
         }
       }
