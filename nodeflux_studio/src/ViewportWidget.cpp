@@ -221,111 +221,133 @@ void ViewportWidget::setGeometry(
   std::vector<float> normal_data;
   std::vector<unsigned int> index_data;
 
-  // For each primitive, extract vertex positions
-  size_t vertex_index = 0;
-  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+  // Check if this is a point cloud (points with no primitives)
+  const bool is_point_cloud =
+      (topology.primitive_count() == 0 && topology.point_count() > 0);
 
-    for (int vert_idx : prim_verts) {
-      // Validate vertex index
-      if (vert_idx < 0 ||
-          static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
-        qDebug() << "ERROR: Vertex index" << vert_idx
-                 << "out of range (max:" << topology.vertex_count() - 1 << ")";
-        continue;
-      }
-
-      int point_idx = topology.get_vertex_point(vert_idx);
-
-      // Validate point index
-      if (point_idx < 0 ||
-          static_cast<size_t>(point_idx) >= pos_values.size()) {
-        qDebug() << "ERROR: Point index" << point_idx
-                 << "out of range (max:" << pos_values.size() - 1 << ")";
-        continue;
-      }
-
+  if (is_point_cloud) {
+    // For point clouds, render all points directly
+    for (size_t point_idx = 0; point_idx < pos_values.size(); ++point_idx) {
       const auto &pos = pos_values[point_idx];
-
       vertex_data.push_back(pos.x());
       vertex_data.push_back(pos.y());
       vertex_data.push_back(pos.z());
 
-      index_data.push_back(static_cast<unsigned int>(vertex_index++));
+      // Default normal (point clouds don't need real normals for rendering)
+      normal_data.push_back(0.0F);
+      normal_data.push_back(1.0F);
+      normal_data.push_back(0.0F);
     }
-  }
-
-  // Get normals from "N" attribute - check VERTEX attributes first (for hard
-  // edges), then fall back to POINT attributes (for smooth shading)
-  const auto *vertex_normals =
-      geometry.get_vertex_attribute_typed<nodeflux::core::Vec3f>(
-          nodeflux::core::standard_attrs::N);
-  const auto *point_normals =
-      geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
-          nodeflux::core::standard_attrs::N);
-
-  if (vertex_normals != nullptr) {
-    // Use per-vertex normals (hard edges / faceted shading)
-    const auto &normal_values = vertex_normals->values();
-
-    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
-         ++prim_idx) {
-      const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
-
-      for (int vert_idx : prim_verts) {
-        const auto &normal = normal_values[vert_idx];
-
-        normal_data.push_back(normal.x());
-        normal_data.push_back(normal.y());
-        normal_data.push_back(normal.z());
-      }
-    }
-  } else if (point_normals != nullptr) {
-    // Use per-point normals (smooth shading)
-    const auto &normal_values = point_normals->values();
-
-    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
-         ++prim_idx) {
-      const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
-
-      for (int vert_idx : prim_verts) {
-        int point_idx = topology.get_vertex_point(vert_idx);
-        const auto &normal = normal_values[point_idx];
-
-        normal_data.push_back(normal.x());
-        normal_data.push_back(normal.y());
-        normal_data.push_back(normal.z());
-      }
-    }
+    // No indices for point clouds
   } else {
-    // Generate flat normals if no normals attribute
+    // For meshes, extract vertex positions from primitives
+    size_t vertex_index = 0;
     for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
          ++prim_idx) {
       const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
 
-      if (prim_verts.size() >= 3) {
-        // Compute face normal
-        int point_idx_0 = topology.get_vertex_point(prim_verts[0]);
-        int point_idx_1 = topology.get_vertex_point(prim_verts[1]);
-        int point_idx_2 = topology.get_vertex_point(prim_verts[2]);
+      for (int vert_idx : prim_verts) {
+        // Validate vertex index
+        if (vert_idx < 0 ||
+            static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
+          qDebug() << "ERROR: Vertex index" << vert_idx
+                   << "out of range (max:" << topology.vertex_count() - 1
+                   << ")";
+          continue;
+        }
 
-        nodeflux::core::Vec3f vertex_0 = pos_values[point_idx_0];
-        nodeflux::core::Vec3f vertex_1 = pos_values[point_idx_1];
-        nodeflux::core::Vec3f vertex_2 = pos_values[point_idx_2];
+        int point_idx = topology.get_vertex_point(vert_idx);
 
-        nodeflux::core::Vec3f edge1 = vertex_1 - vertex_0;
-        nodeflux::core::Vec3f edge2 = vertex_2 - vertex_0;
-        nodeflux::core::Vec3f normal = edge1.cross(edge2).normalized();
+        // Validate point index
+        if (point_idx < 0 ||
+            static_cast<size_t>(point_idx) >= pos_values.size()) {
+          qDebug() << "ERROR: Point index" << point_idx
+                   << "out of range (max:" << pos_values.size() - 1 << ")";
+          continue;
+        }
 
-        // Use same normal for all vertices in this face
-        for (size_t i = 0; i < prim_verts.size(); ++i) {
+        const auto &pos = pos_values[point_idx];
+
+        vertex_data.push_back(pos.x());
+        vertex_data.push_back(pos.y());
+        vertex_data.push_back(pos.z());
+
+        index_data.push_back(static_cast<unsigned int>(vertex_index++));
+      }
+    }
+
+    // Get normals from "N" attribute - check VERTEX attributes first (for hard
+    // edges), then fall back to POINT attributes (for smooth shading)
+    const auto *vertex_normals =
+        geometry.get_vertex_attribute_typed<nodeflux::core::Vec3f>(
+            nodeflux::core::standard_attrs::N);
+    const auto *point_normals =
+        geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
+            nodeflux::core::standard_attrs::N);
+
+    if (vertex_normals != nullptr) {
+      // Use per-vertex normals (hard edges / faceted shading)
+      const auto &normal_values = vertex_normals->values();
+
+      for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+           ++prim_idx) {
+        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+        for (int vert_idx : prim_verts) {
+          const auto &normal = normal_values[vert_idx];
+
           normal_data.push_back(normal.x());
           normal_data.push_back(normal.y());
           normal_data.push_back(normal.z());
         }
       }
+    } else if (point_normals != nullptr) {
+      // Use per-point normals (smooth shading)
+      const auto &normal_values = point_normals->values();
+
+      for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+           ++prim_idx) {
+        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+        for (int vert_idx : prim_verts) {
+          int point_idx = topology.get_vertex_point(vert_idx);
+          const auto &normal = normal_values[point_idx];
+
+          normal_data.push_back(normal.x());
+          normal_data.push_back(normal.y());
+          normal_data.push_back(normal.z());
+        }
+      }
+    } else {
+      // Generate flat normals if no normals attribute
+      for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+           ++prim_idx) {
+        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+        if (prim_verts.size() >= 3) {
+          // Compute face normal
+          int point_idx_0 = topology.get_vertex_point(prim_verts[0]);
+          int point_idx_1 = topology.get_vertex_point(prim_verts[1]);
+          int point_idx_2 = topology.get_vertex_point(prim_verts[2]);
+
+          nodeflux::core::Vec3f vertex_0 = pos_values[point_idx_0];
+          nodeflux::core::Vec3f vertex_1 = pos_values[point_idx_1];
+          nodeflux::core::Vec3f vertex_2 = pos_values[point_idx_2];
+
+          nodeflux::core::Vec3f edge1 = vertex_1 - vertex_0;
+          nodeflux::core::Vec3f edge2 = vertex_2 - vertex_0;
+          nodeflux::core::Vec3f normal = edge1.cross(edge2).normalized();
+
+          // Use same normal for all vertices in this face
+          for (size_t i = 0; i < prim_verts.size(); ++i) {
+            normal_data.push_back(normal.x());
+            normal_data.push_back(normal.y());
+            normal_data.push_back(normal.z());
+          }
+        }
+      }
     }
-  }
+  } // End of mesh primitive processing
 
   // Upload to GPU
   vao_->bind();
@@ -351,7 +373,33 @@ void ViewportWidget::setGeometry(
 
   vertex_count_ = static_cast<int>(topology.point_count());
   index_count_ = static_cast<int>(index_data.size());
+  point_count_ =
+      static_cast<int>(vertex_data.size() / 3); // 3 floats per point (x,y,z)
   has_mesh_ = true;
+
+  // For point clouds, use the main VAO as vertex_vao_ for rendering
+  if (is_point_cloud) {
+    // Create vertex_vao_ if it doesn't exist
+    if (!vertex_vao_) {
+      vertex_vao_ = std::make_unique<QOpenGLVertexArrayObject>();
+      vertex_vao_->create();
+    }
+    if (!vertex_point_buffer_) {
+      vertex_point_buffer_ =
+          std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+      vertex_point_buffer_->create();
+    }
+
+    // Upload point data to vertex_vao_ (for point rendering)
+    vertex_vao_->bind();
+    vertex_point_buffer_->bind();
+    vertex_point_buffer_->allocate(
+        vertex_data.data(),
+        static_cast<int>(vertex_data.size() * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    vertex_vao_->release();
+  }
 
   // TODO: Extract edges and vertex points for visualization from
   // GeometryContainer For now, skip normal visualization - will implement later

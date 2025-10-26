@@ -34,7 +34,8 @@ public:
    * Uses new GeometryContainer attribute system
    */
   std::shared_ptr<core::GeometryContainer> execute() override {
-    auto input_data = get_input_data("input");
+    // Get input geometry from port 0 (execution engine uses numeric indices)
+    auto input_data = get_input_data(0);
     if (input_data == nullptr) {
       return nullptr;
     }

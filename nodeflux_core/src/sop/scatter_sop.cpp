@@ -15,8 +15,8 @@ constexpr double BARYCENTRIC_NORMALIZE = 1.0;
 
 ScatterSOP::ScatterSOP(const std::string &node_name)
     : SOPNode(node_name, "Scatter") {
-  // Add input port
-  input_ports_.add_port("input", NodePort::Type::INPUT,
+  // Add input port (use "0" to match execution engine's numeric indexing)
+  input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
