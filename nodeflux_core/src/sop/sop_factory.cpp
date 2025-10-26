@@ -3,18 +3,25 @@
 // Include all SOP node headers
 #include "nodeflux/sop/array_sop.hpp"
 #include "nodeflux/sop/boolean_sop.hpp"
+#include "nodeflux/sop/box_sop.hpp"
 #include "nodeflux/sop/copy_to_points_sop.hpp"
+#include "nodeflux/sop/cylinder_sop.hpp"
 #include "nodeflux/sop/export_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
 #include "nodeflux/sop/file_sop.hpp"
 #include "nodeflux/sop/laplacian_sop.hpp"
 #include "nodeflux/sop/line_sop.hpp"
+#include "nodeflux/sop/merge_sop.hpp"
 #include "nodeflux/sop/mirror_sop.hpp"
 #include "nodeflux/sop/noise_displacement_sop.hpp"
+#include "nodeflux/sop/plane_sop.hpp"
 #include "nodeflux/sop/polyextrude_sop.hpp"
 #include "nodeflux/sop/resample_sop.hpp"
 #include "nodeflux/sop/scatter_sop.hpp"
+#include "nodeflux/sop/sphere_sop.hpp"
 #include "nodeflux/sop/subdivisions_sop.hpp"
+#include "nodeflux/sop/switch_sop.hpp"
+#include "nodeflux/sop/torus_sop.hpp"
 #include "nodeflux/sop/transform_sop.hpp"
 
 // Include geometry generators (these will need SOP wrappers)
@@ -22,6 +29,7 @@
 #include "nodeflux/geometry/plane_generator.hpp"
 #include "nodeflux/geometry/sphere_generator.hpp"
 #include "nodeflux/geometry/torus_generator.hpp"
+#include <memory>
 
 namespace nodeflux::sop {
 
@@ -70,15 +78,21 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
   case NodeType::Export:
     return std::make_shared<ExportSOP>(name);
 
-  // Generators without SOP classes yet - return nullptr
-  // These will need wrapper SOPs created
+  // Basic Primitives SOPs
   case NodeType::Sphere:
+    return std::make_shared<SphereSOP>(name);
   case NodeType::Box:
+    return std::make_shared<BoxSOP>(name);
   case NodeType::Cylinder:
+    return std::make_shared<CylinderSOP>(name);
   case NodeType::Plane:
+    return std::make_shared<PlaneSOP>(name);
   case NodeType::Torus:
+    return std::make_shared<TorusSOP>(name);
   case NodeType::Merge:
+    return std::make_shared<MergeSOP>(name);
   case NodeType::Switch:
+    return std::make_shared<SwitchSOP>(name);
   default:
     return nullptr;
   }

@@ -255,14 +255,35 @@ void ViewportWidget::setGeometry(
     }
   }
 
-  // Get normals from "N" attribute if available
-  const auto *normals =
+  // Get normals from "N" attribute - check VERTEX attributes first (for hard
+  // edges), then fall back to POINT attributes (for smooth shading)
+  const auto *vertex_normals =
+      geometry.get_vertex_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::N);
+  const auto *point_normals =
       geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
           nodeflux::core::standard_attrs::N);
-  if (normals != nullptr) {
-    const auto &normal_values = normals->values();
 
-    // Per-vertex normals
+  if (vertex_normals != nullptr) {
+    // Use per-vertex normals (hard edges / faceted shading)
+    const auto &normal_values = vertex_normals->values();
+
+    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+         ++prim_idx) {
+      const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+      for (int vert_idx : prim_verts) {
+        const auto &normal = normal_values[vert_idx];
+
+        normal_data.push_back(normal.x());
+        normal_data.push_back(normal.y());
+        normal_data.push_back(normal.z());
+      }
+    }
+  } else if (point_normals != nullptr) {
+    // Use per-point normals (smooth shading)
+    const auto &normal_values = point_normals->values();
+
     for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
          ++prim_idx) {
       const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
