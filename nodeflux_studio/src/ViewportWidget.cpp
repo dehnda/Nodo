@@ -1,7 +1,9 @@
 #include "ViewportWidget.h"
 #include "ViewportOverlay.h"
+#include <nodeflux/core/geometry_container.hpp>
 #include <nodeflux/core/mesh.hpp>
 
+#include <QDebug>
 #include <QMouseEvent>
 #include <QTimer>
 #include <QWheelEvent>
@@ -152,45 +154,156 @@ ViewportWidget::~ViewportWidget() {
   doneCurrent();
 }
 
-void ViewportWidget::setMesh(const nodeflux::core::Mesh &mesh) {
-  if (mesh.empty()) {
+void ViewportWidget::setGeometry(
+    const nodeflux::core::GeometryContainer &geometry) {
+  // Check if geometry is empty
+  if (geometry.topology().point_count() == 0) {
+    qDebug() << "ViewportWidget::setGeometry - Empty geometry (0 points)";
     clearMesh();
     return;
   }
 
+  qDebug() << "ViewportWidget::setGeometry - Points:" << geometry.point_count()
+           << "Primitives:" << geometry.primitive_count();
+
   makeCurrent();
 
-  // Calculate mesh bounds for camera framing
-  calculateMeshBounds(mesh);
+  // Get positions from "P" attribute
+  const auto *positions =
+      geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::P);
+  if (positions == nullptr) {
+    qDebug() << "ViewportWidget::setGeometry - No 'P' attribute found!";
+    clearMesh();
+    doneCurrent();
+    return;
+  }
 
-  // Get mesh data
-  const auto &vertices = mesh.vertices();
-  const auto &faces = mesh.faces();
-  const auto &normals = mesh.vertex_normals();
+  qDebug() << "ViewportWidget::setGeometry - Position values:"
+           << positions->values().size();
 
-  // Convert Eigen matrices to OpenGL-compatible format
+  // Calculate bounds from positions for camera framing
+  const auto &pos_values = positions->values();
+  if (!pos_values.empty()) {
+    // Calculate bounding box
+    nodeflux::core::Vec3f min_point = pos_values[0];
+    nodeflux::core::Vec3f max_point = pos_values[0];
+
+    for (const auto &pos : pos_values) {
+      min_point = min_point.cwiseMin(pos);
+      max_point = max_point.cwiseMax(pos);
+    }
+
+    // Calculate center and radius
+    nodeflux::core::Vec3f center = (min_point + max_point) * 0.5f;
+    mesh_center_ = QVector3D(center.x(), center.y(), center.z());
+
+    // Calculate radius (distance from center to furthest point)
+    float max_dist_sq = 0.0f;
+    for (const auto &pos : pos_values) {
+      const nodeflux::core::Vec3f diff = pos - center;
+      max_dist_sq = std::max(max_dist_sq, diff.squaredNorm());
+    }
+    mesh_radius_ = std::sqrt(max_dist_sq);
+
+    // Auto-fit on first mesh load
+    if (first_mesh_load_) {
+      fitToView();
+      first_mesh_load_ = false;
+    }
+  }
+
+  // Extract vertex positions for rendering
+  // In GeometryContainer, primitives reference points via vertices
+  // We need to build per-vertex data for OpenGL
+  const auto &topology = geometry.topology();
   std::vector<float> vertex_data;
-  vertex_data.reserve(vertices.rows() * 3);
-  for (int i = 0; i < vertices.rows(); ++i) {
-    vertex_data.push_back(static_cast<float>(vertices(i, 0)));
-    vertex_data.push_back(static_cast<float>(vertices(i, 1)));
-    vertex_data.push_back(static_cast<float>(vertices(i, 2)));
-  }
-
   std::vector<float> normal_data;
-  normal_data.reserve(normals.rows() * 3);
-  for (int i = 0; i < normals.rows(); ++i) {
-    normal_data.push_back(static_cast<float>(normals(i, 0)));
-    normal_data.push_back(static_cast<float>(normals(i, 1)));
-    normal_data.push_back(static_cast<float>(normals(i, 2)));
+  std::vector<unsigned int> index_data;
+
+  // For each primitive, extract vertex positions
+  size_t vertex_index = 0;
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+    for (int vert_idx : prim_verts) {
+      // Validate vertex index
+      if (vert_idx < 0 ||
+          static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
+        qDebug() << "ERROR: Vertex index" << vert_idx
+                 << "out of range (max:" << topology.vertex_count() - 1 << ")";
+        continue;
+      }
+
+      int point_idx = topology.get_vertex_point(vert_idx);
+
+      // Validate point index
+      if (point_idx < 0 ||
+          static_cast<size_t>(point_idx) >= pos_values.size()) {
+        qDebug() << "ERROR: Point index" << point_idx
+                 << "out of range (max:" << pos_values.size() - 1 << ")";
+        continue;
+      }
+
+      const auto &pos = pos_values[point_idx];
+
+      vertex_data.push_back(pos.x());
+      vertex_data.push_back(pos.y());
+      vertex_data.push_back(pos.z());
+
+      index_data.push_back(static_cast<unsigned int>(vertex_index++));
+    }
   }
 
-  std::vector<unsigned int> index_data;
-  index_data.reserve(faces.rows() * 3);
-  for (int i = 0; i < faces.rows(); ++i) {
-    index_data.push_back(static_cast<unsigned int>(faces(i, 0)));
-    index_data.push_back(static_cast<unsigned int>(faces(i, 1)));
-    index_data.push_back(static_cast<unsigned int>(faces(i, 2)));
+  // Get normals from "N" attribute if available
+  const auto *normals =
+      geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::N);
+  if (normals != nullptr) {
+    const auto &normal_values = normals->values();
+
+    // Per-vertex normals
+    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+         ++prim_idx) {
+      const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+      for (int vert_idx : prim_verts) {
+        int point_idx = topology.get_vertex_point(vert_idx);
+        const auto &normal = normal_values[point_idx];
+
+        normal_data.push_back(normal.x());
+        normal_data.push_back(normal.y());
+        normal_data.push_back(normal.z());
+      }
+    }
+  } else {
+    // Generate flat normals if no normals attribute
+    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+         ++prim_idx) {
+      const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+      if (prim_verts.size() >= 3) {
+        // Compute face normal
+        int point_idx_0 = topology.get_vertex_point(prim_verts[0]);
+        int point_idx_1 = topology.get_vertex_point(prim_verts[1]);
+        int point_idx_2 = topology.get_vertex_point(prim_verts[2]);
+
+        nodeflux::core::Vec3f vertex_0 = pos_values[point_idx_0];
+        nodeflux::core::Vec3f vertex_1 = pos_values[point_idx_1];
+        nodeflux::core::Vec3f vertex_2 = pos_values[point_idx_2];
+
+        nodeflux::core::Vec3f edge1 = vertex_1 - vertex_0;
+        nodeflux::core::Vec3f edge2 = vertex_2 - vertex_0;
+        nodeflux::core::Vec3f normal = edge1.cross(edge2).normalized();
+
+        // Use same normal for all vertices in this face
+        for (size_t i = 0; i < prim_verts.size(); ++i) {
+          normal_data.push_back(normal.x());
+          normal_data.push_back(normal.y());
+          normal_data.push_back(normal.z());
+        }
+      }
+    }
   }
 
   // Upload to GPU
@@ -215,15 +328,12 @@ void ViewportWidget::setMesh(const nodeflux::core::Mesh &mesh) {
 
   vao_->release();
 
-  vertex_count_ = static_cast<int>(vertices.rows());
+  vertex_count_ = static_cast<int>(topology.point_count());
   index_count_ = static_cast<int>(index_data.size());
   has_mesh_ = true;
 
-  // Store mesh for normal visualization
-  current_mesh_ = std::make_shared<nodeflux::core::Mesh>(mesh);
-
-  // Extract edges and vertex points for visualization
-  extractEdgesFromMesh(mesh);
+  // TODO: Extract edges and vertex points for visualization from
+  // GeometryContainer For now, skip normal visualization - will implement later
 
   doneCurrent();
   update(); // Trigger repaint
@@ -369,7 +479,8 @@ void ViewportWidget::paintGL() {
   }
 
   // Choose shader based on shading mode
-  auto* active_shader = shading_enabled_ ? shader_program_.get() : simple_shader_program_.get();
+  auto *active_shader =
+      shading_enabled_ ? shader_program_.get() : simple_shader_program_.get();
 
   // Bind shader and set uniforms
   active_shader->bind();
@@ -1203,9 +1314,7 @@ void ViewportWidget::setupOverlays() {
   connect(controls_overlay_, &ViewportControlsOverlay::wireframeToggled, this,
           &ViewportWidget::setWireframeMode);
   connect(controls_overlay_, &ViewportControlsOverlay::shadingModeChanged, this,
-          [this](const QString& mode) {
-            setShadingEnabled(mode == "smooth");
-          });
+          [this](const QString &mode) { setShadingEnabled(mode == "smooth"); });
   connect(controls_overlay_, &ViewportControlsOverlay::cameraReset, this,
           &ViewportWidget::resetCamera);
   connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView, this,

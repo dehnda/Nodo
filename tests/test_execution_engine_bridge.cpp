@@ -1,10 +1,12 @@
 #include "nodeflux/core/geometry_container.hpp"
+#include "nodeflux/core/standard_attributes.hpp"
 #include "nodeflux/graph/execution_engine.hpp"
 #include "nodeflux/graph/node_graph.hpp"
 #include <gtest/gtest.h>
 
 using namespace nodeflux;
 using namespace nodeflux::graph;
+using namespace nodeflux::core;
 
 class ExecutionEngineBridgeTest : public ::testing::Test {
 protected:
@@ -33,20 +35,18 @@ TEST_F(ExecutionEngineBridgeTest, SphereToTransformPipeline) {
   bool success = engine->execute_graph(*graph);
   EXPECT_TRUE(success);
 
-  // Get result
-  auto result = engine->get_node_result(transform_id);
+  // Get result (GeometryContainer)
+  auto result = engine->get_node_geometry(transform_id);
 
   // Verify result
   ASSERT_NE(result, nullptr);
-  EXPECT_FALSE(result->empty());
+  EXPECT_GT(result->point_count(), 0);
 
-  // Check that geometry has vertices
-  const auto &vertices = result->vertices();
-  EXPECT_GT(vertices.rows(), 0);
+  // Check that geometry has points
+  EXPECT_GT(result->point_count(), 0);
 
-  // Check that faces are valid
-  const auto &faces = result->faces();
-  EXPECT_GT(faces.rows(), 0);
+  // Check that primitives are valid
+  EXPECT_GT(result->primitive_count(), 0);
 }
 
 // Test that SOPs correctly convert between Mesh and GeometryContainer
@@ -60,25 +60,29 @@ TEST_F(ExecutionEngineBridgeTest, MeshToContainerPreservesTopology) {
   EXPECT_TRUE(success);
 
   // Get result
-  auto result = engine->get_node_result(sphere_id);
+  auto result = engine->get_node_geometry(sphere_id);
 
   // Verify result
   ASSERT_NE(result, nullptr);
-  EXPECT_FALSE(result->empty());
-
-  const auto &vertices = result->vertices();
-  const auto &faces = result->faces();
+  EXPECT_GT(result->point_count(), 0);
 
   // Basic sanity checks
-  EXPECT_GT(vertices.rows(), 0);
-  EXPECT_GT(faces.rows(), 0);
+  EXPECT_GT(result->point_count(), 0);
+  EXPECT_GT(result->primitive_count(), 0);
 
-  // Verify all face indices are valid
-  for (int i = 0; i < faces.rows(); ++i) {
-    for (int j = 0; j < 3; ++j) {
-      int idx = faces(i, j);
-      EXPECT_GE(idx, 0);
-      EXPECT_LT(idx, vertices.rows());
+  // Verify P attribute exists
+  auto *positions =
+      result->get_point_attribute_typed<Eigen::Vector3f>(standard_attrs::P);
+  ASSERT_NE(positions, nullptr);
+  EXPECT_EQ(positions->size(), result->point_count());
+
+  // Verify all primitives reference valid vertices
+  const auto &topo = result->topology();
+  for (size_t i = 0; i < result->primitive_count(); ++i) {
+    const auto &prim_verts = topo.get_primitive_vertices(static_cast<int>(i));
+    for (int vert_idx : prim_verts) {
+      EXPECT_GE(vert_idx, 0);
+      EXPECT_LT(static_cast<size_t>(vert_idx), result->vertex_count());
     }
   }
 }
@@ -99,19 +103,16 @@ TEST_F(ExecutionEngineBridgeTest, MultiSOPChain) {
   bool success = engine->execute_graph(*graph);
   EXPECT_TRUE(success);
 
-  auto result = engine->get_node_result(mirror_id);
+  auto result = engine->get_node_geometry(mirror_id);
 
   ASSERT_NE(result, nullptr);
-  EXPECT_FALSE(result->empty());
+  EXPECT_GT(result->point_count(), 0);
 
-  const auto &vertices = result->vertices();
+  // Mirrored sphere should have points
+  EXPECT_GT(result->point_count(), 0);
 
-  // Mirrored sphere should have vertices
-  EXPECT_GT(vertices.rows(), 0);
-
-  // Should have faces
-  const auto &faces = result->faces();
-  EXPECT_GT(faces.rows(), 0);
+  // Should have primitives
+  EXPECT_GT(result->primitive_count(), 0);
 }
 
 // Test that caching works correctly across Mesh<->Container conversions
@@ -124,10 +125,10 @@ TEST_F(ExecutionEngineBridgeTest, CachingAcrossBridgeConversions) {
 
   // Execute twice - second execution should use cache
   bool success1 = engine->execute_graph(*graph);
-  auto result1 = engine->get_node_result(transform_id);
+  auto result1 = engine->get_node_geometry(transform_id);
 
   bool success2 = engine->execute_graph(*graph);
-  auto result2 = engine->get_node_result(transform_id);
+  auto result2 = engine->get_node_geometry(transform_id);
 
   EXPECT_TRUE(success1);
   EXPECT_TRUE(success2);
@@ -135,11 +136,10 @@ TEST_F(ExecutionEngineBridgeTest, CachingAcrossBridgeConversions) {
   ASSERT_NE(result2, nullptr);
 
   // Results should have same geometry (both from cache)
-  EXPECT_EQ(result1->vertices().rows(), result2->vertices().rows());
-  EXPECT_EQ(result1->faces().rows(), result2->faces().rows());
+  EXPECT_EQ(result1->point_count(), result2->point_count());
+  EXPECT_EQ(result1->primitive_count(), result2->primitive_count());
 
-  // NOTE: Currently we don't have pointer-level caching across
-  // GeometryContainer->Mesh conversions so result1.get() != result2.get() even
-  // though the geometry is identical. This is acceptable for now - full caching
-  // optimization can be added later.
+  // Cache should return same GeometryContainer pointer
+  EXPECT_EQ(result1.get(), result2.get())
+      << "Cached results should be identical pointers";
 }

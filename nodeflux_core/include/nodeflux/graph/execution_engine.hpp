@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "nodeflux/core/mesh.hpp"
+#include "nodeflux/core/geometry_container.hpp"
 #include "nodeflux/graph/node_graph.hpp"
 #include <functional>
 #include <memory>
@@ -23,8 +23,8 @@ namespace nodeflux::graph {
  */
 struct ExecutionContext {
   GraphNode *node;
-  std::vector<std::shared_ptr<core::Mesh>> input_meshes;
-  std::shared_ptr<core::Mesh> output_mesh;
+  std::vector<std::shared_ptr<core::GeometryContainer>> input_geometries;
+  std::shared_ptr<core::GeometryContainer> output_geometry;
   bool success = false;
   std::string error_message;
 };
@@ -50,27 +50,11 @@ public:
   bool execute_graph(NodeGraph &graph);
 
   /**
-   * @brief Execute single node
-   * @param node The node to execute
-   * @param input_meshes Input meshes for the node
-   * @return Output mesh or nullptr if failed
-   */
-  std::shared_ptr<core::Mesh>
-  execute_node(GraphNode &node,
-               const std::vector<std::shared_ptr<core::Mesh>> &input_meshes);
-
-  /**
-   * @brief Get cached result for a node
+   * @brief Get cached geometry for a node
    * @param node_id Node ID to get result for
-   * @return Cached mesh or nullptr if not available
+   * @return Cached geometry or nullptr if not available
    */
-  std::shared_ptr<core::Mesh> get_node_result(int node_id) const;
-
-  /**
-   * @brief Get all cached results
-   * @return Map of node_id -> mesh for all cached results
-   */
-  std::unordered_map<int, std::shared_ptr<core::Mesh>> get_all_results() const;
+  std::shared_ptr<core::GeometryContainer> get_node_geometry(int node_id) const;
 
   /**
    * @brief Clear execution cache
@@ -92,63 +76,17 @@ public:
   }
 
 private:
-  // Result cache: node_id -> mesh
-  std::unordered_map<int, std::shared_ptr<core::Mesh>> result_cache_;
+  // Result cache: node_id -> geometry_container (new system)
+  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
+      geometry_cache_;
 
   // Callbacks
   ProgressCallback progress_callback_;
   ErrorCallback error_callback_;
 
-  // Node execution methods
-  std::shared_ptr<core::Mesh> execute_sphere_node(const GraphNode &node);
-  std::shared_ptr<core::Mesh> execute_box_node(const GraphNode &node);
-  std::shared_ptr<core::Mesh> execute_cylinder_node(const GraphNode &node);
-  std::shared_ptr<core::Mesh> execute_plane_node(const GraphNode &node);
-  std::shared_ptr<core::Mesh> execute_torus_node(const GraphNode &node);
-  std::shared_ptr<core::Mesh> execute_line_node(const GraphNode &node);
-  std::shared_ptr<core::Mesh> execute_transform_node(
-      const GraphNode &node,
-      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_extrude_node(const GraphNode &node,
-                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh> execute_polyextrude_node(
-      const GraphNode &node,
-      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_smooth_node(const GraphNode &node,
-                      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh> execute_subdivide_node(
-      const GraphNode &node,
-      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_mirror_node(const GraphNode &node,
-                      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_boolean_node(const GraphNode &node,
-                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_merge_node(const GraphNode &node,
-                     const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_array_node(const GraphNode &node,
-                     const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_resample_node(const GraphNode &node,
-                        const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh>
-  execute_scatter_node(const GraphNode &node,
-                       const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh> execute_copy_to_points_node(
-      const GraphNode &node,
-      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-  std::shared_ptr<core::Mesh> execute_noise_displacement_node(
-      const GraphNode &node,
-      const std::vector<std::shared_ptr<core::Mesh>> &inputs);
-
   // Helper methods
-  std::vector<std::shared_ptr<core::Mesh>>
-  gather_input_meshes(const NodeGraph &graph, int node_id);
+  std::vector<std::shared_ptr<core::GeometryContainer>>
+  gather_input_geometries(const NodeGraph &graph, int node_id);
   void notify_progress(int completed, int total);
   void notify_error(const std::string &error, int node_id);
 
@@ -157,14 +95,6 @@ private:
    * Automatically converts parameter types and values
    */
   void transfer_parameters(const GraphNode &graph_node, sop::SOPNode &sop_node);
-
-  /**
-   * @brief Generic SOP node execution (for refactored nodes)
-   * Creates SOP via factory, transfers parameters, and executes
-   */
-  std::shared_ptr<core::Mesh>
-  execute_sop_node(const GraphNode &node,
-                   const std::vector<std::shared_ptr<core::Mesh>> &inputs);
 };
 
 } // namespace nodeflux::graph

@@ -17,7 +17,8 @@ class QTimer;
 
 namespace nodeflux::core {
 class Mesh;
-}
+class GeometryContainer;
+} // namespace nodeflux::core
 
 /**
  * @brief OpenGL viewport widget for rendering 3D meshes
@@ -33,8 +34,9 @@ public:
   explicit ViewportWidget(QWidget *parent = nullptr);
   ~ViewportWidget() override;
 
-  // Set the mesh to display
-  void setMesh(const nodeflux::core::Mesh &mesh);
+  // Set the geometry to display
+  void setGeometry(const nodeflux::core::GeometryContainer &geometry);
+
   void clearMesh();
 
   // Camera controls
@@ -52,7 +54,7 @@ public:
   void setShowVertices(bool show);
 
 signals:
-  void gpuInfoDetected(const QString& gpu_info);
+  void gpuInfoDetected(const QString &gpu_info);
   void fpsUpdated(double fps);
 
 protected:
@@ -127,7 +129,7 @@ private:
   bool show_vertex_normals_ = false; // Show vertex normals as lines
   bool show_face_normals_ = false;   // Show face normals as lines
   bool wireframe_mode_ = false;
-  bool shading_enabled_ = true;      // Enable/disable lighting (smooth shading)
+  bool shading_enabled_ = true; // Enable/disable lighting (smooth shading)
   bool backface_culling_ = false;
   bool first_mesh_load_ = true;
   bool show_grid_ = true;

@@ -5,13 +5,14 @@
 #include "UndoStack.h"
 #include "ViewportWidget.h"
 
-
+#include <nodeflux/core/geometry_container.hpp>
 #include <nodeflux/graph/execution_engine.hpp>
 #include <nodeflux/graph/graph_serializer.hpp>
 #include <nodeflux/graph/node_graph.hpp>
 #include <nodeflux/io/obj_exporter.hpp>
 
 #include <QAction>
+#include <QDebug>
 #include <QDockWidget>
 #include <QFile>
 #include <QFileDialog>
@@ -416,21 +417,21 @@ void MainWindow::onExportMesh() {
     return;
   }
 
-  // Get the mesh result for the display node
-  auto mesh_result = execution_engine_->get_node_result(display_node_id);
+  // Get the geometry result for the display node
+  auto geometry = execution_engine_->get_node_geometry(display_node_id);
 
-  if (!mesh_result) {
+  if (!geometry) {
     QMessageBox::warning(this, "Export Failed",
-                         "The display node has no mesh output.\n"
+                         "The display node has no geometry output.\n"
                          "Please execute the graph first.");
     return;
   }
 
-  // Check if mesh has geometry
-  if (mesh_result->vertices().rows() == 0) {
+  // Check if geometry has points
+  if (geometry->point_count() == 0) {
     QMessageBox::warning(this, "Export Failed",
-                         "The display node's mesh is empty.\n"
-                         "Cannot export a mesh with no vertices.");
+                         "The display node's geometry is empty.\n"
+                         "Cannot export geometry with no points.");
     return;
   }
 
@@ -447,26 +448,26 @@ void MainWindow::onExportMesh() {
     file_path += ".obj";
   }
 
-  // Export the mesh
+  // Export the geometry
   bool success =
-      ObjExporter::export_mesh(*mesh_result, file_path.toStdString());
+      ObjExporter::export_geometry(*geometry, file_path.toStdString());
 
   if (success) {
-    int vertex_count = mesh_result->vertices().rows();
-    int face_count = mesh_result->faces().rows();
+    int point_count = static_cast<int>(geometry->point_count());
+    int prim_count = static_cast<int>(geometry->primitive_count());
     QString message =
-        QString("Mesh exported successfully\n%1 vertices, %2 faces")
-            .arg(vertex_count)
-            .arg(face_count);
-    statusBar()->showMessage(QString("Exported to %1 (%2 verts, %3 faces)")
+        QString("Geometry exported successfully\n%1 points, %2 primitives")
+            .arg(point_count)
+            .arg(prim_count);
+    statusBar()->showMessage(QString("Exported to %1 (%2 points, %3 prims)")
                                  .arg(QFileInfo(file_path).fileName())
-                                 .arg(vertex_count)
-                                 .arg(face_count),
+                                 .arg(point_count)
+                                 .arg(prim_count),
                              5000);
     QMessageBox::information(this, "Export Successful", message);
   } else {
     QMessageBox::critical(this, "Export Failed",
-                          "Failed to write mesh to file.\n"
+                          "Failed to write geometry to file.\n"
                           "Check file permissions and disk space.");
     statusBar()->showMessage("Mesh export failed", 3000);
   }
@@ -664,21 +665,26 @@ void MainWindow::executeAndDisplayNode(int node_id) {
   updateDisplayFlagVisuals();
 
   if (success) {
-    // Get the mesh result for this specific node
-    auto mesh = execution_engine_->get_node_result(node_id);
+    // Get the geometry result for this specific node
+    auto geometry = execution_engine_->get_node_geometry(node_id);
 
-    if (mesh) {
+    qDebug() << "MainWindow::on_node_display_requested - node_id:" << node_id
+             << "geometry:" << (geometry ? "found" : "NULL");
+
+    if (geometry) {
+      qDebug() << "Geometry has" << geometry->point_count() << "points and"
+               << geometry->primitive_count() << "primitives";
+
       // Display in viewport
-      viewport_widget_->setMesh(*mesh);
+      viewport_widget_->setGeometry(*geometry);
 
-      // Calculate stats
-      int vertex_count = mesh->vertex_count();
-      int triangle_count = mesh->face_count(); // faces are triangles
+      // Calculate stats from GeometryContainer
+      int vertex_count = static_cast<int>(geometry->point_count());
+      int triangle_count = static_cast<int>(geometry->primitive_count());
 
-      // Estimate memory usage (very rough estimate):
-      // vertices: 3 floats (x,y,z) * 4 bytes = 12 bytes per vertex
-      // faces: 3 ints * 4 bytes = 12 bytes per face
-      // normals: 3 floats * 4 bytes = 12 bytes per vertex
+      // Estimate memory usage from actual attribute storage
+      // Points: position attribute (Vec3f = 12 bytes) + optional normal/color
+      // Primitives: vertex indices (3 ints per triangle = 12 bytes)
       int memory_bytes = (vertex_count * 24) + (triangle_count * 12);
       int memory_kb = memory_bytes / 1024;
 

@@ -113,17 +113,8 @@ protected:
             vertices.row(i) = pos_span[i].cast<double>();
           }
 
-          Eigen::MatrixXi faces(topology.primitive_count(), 3);
-          for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
-               ++prim_idx) {
-            const auto &verts = topology.get_primitive_vertices(prim_idx);
-            for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
-              faces(prim_idx, j) = verts[j];
-            }
-          }
-
-          core::Mesh mesh(vertices, faces);
-          bool success = io::ObjExporter::export_mesh(mesh, file_path);
+          // Export directly from GeometryContainer
+          bool success = io::ObjExporter::export_geometry(*input, file_path);
           if (!success) {
             set_error("Failed to export OBJ file: " + file_path);
             return input; // Still pass through input even on error

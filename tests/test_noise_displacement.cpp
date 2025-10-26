@@ -67,7 +67,7 @@ TEST_F(NoiseDisplacementTest, GraphExecutionIntegration) {
   EXPECT_TRUE(success) << "Graph execution should succeed";
 
   // Get result
-  auto result = engine.get_node_result(noise_id);
+  auto result = engine.get_node_geometry(noise_id);
   ASSERT_NE(result, nullptr) << "Noise displacement node should produce output";
-  EXPECT_GT(result->vertices().rows(), 0) << "Result should have vertices";
+  EXPECT_GT(result->point_count(), 0) << "Result should have points";
 }
