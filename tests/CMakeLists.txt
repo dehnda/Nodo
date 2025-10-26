@@ -13,6 +13,7 @@ add_executable(nodeflux_tests
     test_bvh.cpp
     test_obj_export.cpp
     test_array_sop.cpp
+    test_boolean_sop.cpp
     test_selective_execution.cpp
     test_noise_displacement.cpp
     test_element_topology.cpp
@@ -49,3 +50,8 @@ gtest_discover_tests(nodeflux_tests)
 add_executable(show_obj_output show_obj_output.cpp)
 target_link_libraries(show_obj_output PRIVATE nodeflux_core)
 target_compile_features(show_obj_output PRIVATE cxx_std_20)
+
+# Debug boolean operations
+add_executable(debug_boolean debug_boolean.cpp)
+target_link_libraries(debug_boolean PRIVATE nodeflux_core)
+target_compile_features(debug_boolean PRIVATE cxx_std_20)
