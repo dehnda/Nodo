@@ -1,0 +1,142 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    },
+    {
+      "id": 3,
+      "source_node": 4,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 1
+    }
+  ],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "Sphere",
+      "parameters": [
+        {
+          "name": "radius",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "u_segments",
+          "type": "int",
+          "value": 32
+        },
+        {
+          "name": "v_segments",
+          "type": "int",
+          "value": 16
+        }
+      ],
+      "position": [
+        -129.0,
+        -143.0
+      ],
+      "type": "Sphere"
+    },
+    {
+      "id": 2,
+      "name": "Scatter",
+      "parameters": [
+        {
+          "name": "point_count",
+          "type": "int",
+          "value": 100
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "value": 42
+        },
+        {
+          "name": "density",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "use_face_area",
+          "type": "int",
+          "value": 1
+        }
+      ],
+      "position": [
+        -129.0,
+        65.0
+      ],
+      "type": "Scatter"
+    },
+    {
+      "id": 3,
+      "name": "CopyToPoints",
+      "parameters": [
+        {
+          "name": "use_point_normals",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "use_point_scale",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "uniform_scale",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "scale_attribute",
+          "type": "string",
+          "value": ""
+        }
+      ],
+      "position": [
+        -155.0,
+        373.6282653808594
+      ],
+      "type": "CopyToPoints"
+    },
+    {
+      "id": 4,
+      "name": "Box",
+      "parameters": [
+        {
+          "name": "width",
+          "type": "float",
+          "value": 0.10000000149011612
+        },
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.10000000149011612
+        },
+        {
+          "name": "depth",
+          "type": "float",
+          "value": 0.10000000149011612
+        }
+      ],
+      "position": [
+        116.59809112548828,
+        76.81757354736328
+      ],
+      "type": "Box"
+    }
+  ],
+  "version": "1.0"
+}

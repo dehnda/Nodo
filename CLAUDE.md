@@ -101,19 +101,19 @@ NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh gen
 - `export_sop.hpp` - File export with manual export button (Oct 25, 2025)
 
 **Deformation/Modifiers (5 nodes)**:
-- `extrude_sop.hpp` (341 lines) - Face extrusion with caps
-- `polyextrude_sop.hpp` - Per-polygon extrusion (Oct 20)
-- `laplacian_sop.hpp` (385 lines) - 3 smoothing algorithms
-- `subdivision_sop.hpp` - Catmull-Clark subdivision
-- `resample_sop.hpp` (181 lines) - Edge/curve resampling
+- `extrude_sop.hpp` (341 lines) - Face extrusion with caps (STUB - needs implementation)
+- `polyextrude_sop.hpp` - Per-polygon extrusion (STUB - needs implementation)
+- `laplacian_sop.hpp` (385 lines) - 3 smoothing algorithms (uniform, cotan, taubin) ✅
+- `subdivision_sop.hpp` - Catmull-Clark and Simple subdivision ✅ (Oct 26, 2025)
+- `resample_sop.hpp` (181 lines) - Edge/curve resampling (STUB - needs implementation)
 
 **Array/Duplication (3 nodes)**:
-- `array_sop.hpp` - Linear, radial, grid patterns
+- `array_sop.hpp` - Linear (✅), radial (STUB), grid (STUB) patterns
 - `scatter_sop.hpp` - Random point distribution (Oct 20)
-- `copy_to_points_sop.hpp` - Instance geometry to points (Oct 20)
+- `copy_to_points_sop.hpp` - Instance geometry to points (STUB - needs implementation)
 
 **Boolean/Transform (3 nodes)**:
-- `boolean_sop.hpp` - Union/Intersection/Difference with BVH
+- `boolean_sop.hpp` - Union/Intersection/Difference with Manifold ✅ (Oct 26, 2025)
 - `mirror_sop.hpp` (194 lines) - Mirror across planes
 - Transform nodes (built into system)
 
@@ -399,13 +399,21 @@ cmake --build build --parallel
 - Performance overlay
 - Recent files menu
 
-**Week 3: File Format Support**
+**Week 3: Additional Core SOPs**
+- MergeSOP - Combine multiple geometries into one (no boolean, just append)
+- DeleteSOP - Remove primitives/points by group or selection
+- GroupSOP - Assign primitives/points to named groups for selective operations
+- NormalSOP - Compute and manipulate surface normals (weighted, angle-based)
+- UVProjectSOP - Basic UV coordinate generation (planar, cylindrical, spherical)
+- WrangleSOP - Expression-based point/primitive manipulation (VEX-like)
+
+**Week 4: File Format Support**
 - Mesh import (OBJ reader)
 - STL export
 - PLY export
 - glTF export (stretch goal)
 
-**Week 4: Advanced Features & Attribute Unification** ✅ COMPLETE (Oct 26, 2025)
+**Week 5: Advanced Features & Attribute Unification** ✅ COMPLETE (Oct 26, 2025)
 - ✅ Complete attribute system migration to GeometryContainer
   - ✅ Unified attribute storage with Structure-of-Arrays (SoA) layout
   - ✅ Type-safe attribute access with compile-time checking
@@ -420,9 +428,20 @@ cmake --build build --parallel
     - ✅ [Migration Guide](docs/ATTRIBUTE_MIGRATION_GUIDE.md)
     - ✅ [Usage Examples](docs/ATTRIBUTE_EXAMPLES.md)
   - ✅ 253 total tests, 245 passing (96.8%)
+- ✅ Laplacian Smoothing SOP - 3 algorithms (uniform, cotan, taubin)
+- ✅ Subdivision SOP - Catmull-Clark and Simple subdivision with boundary handling
+- ✅ Boolean SOP - Fixed and fully functional (Union/Intersection/Difference)
 - Material system integration (TODO)
 - UV mapping tools (TODO)
 - Bend/Twist/Taper deformation nodes (TODO)
+
+**Week 5: Complete Stubbed SOPs** 🔄 IN PROGRESS (Oct 26, 2025)
+- ❌ CopyToPointsSOP - Instance geometry to points (currently just returns input)
+- ❌ ExtrudeSOP - Face extrusion with distance/inset (currently just returns input)
+- ❌ PolyExtrudeSOP - Per-polygon extrusion (currently just returns input)
+- ❌ ResampleSOP - Edge/curve resampling by count or length (currently just returns input)
+- ❌ ArraySOP - Radial and Grid array modes (linear mode works, others stubbed)
+- Note: All have parameter UI in place, just need execute() implementation
 
 ### 🌊 Medium-Term Goals (2-3 Months)
 
