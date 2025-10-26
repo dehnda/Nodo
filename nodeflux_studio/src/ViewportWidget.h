@@ -92,6 +92,11 @@ private:
   std::unique_ptr<QOpenGLBuffer> normal_buffer_;
   std::unique_ptr<QOpenGLBuffer> index_buffer_;
 
+  // Line rendering (for curve/line primitives)
+  std::unique_ptr<QOpenGLVertexArrayObject> line_vao_;
+  std::unique_ptr<QOpenGLBuffer> line_vertex_buffer_;
+  int line_vertex_count_ = 0;
+
   // Edge and vertex rendering
   std::unique_ptr<QOpenGLVertexArrayObject> edge_vao_;
   std::unique_ptr<QOpenGLBuffer> edge_vertex_buffer_;
@@ -107,7 +112,9 @@ private:
   QVector3D mesh_center_;
   float mesh_radius_ = 1.0F;
   std::shared_ptr<nodeflux::core::Mesh>
-      current_mesh_; // Store for normal visualization
+      current_mesh_; // Store for normal visualization (legacy)
+  std::shared_ptr<nodeflux::core::GeometryContainer>
+      current_geometry_; // Store for normal visualization
 
   // Camera state
   QMatrix4x4 projection_matrix_;
@@ -154,6 +161,8 @@ private:
   void setupAxes();
   void updateCamera();
   void calculateMeshBounds(const nodeflux::core::Mesh &mesh);
+  void
+  extractEdgesFromGeometry(const nodeflux::core::GeometryContainer &geometry);
   void extractEdgesFromMesh(const nodeflux::core::Mesh &mesh);
   void drawNormals();
   void drawVertexNormals();

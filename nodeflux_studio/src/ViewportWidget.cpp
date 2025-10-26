@@ -166,6 +166,10 @@ void ViewportWidget::setGeometry(
   qDebug() << "ViewportWidget::setGeometry - Points:" << geometry.point_count()
            << "Primitives:" << geometry.primitive_count();
 
+  // Store geometry for normal visualization
+  current_geometry_ =
+      std::make_shared<nodeflux::core::GeometryContainer>(geometry.clone());
+
   makeCurrent();
 
   // Get positions from "P" attribute
@@ -221,6 +225,9 @@ void ViewportWidget::setGeometry(
   std::vector<float> normal_data;
   std::vector<unsigned int> index_data;
 
+  // Separate line primitive data
+  std::vector<float> line_vertex_data;
+
   // Check if this is a point cloud (points with no primitives)
   const bool is_point_cloud =
       (topology.primitive_count() == 0 && topology.point_count() > 0);
@@ -241,11 +248,35 @@ void ViewportWidget::setGeometry(
     // No indices for point clouds
   } else {
     // For meshes, extract vertex positions from primitives
+    // Separate line primitives (2 vertices) from triangular primitives (3+
+    // vertices)
     size_t vertex_index = 0;
     for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
          ++prim_idx) {
       const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
 
+      // Detect line primitives (2 vertices)
+      if (prim_verts.size() == 2) {
+        // This is a line primitive - add to line data
+        for (int vert_idx : prim_verts) {
+          if (vert_idx < 0 ||
+              static_cast<size_t>(vert_idx) >= topology.vertex_count()) {
+            continue;
+          }
+          int point_idx = topology.get_vertex_point(vert_idx);
+          if (point_idx < 0 ||
+              static_cast<size_t>(point_idx) >= pos_values.size()) {
+            continue;
+          }
+          const auto &pos = pos_values[point_idx];
+          line_vertex_data.push_back(pos.x());
+          line_vertex_data.push_back(pos.y());
+          line_vertex_data.push_back(pos.z());
+        }
+        continue;
+      }
+
+      // Triangle primitives (3+ vertices)
       for (int vert_idx : prim_verts) {
         // Validate vertex index
         if (vert_idx < 0 ||
@@ -293,6 +324,11 @@ void ViewportWidget::setGeometry(
            ++prim_idx) {
         const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
 
+        // Skip line primitives (they don't need normals for rendering)
+        if (prim_verts.size() == 2) {
+          continue;
+        }
+
         for (int vert_idx : prim_verts) {
           const auto &normal = normal_values[vert_idx];
 
@@ -308,6 +344,11 @@ void ViewportWidget::setGeometry(
       for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
            ++prim_idx) {
         const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+        // Skip line primitives
+        if (prim_verts.size() == 2) {
+          continue;
+        }
 
         for (int vert_idx : prim_verts) {
           int point_idx = topology.get_vertex_point(vert_idx);
@@ -401,8 +442,33 @@ void ViewportWidget::setGeometry(
     vertex_vao_->release();
   }
 
-  // TODO: Extract edges and vertex points for visualization from
-  // GeometryContainer For now, skip normal visualization - will implement later
+  // Upload line primitive data to GPU
+  line_vertex_count_ = 0;
+  if (!line_vertex_data.empty()) {
+    if (!line_vao_) {
+      line_vao_ = std::make_unique<QOpenGLVertexArrayObject>();
+      line_vao_->create();
+    }
+    if (!line_vertex_buffer_) {
+      line_vertex_buffer_ =
+          std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+      line_vertex_buffer_->create();
+    }
+
+    line_vao_->bind();
+    line_vertex_buffer_->bind();
+    line_vertex_buffer_->allocate(
+        line_vertex_data.data(),
+        static_cast<int>(line_vertex_data.size() * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    line_vao_->release();
+
+    line_vertex_count_ = static_cast<int>(line_vertex_data.size() / 3);
+  }
+
+  // Extract edges and vertices for visualization
+  extractEdgesFromGeometry(geometry);
 
   doneCurrent();
   update(); // Trigger repaint
@@ -590,6 +656,34 @@ void ViewportWidget::paintGL() {
   }
 
   vao_->release();
+
+  // Draw line primitives (for curve/line geometry)
+  // Lines ARE the geometry (not debug), so always render them
+  if (line_vertex_count_ > 0 && line_vao_) {
+    line_vao_->bind();
+
+    // Use simple shader for lines (no lighting)
+    if (active_shader != simple_shader_program_.get()) {
+      active_shader->release();
+      simple_shader_program_->bind();
+      simple_shader_program_->setUniformValue("model", model_matrix_);
+      simple_shader_program_->setUniformValue("view", view_matrix_);
+      simple_shader_program_->setUniformValue("projection", projection_matrix_);
+      simple_shader_program_->setUniformValue(
+          "object_color", QVector3D(1.0F, 1.0F, 1.0F)); // Bright white
+    }
+
+    glLineWidth(3.0F); // Thicker for visibility
+    glDrawArrays(GL_LINES, 0, line_vertex_count_);
+    glLineWidth(1.0F);
+
+    line_vao_->release();
+
+    if (active_shader != simple_shader_program_.get()) {
+      simple_shader_program_->release();
+      active_shader->bind();
+    }
+  }
 
   active_shader->release();
 
@@ -988,6 +1082,123 @@ void ViewportWidget::drawAxes() {
   glDepthFunc(GL_LESS); // Restore default depth function
 }
 
+// New function: Extract edges and vertices from GeometryContainer
+void ViewportWidget::extractEdgesFromGeometry(
+    const nodeflux::core::GeometryContainer &geometry) {
+
+  const auto &topology = geometry.topology();
+
+  // Get position attribute
+  const auto *pos_storage =
+      geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::P);
+
+  if (!pos_storage) {
+    return; // No positions, can't extract edges
+  }
+
+  const auto &pos_values = pos_storage->values();
+
+  // Setup edge VAO and buffer if not created
+  if (!edge_vao_) {
+    edge_vao_ = std::make_unique<QOpenGLVertexArrayObject>();
+    edge_vao_->create();
+    edge_vertex_buffer_ =
+        std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    edge_vertex_buffer_->create();
+  }
+
+  // Setup vertex point VAO and buffer if not created
+  if (!vertex_vao_) {
+    vertex_vao_ = std::make_unique<QOpenGLVertexArrayObject>();
+    vertex_vao_->create();
+    vertex_point_buffer_ =
+        std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    vertex_point_buffer_->create();
+  }
+
+  // Extract edges from primitives
+  std::vector<float> edge_data;
+
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+    // Skip degenerate primitives
+    if (prim_verts.size() < 2) {
+      continue;
+    }
+
+    // Add edges for this primitive
+    for (size_t i = 0; i < prim_verts.size(); ++i) {
+      size_t next_i = (i + 1) % prim_verts.size();
+
+      int vert_idx_0 = prim_verts[i];
+      int vert_idx_1 = prim_verts[next_i];
+
+      // Get point indices
+      int point_idx_0 = topology.get_vertex_point(vert_idx_0);
+      int point_idx_1 = topology.get_vertex_point(vert_idx_1);
+
+      // Validate point indices
+      if (point_idx_0 < 0 || point_idx_1 < 0 ||
+          static_cast<size_t>(point_idx_0) >= pos_values.size() ||
+          static_cast<size_t>(point_idx_1) >= pos_values.size()) {
+        continue;
+      }
+
+      const auto &pos0 = pos_values[point_idx_0];
+      const auto &pos1 = pos_values[point_idx_1];
+
+      // Add edge (two vertices)
+      edge_data.push_back(pos0.x());
+      edge_data.push_back(pos0.y());
+      edge_data.push_back(pos0.z());
+      edge_data.push_back(pos1.x());
+      edge_data.push_back(pos1.y());
+      edge_data.push_back(pos1.z());
+    }
+  }
+
+  // Upload edge data to GPU
+  if (!edge_data.empty()) {
+    edge_vao_->bind();
+    edge_vertex_buffer_->bind();
+    edge_vertex_buffer_->allocate(
+        edge_data.data(), static_cast<int>(edge_data.size() * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    edge_vao_->release();
+    edge_vertex_count_ = static_cast<int>(edge_data.size() / 3);
+  } else {
+    edge_vertex_count_ = 0;
+  }
+
+  // Extract all point positions for vertex visualization
+  std::vector<float> point_data;
+  point_data.reserve(pos_values.size() * 3);
+
+  for (const auto &pos : pos_values) {
+    point_data.push_back(pos.x());
+    point_data.push_back(pos.y());
+    point_data.push_back(pos.z());
+  }
+
+  // Upload vertex point data to GPU
+  if (!point_data.empty()) {
+    vertex_vao_->bind();
+    vertex_point_buffer_->bind();
+    vertex_point_buffer_->allocate(
+        point_data.data(), static_cast<int>(point_data.size() * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    vertex_vao_->release();
+    point_count_ = static_cast<int>(pos_values.size());
+  } else {
+    point_count_ = 0;
+  }
+}
+
+// Old function: Extract edges from legacy Mesh (kept for compatibility)
 void ViewportWidget::extractEdgesFromMesh(const nodeflux::core::Mesh &mesh) {
   const auto &vertices = mesh.vertices();
   const auto &faces = mesh.faces();
@@ -1171,38 +1382,86 @@ void ViewportWidget::drawVertices() {
 }
 
 void ViewportWidget::drawVertexNormals() {
-  if (!show_vertex_normals_ || !current_mesh_ || !simple_shader_program_) {
+  if (!show_vertex_normals_ || !current_geometry_ || !simple_shader_program_) {
     return;
   }
 
-  const auto &vertices = current_mesh_->vertices();
-  const auto &vertex_normals = current_mesh_->vertex_normals();
+  const auto &topology = current_geometry_->topology();
 
-  if (vertices.rows() == 0 || vertex_normals.rows() != vertices.rows()) {
-    return;
+  // Get positions
+  const auto *pos_storage =
+      current_geometry_->get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::P);
+
+  // Get normals - check VERTEX normals first (for hard edges), then POINT
+  // normals
+  const auto *vertex_normals =
+      current_geometry_->get_vertex_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::N);
+  const auto *point_normals =
+      current_geometry_->get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::N);
+
+  if (!pos_storage || (!vertex_normals && !point_normals)) {
+    return; // No positions or normals
   }
+
+  const auto &pos_values = pos_storage->values();
 
   // Calculate normal line length based on mesh size
   const float normal_length = mesh_radius_ * 0.1F;
 
   // Build line segments for vertex normals
   std::vector<float> normal_lines;
-  normal_lines.reserve(vertices.rows() *
-                       6); // 2 points per normal, 3 coords per point
 
-  for (int i = 0; i < vertices.rows(); ++i) {
-    // Start point (vertex position)
-    normal_lines.push_back(static_cast<float>(vertices(i, 0)));
-    normal_lines.push_back(static_cast<float>(vertices(i, 1)));
-    normal_lines.push_back(static_cast<float>(vertices(i, 2)));
+  if (vertex_normals) {
+    // Use vertex normals (one per vertex)
+    const auto &normal_values = vertex_normals->values();
+    normal_lines.reserve(topology.vertex_count() * 6);
 
-    // End point (vertex position + normal * length)
-    normal_lines.push_back(static_cast<float>(
-        vertices(i, 0) + vertex_normals(i, 0) * normal_length));
-    normal_lines.push_back(static_cast<float>(
-        vertices(i, 1) + vertex_normals(i, 1) * normal_length));
-    normal_lines.push_back(static_cast<float>(
-        vertices(i, 2) + vertex_normals(i, 2) * normal_length));
+    for (size_t vert_idx = 0; vert_idx < topology.vertex_count(); ++vert_idx) {
+      int point_idx = topology.get_vertex_point(vert_idx);
+      if (point_idx < 0 ||
+          static_cast<size_t>(point_idx) >= pos_values.size()) {
+        continue;
+      }
+
+      const auto &pos = pos_values[point_idx];
+      const auto &normal = normal_values[vert_idx];
+
+      // Start point (vertex position)
+      normal_lines.push_back(pos.x());
+      normal_lines.push_back(pos.y());
+      normal_lines.push_back(pos.z());
+
+      // End point (vertex position + normal * length)
+      normal_lines.push_back(pos.x() + normal.x() * normal_length);
+      normal_lines.push_back(pos.y() + normal.y() * normal_length);
+      normal_lines.push_back(pos.z() + normal.z() * normal_length);
+    }
+  } else if (point_normals) {
+    // Use point normals (one per point)
+    const auto &normal_values = point_normals->values();
+    normal_lines.reserve(pos_values.size() * 6);
+
+    for (size_t point_idx = 0; point_idx < pos_values.size(); ++point_idx) {
+      const auto &pos = pos_values[point_idx];
+      const auto &normal = normal_values[point_idx];
+
+      // Start point
+      normal_lines.push_back(pos.x());
+      normal_lines.push_back(pos.y());
+      normal_lines.push_back(pos.z());
+
+      // End point
+      normal_lines.push_back(pos.x() + normal.x() * normal_length);
+      normal_lines.push_back(pos.y() + normal.y() * normal_length);
+      normal_lines.push_back(pos.z() + normal.z() * normal_length);
+    }
+  }
+
+  if (normal_lines.empty()) {
+    return;
   }
 
   // Create VAO and buffer if not created
@@ -1253,56 +1512,102 @@ void ViewportWidget::drawVertexNormals() {
 }
 
 void ViewportWidget::drawFaceNormals() {
-  if (!show_face_normals_ || !current_mesh_ || !simple_shader_program_) {
+  if (!show_face_normals_ || !current_geometry_ || !simple_shader_program_) {
     return;
   }
 
-  const auto &vertices = current_mesh_->vertices();
-  const auto &faces = current_mesh_->faces();
-  const auto &face_normals = current_mesh_->face_normals();
+  const auto &topology = current_geometry_->topology();
 
-  if (faces.rows() == 0 || face_normals.rows() != faces.rows()) {
+  // Get positions
+  const auto *pos_storage =
+      current_geometry_->get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::P);
+
+  if (!pos_storage || topology.primitive_count() == 0) {
     return;
   }
+
+  const auto &pos_values = pos_storage->values();
+
+  // Get normals to check winding direction
+  const auto *vertex_normals =
+      current_geometry_->get_vertex_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::N);
+  const auto *point_normals =
+      current_geometry_->get_point_attribute_typed<nodeflux::core::Vec3f>(
+          nodeflux::core::standard_attrs::N);
 
   // Calculate normal line length based on mesh size
   const float normal_length = mesh_radius_ * 0.15F;
 
   // Build line segments for face normals
   std::vector<float> normal_lines;
-  normal_lines.reserve(faces.rows() *
-                       6); // 2 points per normal, 3 coords per point
+  normal_lines.reserve(topology.primitive_count() * 6);
 
-  for (int i = 0; i < faces.rows(); ++i) {
-    // Calculate face center
-    const int v0 = faces(i, 0);
-    const int v1 = faces(i, 1);
-    const int v2 = faces(i, 2);
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
 
-    // Skip degenerate triangles (line edges)
-    if (v1 == v2) {
+    // Skip primitives with less than 3 vertices (lines, points)
+    if (prim_verts.size() < 3) {
       continue;
     }
 
-    const double center_x =
-        (vertices(v0, 0) + vertices(v1, 0) + vertices(v2, 0)) / 3.0;
-    const double center_y =
-        (vertices(v0, 1) + vertices(v1, 1) + vertices(v2, 1)) / 3.0;
-    const double center_z =
-        (vertices(v0, 2) + vertices(v1, 2) + vertices(v2, 2)) / 3.0;
+    // Get first 3 vertices to compute face normal
+    int vert_idx_0 = prim_verts[0];
+    int vert_idx_1 = prim_verts[1];
+    int vert_idx_2 = prim_verts[2];
+
+    int point_idx_0 = topology.get_vertex_point(vert_idx_0);
+    int point_idx_1 = topology.get_vertex_point(vert_idx_1);
+    int point_idx_2 = topology.get_vertex_point(vert_idx_2);
+
+    // Validate point indices
+    if (point_idx_0 < 0 || point_idx_1 < 0 || point_idx_2 < 0 ||
+        static_cast<size_t>(point_idx_0) >= pos_values.size() ||
+        static_cast<size_t>(point_idx_1) >= pos_values.size() ||
+        static_cast<size_t>(point_idx_2) >= pos_values.size()) {
+      continue;
+    }
+
+    const auto &v0 = pos_values[point_idx_0];
+    const auto &v1 = pos_values[point_idx_1];
+    const auto &v2 = pos_values[point_idx_2];
+
+    // Calculate face center
+    nodeflux::core::Vec3f center = (v0 + v1 + v2) / 3.0F;
+
+    // Calculate face normal from geometry
+    nodeflux::core::Vec3f edge1 = v1 - v0;
+    nodeflux::core::Vec3f edge2 = v2 - v0;
+    nodeflux::core::Vec3f computed_normal = edge1.cross(edge2).normalized();
+
+    // Check against stored normals to determine correct winding
+    // If we have stored normals, use them to verify direction
+    nodeflux::core::Vec3f normal = computed_normal;
+    if (vertex_normals || point_normals) {
+      // Get a reference normal from the first vertex
+      nodeflux::core::Vec3f ref_normal;
+      if (vertex_normals) {
+        ref_normal = vertex_normals->values()[vert_idx_0];
+      } else {
+        ref_normal = point_normals->values()[point_idx_0];
+      }
+
+      // If computed normal points opposite to stored normal, flip it
+      if (computed_normal.dot(ref_normal) < 0.0F) {
+        normal = -computed_normal;
+      }
+    }
 
     // Start point (face center)
-    normal_lines.push_back(static_cast<float>(center_x));
-    normal_lines.push_back(static_cast<float>(center_y));
-    normal_lines.push_back(static_cast<float>(center_z));
+    normal_lines.push_back(center.x());
+    normal_lines.push_back(center.y());
+    normal_lines.push_back(center.z());
 
-    // End point (face center + face normal * length)
-    normal_lines.push_back(
-        static_cast<float>(center_x + face_normals(i, 0) * normal_length));
-    normal_lines.push_back(
-        static_cast<float>(center_y + face_normals(i, 1) * normal_length));
-    normal_lines.push_back(
-        static_cast<float>(center_z + face_normals(i, 2) * normal_length));
+    // End point (face center + normal * length)
+    normal_lines.push_back(center.x() + normal.x() * normal_length);
+    normal_lines.push_back(center.y() + normal.y() * normal_length);
+    normal_lines.push_back(center.z() + normal.z() * normal_length);
   }
 
   if (normal_lines.empty()) {

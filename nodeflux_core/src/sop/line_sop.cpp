@@ -28,7 +28,7 @@ LineSOP::LineSOP(const std::string &name) : SOPNode(name, "Line") {
                          .category("Start Point")
                          .build());
 
-  register_parameter(define_float_parameter("end_x", 1.0F)
+  register_parameter(define_float_parameter("end_x", 5.0F)
                          .label("End X")
                          .range(-100.0, 100.0)
                          .category("End Point")
@@ -72,10 +72,12 @@ std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
 
   // Create GeometryContainer
   core::GeometryContainer container;
-  auto &topology = container.topology();
 
-  // Set point count
-  topology.set_point_count(num_points);
+  // Set point and vertex count (1:1 mapping for lines)
+  container.set_point_count(num_points);
+  container.set_vertex_count(num_points);
+
+  auto &topology = container.topology();
 
   // Create line segment primitives (2 vertices per edge)
   for (int i = 0; i < segments; ++i) {

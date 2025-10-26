@@ -1,4 +1,5 @@
 #include "../../include/nodeflux/geometry/box_generator.hpp"
+#include "nodeflux/sop/sop_utils.hpp"
 
 namespace attrs = nodeflux::core::standard_attrs;
 
@@ -99,32 +100,32 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   // Front face (Z = min_corner.z) - faces toward -Z
   generate_face(positions, primitive_vertices, vertex_index, corners[0],
                 corners[1], corners[2], corners[3], width_segments,
-                height_segments, true);
+                height_segments, false);
 
   // Back face (Z = max_corner.z) - faces toward +Z
   generate_face(positions, primitive_vertices, vertex_index, corners[5],
                 corners[4], corners[7], corners[6], width_segments,
-                height_segments, true);
+                height_segments, false);
 
   // Left face (X = min_corner.x) - faces toward -X
   generate_face(positions, primitive_vertices, vertex_index, corners[4],
                 corners[0], corners[3], corners[7], depth_segments,
-                height_segments, true);
+                height_segments, false);
 
   // Right face (X = max_corner.x) - faces toward +X
   generate_face(positions, primitive_vertices, vertex_index, corners[1],
                 corners[5], corners[6], corners[2], depth_segments,
-                height_segments, true);
+                height_segments, false);
 
   // Bottom face (Y = min_corner.y) - faces toward -Y
   generate_face(positions, primitive_vertices, vertex_index, corners[4],
                 corners[5], corners[1], corners[0], width_segments,
-                depth_segments, true);
+                depth_segments, false);
 
   // Top face (Y = max_corner.y) - faces toward +Y
   generate_face(positions, primitive_vertices, vertex_index, corners[3],
                 corners[2], corners[6], corners[7], width_segments,
-                depth_segments, true);
+                depth_segments, false);
 
   // Update point and vertex counts to actual size
   const size_t actual_point_count = positions.size();
@@ -152,49 +153,8 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
     std::copy(positions.begin(), positions.end(), p_span.begin());
   }
 
-  // Calculate and add normals
-  // For boxes, we can compute face normals from the corner arrangement
-  container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
-  if (n_storage != nullptr) {
-    auto n_span = n_storage->values_writable();
-
-    // Compute normals by calculating face normals from cross products
-    // Since this is a box with flat faces, we can compute per-face normals
-    for (size_t prim_idx = 0; prim_idx < primitive_vertices.size();
-         ++prim_idx) {
-      const auto &verts = primitive_vertices[prim_idx];
-      if (verts.size() >= 3) {
-        const auto &p0 = positions[verts[0]];
-        const auto &p1 = positions[verts[1]];
-        const auto &p2 = positions[verts[2]];
-
-        // Compute face normal
-        core::Vec3f edge1 = {p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]};
-        core::Vec3f edge2 = {p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]};
-
-        // Cross product
-        core::Vec3f normal = {edge1[1] * edge2[2] - edge1[2] * edge2[1],
-                              edge1[2] * edge2[0] - edge1[0] * edge2[2],
-                              edge1[0] * edge2[1] - edge1[1] * edge2[0]};
-
-        // Normalize
-        float length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] +
-                                 normal[2] * normal[2]);
-        if (length > 0.0F) {
-          normal[0] /= length;
-          normal[1] /= length;
-          normal[2] /= length;
-        }
-
-        // Assign to all point indices of this primitive (verts contains point
-        // indices)
-        for (int point_idx : verts) {
-          n_span[point_idx] = normal;
-        }
-      }
-    }
-  }
+  // Use hard edge normals for box (creates crisp edges)
+  nodeflux::sop::utils::compute_hard_edge_normals(container);
 
   return container;
 }
