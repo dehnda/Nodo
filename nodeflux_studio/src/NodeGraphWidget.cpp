@@ -1,6 +1,6 @@
 #include "NodeGraphWidget.h"
-#include "NodeCreationMenu.h"
 #include "Command.h"
+#include "NodeCreationMenu.h"
 #include "UndoStack.h"
 #include <QContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
@@ -11,6 +11,7 @@
 #include <QWheelEvent>
 #include <cmath>
 #include <nodeflux/graph/node_graph.hpp>
+
 
 // ============================================================================
 // NodeGraphicsItem Implementation
@@ -197,8 +198,8 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   // Only handle left button release
   if (event->button() == Qt::LeftButton) {
-    // If we were dragging and position changed, we need to create an undo command
-    // This is handled in NodeGraphWidget::on_node_moved_final
+    // If we were dragging and position changed, we need to create an undo
+    // command This is handled in NodeGraphWidget::on_node_moved_final
     if (is_dragging_) {
       QPointF current_pos = pos();
       // Check if position actually changed (avoid creating command for clicks)
@@ -1127,9 +1128,9 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
         // Valid connection target found - create connection using command
         if (graph_ != nullptr && undo_stack_ != nullptr) {
           auto cmd = nodeflux::studio::create_connect_command(
-              this, graph_,
-              connection_source_node_->get_node_id(), connection_source_pin_,
-              target_node_item->get_node_id(), pin_index);
+              this, graph_, connection_source_node_->get_node_id(),
+              connection_source_pin_, target_node_item->get_node_id(),
+              pin_index);
           undo_stack_->push(std::move(cmd));
 
           // Emit signal (command already created the visual representation)
@@ -1155,11 +1156,12 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
   }
 
   // Create move commands for any nodes that were dragged
-  if (event->button() == Qt::LeftButton && !node_drag_start_positions_.empty()) {
+  if (event->button() == Qt::LeftButton &&
+      !node_drag_start_positions_.empty()) {
     if (undo_stack_ != nullptr && graph_ != nullptr) {
-      for (const auto& [node_id, start_pos] : node_drag_start_positions_) {
+      for (const auto &[node_id, start_pos] : node_drag_start_positions_) {
         // Get current position
-        auto* node_item = get_node_item_public(node_id);
+        auto *node_item = get_node_item_public(node_id);
         if (node_item != nullptr) {
           QPointF current_pos = node_item->pos();
           // Only create command if position actually changed
@@ -1216,7 +1218,8 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
     // Delete connections using commands if undo_stack is available
     if (undo_stack_ != nullptr && graph_ != nullptr) {
       for (int conn_id : connection_ids_to_delete) {
-        auto cmd = nodeflux::studio::create_disconnect_command(this, graph_, conn_id);
+        auto cmd =
+            nodeflux::studio::create_disconnect_command(this, graph_, conn_id);
         undo_stack_->push(std::move(cmd));
       }
     } else {
@@ -1238,7 +1241,8 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
     QVector<int> node_ids = get_selected_node_ids();
     if (undo_stack_ != nullptr && graph_ != nullptr && !node_ids.isEmpty()) {
       for (int node_id : node_ids) {
-        auto cmd = nodeflux::studio::create_delete_node_command(this, graph_, node_id);
+        auto cmd =
+            nodeflux::studio::create_delete_node_command(this, graph_, node_id);
         undo_stack_->push(std::move(cmd));
       }
       // Emit signal so MainWindow can update UI
@@ -1362,7 +1366,8 @@ void NodeGraphWidget::create_node_at_position(nodeflux::graph::NodeType type,
 
   // Use undo/redo command if available
   if (undo_stack_ != nullptr) {
-    auto cmd = nodeflux::studio::create_add_node_command(this, graph_, type, pos);
+    auto cmd =
+        nodeflux::studio::create_add_node_command(this, graph_, type, pos);
     undo_stack_->push(std::move(cmd));
 
     // Get the node ID from the command (it was executed during push)
@@ -1459,12 +1464,14 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::Mirror;
   if (type_id == "noise_displacement_sop")
     return NodeType::NoiseDisplacement;
+  if (type_id == "merge_sop")
+    return NodeType::Merge;
 
   // Default fallback
   return NodeType::Sphere;
 }
 
-NodeGraphicsItem* NodeGraphWidget::get_node_item_public(int node_id) {
+NodeGraphicsItem *NodeGraphWidget::get_node_item_public(int node_id) {
   auto it = node_items_.find(node_id);
   if (it != node_items_.end()) {
     return it->second;

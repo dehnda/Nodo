@@ -55,6 +55,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/extrude_sop.cpp
     src/sop/laplacian_sop.cpp
     src/sop/line_sop.cpp
+    src/sop/merge_sop.cpp
     src/sop/mirror_sop.cpp
     src/sop/noise_displacement_sop.cpp
     src/sop/polyextrude_sop.cpp
