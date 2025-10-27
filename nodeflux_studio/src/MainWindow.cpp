@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "GeometrySpreadsheet.h"
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
 #include "StatusBarWidget.h"
@@ -10,6 +11,7 @@
 #include <nodeflux/graph/graph_serializer.hpp>
 #include <nodeflux/graph/node_graph.hpp>
 #include <nodeflux/io/obj_exporter.hpp>
+#include <nodeflux/sop/sop_node.hpp>
 
 #include <QAction>
 #include <QDebug>
@@ -285,6 +287,22 @@ auto MainWindow::setupDockWidgets() -> void {
 
   // Add properties to the right of node graph
   splitDockWidget(node_graph_dock_, property_dock_, Qt::Horizontal);
+
+  // Create dock widget for geometry spreadsheet (BOTTOM - tabbed with
+  // properties)
+  geometry_spreadsheet_dock_ = new QDockWidget("Geometry Spreadsheet", this);
+  geometry_spreadsheet_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+
+  // Create geometry spreadsheet widget
+  geometry_spreadsheet_ = new nodeflux::studio::GeometrySpreadsheet(this);
+  geometry_spreadsheet_dock_->setWidget(geometry_spreadsheet_);
+
+  // Add as a tab with the property panel
+  addDockWidget(Qt::RightDockWidgetArea, geometry_spreadsheet_dock_);
+  tabifyDockWidget(property_dock_, geometry_spreadsheet_dock_);
+
+  // Keep property panel as the active tab initially
+  property_dock_->raise();
 
   // Set initial sizes: Viewport (500px), Node Graph (400px), Properties (300px)
   resizeDocks({viewport_dock, node_graph_dock_, property_dock_},
@@ -633,11 +651,51 @@ void MainWindow::onNodeSelectionChanged() {
       auto *node = node_graph_->get_node(selected_id);
       if (node != nullptr) {
         property_panel_->setGraphNode(node, node_graph_.get());
+
+        // Update geometry spreadsheet if this is a SOP node
+        // Check node type to determine if it's a SOP node
+        auto node_type = node->get_type();
+        using nodeflux::graph::NodeType;
+
+        bool is_sop =
+            (node_type == NodeType::Sphere || node_type == NodeType::Box ||
+             node_type == NodeType::Cylinder || node_type == NodeType::Merge ||
+             node_type == NodeType::Group || node_type == NodeType::Delete ||
+             node_type == NodeType::Transform ||
+             node_type == NodeType::Boolean || node_type == NodeType::Array ||
+             node_type == NodeType::Normal || node_type == NodeType::UVUnwrap ||
+             node_type == NodeType::Scatter ||
+             node_type == NodeType::CopyToPoints);
+
+        if (is_sop) {
+          // Get geometry from execution engine instead of unsafe
+          // reinterpret_cast
+          qDebug()
+              << "SOP node selected, getting geometry from execution engine";
+
+          if (execution_engine_) {
+            auto geo_data = execution_engine_->get_node_geometry(selected_id);
+            qDebug() << "Geometry from engine:" << (geo_data != nullptr);
+
+            if (geo_data) {
+              qDebug() << "Points:" << geo_data->point_count()
+                       << "Vertices:" << geo_data->vertex_count();
+              geometry_spreadsheet_->setGeometry(geo_data);
+            } else {
+              geometry_spreadsheet_->clear();
+            }
+          } else {
+            geometry_spreadsheet_->clear();
+          }
+        } else {
+          geometry_spreadsheet_->clear();
+        }
       }
     }
   } else {
-    // No selection - clear property panel
+    // No selection - clear property panel and geometry spreadsheet
     property_panel_->clearProperties();
+    geometry_spreadsheet_->clear();
   }
 }
 

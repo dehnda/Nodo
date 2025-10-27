@@ -13,7 +13,8 @@ class QDockWidget;
 // Undo/Redo system
 namespace nodeflux::studio {
 class UndoStack;
-}
+class GeometrySpreadsheet;
+} // namespace nodeflux::studio
 
 // Forward declare node types
 namespace nodeflux {
@@ -45,8 +46,10 @@ private:
   PropertyPanel *property_panel_;
   NodeGraphWidget *node_graph_widget_;
   StatusBarWidget *status_bar_widget_;
+  nodeflux::studio::GeometrySpreadsheet *geometry_spreadsheet_;
   QDockWidget *property_dock_;
   QDockWidget *node_graph_dock_;
+  QDockWidget *geometry_spreadsheet_dock_;
 
   // Backend graph system
   std::unique_ptr<nodeflux::graph::NodeGraph> node_graph_;

@@ -20,7 +20,8 @@ add_library(xatlas STATIC
     external/xatlas/xatlas.cpp
 )
 target_include_directories(xatlas PUBLIC
-    external/xatlas
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/xatlas>
+    $<INSTALL_INTERFACE:include/xatlas>
 )
 # xatlas has some warnings, disable them
 if(MSVC)
@@ -28,6 +29,8 @@ if(MSVC)
 else()
     target_compile_options(xatlas PRIVATE -w)
 endif()
+# Add to install set so nodeflux_core can reference it
+install(TARGETS xatlas EXPORT NodeFluxEngineTargets)
 
 # Add subdirectories
 add_subdirectory(nodeflux_core)

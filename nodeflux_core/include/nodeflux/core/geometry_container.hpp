@@ -148,6 +148,10 @@ public:
     return point_attrs_.get_storage_typed<T>(name);
   }
 
+  std::vector<std::string> get_point_attribute_names() const {
+    return point_attrs_.attribute_names();
+  }
+
   // ============================================================================
   // Attribute Management - Vertex Attributes
   // ============================================================================
@@ -183,6 +187,10 @@ public:
   const AttributeStorage<T> *
   get_vertex_attribute_typed(std::string_view name) const {
     return vertex_attrs_.get_storage_typed<T>(name);
+  }
+
+  std::vector<std::string> get_vertex_attribute_names() const {
+    return vertex_attrs_.attribute_names();
   }
 
   // ============================================================================
@@ -223,8 +231,12 @@ public:
     return primitive_attrs_.get_storage_typed<T>(name);
   }
 
+  std::vector<std::string> get_primitive_attribute_names() const {
+    return primitive_attrs_.attribute_names();
+  }
+
   // ============================================================================
-  // Attribute Management - Detail (Global) Attributes
+  // Attribute Management - Detail Attributes
   // ============================================================================
 
   bool add_detail_attribute(
@@ -260,8 +272,12 @@ public:
     return detail_attrs_.get_storage_typed<T>(name);
   }
 
+  std::vector<std::string> get_detail_attribute_names() const {
+    return detail_attrs_.attribute_names();
+  }
+
   // ============================================================================
-  // Convenience Accessors for Standard Attributes
+  // Convenience Getters
   // ============================================================================
 
   /**

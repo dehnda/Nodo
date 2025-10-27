@@ -28,6 +28,8 @@ set(STUDIO_SOURCES
     src/ViewportOverlay.cpp
     src/Command.cpp
     src/UndoStack.cpp
+    src/GeometrySpreadsheet.cpp
+    src/GeometryTableModel.cpp
 )
 
 set(STUDIO_HEADERS
@@ -40,6 +42,8 @@ set(STUDIO_HEADERS
     src/ViewportOverlay.h
     src/Command.h
     src/UndoStack.h
+    src/GeometrySpreadsheet.h
+    src/GeometryTableModel.h
 )
 
 # Resource files
