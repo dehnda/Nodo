@@ -65,6 +65,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/sop_factory.cpp
     src/sop/subdivision_sop.cpp
     src/sop/transform_sop.cpp
+    src/sop/delete_sop.cpp
 
     # Spatial
     src/spatial/bvh.cpp

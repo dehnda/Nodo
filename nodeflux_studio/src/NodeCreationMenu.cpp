@@ -180,6 +180,11 @@ void NodeCreationMenu::populateAllNodes() {
                      "Utility",
                      "◉",
                      {"group", "select", "pattern", "selection"}});
+  all_nodes_.append({"Delete",
+                     "delete_sop",
+                     "Utility",
+                     "⌫",
+                     {"delete", "remove", "filter", "group"}});
 }
 
 void NodeCreationMenu::loadRecentNodes() {

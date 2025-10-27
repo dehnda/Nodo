@@ -727,6 +727,8 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Merge";
   case NodeType::Group:
     return "Group";
+  case NodeType::Delete:
+    return "Delete";
   case NodeType::Switch:
     return "Switch";
   }

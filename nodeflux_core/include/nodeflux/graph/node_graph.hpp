@@ -52,6 +52,7 @@ enum class NodeType {
   // Utilities
   Merge,
   Group,
+  Delete,
   Switch
 };
 

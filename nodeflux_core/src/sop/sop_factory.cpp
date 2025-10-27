@@ -6,6 +6,7 @@
 #include "nodeflux/sop/box_sop.hpp"
 #include "nodeflux/sop/copy_to_points_sop.hpp"
 #include "nodeflux/sop/cylinder_sop.hpp"
+#include "nodeflux/sop/delete_sop.hpp"
 #include "nodeflux/sop/export_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
 #include "nodeflux/sop/file_sop.hpp"
@@ -94,6 +95,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<MergeSOP>(name);
   case NodeType::Group:
     return std::make_shared<GroupSOP>(name);
+  case NodeType::Delete:
+    return std::make_shared<DeleteSOP>(name);
   case NodeType::Switch:
     return std::make_shared<SwitchSOP>(name);
   default:

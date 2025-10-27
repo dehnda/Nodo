@@ -1,0 +1,164 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    }
+  ],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "Sphere",
+      "parameters": [
+        {
+          "name": "radius",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "u_segments",
+          "type": "int",
+          "value": 32
+        },
+        {
+          "name": "v_segments",
+          "type": "int",
+          "value": 16
+        }
+      ],
+      "position": [
+        -89.37036895751953,
+        -256.0
+      ],
+      "type": "Sphere"
+    },
+    {
+      "id": 2,
+      "name": "Group",
+      "parameters": [
+        {
+          "name": "group_name",
+          "type": "string",
+          "value": "group1"
+        },
+        {
+          "name": "element_class",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "operation",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "selection_mode",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "range_start",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "range_end",
+          "type": "int",
+          "value": 10
+        },
+        {
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2
+        },
+        {
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "random_count",
+          "type": "int",
+          "value": 10
+        },
+        {
+          "name": "random_seed",
+          "type": "int",
+          "value": 0
+        }
+      ],
+      "position": [
+        -98.76543426513672,
+        10.802470207214355
+      ],
+      "type": "Unknown"
+    },
+    {
+      "id": 3,
+      "name": "Delete",
+      "parameters": [
+        {
+          "name": "entity_type",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "delete_mode",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "group_name",
+          "type": "string",
+          "value": "group1"
+        },
+        {
+          "name": "pattern_type",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "range_start",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "range_end",
+          "type": "int",
+          "value": 10
+        },
+        {
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2
+        },
+        {
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "delete_unused_points",
+          "type": "int",
+          "value": 1
+        }
+      ],
+      "position": [
+        -58.6419792175293,
+        234.5679168701172
+      ],
+      "type": "Unknown"
+    }
+  ],
+  "version": "1.0"
+}
