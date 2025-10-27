@@ -318,7 +318,14 @@ void MainWindow::onParameterChanged() {
   // node
   auto selected_nodes = node_graph_widget_->get_selected_node_ids();
   if (!selected_nodes.isEmpty()) {
-    executeAndDisplayNode(selected_nodes.first());
+    int node_id = selected_nodes.first();
+
+    // Invalidate cache for this node and all downstream nodes
+    if (execution_engine_ && node_graph_) {
+      execution_engine_->invalidate_node(*node_graph_, node_id);
+    }
+
+    executeAndDisplayNode(node_id);
   }
 }
 
@@ -668,18 +675,10 @@ void MainWindow::onNodeSelectionChanged() {
              node_type == NodeType::CopyToPoints);
 
         if (is_sop) {
-          // Get geometry from execution engine instead of unsafe
-          // reinterpret_cast
-          qDebug()
-              << "SOP node selected, getting geometry from execution engine";
-
+          // Get geometry from execution engine
           if (execution_engine_) {
             auto geo_data = execution_engine_->get_node_geometry(selected_id);
-            qDebug() << "Geometry from engine:" << (geo_data != nullptr);
-
             if (geo_data) {
-              qDebug() << "Points:" << geo_data->point_count()
-                       << "Vertices:" << geo_data->vertex_count();
               geometry_spreadsheet_->setGeometry(geo_data);
             } else {
               geometry_spreadsheet_->clear();

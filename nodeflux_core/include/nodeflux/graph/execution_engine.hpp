@@ -62,6 +62,14 @@ public:
   void clear_cache();
 
   /**
+   * @brief Invalidate cache for a specific node and all downstream nodes
+   * Call this when a node's parameters change
+   * @param graph The node graph
+   * @param node_id Node ID that was modified
+   */
+  void invalidate_node(NodeGraph &graph, int node_id);
+
+  /**
    * @brief Set progress callback
    */
   void set_progress_callback(ProgressCallback callback) {

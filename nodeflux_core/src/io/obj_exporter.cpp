@@ -46,6 +46,18 @@ ObjExporter::geometry_to_obj_string(const core::GeometryContainer &geometry) {
 
   obj_stream << "\n";
 
+  // Write UV texture coordinates if available (vertex attribute)
+  const auto *uvs = geometry.get_vertex_attribute_typed<Eigen::Vector2f>(
+      core::standard_attrs::uv);
+  if (uvs != nullptr) {
+    const auto &uv_values = uvs->values();
+    for (const auto &uv_coord : uv_values) {
+      // OBJ uses vt for texture coordinates (u, v)
+      obj_stream << "vt " << uv_coord.x() << " " << uv_coord.y() << "\n";
+    }
+    obj_stream << "\n";
+  }
+
   // Write vertex normals if available
   const auto *normals =
       geometry.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::N);
@@ -71,10 +83,17 @@ ObjExporter::geometry_to_obj_string(const core::GeometryContainer &geometry) {
     obj_stream << "f";
     for (int vert_idx : prim_verts) {
       int point_idx = topology.get_vertex_point(vert_idx);
-      // OBJ format: vertex_index//normal_index (1-based)
+      // OBJ format: vertex_index/texture_index/normal_index (1-based)
       obj_stream << " " << (point_idx + 1);
-      if (normals != nullptr) {
-        obj_stream << "//" << (point_idx + 1);
+
+      if (uvs != nullptr || normals != nullptr) {
+        obj_stream << "/";
+        if (uvs != nullptr) {
+          obj_stream << (vert_idx + 1); // UV is per-vertex
+        }
+        if (normals != nullptr) {
+          obj_stream << "/" << (point_idx + 1);
+        }
       }
     }
     obj_stream << "\n";

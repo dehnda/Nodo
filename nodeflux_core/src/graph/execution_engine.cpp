@@ -85,8 +85,9 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     execution_order = graph.get_execution_order();
   }
 
-  // Clear previous results and errors
-  geometry_cache_.clear();
+  // DON'T clear the cache completely - only clear nodes that need recomputation
+  // This preserves expensive operations like UV unwrap
+  // geometry_cache_.clear();  // OLD: cleared everything
 
   // Clear error flags from all nodes
   for (const auto &node_ptr : graph.get_nodes()) {
@@ -99,6 +100,21 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     if (!node) {
       std::cout << "❌ Node " << node_id << " not found" << std::endl;
       return false;
+    }
+
+    // Check if this node is already cached and valid
+    // For now, we always recompute since we don't have dirty tracking yet
+    // TODO: Implement proper dirty flag system
+    auto cached_it = geometry_cache_.find(node_id);
+    bool has_valid_cache = (cached_it != geometry_cache_.end());
+
+    // Skip execution if already cached (OPTIMIZATION)
+    // This is a simple heuristic - a proper implementation would check if
+    // inputs or parameters have changed
+    if (has_valid_cache) {
+      std::cout << "⚡ Using cached result for node " << node_id << " ("
+                << node->get_name() << ")" << std::endl;
+      continue;
     }
 
     // Start timing
@@ -166,6 +182,32 @@ ExecutionEngine::get_node_geometry(int node_id) const {
 }
 
 void ExecutionEngine::clear_cache() { geometry_cache_.clear(); }
+
+void ExecutionEngine::invalidate_node(NodeGraph &graph, int node_id) {
+  // Remove this node from cache
+  geometry_cache_.erase(node_id);
+
+  // Find all downstream nodes (nodes that depend on this one)
+  const auto &all_nodes = graph.get_nodes();
+  for (const auto &node_ptr : all_nodes) {
+    int other_id = node_ptr->get_id();
+    if (other_id == node_id) {
+      continue;
+    }
+
+    // Check if this node depends on the invalidated node
+    auto dependencies = graph.get_upstream_dependencies(other_id);
+    if (std::find(dependencies.begin(), dependencies.end(), node_id) !=
+        dependencies.end()) {
+      // This node depends on the invalidated node, so invalidate it too
+      geometry_cache_.erase(other_id);
+      std::cout << "⚠️ Invalidated cache for dependent node " << other_id << " ("
+                << node_ptr->get_name() << ")\n";
+    }
+  }
+
+  std::cout << "⚠️ Invalidated cache for node " << node_id << "\n";
+}
 
 void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
                                           sop::SOPNode &sop_node) {
