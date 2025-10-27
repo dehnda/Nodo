@@ -241,14 +241,18 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
 
   layout->addWidget(control_container);
 
-  // Connect spinbox and slider together
+  // Connect spinbox and slider together (update during interaction)
   connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), slider,
           &QSlider::setValue);
   connect(slider, &QSlider::valueChanged, spinbox, &QSpinBox::setValue);
 
-  // Connect to callback
-  connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged),
-          [callback](int v) { callback(v); });
+  // Call callback only when slider is released (not during drag)
+  connect(slider, &QSlider::sliderReleased,
+          [spinbox, callback]() { callback(spinbox->value()); });
+
+  // Connect spinbox to callback only when editing is finished
+  connect(spinbox, &QSpinBox::editingFinished,
+          [spinbox, callback]() { callback(spinbox->value()); });
 
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
@@ -342,22 +346,22 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
             slider->blockSignals(false);
           });
 
-  // Connect slider to spinbox and callback
-  // Note: We block spinbox signals to prevent feedback loop, but must
-  // explicitly call the callback since the valueChanged signal won't be emitted
-  connect(slider, &QSlider::valueChanged, [spinbox, min, max, callback](int v) {
+  // Connect slider to spinbox (update during drag)
+  connect(slider, &QSlider::valueChanged, [spinbox, min, max](int v) {
     double normalized = v / 1000.0;
     double value = min + normalized * (max - min);
     spinbox->blockSignals(true);
     spinbox->setValue(value);
     spinbox->blockSignals(false);
-    // Call callback directly since signals are blocked
-    callback(value);
   });
 
-  // Connect spinbox to callback (for direct spinbox edits)
-  connect(spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          [callback](double v) { callback(v); });
+  // Call callback only when slider is released (not during drag)
+  connect(slider, &QSlider::sliderReleased,
+          [spinbox, callback]() { callback(spinbox->value()); });
+
+  // Connect spinbox to callback only when editing is finished
+  connect(spinbox, &QDoubleSpinBox::editingFinished,
+          [spinbox, callback]() { callback(spinbox->value()); });
 
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
@@ -1833,17 +1837,15 @@ void PropertyPanel::addVector3Parameter(
 
   layout->addWidget(xyz_container);
 
-  // Connect all spinboxes to callback
+  // Trigger callback only when editing is finished (not during typing/arrow
+  // keys)
   auto trigger_callback = [callback, x_spinbox, y_spinbox, z_spinbox]() {
     callback(x_spinbox->value(), y_spinbox->value(), z_spinbox->value());
   };
 
-  connect(x_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          trigger_callback);
-  connect(y_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          trigger_callback);
-  connect(z_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          trigger_callback);
+  connect(x_spinbox, &QDoubleSpinBox::editingFinished, trigger_callback);
+  connect(y_spinbox, &QDoubleSpinBox::editingFinished, trigger_callback);
+  connect(z_spinbox, &QDoubleSpinBox::editingFinished, trigger_callback);
 
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
