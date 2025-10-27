@@ -59,6 +59,14 @@ public:
     int int_max = 100;
     std::vector<std::string> options; // For combo boxes (int type)
 
+    // Category visibility control (optional)
+    // If set, this parameter's category is only visible when the control
+    // parameter has the matching value
+    std::string category_control_param; // Name of the parameter that controls
+                                        // visibility
+    int category_control_value =
+        -1; // Value that makes this category visible (-1 = always visible)
+
     ParameterDefinition(const std::string &n, Type t, ParameterValue def)
         : name(n), label(n), type(t), default_value(def) {}
   };
@@ -96,6 +104,13 @@ public:
       def_.options = opts;
       def_.int_min = 0;
       def_.int_max = static_cast<int>(opts.size()) - 1;
+      return *this;
+    }
+
+    ParameterBuilder &visible_when(const std::string &control_param,
+                                   int value) {
+      def_.category_control_param = control_param;
+      def_.category_control_value = value;
       return *this;
     }
 

@@ -158,13 +158,9 @@ void ViewportWidget::setGeometry(
     const nodeflux::core::GeometryContainer &geometry) {
   // Check if geometry is empty
   if (geometry.topology().point_count() == 0) {
-    qDebug() << "ViewportWidget::setGeometry - Empty geometry (0 points)";
     clearMesh();
     return;
   }
-
-  qDebug() << "ViewportWidget::setGeometry - Points:" << geometry.point_count()
-           << "Primitives:" << geometry.primitive_count();
 
   // Store geometry for normal visualization
   current_geometry_ =
@@ -177,14 +173,10 @@ void ViewportWidget::setGeometry(
       geometry.get_point_attribute_typed<nodeflux::core::Vec3f>(
           nodeflux::core::standard_attrs::P);
   if (positions == nullptr) {
-    qDebug() << "ViewportWidget::setGeometry - No 'P' attribute found!";
     clearMesh();
     doneCurrent();
     return;
   }
-
-  qDebug() << "ViewportWidget::setGeometry - Position values:"
-           << positions->values().size();
 
   // Calculate bounds from positions for camera framing
   const auto &pos_values = positions->values();
@@ -280,7 +272,7 @@ void ViewportWidget::setGeometry(
       // For quads (4 vertices), we need to triangulate: 0-1-2 and 0-2-3
       // For triangles (3 vertices), just use as-is
       // For n-gons (5+ vertices), fan triangulation from first vertex
-      
+
       if (prim_verts.size() == 3) {
         // Triangle: add all 3 vertices
         for (int vert_idx : prim_verts) {
@@ -302,7 +294,7 @@ void ViewportWidget::setGeometry(
       } else if (prim_verts.size() == 4) {
         // Quad: triangulate as 0-1-2 and 0-2-3
         const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
-        
+
         for (int local_idx : tri_indices) {
           int vert_idx = prim_verts[local_idx];
           if (vert_idx < 0 ||
@@ -324,7 +316,7 @@ void ViewportWidget::setGeometry(
         // N-gon: fan triangulation from first vertex
         for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
           const std::array<size_t, 3> tri_local = {0, i, i + 1};
-          
+
           for (size_t local_idx : tri_local) {
             int vert_idx = prim_verts[local_idx];
             if (vert_idx < 0 ||
@@ -466,7 +458,8 @@ void ViewportWidget::setGeometry(
           nodeflux::core::Vec3f edge2 = vertex_2 - vertex_0;
           nodeflux::core::Vec3f normal = edge1.cross(edge2).normalized();
 
-          // Match triangulation pattern: use same normal for all triangulated vertices
+          // Match triangulation pattern: use same normal for all triangulated
+          // vertices
           if (prim_verts.size() == 3) {
             // Triangle: 3 vertices
             for (int i = 0; i < 3; ++i) {
@@ -651,16 +644,6 @@ void ViewportWidget::initializeGL() {
 
   // Emit GPU info to be displayed in status bar
   emit gpuInfoDetected(gpu_info);
-
-  // Query and log point size range
-  GLfloat point_size_range[2];
-  glGetFloatv(GL_POINT_SIZE_RANGE, point_size_range);
-  qDebug() << "OpenGL Point Size Range:" << point_size_range[0] << "to"
-           << point_size_range[1];
-
-  GLfloat point_size_granularity;
-  glGetFloatv(GL_POINT_SIZE_GRANULARITY, &point_size_granularity);
-  qDebug() << "Point Size Granularity:" << point_size_granularity;
 
   // Set clear color (dark gray background)
   glClearColor(0.2F, 0.2F, 0.2F, 1.0F);

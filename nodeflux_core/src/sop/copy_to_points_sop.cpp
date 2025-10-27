@@ -1,6 +1,4 @@
 #include "../../include/nodeflux/sop/copy_to_points_sop.hpp"
-#include "../../include/nodeflux/core/math.hpp"
-#include <iostream>
 
 namespace attrs = nodeflux::core::standard_attrs;
 
@@ -54,11 +52,6 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   auto points_input = get_input_data(0);
   auto template_input = get_input_data(1);
 
-  std::cerr << "CopyToPointsSOP::execute() called\n";
-  std::cerr << "  points_input: " << (points_input ? "valid" : "null") << "\n";
-  std::cerr << "  template_input: " << (template_input ? "valid" : "null")
-            << "\n";
-
   if (!points_input) {
     set_error("Missing 'points' input (port 0)");
     return nullptr;
@@ -102,12 +95,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   const size_t template_prim_count =
       template_input->topology().primitive_count();
 
-  std::cerr << "  num_points: " << num_points << "\n";
-  std::cerr << "  template_point_count: " << template_point_count << "\n";
-  std::cerr << "  template_prim_count: " << template_prim_count << "\n";
-
   if (num_points == 0 || template_point_count == 0) {
-    std::cerr << "  Returning empty - zero points!\n";
     return std::make_shared<core::GeometryContainer>();
   }
 

@@ -47,8 +47,7 @@ private:
   void apply_catmull_clark(core::GeometryContainer &container,
                            bool preserve_boundaries);
 
-  void add_triangle(core::GeometryContainer &container, int p0, int p1,
-                    int p2);
+  void add_triangle(core::GeometryContainer &container, int p0, int p1, int p2);
   void add_quad(core::GeometryContainer &container, int p0, int p1, int p2,
                 int p3);
 

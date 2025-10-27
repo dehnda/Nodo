@@ -76,86 +76,96 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   // Create GeometryContainer
   core::GeometryContainer container;
 
+  // Build a 3D grid of points (shared at edges/corners)
+  const int num_x = width_segments + 1;
+  const int num_y = height_segments + 1;
+  const int num_z = depth_segments + 1;
+  std::vector<core::Vec3f> positions(num_x * num_y * num_z);
+  auto lerp = [](double start_val, double end_val, double t_val) {
+    return start_val + (t_val * (end_val - start_val));
+  };
+  for (int z_idx = 0; z_idx < num_z; ++z_idx) {
+    double z_pos =
+        lerp(min_corner.z(), max_corner.z(), double(z_idx) / double(num_z - 1));
+    for (int y_idx = 0; y_idx < num_y; ++y_idx) {
+      double y_pos = lerp(min_corner.y(), max_corner.y(),
+                          double(y_idx) / double(num_y - 1));
+      for (int x_idx = 0; x_idx < num_x; ++x_idx) {
+        double x_pos = lerp(min_corner.x(), max_corner.x(),
+                            double(x_idx) / double(num_x - 1));
+        positions[(z_idx * num_y * num_x) + (y_idx * num_x) + x_idx] =
+            core::Vec3f(float(x_pos), float(y_pos), float(z_pos));
+      }
+    }
+  }
 
-    // Build a 3D grid of points (shared at edges/corners)
-    const int num_x = width_segments + 1;
-    const int num_y = height_segments + 1;
-    const int num_z = depth_segments + 1;
-    std::vector<core::Vec3f> positions(num_x * num_y * num_z);
-    auto lerp = [](double start_val, double end_val, double t_val) { return start_val + (t_val * (end_val - start_val)); };
-    for (int z_idx = 0; z_idx < num_z; ++z_idx) {
-      double z_pos = lerp(min_corner.z(), max_corner.z(), double(z_idx) / double(num_z - 1));
-      for (int y_idx = 0; y_idx < num_y; ++y_idx) {
-        double y_pos = lerp(min_corner.y(), max_corner.y(), double(y_idx) / double(num_y - 1));
-        for (int x_idx = 0; x_idx < num_x; ++x_idx) {
-          double x_pos = lerp(min_corner.x(), max_corner.x(), double(x_idx) / double(num_x - 1));
-          positions[(z_idx * num_y * num_x) + (y_idx * num_x) + x_idx] = core::Vec3f(float(x_pos), float(y_pos), float(z_pos));
-        }
-      }
+  // Build quad faces for each of the 6 sides
+  std::vector<std::vector<int>> primitive_vertices;
+  // -Z face
+  for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
+    for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
+      int v00 = (0 * num_y * num_x) + (y_idx * num_x) + x_idx; // bottom-left
+      int v10 =
+          (0 * num_y * num_x) + (y_idx * num_x) + (x_idx + 1); // bottom-right
+      int v11 = (0 * num_y * num_x) + ((y_idx + 1) * num_x) +
+                (x_idx + 1); // top-right
+      int v01 = (0 * num_y * num_x) + ((y_idx + 1) * num_x) + x_idx; // top-left
+      primitive_vertices.push_back({v00, v01, v11, v10});
     }
-
-    // Build quad faces for each of the 6 sides
-    std::vector<std::vector<int>> primitive_vertices;
-    // -Z face
+  }
+  // +Z face
+  for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
+    for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
+      int v00 = ((num_z - 1) * num_y * num_x) + (y_idx * num_x) + x_idx;
+      int v01 = ((num_z - 1) * num_y * num_x) + ((y_idx + 1) * num_x) + x_idx;
+      int v11 =
+          ((num_z - 1) * num_y * num_x) + ((y_idx + 1) * num_x) + (x_idx + 1);
+      int v10 = ((num_z - 1) * num_y * num_x) + (y_idx * num_x) + (x_idx + 1);
+      primitive_vertices.push_back({v00, v10, v11, v01});
+    }
+  }
+  // -Y face
+  for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
+    for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
+      int v00 = (z_idx * num_y * num_x) + (0 * num_x) + x_idx;
+      int v10 = (z_idx * num_y * num_x) + (0 * num_x) + (x_idx + 1);
+      int v11 = ((z_idx + 1) * num_y * num_x) + (0 * num_x) + (x_idx + 1);
+      int v01 = ((z_idx + 1) * num_y * num_x) + (0 * num_x) + x_idx;
+      primitive_vertices.push_back({v00, v10, v11, v01});
+    }
+  }
+  // +Y face (CORRECT - keep this winding)
+  for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
+    for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
+      int v00 = (z_idx * num_y * num_x) + ((num_y - 1) * num_x) + x_idx;
+      int v10 = (z_idx * num_y * num_x) + ((num_y - 1) * num_x) + (x_idx + 1);
+      int v11 =
+          ((z_idx + 1) * num_y * num_x) + ((num_y - 1) * num_x) + (x_idx + 1);
+      int v01 = ((z_idx + 1) * num_y * num_x) + ((num_y - 1) * num_x) + x_idx;
+      primitive_vertices.push_back({v00, v01, v11, v10});
+    }
+  }
+  // -X face
+  for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
     for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
-      for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-        int v00 = (0 * num_y * num_x) + (y_idx * num_x) + x_idx;           // bottom-left
-        int v10 = (0 * num_y * num_x) + (y_idx * num_x) + (x_idx + 1);     // bottom-right
-        int v11 = (0 * num_y * num_x) + ((y_idx + 1) * num_x) + (x_idx + 1); // top-right
-        int v01 = (0 * num_y * num_x) + ((y_idx + 1) * num_x) + x_idx;     // top-left
-  primitive_vertices.push_back({v00, v01, v11, v10});
-      }
+      int v00 = (z_idx * num_y * num_x) + (y_idx * num_x) + 0;
+      int v10 = (z_idx * num_y * num_x) + ((y_idx + 1) * num_x) + 0;
+      int v11 = ((z_idx + 1) * num_y * num_x) + ((y_idx + 1) * num_x) + 0;
+      int v01 = ((z_idx + 1) * num_y * num_x) + (y_idx * num_x) + 0;
+      primitive_vertices.push_back({v00, v01, v11, v10});
     }
-    // +Z face
+  }
+  // +X face
+  for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
     for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
-      for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-        int v00 = ((num_z - 1) * num_y * num_x) + (y_idx * num_x) + x_idx;
-        int v01 = ((num_z - 1) * num_y * num_x) + ((y_idx + 1) * num_x) + x_idx;
-        int v11 = ((num_z - 1) * num_y * num_x) + ((y_idx + 1) * num_x) + (x_idx + 1);
-        int v10 = ((num_z - 1) * num_y * num_x) + (y_idx * num_x) + (x_idx + 1);
-  primitive_vertices.push_back({v00, v10, v11, v01});
-      }
+      int v00 = (z_idx * num_y * num_x) + (y_idx * num_x) + (num_x - 1);
+      int v01 = ((z_idx + 1) * num_y * num_x) + (y_idx * num_x) + (num_x - 1);
+      int v11 =
+          ((z_idx + 1) * num_y * num_x) + ((y_idx + 1) * num_x) + (num_x - 1);
+      int v10 = (z_idx * num_y * num_x) + ((y_idx + 1) * num_x) + (num_x - 1);
+      primitive_vertices.push_back({v00, v10, v11, v01});
     }
-    // -Y face
-    for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
-      for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-        int v00 = (z_idx * num_y * num_x) + (0 * num_x) + x_idx;
-        int v10 = (z_idx * num_y * num_x) + (0 * num_x) + (x_idx + 1);
-        int v11 = ((z_idx + 1) * num_y * num_x) + (0 * num_x) + (x_idx + 1);
-        int v01 = ((z_idx + 1) * num_y * num_x) + (0 * num_x) + x_idx;
-        primitive_vertices.push_back({v00, v10, v11, v01});
-      }
-    }
-    // +Y face (CORRECT - keep this winding)
-    for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
-      for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-        int v00 = (z_idx * num_y * num_x) + ((num_y - 1) * num_x) + x_idx;
-        int v10 = (z_idx * num_y * num_x) + ((num_y - 1) * num_x) + (x_idx + 1);
-        int v11 = ((z_idx + 1) * num_y * num_x) + ((num_y - 1) * num_x) + (x_idx + 1);
-        int v01 = ((z_idx + 1) * num_y * num_x) + ((num_y - 1) * num_x) + x_idx;
-        primitive_vertices.push_back({v00, v01, v11, v10});
-      }
-    }
-    // -X face
-    for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
-      for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
-        int v00 = (z_idx * num_y * num_x) + (y_idx * num_x) + 0;
-        int v10 = (z_idx * num_y * num_x) + ((y_idx + 1) * num_x) + 0;
-        int v11 = ((z_idx + 1) * num_y * num_x) + ((y_idx + 1) * num_x) + 0;
-        int v01 = ((z_idx + 1) * num_y * num_x) + (y_idx * num_x) + 0;
-        primitive_vertices.push_back({v00, v01, v11, v10});
-      }
-    }
-    // +X face
-    for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
-      for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
-        int v00 = (z_idx * num_y * num_x) + (y_idx * num_x) + (num_x - 1);
-        int v01 = ((z_idx + 1) * num_y * num_x) + (y_idx * num_x) + (num_x - 1);
-        int v11 = ((z_idx + 1) * num_y * num_x) + ((y_idx + 1) * num_x) + (num_x - 1);
-        int v10 = (z_idx * num_y * num_x) + ((y_idx + 1) * num_x) + (num_x - 1);
-        primitive_vertices.push_back({v00, v10, v11, v01});
-      }
-    }
+  }
 
   // Update point and vertex counts to actual size
   const size_t actual_point_count = positions.size();
@@ -232,9 +242,11 @@ void BoxGenerator::generate_face(
       const int top_right = top_left + 1;
 
       if (flip_normal) {
-        primitive_vertices.push_back({bottom_right, bottom_left, top_left, top_right});
+        primitive_vertices.push_back(
+            {bottom_right, bottom_left, top_left, top_right});
       } else {
-        primitive_vertices.push_back({bottom_left, bottom_right, top_right, top_left});
+        primitive_vertices.push_back(
+            {bottom_left, bottom_right, top_right, top_left});
       }
     }
   }

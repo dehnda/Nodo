@@ -6,6 +6,7 @@
 #include "nodeflux/sop/sop_factory.hpp"
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <queue>
 #include <unordered_set>
 #include <variant>
@@ -21,48 +22,88 @@ NodeParameter
 convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
   using ParamType = sop::SOPNode::ParameterDefinition::Type;
 
+  NodeParameter param(def.name, 0.0F); // Temporary, will be overwritten
+
   switch (def.type) {
   case ParamType::Float: {
     float default_val = std::get<float>(def.default_value);
-    return NodeParameter(def.name, default_val, def.label,
-                         static_cast<float>(def.float_min),
-                         static_cast<float>(def.float_max));
+    param = NodeParameter(def.name, default_val, def.label,
+                          static_cast<float>(def.float_min),
+                          static_cast<float>(def.float_max), def.category);
+    break;
   }
 
   case ParamType::Int: {
     int default_val = std::get<int>(def.default_value);
     if (!def.options.empty()) {
       // Combo box
-      return NodeParameter(def.name, default_val, def.options, def.label);
+      param = NodeParameter(def.name, default_val, def.options, def.label,
+                            def.category);
     } else {
       // Regular int
-      return NodeParameter(def.name, default_val, def.label, def.int_min,
-                           def.int_max);
+      param = NodeParameter(def.name, default_val, def.label, def.int_min,
+                            def.int_max, def.category);
     }
+    break;
   }
 
   case ParamType::Bool: {
     bool default_val = std::get<bool>(def.default_value);
-    return NodeParameter(def.name, default_val, def.label);
+    param = NodeParameter(def.name, default_val, def.label, def.category);
+    break;
   }
 
   case ParamType::String: {
     std::string default_val = std::get<std::string>(def.default_value);
-    return NodeParameter(def.name, default_val, def.label);
+    param = NodeParameter(def.name, default_val, def.label, def.category);
+    break;
   }
 
   case ParamType::Vector3: {
     auto vec3_eigen = std::get<Eigen::Vector3f>(def.default_value);
     std::array<float, 3> vec3_array = {vec3_eigen.x(), vec3_eigen.y(),
                                        vec3_eigen.z()};
-    return NodeParameter(def.name, vec3_array, def.label,
-                         static_cast<float>(def.float_min),
-                         static_cast<float>(def.float_max));
+    param = NodeParameter(def.name, vec3_array, def.label,
+                          static_cast<float>(def.float_min),
+                          static_cast<float>(def.float_max), def.category);
+    break;
   }
   }
 
-  // Fallback (should never reach here)
-  return NodeParameter(def.name, 0.0F);
+  // Copy visibility control metadata
+  param.category_control_param = def.category_control_param;
+  param.category_control_value = def.category_control_value;
+
+  return param;
+}
+
+/**
+ * @brief Initialize GraphNode parameters from SOPNode parameter definitions
+ */
+void initialize_node_parameters_from_sop(GraphNode &node) {
+  // Create a temporary SOP instance to get its parameter definitions
+  auto sop = sop::SOPFactory::create(node.get_type(), node.get_name());
+
+  if (!sop) {
+    // Node type doesn't have a SOP implementation (e.g., Switch)
+    // Parameters will be set up by setup_pins_for_type() in the constructor
+    return;
+  }
+
+  // Get parameter definitions from the SOP
+  const auto &param_defs = sop->get_parameter_definitions();
+
+  if (param_defs.empty()) {
+    // No registered parameters, will use hardcoded ones from
+    // setup_pins_for_type()
+    return;
+  }
+
+  // Convert and add parameters to GraphNode
+  for (const auto &def : param_defs) {
+    NodeParameter param = convert_parameter_definition(def);
+    node.add_parameter(param);
+  }
 }
 
 } // anonymous namespace
@@ -291,19 +332,8 @@ void GraphNode::setup_pins_for_type() {
     break;
 
   case NodeType::Array:
-    // Array node creates copies in linear, grid, or radial patterns
-    parameters_.emplace_back("mode", 0); // 0=Linear, 1=Grid, 2=Radial
-    parameters_.emplace_back("count", 5);
-    parameters_.emplace_back("offset_x", 2.0F);
-    parameters_.emplace_back("offset_y",
-                             2.0F); // Changed from 0.0F to 2.0F for grid mode
-    parameters_.emplace_back("offset_z", 0.0F);
-    // Grid-specific parameters
-    parameters_.emplace_back("grid_rows", 3);
-    parameters_.emplace_back("grid_cols", 3);
-    // Radial-specific parameters
-    parameters_.emplace_back("radius", 5.0F);
-    parameters_.emplace_back("angle", 360.0F); // Total angle to span
+    // Array node - parameters defined in ArraySOP, loaded via
+    // initialize_node_parameters_from_sop()
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
     output_pins_.push_back(
@@ -337,11 +367,8 @@ void GraphNode::setup_pins_for_type() {
     break;
 
   case NodeType::CopyToPoints:
-    // Copy template geometry to each point
-    parameters_.emplace_back("use_point_normals", 0); // 0=false, 1=true
-    parameters_.emplace_back("use_point_scale", 0);
-    parameters_.emplace_back("uniform_scale", 1.0F);
-    parameters_.emplace_back("scale_attribute", std::string(""));
+    // Copy template geometry to each point - parameters defined in
+    // CopyToPointsSOP
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Points", 0});
     input_pins_.push_back(
@@ -367,17 +394,27 @@ int NodeGraph::add_node(NodeType type, const std::string &name) {
   const std::string node_name = name.empty() ? generate_node_name(type) : name;
 
   auto node = std::make_unique<GraphNode>(node_id, type, node_name);
+
+  // Initialize parameters from SOPNode for modern SOPs
+  initialize_node_parameters_from_sop(*node);
+
   nodes_.push_back(std::move(node));
 
   notify_node_changed(node_id);
   return node_id;
 }
 
-int NodeGraph::add_node_with_id(int node_id, NodeType type, const std::string &name) {
+int NodeGraph::add_node_with_id(int node_id, NodeType type,
+                                const std::string &name) {
   // For undo/redo: add node with a specific ID
   const std::string node_name = name.empty() ? generate_node_name(type) : name;
 
   auto node = std::make_unique<GraphNode>(node_id, type, node_name);
+
+  // Initialize parameters from SOPNode for modern SOPs
+  initialize_node_parameters_from_sop(*node);
+
+  nodes_.push_back(std::move(node));
   nodes_.push_back(std::move(node));
 
   // Update next_node_id if necessary to avoid ID conflicts

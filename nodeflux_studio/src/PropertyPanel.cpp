@@ -535,30 +535,30 @@ void PropertyPanel::addFilePathParameter(
   // Browse button
   auto *browse_button = new QPushButton("Browse...", container);
   browse_button->setStyleSheet("QPushButton {"
-                                "  background: rgba(74, 158, 255, 0.15);"
-                                "  border: 1px solid rgba(74, 158, 255, 0.3);"
-                                "  border-radius: 4px;"
-                                "  color: #4a9eff;"
-                                "  padding: 6px 12px;"
-                                "  font-size: 12px;"
-                                "  font-weight: 500;"
-                                "}"
-                                "QPushButton:hover {"
-                                "  background: rgba(74, 158, 255, 0.25);"
-                                "  border-color: rgba(74, 158, 255, 0.5);"
-                                "}"
-                                "QPushButton:pressed {"
-                                "  background: rgba(74, 158, 255, 0.35);"
-                                "}");
+                               "  background: rgba(74, 158, 255, 0.15);"
+                               "  border: 1px solid rgba(74, 158, 255, 0.3);"
+                               "  border-radius: 4px;"
+                               "  color: #4a9eff;"
+                               "  padding: 6px 12px;"
+                               "  font-size: 12px;"
+                               "  font-weight: 500;"
+                               "}"
+                               "QPushButton:hover {"
+                               "  background: rgba(74, 158, 255, 0.25);"
+                               "  border-color: rgba(74, 158, 255, 0.5);"
+                               "}"
+                               "QPushButton:pressed {"
+                               "  background: rgba(74, 158, 255, 0.35);"
+                               "}");
   input_layout->addWidget(browse_button);
 
   layout->addLayout(input_layout);
 
   // Connect browse button to open file dialog
   connect(browse_button, &QPushButton::clicked, [line_edit, callback]() {
-    QString file_path = QFileDialog::getOpenFileName(
-        nullptr, "Select OBJ File", QString(),
-        "OBJ Files (*.obj);;All Files (*)");
+    QString file_path =
+        QFileDialog::getOpenFileName(nullptr, "Select OBJ File", QString(),
+                                     "OBJ Files (*.obj);;All Files (*)");
     if (!file_path.isEmpty()) {
       line_edit->setText(file_path);
       callback(file_path);
@@ -615,30 +615,30 @@ void PropertyPanel::addFileSaveParameter(
   // Save button
   auto *save_button = new QPushButton("Save As...", container);
   save_button->setStyleSheet("QPushButton {"
-                              "  background: rgba(74, 158, 255, 0.15);"
-                              "  border: 1px solid rgba(74, 158, 255, 0.3);"
-                              "  border-radius: 4px;"
-                              "  color: #4a9eff;"
-                              "  padding: 6px 12px;"
-                              "  font-size: 12px;"
-                              "  font-weight: 500;"
-                              "}"
-                              "QPushButton:hover {"
-                              "  background: rgba(74, 158, 255, 0.25);"
-                              "  border-color: rgba(74, 158, 255, 0.5);"
-                              "}"
-                              "QPushButton:pressed {"
-                              "  background: rgba(74, 158, 255, 0.35);"
-                              "}");
+                             "  background: rgba(74, 158, 255, 0.15);"
+                             "  border: 1px solid rgba(74, 158, 255, 0.3);"
+                             "  border-radius: 4px;"
+                             "  color: #4a9eff;"
+                             "  padding: 6px 12px;"
+                             "  font-size: 12px;"
+                             "  font-weight: 500;"
+                             "}"
+                             "QPushButton:hover {"
+                             "  background: rgba(74, 158, 255, 0.25);"
+                             "  border-color: rgba(74, 158, 255, 0.5);"
+                             "}"
+                             "QPushButton:pressed {"
+                             "  background: rgba(74, 158, 255, 0.35);"
+                             "}");
   input_layout->addWidget(save_button);
 
   layout->addLayout(input_layout);
 
   // Connect save button to open file save dialog
   connect(save_button, &QPushButton::clicked, [line_edit, callback]() {
-    QString file_path = QFileDialog::getSaveFileName(
-        nullptr, "Save OBJ File", QString(),
-        "OBJ Files (*.obj);;All Files (*)");
+    QString file_path =
+        QFileDialog::getSaveFileName(nullptr, "Save OBJ File", QString(),
+                                     "OBJ Files (*.obj);;All Files (*)");
     if (!file_path.isEmpty()) {
       line_edit->setText(file_path);
       callback(file_path);
@@ -752,6 +752,18 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
   // Dynamically create UI for each parameter
   for (const auto &param : params) {
+    // Check if this parameter should be visible based on visibility control
+    if (!param.category_control_param.empty() &&
+        param.category_control_value >= 0) {
+      // This parameter has visibility control - check the control parameter's
+      // value
+      auto control_param = node->get_parameter(param.category_control_param);
+      if (control_param.has_value() &&
+          control_param->int_value != param.category_control_value) {
+        continue; // Skip this parameter - control value doesn't match
+      }
+    }
+
     QString label = QString::fromStdString(param.label);
 
     switch (param.type) {
@@ -762,11 +774,13 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
       addDoubleParameter(
           label, value, min, max, [this, node, param](double new_value) {
-            node->set_parameter(param.name,
-                                nodeflux::graph::NodeParameter(
-                                    param.name, static_cast<float>(new_value),
-                                    param.label, param.ui_range.float_min,
-                                    param.ui_range.float_max));
+            auto updated_param = nodeflux::graph::NodeParameter(
+                param.name, static_cast<float>(new_value), param.label,
+                param.ui_range.float_min, param.ui_range.float_max,
+                param.category);
+            updated_param.category_control_param = param.category_control_param;
+            updated_param.category_control_value = param.category_control_value;
+            node->set_parameter(param.name, updated_param);
             emit parameterChanged();
           });
       break;
@@ -781,12 +795,32 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
         }
 
         addComboParameter(label, param.int_value, options,
-                          [this, node, param](int new_value) {
-                            node->set_parameter(param.name,
-                                                nodeflux::graph::NodeParameter(
-                                                    param.name, new_value,
-                                                    param.string_options,
-                                                    param.label));
+                          [this, node, param, graph](int new_value) {
+                            // Create updated parameter, preserving all metadata
+                            auto updated_param = nodeflux::graph::NodeParameter(
+                                param.name, new_value, param.string_options,
+                                param.label, param.category);
+                            updated_param.category_control_param =
+                                param.category_control_param;
+                            updated_param.category_control_value =
+                                param.category_control_value;
+
+                            node->set_parameter(param.name, updated_param);
+
+                            // Check if any parameter uses this as a visibility
+                            // control If so, refresh UI to show/hide controlled
+                            // parameters
+                            bool controls_visibility = false;
+                            for (const auto &p : node->get_parameters()) {
+                              if (p.category_control_param == param.name) {
+                                controls_visibility = true;
+                                break;
+                              }
+                            }
+                            if (controls_visibility) {
+                              setGraphNode(node, graph);
+                            }
+
                             emit parameterChanged();
                           });
       } else {
@@ -794,11 +828,14 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
         addIntParameter(
             label, param.int_value, param.ui_range.int_min,
             param.ui_range.int_max, [this, node, param](int new_value) {
-              node->set_parameter(param.name,
-                                  nodeflux::graph::NodeParameter(
-                                      param.name, new_value, param.label,
-                                      param.ui_range.int_min,
-                                      param.ui_range.int_max));
+              auto updated_param = nodeflux::graph::NodeParameter(
+                  param.name, new_value, param.label, param.ui_range.int_min,
+                  param.ui_range.int_max, param.category);
+              updated_param.category_control_param =
+                  param.category_control_param;
+              updated_param.category_control_value =
+                  param.category_control_value;
+              node->set_parameter(param.name, updated_param);
               emit parameterChanged();
             });
       }
@@ -814,9 +851,11 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
       addBoolParameter(
           label, param.bool_value, [this, node, param](bool new_value) {
-            node->set_parameter(param.name,
-                                nodeflux::graph::NodeParameter(
-                                    param.name, new_value, param.label));
+            auto updated_param = nodeflux::graph::NodeParameter(
+                param.name, new_value, param.label, param.category);
+            updated_param.category_control_param = param.category_control_param;
+            updated_param.category_control_value = param.category_control_value;
+            node->set_parameter(param.name, updated_param);
             emit parameterChanged();
           });
       break;
@@ -835,11 +874,12 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
             std::array<float, 3> new_value = {static_cast<float>(nx),
                                               static_cast<float>(ny),
                                               static_cast<float>(nz)};
-            node->set_parameter(param.name,
-                                nodeflux::graph::NodeParameter(
-                                    param.name, new_value, param.label,
-                                    param.ui_range.float_min,
-                                    param.ui_range.float_max));
+            auto updated_param = nodeflux::graph::NodeParameter(
+                param.name, new_value, param.label, param.ui_range.float_min,
+                param.ui_range.float_max, param.category);
+            updated_param.category_control_param = param.category_control_param;
+            updated_param.category_control_value = param.category_control_value;
+            node->set_parameter(param.name, updated_param);
             emit parameterChanged();
           });
       break;
@@ -850,12 +890,15 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
 
       // Use file dialogs for file_path parameters
       if (param.name == "file_path") {
-        // Check if this is an Export node (use Save dialog) or File node (use Open dialog)
-        bool is_export_node = (node->get_type() == nodeflux::graph::NodeType::Export);
+        // Check if this is an Export node (use Save dialog) or File node (use
+        // Open dialog)
+        bool is_export_node =
+            (node->get_type() == nodeflux::graph::NodeType::Export);
 
         if (is_export_node) {
           addFileSaveParameter(
-              label, string_value, [this, node, param](const QString &new_value) {
+              label, string_value,
+              [this, node, param](const QString &new_value) {
                 node->set_parameter(
                     param.name,
                     nodeflux::graph::NodeParameter(
@@ -864,7 +907,8 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
               });
         } else {
           addFilePathParameter(
-              label, string_value, [this, node, param](const QString &new_value) {
+              label, string_value,
+              [this, node, param](const QString &new_value) {
                 node->set_parameter(
                     param.name,
                     nodeflux::graph::NodeParameter(
@@ -892,8 +936,8 @@ void PropertyPanel::setGraphNode(nodeflux::graph::GraphNode *node,
     addSeparator();
     addButtonParameter("Export Now", [this, node]() {
       // Trigger export by setting export_now parameter to true
-      node->set_parameter("export_now",
-                          nodeflux::graph::NodeParameter("export_now", true, "Export Now"));
+      node->set_parameter("export_now", nodeflux::graph::NodeParameter(
+                                            "export_now", true, "Export Now"));
       // Emit signal to trigger graph update
       emit parameterChanged();
     });
