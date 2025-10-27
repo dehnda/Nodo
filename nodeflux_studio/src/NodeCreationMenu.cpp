@@ -169,12 +169,17 @@ void NodeCreationMenu::populateAllNodes() {
                      "≈",
                      {"noise", "displace", "perlin"}});
 
-  // Utilities (1 node)
+  // Utilities (2 nodes)
   all_nodes_.append({"Merge",
                      "merge_sop",
                      "Utility",
                      "⊞",
                      {"merge", "combine", "join", "append"}});
+  all_nodes_.append({"Group",
+                     "group_sop",
+                     "Utility",
+                     "◉",
+                     {"group", "select", "pattern", "selection"}});
 }
 
 void NodeCreationMenu::loadRecentNodes() {

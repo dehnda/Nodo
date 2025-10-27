@@ -51,6 +51,7 @@ enum class NodeType {
 
   // Utilities
   Merge,
+  Group,
   Switch
 };
 

@@ -12,7 +12,6 @@
 #include <cmath>
 #include <nodeflux/graph/node_graph.hpp>
 
-
 // ============================================================================
 // NodeGraphicsItem Implementation
 // ============================================================================
@@ -52,6 +51,11 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Line:
     return QColor(200, 120, 60); // Orange
 
+  // IO - Gray/Silver
+  case NodeType::File:
+  case NodeType::Export:
+    return QColor(120, 120, 130); // Silver/Gray
+
   // Modifiers - Blue
   case NodeType::Transform:
   case NodeType::Extrude:
@@ -76,6 +80,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
 
   // Utilities - Green
   case NodeType::Switch:
+  case NodeType::Group:
     return QColor(80, 160, 100); // Green
 
   default:
@@ -1466,6 +1471,8 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::NoiseDisplacement;
   if (type_id == "merge_sop")
     return NodeType::Merge;
+  if (type_id == "group_sop")
+    return NodeType::Group;
 
   // Default fallback
   return NodeType::Sphere;

@@ -53,6 +53,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/boolean_sop.cpp
     src/sop/copy_to_points_sop.cpp
     src/sop/extrude_sop.cpp
+    src/sop/group_sop.cpp
     src/sop/laplacian_sop.cpp
     src/sop/line_sop.cpp
     src/sop/merge_sop.cpp

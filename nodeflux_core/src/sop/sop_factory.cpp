@@ -9,6 +9,7 @@
 #include "nodeflux/sop/export_sop.hpp"
 #include "nodeflux/sop/extrude_sop.hpp"
 #include "nodeflux/sop/file_sop.hpp"
+#include "nodeflux/sop/group_sop.hpp"
 #include "nodeflux/sop/laplacian_sop.hpp"
 #include "nodeflux/sop/line_sop.hpp"
 #include "nodeflux/sop/merge_sop.hpp"
@@ -91,6 +92,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<TorusSOP>(name);
   case NodeType::Merge:
     return std::make_shared<MergeSOP>(name);
+  case NodeType::Group:
+    return std::make_shared<GroupSOP>(name);
   case NodeType::Switch:
     return std::make_shared<SwitchSOP>(name);
   default:
