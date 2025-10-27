@@ -190,6 +190,11 @@ void NodeCreationMenu::populateAllNodes() {
                      "Utility",
                      "⌫",
                      {"delete", "remove", "filter", "group"}});
+  all_nodes_.append({"UV Unwrap",
+                     "uv_unwrap_sop",
+                     "Utility",
+                     "◰",
+                     {"uv", "unwrap", "texture", "atlas", "xatlas"}});
 }
 
 void NodeCreationMenu::loadRecentNodes() {

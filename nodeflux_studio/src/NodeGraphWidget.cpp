@@ -84,6 +84,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Switch:
   case NodeType::Group:
   case NodeType::Delete:
+  case NodeType::UVUnwrap:
     return QColor(80, 160, 100); // Green
 
   default:
@@ -1480,6 +1481,8 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::Group;
   if (type_id == "delete_sop")
     return NodeType::Delete;
+  if (type_id == "uv_unwrap_sop")
+    return NodeType::UVUnwrap;
 
   // Default fallback
   return NodeType::Sphere;

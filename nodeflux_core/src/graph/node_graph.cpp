@@ -733,6 +733,8 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Delete";
   case NodeType::Switch:
     return "Switch";
+  case NodeType::UVUnwrap:
+    return "UVUnwrap";
   }
 
   return "Unknown";

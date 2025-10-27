@@ -68,6 +68,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/subdivision_sop.cpp
     src/sop/transform_sop.cpp
     src/sop/delete_sop.cpp
+    src/sop/uv_unwrap_sop.cpp
 
     # Spatial
     src/spatial/bvh.cpp
@@ -102,6 +103,7 @@ target_link_libraries(nodeflux_core
         fmt::fmt
         nlohmann_json::nlohmann_json
         manifold::manifold
+        xatlas
 )
 
 # Compiler warnings

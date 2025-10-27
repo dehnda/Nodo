@@ -14,6 +14,21 @@ option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
 option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
 option(NODEFLUX_BUILD_STUDIO "Build Qt Studio application" ON)
 
+# External dependencies
+# xatlas - UV unwrapping library
+add_library(xatlas STATIC
+    external/xatlas/xatlas.cpp
+)
+target_include_directories(xatlas PUBLIC
+    external/xatlas
+)
+# xatlas has some warnings, disable them
+if(MSVC)
+    target_compile_options(xatlas PRIVATE /W0)
+else()
+    target_compile_options(xatlas PRIVATE -w)
+endif()
+
 # Add subdirectories
 add_subdirectory(nodeflux_core)
 
