@@ -5,6 +5,8 @@
 #include "standard_attributes.hpp"
 #include <memory>
 #include <optional>
+#include <string>
+#include <unordered_set>
 
 namespace nodeflux::core {
 
@@ -92,6 +94,22 @@ public:
     primitive_attrs_.resize(primitive_count());
     return idx;
   }
+
+  /**
+   * @brief Delete elements by group name - copy-on-delete pattern
+   * @param group_name Name of the group whose elements to delete
+   * @param element_class Type of elements to delete (POINT or PRIMITIVE)
+   * @param delete_orphaned_points If true, remove points not referenced by any
+   * primitive (only for primitive deletion)
+   * @return New GeometryContainer with elements deleted, or std::nullopt if
+   * group doesn't exist
+   *
+   * This creates a new container without the specified elements, preserving all
+   * attributes.
+   */
+  std::optional<GeometryContainer>
+  delete_elements(const std::string &group_name, ElementClass element_class,
+                  bool delete_orphaned_points = true) const;
 
   // ============================================================================
   // Attribute Management - Point Attributes
@@ -418,6 +436,17 @@ private:
   AttributeSet vertex_attrs_{ElementClass::VERTEX};
   AttributeSet primitive_attrs_{ElementClass::PRIMITIVE};
   AttributeSet detail_attrs_{ElementClass::DETAIL};
+
+  // Helper methods for delete_elements
+  std::optional<GeometryContainer>
+  delete_primitives(const std::unordered_set<size_t> &delete_set,
+                    bool delete_orphaned_points) const;
+
+  std::optional<GeometryContainer>
+  delete_points(const std::unordered_set<size_t> &delete_set) const;
+
+  std::optional<GeometryContainer>
+  remove_orphaned_points(const GeometryContainer &input) const;
 };
 
 } // namespace nodeflux::core

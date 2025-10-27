@@ -24,6 +24,7 @@ set(NODEFLUX_CORE_SOURCES
     src/core/element_topology.cpp
     src/core/error.cpp
     src/core/geometry_attributes.cpp
+    src/core/geometry_container.cpp
     src/core/math.cpp
     src/core/mesh.cpp
 
