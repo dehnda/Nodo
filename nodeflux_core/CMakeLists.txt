@@ -12,6 +12,7 @@ find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(manifold REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(exprtk REQUIRED)
 
 # Core library sources
 set(NODEFLUX_CORE_SOURCES
@@ -69,6 +70,7 @@ set(NODEFLUX_CORE_SOURCES
     src/sop/transform_sop.cpp
     src/sop/delete_sop.cpp
     src/sop/uv_unwrap_sop.cpp
+    src/sop/wrangle_sop.cpp
 
     # Spatial
     src/spatial/bvh.cpp
@@ -103,6 +105,7 @@ target_link_libraries(nodeflux_core
         fmt::fmt
         nlohmann_json::nlohmann_json
         manifold::manifold
+        exprtk::exprtk
         xatlas
 )
 

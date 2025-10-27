@@ -27,6 +27,7 @@
 #include "nodeflux/sop/torus_sop.hpp"
 #include "nodeflux/sop/transform_sop.hpp"
 #include "nodeflux/sop/uv_unwrap_sop.hpp"
+#include "nodeflux/sop/wrangle_sop.hpp"
 
 // Include geometry generators (these will need SOP wrappers)
 #include "nodeflux/geometry/mesh_generator.hpp"
@@ -105,6 +106,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<SwitchSOP>(name);
   case NodeType::UVUnwrap:
     return std::make_shared<UVUnwrapSOP>(name);
+  case NodeType::Wrangle:
+    return std::make_shared<WrangleSOP>(name);
   default:
     return nullptr;
   }

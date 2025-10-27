@@ -25,6 +25,8 @@ add_executable(nodeflux_tests
     test_geometry_container.cpp
     test_attribute_system_integration.cpp
     test_execution_engine_bridge.cpp
+    test_wrangle_sop.cpp
+    test_sop_group_filtering.cpp
 )
 
 target_link_libraries(nodeflux_tests

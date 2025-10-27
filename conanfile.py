@@ -56,6 +56,9 @@ class NodeFluxEngineConan(ConanFile):
         # Manifold for boolean operations (Apache 2.0 - fully commercial-friendly!)
         self.requires("manifold/3.2.1")
 
+        # Expression evaluation for WrangleSOP (header-only, MIT license)
+        self.requires("exprtk/0.0.2")
+
         # Qt for UI
         self.requires("qt/6.7.0")
 

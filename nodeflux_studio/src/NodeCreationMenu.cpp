@@ -80,7 +80,7 @@ void NodeCreationMenu::setupUI() {
 }
 
 void NodeCreationMenu::populateAllNodes() {
-  // Register all 18 existing SOP nodes
+  // Register all 28 SOP nodes (including Wrangle)
   // Using simple Unicode symbols for better font compatibility
 
   // Generators (6 nodes)
@@ -173,6 +173,12 @@ void NodeCreationMenu::populateAllNodes() {
                      "Modifier",
                      "⟂",
                      {"normal", "vertex", "face", "shading"}});
+  all_nodes_.append(
+      {"Wrangle",
+       "wrangle_sop",
+       "Modifier",
+       "✎",
+       {"wrangle", "expression", "code", "script", "attributes"}});
 
   // Utilities (2 nodes)
   all_nodes_.append({"Merge",

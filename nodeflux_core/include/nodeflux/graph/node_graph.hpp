@@ -55,7 +55,8 @@ enum class NodeType {
   Group,
   Delete,
   Switch,
-  UVUnwrap
+  UVUnwrap,
+  Wrangle
 };
 
 /**

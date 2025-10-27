@@ -1,6 +1,7 @@
 #pragma once
 
 #include "node_port.hpp"
+#include "nodeflux/core/attribute_group.hpp"
 #include "nodeflux/core/geometry_container.hpp"
 #include <Eigen/Dense>
 #include <chrono>
@@ -8,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <variant>
+
 
 namespace nodeflux {
 
@@ -153,6 +155,12 @@ public:
     // Create default geometry output port
     main_output_ = output_ports_.add_port("geometry", NodePort::Type::OUTPUT,
                                           NodePort::DataType::GEOMETRY, this);
+
+    // Add universal group parameter (all SOPs inherit this)
+    register_parameter(define_string_parameter("group", "")
+                           .label("Group")
+                           .category("Group")
+                           .build());
   }
 
   virtual ~SOPNode() = default;
@@ -409,6 +417,80 @@ protected:
     auto *port = input_ports_.get_port(std::to_string(port_index));
     if (port != nullptr) {
       port->set_data(std::move(data));
+    }
+  }
+
+  /**
+   * @brief Check if the node has an active group filter
+   * @return True if a group name is specified
+   */
+  bool has_group_filter() const {
+    std::string group_name = get_parameter<std::string>("group", "");
+    return !group_name.empty();
+  }
+
+  /**
+   * @brief Get the active group name
+   * @return Group name, or empty string if no group filter
+   */
+  std::string get_group_name() const {
+    return get_parameter<std::string>("group", "");
+  }
+
+  /**
+   * @brief Check if an element is in the active group
+   * @param geometry Geometry to check
+   * @param element_class Element class (POINT, PRIMITIVE, etc.)
+   * @param element_index Index of the element
+   * @return True if no group filter is active, or if element is in the group
+   */
+  bool is_in_active_group(const core::GeometryContainer *geometry,
+                          core::ElementClass element_class,
+                          size_t element_index) const {
+    std::string group_name = get_group_name();
+    if (group_name.empty()) {
+      return true; // No filter - all elements pass
+    }
+    return core::is_in_group(*geometry, group_name, element_class,
+                             element_index);
+  }
+
+  /**
+   * @brief Helper to iterate only over points in the active group
+   * @param geometry Geometry to iterate
+   * @param func Function to call for each point index: void(size_t point_idx)
+   */
+  template <typename Func>
+  void for_each_point_in_group(const core::GeometryContainer *geometry,
+                               Func &&func) const {
+    std::string group_name = get_group_name();
+    bool use_group = !group_name.empty();
+
+    for (size_t i = 0; i < geometry->point_count(); ++i) {
+      if (!use_group || core::is_in_group(*geometry, group_name,
+                                          core::ElementClass::POINT, i)) {
+        func(i);
+      }
+    }
+  }
+
+  /**
+   * @brief Helper to iterate only over primitives in the active group
+   * @param geometry Geometry to iterate
+   * @param func Function to call for each primitive index: void(size_t
+   * prim_idx)
+   */
+  template <typename Func>
+  void for_each_primitive_in_group(const core::GeometryContainer *geometry,
+                                   Func &&func) const {
+    std::string group_name = get_group_name();
+    bool use_group = !group_name.empty();
+
+    for (size_t i = 0; i < geometry->primitive_count(); ++i) {
+      if (!use_group || core::is_in_group(*geometry, group_name,
+                                          core::ElementClass::PRIMITIVE, i)) {
+        func(i);
+      }
     }
   }
 
