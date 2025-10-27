@@ -711,6 +711,8 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Resample";
   case NodeType::NoiseDisplacement:
     return "NoiseDisplacement";
+  case NodeType::Normal:
+    return "Normal";
 
   // Boolean Operations
   case NodeType::Boolean:

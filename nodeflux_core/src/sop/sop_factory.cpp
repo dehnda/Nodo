@@ -16,6 +16,7 @@
 #include "nodeflux/sop/merge_sop.hpp"
 #include "nodeflux/sop/mirror_sop.hpp"
 #include "nodeflux/sop/noise_displacement_sop.hpp"
+#include "nodeflux/sop/normal_sop.hpp"
 #include "nodeflux/sop/plane_sop.hpp"
 #include "nodeflux/sop/polyextrude_sop.hpp"
 #include "nodeflux/sop/resample_sop.hpp"
@@ -57,6 +58,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<ResampleSOP>(name);
   case NodeType::NoiseDisplacement:
     return std::make_shared<NoiseDisplacementSOP>(name);
+  case NodeType::Normal:
+    return std::make_shared<NormalSOP>(name);
 
   // Arrays & Duplication
   case NodeType::Array:

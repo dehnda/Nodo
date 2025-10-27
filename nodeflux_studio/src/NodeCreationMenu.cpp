@@ -168,6 +168,11 @@ void NodeCreationMenu::populateAllNodes() {
                      "Deform",
                      "≈",
                      {"noise", "displace", "perlin"}});
+  all_nodes_.append({"Normal",
+                     "normal_sop",
+                     "Modifier",
+                     "⟂",
+                     {"normal", "vertex", "face", "shading"}});
 
   // Utilities (2 nodes)
   all_nodes_.append({"Merge",

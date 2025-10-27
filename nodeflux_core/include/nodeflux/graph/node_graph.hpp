@@ -41,6 +41,7 @@ enum class NodeType {
   Mirror,
   Resample,
   NoiseDisplacement,
+  Normal,
 
   // Boolean Operations
   Boolean,
