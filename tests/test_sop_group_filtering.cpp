@@ -5,7 +5,7 @@
 #include "nodo/sop/wrangle_sop.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux;
+using namespace nodo;
 using namespace nodo::sop;
 using namespace nodo::core;
 

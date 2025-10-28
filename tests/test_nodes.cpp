@@ -6,7 +6,7 @@
 #include <nodo/geometry/torus_generator.hpp>
 
 
-using namespace nodeflux;
+using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
 // Helper to convert GeometryContainer to Mesh

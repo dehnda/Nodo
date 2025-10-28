@@ -4,7 +4,7 @@
 #include "nodo/core/standard_attributes.hpp"
 #include <iostream>
 
-using namespace nodeflux;
+using namespace nodo;
 
 int main() {
   // Generate two boxes

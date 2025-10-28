@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
-using namespace nodeflux;
+using namespace nodo;
 
 class ObjExportTest : public ::testing::Test {
 protected:

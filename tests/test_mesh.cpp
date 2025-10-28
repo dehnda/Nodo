@@ -2,7 +2,7 @@
 #include <nodo/core/mesh.hpp>
 #include <Eigen/Dense>
 
-using namespace nodeflux;
+using namespace nodo;
 
 class MeshTest : public ::testing::Test {
 protected:

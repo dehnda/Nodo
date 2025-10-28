@@ -5,7 +5,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include <memory>
 
-using namespace nodeflux;
+using namespace nodo;
 
 class BooleanSOPTest : public ::testing::Test {
 protected:

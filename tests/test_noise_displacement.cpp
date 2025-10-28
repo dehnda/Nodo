@@ -3,7 +3,7 @@
 #include <nodo/graph/execution_engine.hpp>
 #include <nodo/graph/node_graph.hpp>
 
-using namespace nodeflux;
+using namespace nodo;
 
 class NoiseDisplacementTest : public ::testing::Test {
 protected:

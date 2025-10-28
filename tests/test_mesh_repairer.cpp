@@ -4,7 +4,7 @@
 #include <nodo/geometry/mesh_validator.hpp>
 
 
-using namespace nodeflux;
+using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
 static core::Mesh container_to_mesh(const core::GeometryContainer &container) {

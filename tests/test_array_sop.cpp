@@ -2,7 +2,7 @@
 #include "nodo/sop/array_sop.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux;
+using namespace nodo;
 
 class ArraySOPTest : public ::testing::Test {
 protected:

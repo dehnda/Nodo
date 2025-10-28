@@ -4,7 +4,7 @@
 #include <nodo/geometry/sphere_generator.hpp>
 
 
-using namespace nodeflux;
+using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
 // Helper to convert GeometryContainer to Mesh

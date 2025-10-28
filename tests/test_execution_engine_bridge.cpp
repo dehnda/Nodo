@@ -4,7 +4,7 @@
 #include "nodo/graph/node_graph.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux;
+using namespace nodo;
 using namespace nodo::graph;
 using namespace nodo::core;
 

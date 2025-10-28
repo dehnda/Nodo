@@ -2,7 +2,7 @@
 #include "nodo/io/obj_exporter.hpp"
 #include <iostream>
 
-using namespace nodeflux;
+using namespace nodo;
 
 int main() {
   // Create a small sphere for demonstration
