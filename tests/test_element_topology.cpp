@@ -1,7 +1,7 @@
-#include "nodeflux/core/element_topology.hpp"
+#include "nodo/core/element_topology.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 class ElementTopologyTest : public ::testing::Test {
 protected:

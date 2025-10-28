@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 # Unit Tests using Google Test
 include(GoogleTest)
 
-add_executable(nodeflux_tests
+add_executable(nodo_tests
     test_mesh.cpp
     test_math.cpp
     test_mesh_generator.cpp
@@ -29,31 +29,31 @@ add_executable(nodeflux_tests
     test_sop_group_filtering.cpp
 )
 
-target_link_libraries(nodeflux_tests
+target_link_libraries(nodo_tests
     PRIVATE
-        nodeflux_core
+        nodo_core
         GTest::gtest_main
         GTest::gtest
 )
 
-target_compile_features(nodeflux_tests PRIVATE cxx_std_20)
+target_compile_features(nodo_tests PRIVATE cxx_std_20)
 
 # Compiler warnings
 if(MSVC)
-    target_compile_options(nodeflux_tests PRIVATE /W4)
+    target_compile_options(nodo_tests PRIVATE /W4)
 else()
-    target_compile_options(nodeflux_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(nodo_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 # Discover tests for CTest
-gtest_discover_tests(nodeflux_tests)
+gtest_discover_tests(nodo_tests)
 
 # Demo program to show OBJ output
 add_executable(show_obj_output show_obj_output.cpp)
-target_link_libraries(show_obj_output PRIVATE nodeflux_core)
+target_link_libraries(show_obj_output PRIVATE nodo_core)
 target_compile_features(show_obj_output PRIVATE cxx_std_20)
 
 # Debug boolean operations
 add_executable(debug_boolean debug_boolean.cpp)
-target_link_libraries(debug_boolean PRIVATE nodeflux_core)
+target_link_libraries(debug_boolean PRIVATE nodo_core)
 target_compile_features(debug_boolean PRIVATE cxx_std_20)

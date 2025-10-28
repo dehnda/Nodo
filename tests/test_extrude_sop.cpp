@@ -1,25 +1,25 @@
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
-#include "nodeflux/sop/extrude_sop.hpp"
+#include "nodo/core/geometry_container.hpp"
+#include "nodo/core/standard_attributes.hpp"
+#include "nodo/sop/extrude_sop.hpp"
 #include <gtest/gtest.h>
 
-namespace attrs = nodeflux::core::standard_attrs;
+namespace attrs = nodo::core::standard_attrs;
 
 TEST(ExtrudeSOPTest, BasicExtrude) {
   // Create a simple quad as input
-  auto input = std::make_shared<nodeflux::core::GeometryContainer>();
+  auto input = std::make_shared<nodo::core::GeometryContainer>();
   input->set_point_count(4);
-  input->add_point_attribute(attrs::P, nodeflux::core::AttributeType::VEC3F);
+  input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
   auto *positions =
-      input->get_point_attribute_typed<nodeflux::core::Vec3f>(attrs::P);
+      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Create a quad on XY plane
-  (*positions)[0] = nodeflux::core::Vec3f(0.0F, 0.0F, 0.0F);
-  (*positions)[1] = nodeflux::core::Vec3f(1.0F, 0.0F, 0.0F);
-  (*positions)[2] = nodeflux::core::Vec3f(1.0F, 1.0F, 0.0F);
-  (*positions)[3] = nodeflux::core::Vec3f(0.0F, 1.0F, 0.0F);
+  (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
+  (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);
+  (*positions)[2] = nodo::core::Vec3f(1.0F, 1.0F, 0.0F);
+  (*positions)[3] = nodo::core::Vec3f(0.0F, 1.0F, 0.0F);
 
   // Create topology for the quad
   std::vector<int> quad_verts;
@@ -30,7 +30,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   input->add_primitive(quad_verts);
 
   // Create and execute ExtrudeSOP
-  nodeflux::sop::ExtrudeSOP extrude_node("test_extrude");
+  nodo::sop::ExtrudeSOP extrude_node("test_extrude");
   extrude_node.set_distance(1.0);
   extrude_node.set_input_data(0, input);
 
@@ -46,21 +46,21 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
 
   // Verify positions exist
   auto *result_positions =
-      result->get_point_attribute_typed<nodeflux::core::Vec3f>(attrs::P);
+      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 }
 
 TEST(ExtrudeSOPTest, ExtrudeWithInset) {
   // Create a simple triangle
-  auto input = std::make_shared<nodeflux::core::GeometryContainer>();
+  auto input = std::make_shared<nodo::core::GeometryContainer>();
   input->set_point_count(3);
-  input->add_point_attribute(attrs::P, nodeflux::core::AttributeType::VEC3F);
+  input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
   auto *positions =
-      input->get_point_attribute_typed<nodeflux::core::Vec3f>(attrs::P);
-  (*positions)[0] = nodeflux::core::Vec3f(0.0F, 0.0F, 0.0F);
-  (*positions)[1] = nodeflux::core::Vec3f(1.0F, 0.0F, 0.0F);
-  (*positions)[2] = nodeflux::core::Vec3f(0.5F, 1.0F, 0.0F);
+      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
+  (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);
+  (*positions)[2] = nodo::core::Vec3f(0.5F, 1.0F, 0.0F);
 
   // Create topology
   std::vector<int> tri_verts;
@@ -71,7 +71,7 @@ TEST(ExtrudeSOPTest, ExtrudeWithInset) {
   input->add_primitive(tri_verts);
 
   // Create ExtrudeSOP with inset
-  nodeflux::sop::ExtrudeSOP extrude_node("test_extrude_inset");
+  nodo::sop::ExtrudeSOP extrude_node("test_extrude_inset");
   extrude_node.set_distance(0.5);
   extrude_node.set_parameter("inset", 0.2F);
   extrude_node.set_input_data(0, input);
@@ -89,16 +89,16 @@ TEST(ExtrudeSOPTest, ExtrudeWithInset) {
 
 TEST(ExtrudeSOPTest, UniformDirection) {
   // Create a simple quad
-  auto input = std::make_shared<nodeflux::core::GeometryContainer>();
+  auto input = std::make_shared<nodo::core::GeometryContainer>();
   input->set_point_count(4);
-  input->add_point_attribute(attrs::P, nodeflux::core::AttributeType::VEC3F);
+  input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
   auto *positions =
-      input->get_point_attribute_typed<nodeflux::core::Vec3f>(attrs::P);
-  (*positions)[0] = nodeflux::core::Vec3f(0.0F, 0.0F, 0.0F);
-  (*positions)[1] = nodeflux::core::Vec3f(1.0F, 0.0F, 0.0F);
-  (*positions)[2] = nodeflux::core::Vec3f(1.0F, 1.0F, 0.0F);
-  (*positions)[3] = nodeflux::core::Vec3f(0.0F, 1.0F, 0.0F);
+      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
+  (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);
+  (*positions)[2] = nodo::core::Vec3f(1.0F, 1.0F, 0.0F);
+  (*positions)[3] = nodo::core::Vec3f(0.0F, 1.0F, 0.0F);
 
   std::vector<int> quad_verts;
   for (int i = 0; i < 4; ++i) {
@@ -108,7 +108,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
   input->add_primitive(quad_verts);
 
   // Use uniform direction mode (mode = 1)
-  nodeflux::sop::ExtrudeSOP extrude_node("test_extrude_uniform");
+  nodo::sop::ExtrudeSOP extrude_node("test_extrude_uniform");
   extrude_node.set_distance(1.0);
   extrude_node.set_parameter("mode", 1); // Uniform Direction
   extrude_node.set_parameter("direction_x", 1.0F);
@@ -125,7 +125,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
 }
 
 TEST(ExtrudeSOPTest, NoInput) {
-  nodeflux::sop::ExtrudeSOP extrude_node("test_extrude_no_input");
+  nodo::sop::ExtrudeSOP extrude_node("test_extrude_no_input");
   auto result = extrude_node.execute();
 
   // Should return nullptr and set error

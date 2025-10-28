@@ -1,12 +1,12 @@
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
-#include "nodeflux/graph/execution_engine.hpp"
-#include "nodeflux/graph/node_graph.hpp"
+#include "nodo/core/geometry_container.hpp"
+#include "nodo/core/standard_attributes.hpp"
+#include "nodo/graph/execution_engine.hpp"
+#include "nodo/graph/node_graph.hpp"
 #include <gtest/gtest.h>
 
 using namespace nodeflux;
-using namespace nodeflux::graph;
-using namespace nodeflux::core;
+using namespace nodo::graph;
+using namespace nodo::core;
 
 class ExecutionEngineBridgeTest : public ::testing::Test {
 protected:

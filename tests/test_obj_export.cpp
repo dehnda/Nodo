@@ -1,5 +1,5 @@
-#include "nodeflux/geometry/sphere_generator.hpp"
-#include "nodeflux/io/obj_exporter.hpp"
+#include "nodo/geometry/sphere_generator.hpp"
+#include "nodo/io/obj_exporter.hpp"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>

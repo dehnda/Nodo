@@ -1,8 +1,8 @@
-#include "nodeflux/core/attribute_types.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
+#include "nodo/core/attribute_types.hpp"
+#include "nodo/core/standard_attributes.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 class AttributeTypesTest : public ::testing::Test {};
 

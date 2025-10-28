@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <nodeflux/core/math.hpp>
-#include <nodeflux/core/types.hpp>
+#include <nodo/core/math.hpp>
+#include <nodo/core/types.hpp>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 TEST(MathTest, rotation_x_with_zero_radians_returns_identity) {
   auto result = ::math::rotation_x(0);

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include "nodeflux/sop/boolean_sop.hpp"
-#include "nodeflux/geometry/box_generator.hpp"
-#include "nodeflux/geometry/sphere_generator.hpp"
-#include "nodeflux/core/geometry_container.hpp"
+#include "nodo/sop/boolean_sop.hpp"
+#include "nodo/geometry/box_generator.hpp"
+#include "nodo/geometry/sphere_generator.hpp"
+#include "nodo/core/geometry_container.hpp"
 #include <memory>
 
 using namespace nodeflux;

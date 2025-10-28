@@ -1,9 +1,9 @@
-#include "nodeflux/core/attribute_promotion.hpp"
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
+#include "nodo/core/attribute_promotion.hpp"
+#include "nodo/core/geometry_container.hpp"
+#include "nodo/core/standard_attributes.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 class AttributePromotionTest : public ::testing::Test {
 protected:

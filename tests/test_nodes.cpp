@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include <nodeflux/geometry/box_generator.hpp>
-#include <nodeflux/geometry/cylinder_generator.hpp>
-#include <nodeflux/geometry/plane_generator.hpp>
-#include <nodeflux/geometry/sphere_generator.hpp>
-#include <nodeflux/geometry/torus_generator.hpp>
+#include <nodo/geometry/box_generator.hpp>
+#include <nodo/geometry/cylinder_generator.hpp>
+#include <nodo/geometry/plane_generator.hpp>
+#include <nodo/geometry/sphere_generator.hpp>
+#include <nodo/geometry/torus_generator.hpp>
 
 
 using namespace nodeflux;

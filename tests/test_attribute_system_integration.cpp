@@ -1,10 +1,10 @@
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
+#include "nodo/core/geometry_container.hpp"
+#include "nodo/core/standard_attributes.hpp"
 #include <chrono>
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
-namespace attrs = nodeflux::core::standard_attrs;
+using namespace nodo::core;
+namespace attrs = nodo::core::standard_attrs;
 
 /**
  * @brief Integration tests for the complete attribute system

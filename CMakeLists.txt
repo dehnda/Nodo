@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(NodeFluxEngine VERSION 1.0.0 LANGUAGES CXX)
+project(Nodo VERSION 1.0.0 LANGUAGES CXX)
 
 # Modern C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -10,9 +10,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build options
-option(NODEFLUX_BUILD_EXAMPLES "Build example applications" OFF)
-option(NODEFLUX_BUILD_TESTS "Build unit tests" ON)
-option(NODEFLUX_BUILD_STUDIO "Build Qt Studio application" ON)
+option(NODO_BUILD_EXAMPLES "Build example applications" OFF)
+option(NODO_BUILD_TESTS "Build unit tests" ON)
+option(NODO_BUILD_STUDIO "Build Qt Studio application" ON)
 
 # External dependencies
 # xatlas - UV unwrapping library
@@ -29,21 +29,21 @@ if(MSVC)
 else()
     target_compile_options(xatlas PRIVATE -w)
 endif()
-# Add to install set so nodeflux_core can reference it
-install(TARGETS xatlas EXPORT NodeFluxEngineTargets)
+# Add to install set so nodo_core can reference it
+install(TARGETS xatlas EXPORT NodoTargets)
 
 # Add subdirectories
-add_subdirectory(nodeflux_core)
+add_subdirectory(nodo_core)
 
 # Tests
-if(NODEFLUX_BUILD_TESTS)
+if(NODO_BUILD_TESTS)
     find_package(GTest REQUIRED)
     enable_testing()
     add_subdirectory(tests)
     # Verify target to run tests in the current configuration
     add_custom_target(verify-release
         COMMENT "Running unit tests before release build"
-        DEPENDS nodeflux_tests
+        DEPENDS nodo_tests
         COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --output-on-failure --test-dir ${CMAKE_BINARY_DIR}
         VERBATIM
     )
@@ -51,33 +51,33 @@ else()
     # Stub target that explains how to enable tests
     add_custom_target(verify-release
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "Tests are disabled. Reconfigure with:"
-        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "  Conan: -o nodefluxengine:with_tests=True"
-        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "  CMake: -D NODEFLUX_BUILD_TESTS=ON (auto if using Conan option)"
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "  Conan: -o nodo:with_tests=True"
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "  CMake: -D NODO_BUILD_TESTS=ON (auto if using Conan option)"
         VERBATIM
     )
 endif()
 
 # Qt Studio Application
-if(NODEFLUX_BUILD_STUDIO)
-    add_subdirectory(nodeflux_studio)
+if(NODO_BUILD_STUDIO)
+    add_subdirectory(nodo_studio)
 endif()
 
 # Installation
 include(GNUInstallDirs)
-install(TARGETS nodeflux_core
-    EXPORT NodeFluxEngineTargets
+install(TARGETS nodo_core
+    EXPORT NodoTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY nodeflux_core/include/
+install(DIRECTORY nodo_core/include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 # Export targets
-install(EXPORT NodeFluxEngineTargets
-    FILE NodeFluxEngineTargets.cmake
-    NAMESPACE NodeFluxEngine::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodeFluxEngine
+install(EXPORT NodoTargets
+    FILE NodoTargets.cmake
+    NAMESPACE Nodo::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Nodo
 )

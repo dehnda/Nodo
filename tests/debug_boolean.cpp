@@ -1,7 +1,7 @@
-#include "nodeflux/sop/boolean_sop.hpp"
-#include "nodeflux/geometry/box_generator.hpp"
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
+#include "nodo/sop/boolean_sop.hpp"
+#include "nodo/geometry/box_generator.hpp"
+#include "nodo/core/geometry_container.hpp"
+#include "nodo/core/standard_attributes.hpp"
 #include <iostream>
 
 using namespace nodeflux;

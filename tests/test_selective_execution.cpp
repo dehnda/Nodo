@@ -1,8 +1,8 @@
-#include "nodeflux/graph/execution_engine.hpp"
-#include "nodeflux/graph/node_graph.hpp"
+#include "nodo/graph/execution_engine.hpp"
+#include "nodo/graph/node_graph.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::graph;
+using namespace nodo::graph;
 
 class SelectiveExecutionTest : public ::testing::Test {
 protected:

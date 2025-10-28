@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <nodeflux/geometry/box_generator.hpp>
-#include <nodeflux/geometry/mesh_repairer.hpp>
-#include <nodeflux/geometry/mesh_validator.hpp>
+#include <nodo/geometry/box_generator.hpp>
+#include <nodo/geometry/mesh_repairer.hpp>
+#include <nodo/geometry/mesh_validator.hpp>
 
 
 using namespace nodeflux;

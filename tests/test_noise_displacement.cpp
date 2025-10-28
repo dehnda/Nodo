@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <nodeflux/geometry/sphere_generator.hpp>
-#include <nodeflux/graph/execution_engine.hpp>
-#include <nodeflux/graph/node_graph.hpp>
+#include <nodo/geometry/sphere_generator.hpp>
+#include <nodo/graph/execution_engine.hpp>
+#include <nodo/graph/node_graph.hpp>
 
 using namespace nodeflux;
 

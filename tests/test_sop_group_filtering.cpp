@@ -1,13 +1,13 @@
-#include "nodeflux/core/attribute_group.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
-#include "nodeflux/sop/group_sop.hpp"
-#include "nodeflux/sop/sphere_sop.hpp"
-#include "nodeflux/sop/wrangle_sop.hpp"
+#include "nodo/core/attribute_group.hpp"
+#include "nodo/core/standard_attributes.hpp"
+#include "nodo/sop/group_sop.hpp"
+#include "nodo/sop/sphere_sop.hpp"
+#include "nodo/sop/wrangle_sop.hpp"
 #include <gtest/gtest.h>
 
 using namespace nodeflux;
-using namespace nodeflux::sop;
-using namespace nodeflux::core;
+using namespace nodo::sop;
+using namespace nodo::core;
 
 /**
  * Test that the universal group parameter in SOPNode works correctly

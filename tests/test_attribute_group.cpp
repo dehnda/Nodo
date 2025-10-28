@@ -1,9 +1,9 @@
-#include "nodeflux/core/attribute_group.hpp"
-#include "nodeflux/core/geometry_container.hpp"
-#include "nodeflux/core/standard_attributes.hpp"
+#include "nodo/core/attribute_group.hpp"
+#include "nodo/core/geometry_container.hpp"
+#include "nodo/core/standard_attributes.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 class AttributeGroupTest : public ::testing::Test {
 protected:

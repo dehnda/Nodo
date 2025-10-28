@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <nodeflux/core/mesh.hpp>
+#include <nodo/core/mesh.hpp>
 #include <Eigen/Dense>
 
 using namespace nodeflux;

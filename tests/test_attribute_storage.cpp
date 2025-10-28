@@ -1,9 +1,9 @@
-#include "nodeflux/core/attribute_descriptor.hpp"
-#include "nodeflux/core/attribute_set.hpp"
-#include "nodeflux/core/attribute_storage.hpp"
+#include "nodo/core/attribute_descriptor.hpp"
+#include "nodo/core/attribute_set.hpp"
+#include "nodo/core/attribute_storage.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 // ============================================================================
 // AttributeDescriptor Tests

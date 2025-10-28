@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <nodeflux/geometry/box_generator.hpp>
-#include <nodeflux/geometry/sphere_generator.hpp>
-#include <nodeflux/spatial/bvh.hpp>
+#include <nodo/geometry/box_generator.hpp>
+#include <nodo/geometry/sphere_generator.hpp>
+#include <nodo/spatial/bvh.hpp>
 
 
 using namespace nodeflux;

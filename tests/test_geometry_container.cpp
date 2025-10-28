@@ -1,7 +1,7 @@
-#include "nodeflux/core/geometry_container.hpp"
+#include "nodo/core/geometry_container.hpp"
 #include <gtest/gtest.h>
 
-using namespace nodeflux::core;
+using namespace nodo::core;
 
 class GeometryContainerTest : public ::testing::Test {};
 

@@ -1,5 +1,5 @@
-#include "nodeflux/geometry/sphere_generator.hpp"
-#include "nodeflux/sop/array_sop.hpp"
+#include "nodo/geometry/sphere_generator.hpp"
+#include "nodo/sop/array_sop.hpp"
 #include <gtest/gtest.h>
 
 using namespace nodeflux;
