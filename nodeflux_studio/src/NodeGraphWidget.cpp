@@ -1,5 +1,6 @@
 #include "NodeGraphWidget.h"
 #include "Command.h"
+#include "IconManager.h"
 #include "NodeCreationMenu.h"
 #include "UndoStack.h"
 #include <QContextMenuEvent>
@@ -528,30 +529,29 @@ void NodeGraphicsItem::drawFooter(QPainter *painter) {
   float stat_x = 12.0;
   float stat_y = footer_rect.top() + (NODE_FOOTER_HEIGHT / 2.0) + 4.0;
 
+  // Helper to draw icon + text for stats
+  auto drawStat = [&](float x, nodeflux_studio::IconManager::Icon icon,
+                      const QString &text) {
+    QPixmap icon_pixmap =
+        nodeflux_studio::Icons::getPixmap(icon, 10, QColor(128, 128, 136));
+    painter->drawPixmap(QPointF(x, stat_y - 8.0), icon_pixmap);
+    painter->setPen(QColor(192, 192, 200));
+    painter->drawText(QPointF(x + 14.0, stat_y), text);
+  };
+
   // Vertices
-  painter->setPen(QColor(128, 128, 136));
-  painter->drawText(QPointF(stat_x, stat_y), "▲");
-  painter->setPen(QColor(192, 192, 200));
-  stats_font.setBold(false);
-  painter->setFont(stats_font);
-  painter->drawText(QPointF(stat_x + 14.0, stat_y),
-                    QString::number(vertex_count_));
+  drawStat(stat_x, nodeflux_studio::IconManager::Icon::Extrude,
+           QString::number(vertex_count_));
 
   // Triangles
   stat_x = 80.0;
-  painter->setPen(QColor(128, 128, 136));
-  painter->drawText(QPointF(stat_x, stat_y), "◆");
-  painter->setPen(QColor(192, 192, 200));
-  painter->drawText(QPointF(stat_x + 14.0, stat_y),
-                    QString::number(triangle_count_));
+  drawStat(stat_x, nodeflux_studio::IconManager::Icon::Sphere,
+           QString::number(triangle_count_));
 
   // Memory
   stat_x = NODE_WIDTH - 68.0;
-  painter->setPen(QColor(128, 128, 136));
-  painter->drawText(QPointF(stat_x, stat_y), "💾");
-  painter->setPen(QColor(192, 192, 200));
-  painter->drawText(QPointF(stat_x + 18.0, stat_y),
-                    QString("%1KB").arg(memory_kb_));
+  drawStat(stat_x, nodeflux_studio::IconManager::Icon::FileSave,
+           QString("%1KB").arg(memory_kb_));
 }
 
 // ============================================================================

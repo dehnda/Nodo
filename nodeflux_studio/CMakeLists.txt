@@ -11,6 +11,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     OpenGL
     OpenGLWidgets
+    Svg
 )
 
 # System OpenGL (for legacy fixed-function calls like glBegin/glEnd on Windows)
@@ -30,6 +31,7 @@ set(STUDIO_SOURCES
     src/UndoStack.cpp
     src/GeometrySpreadsheet.cpp
     src/GeometryTableModel.cpp
+    src/IconManager.cpp
 )
 
 set(STUDIO_HEADERS
@@ -44,6 +46,7 @@ set(STUDIO_HEADERS
     src/UndoStack.h
     src/GeometrySpreadsheet.h
     src/GeometryTableModel.h
+    src/IconManager.h
 )
 
 # Resource files
@@ -65,6 +68,7 @@ target_link_libraries(nodeflux_studio PRIVATE
     Qt6::Widgets
     Qt6::OpenGL
     Qt6::OpenGLWidgets
+    Qt6::Svg
     OpenGL::GL
 )
 

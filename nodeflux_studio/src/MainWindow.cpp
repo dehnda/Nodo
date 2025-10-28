@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "GeometrySpreadsheet.h"
+#include "IconManager.h"
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
 #include "StatusBarWidget.h"
@@ -168,9 +169,10 @@ auto MainWindow::setupMenuBar() -> void {
   toolbar_layout->setSpacing(4);
 
   // Helper lambda to create icon buttons
-  auto createIconButton = [](const QString &icon, const QString &tooltip) {
+  auto createIconButton = [](nodeflux_studio::IconManager::Icon iconType,
+                             const QString &tooltip) {
     auto *btn = new QToolButton();
-    btn->setText(icon);
+    btn->setIcon(nodeflux_studio::Icons::get(iconType));
     btn->setToolTip(tooltip);
     btn->setFixedSize(32, 32);
     btn->setStyleSheet("QToolButton {"
@@ -190,15 +192,18 @@ auto MainWindow::setupMenuBar() -> void {
   };
 
   // File operation buttons
-  auto *new_btn = createIconButton("📄", "New Scene");
+  auto *new_btn = createIconButton(nodeflux_studio::IconManager::Icon::FileNew,
+                                   "New Scene");
   connect(new_btn, &QToolButton::clicked, this, &MainWindow::onNewScene);
   toolbar_layout->addWidget(new_btn);
 
-  auto *open_btn = createIconButton("📂", "Open Scene");
+  auto *open_btn = createIconButton(
+      nodeflux_studio::IconManager::Icon::FileOpen, "Open Scene");
   connect(open_btn, &QToolButton::clicked, this, &MainWindow::onOpenScene);
   toolbar_layout->addWidget(open_btn);
 
-  auto *save_btn = createIconButton("💾", "Save Scene");
+  auto *save_btn = createIconButton(
+      nodeflux_studio::IconManager::Icon::FileSave, "Save Scene");
   connect(save_btn, &QToolButton::clicked, this, &MainWindow::onSaveScene);
   toolbar_layout->addWidget(save_btn);
 
@@ -210,7 +215,8 @@ auto MainWindow::setupMenuBar() -> void {
   toolbar_layout->addWidget(divider);
 
   // Graph operation button
-  auto *play_btn = createIconButton("▶️", "Execute Graph");
+  auto *play_btn = createIconButton(nodeflux_studio::IconManager::Icon::Play,
+                                    "Execute Graph");
   connect(play_btn, &QToolButton::clicked, this,
           &MainWindow::onCreateTestGraph);
   toolbar_layout->addWidget(play_btn);

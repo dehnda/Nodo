@@ -1,4 +1,5 @@
 #include "PropertyPanel.h"
+#include "IconManager.h"
 #include <nodeflux/graph/node_graph.hpp>
 
 #include <QCheckBox>
@@ -96,10 +97,11 @@ void PropertyPanel::clearProperties() {
   empty_layout->setAlignment(Qt::AlignCenter);
   empty_layout->setSpacing(12);
 
-  auto *empty_icon = new QLabel("📋", empty_container);
+  auto *empty_icon = new QLabel(empty_container);
+  empty_icon->setPixmap(nodeflux_studio::Icons::getPixmap(
+      nodeflux_studio::IconManager::Icon::Settings, 48, QColor(128, 128, 136)));
   empty_icon->setAlignment(Qt::AlignCenter);
   empty_icon->setStyleSheet("QLabel { "
-                            "  font-size: 48px; "
                             "  padding: 20px; "
                             "}");
 

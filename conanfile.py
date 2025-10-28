@@ -23,6 +23,7 @@ class NodeFluxEngineConan(ConanFile):
         "qt/*:with_opengl": True,
         "qt/*:with_widgets": True,
         "qt/*:qttools": True,
+        "qt/*:qtsvg": True,
     }
 
     # Generators for CMake integration

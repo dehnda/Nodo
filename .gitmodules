@@ -2,3 +2,6 @@
 	path = third_party/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "external/iconoir"]
+	path = external/iconoir
+	url = https://github.com/iconoir-icons/iconoir.git

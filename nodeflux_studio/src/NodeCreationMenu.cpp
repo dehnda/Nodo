@@ -1,4 +1,5 @@
 #include "NodeCreationMenu.h"
+#include "IconManager.h"
 #include <QApplication>
 #include <QSettings>
 #include <algorithm>
@@ -274,7 +275,7 @@ void NodeCreationMenu::filterResults(const QString &query) {
 
       for (const NodeInfo &node : recent_nodes_) {
         QListWidgetItem *item =
-            new QListWidgetItem(QString("%1 %2").arg(node.icon, node.name));
+            new QListWidgetItem(getNodeIcon(node.type_id), node.name);
         item->setData(Qt::UserRole, node.type_id);
         results_list_->addItem(item);
       }
@@ -300,7 +301,7 @@ void NodeCreationMenu::filterResults(const QString &query) {
       }
 
       QListWidgetItem *item =
-          new QListWidgetItem(QString("   %1 %2").arg(node.icon, node.name));
+          new QListWidgetItem(getNodeIcon(node.type_id), node.name);
       item->setData(Qt::UserRole, node.type_id);
       results_list_->addItem(item);
     }
@@ -314,7 +315,7 @@ void NodeCreationMenu::filterResults(const QString &query) {
                       })) {
 
         QListWidgetItem *item =
-            new QListWidgetItem(QString("%1 %2").arg(node.icon, node.name));
+            new QListWidgetItem(getNodeIcon(node.type_id), node.name);
         item->setData(Qt::UserRole, node.type_id);
         results_list_->addItem(item);
       }
@@ -346,6 +347,72 @@ bool NodeCreationMenu::fuzzyMatch(const QString &query,
   }
 
   return query_idx == q.length();
+}
+
+QIcon NodeCreationMenu::getNodeIcon(const QString &type_id) const {
+  using Icon = IconManager::Icon;
+
+  // Map node type_id to IconManager icons
+  if (type_id == "sphere_sop")
+    return Icons::get(Icon::Sphere);
+  if (type_id == "box_sop")
+    return Icons::get(Icon::Box);
+  if (type_id == "cylinder_sop")
+    return Icons::get(Icon::Cylinder);
+  if (type_id == "plane_sop")
+    return Icons::get(Icon::Plane);
+  if (type_id == "torus_sop")
+    return Icons::get(Icon::Torus);
+  if (type_id == "line_sop")
+    return Icons::get(Icon::Line);
+
+  if (type_id == "file_sop")
+    return Icons::get(Icon::FileOpen);
+  if (type_id == "export_sop")
+    return Icons::get(Icon::FileExport);
+
+  if (type_id == "laplacian_sop")
+    return Icons::get(Icon::Smooth);
+  if (type_id == "subdivision_sop")
+    return Icons::get(Icon::Subdivide);
+  if (type_id == "resample_sop")
+    return Icons::get(Icon::Resample);
+  if (type_id == "extrude_sop")
+    return Icons::get(Icon::Extrude);
+  if (type_id == "polyextrude_sop")
+    return Icons::get(Icon::PolyExtrude);
+  if (type_id == "normal_sop")
+    return Icons::get(Icon::Normal);
+
+  if (type_id == "array_sop")
+    return Icons::get(Icon::Array);
+  if (type_id == "scatter_sop")
+    return Icons::get(Icon::Scatter);
+  if (type_id == "copy_to_points_sop")
+    return Icons::get(Icon::CopyToPoints);
+
+  if (type_id == "boolean_sop")
+    return Icons::get(Icon::BooleanUnion);
+  if (type_id == "transform_sop")
+    return Icons::get(Icon::Transform);
+  if (type_id == "mirror_sop")
+    return Icons::get(Icon::Mirror);
+  if (type_id == "noise_displacement_sop")
+    return Icons::get(Icon::NoiseDisplacement);
+
+  if (type_id == "merge_sop")
+    return Icons::get(Icon::Merge);
+  if (type_id == "group_sop")
+    return Icons::get(Icon::Group);
+  if (type_id == "wrangle_sop")
+    return Icons::get(Icon::Wrangle);
+  if (type_id == "uv_unwrap_sop")
+    return Icons::get(Icon::UVUnwrap);
+  if (type_id == "delete_sop")
+    return Icons::get(Icon::Delete);
+
+  // Default icon for unknown types
+  return Icons::get(Icon::Settings);
 }
 
 void NodeCreationMenu::onSearchTextChanged(const QString &text) {

@@ -2,5 +2,70 @@
 <RCC version="1.0">
     <qresource prefix="/">
         <file>resources/styles/dark_theme.qss</file>
+
+        <!-- Iconoir Icons from external/iconoir/icons/regular/ -->
+        <!-- File Operations -->
+        <file alias="icons/iconoir/page-plus.svg">../external/iconoir/icons/regular/page-plus.svg</file>
+        <file alias="icons/iconoir/floppy-disk.svg">../external/iconoir/icons/regular/floppy-disk.svg</file>
+        <file alias="icons/iconoir/folder.svg">../external/iconoir/icons/regular/folder.svg</file>
+        <file alias="icons/iconoir/export.svg">../external/iconoir/icons/regular/upload.svg</file>
+
+        <!-- Edit Operations -->
+        <file alias="icons/iconoir/undo.svg">../external/iconoir/icons/regular/undo.svg</file>
+        <file alias="icons/iconoir/redo.svg">../external/iconoir/icons/regular/redo.svg</file>
+        <file alias="icons/iconoir/bin.svg">../external/iconoir/icons/regular/bin.svg</file>
+        <file alias="icons/iconoir/copy.svg">../external/iconoir/icons/regular/copy.svg</file>
+
+        <!-- View Operations -->
+        <file alias="icons/iconoir/view-grid.svg">../external/iconoir/icons/regular/view-grid.svg</file>
+        <file alias="icons/iconoir/sphere.svg">../external/iconoir/icons/regular/sphere.svg</file>
+        <file alias="icons/iconoir/refresh-circle.svg">../external/iconoir/icons/regular/refresh-circle.svg</file>
+        <file alias="icons/iconoir/frame-simple.svg">../external/iconoir/icons/regular/frame-simple.svg</file>
+
+        <!-- Node Generators -->
+        <file alias="icons/iconoir/cube.svg">../external/iconoir/icons/regular/cube.svg</file>
+        <file alias="icons/iconoir/cylinder.svg">../external/iconoir/icons/regular/cylinder.svg</file>
+        <file alias="icons/iconoir/square.svg">../external/iconoir/icons/regular/square.svg</file>
+        <file alias="icons/iconoir/circle.svg">../external/iconoir/icons/regular/circle.svg</file>
+        <file alias="icons/iconoir/line.svg">../external/iconoir/icons/regular/minus.svg</file>
+
+        <!-- Node Modifiers -->
+        <file alias="icons/iconoir/settings.svg">../external/iconoir/icons/regular/settings.svg</file>
+        <file alias="icons/iconoir/grid.svg">../external/iconoir/icons/regular/grid-plus.svg</file>
+        <file alias="icons/iconoir/refresh-double.svg">../external/iconoir/icons/regular/refresh-double.svg</file>
+        <file alias="icons/iconoir/arrow-up.svg">../external/iconoir/icons/regular/arrow-up.svg</file>
+        <file alias="icons/iconoir/arrow-up-circle.svg">../external/iconoir/icons/regular/arrow-up-circle.svg</file>
+        <file alias="icons/iconoir/arrow-separate-vertical.svg">../external/iconoir/icons/regular/arrow-separate-vertical.svg</file>
+
+        <!-- Node Arrays -->
+        <file alias="icons/iconoir/align-bottom-box.svg">../external/iconoir/icons/regular/align-bottom-box.svg</file>
+        <file alias="icons/iconoir/selection.svg">../external/iconoir/icons/regular/selective-tool.svg</file>
+        <file alias="icons/iconoir/copy-plus.svg">../external/iconoir/icons/regular/copy.svg</file>
+
+        <!-- Node Boolean & Transform -->
+        <file alias="icons/iconoir/union.svg">../external/iconoir/icons/regular/union.svg</file>
+        <file alias="icons/iconoir/move.svg">../external/iconoir/icons/regular/drag.svg</file>
+        <file alias="icons/iconoir/flip.svg">../external/iconoir/icons/regular/flip.svg</file>
+        <file alias="icons/iconoir/signal.svg">../external/iconoir/icons/regular/antenna-signal.svg</file>
+
+        <!-- Node Utilities -->
+        <file alias="icons/iconoir/merge.svg">../external/iconoir/icons/regular/git-merge.svg</file>
+        <file alias="icons/iconoir/multi-bubble.svg">../external/iconoir/icons/regular/group.svg</file>
+        <file alias="icons/iconoir/code.svg">../external/iconoir/icons/regular/code.svg</file>
+        <file alias="icons/iconoir/grid-remove.svg">../external/iconoir/icons/regular/grid-minus.svg</file>
+
+        <!-- UI Elements -->
+        <file alias="icons/iconoir/plus.svg">../external/iconoir/icons/regular/plus.svg</file>
+        <file alias="icons/iconoir/minus.svg">../external/iconoir/icons/regular/minus.svg</file>
+        <file alias="icons/iconoir/search.svg">../external/iconoir/icons/regular/search.svg</file>
+        <file alias="icons/iconoir/info-circle.svg">../external/iconoir/icons/regular/info-circle.svg</file>
+        <file alias="icons/iconoir/warning-triangle.svg">../external/iconoir/icons/regular/warning-triangle.svg</file>
+        <file alias="icons/iconoir/cancel.svg">../external/iconoir/icons/regular/xmark.svg</file>
+        <file alias="icons/iconoir/check.svg">../external/iconoir/icons/regular/check.svg</file>
+
+        <!-- Misc -->
+        <file alias="icons/iconoir/flash.svg">../external/iconoir/icons/regular/flash.svg</file>
+        <file alias="icons/iconoir/play.svg">../external/iconoir/icons/regular/play.svg</file>
+        <file alias="icons/iconoir/pause.svg">../external/iconoir/icons/regular/pause.svg</file>
     </qresource>
 </RCC>
