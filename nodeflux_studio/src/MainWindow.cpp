@@ -221,12 +221,11 @@ auto MainWindow::setupMenuBar() -> void {
 auto MainWindow::setupDockWidgets() -> void {
   // Create the 3D viewport widget on the LEFT (takes most space)
   // We'll make it a dock widget so we can control its size
-  QDockWidget *viewport_dock = new QDockWidget("Viewport", this);
-  viewport_dock->setAllowedAreas(Qt::LeftDockWidgetArea |
-                                 Qt::RightDockWidgetArea);
+  viewport_dock_ = new QDockWidget("Viewport", this);
+  viewport_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
   viewport_widget_ = new ViewportWidget(this);
-  viewport_dock->setWidget(viewport_widget_);
-  addDockWidget(Qt::LeftDockWidgetArea, viewport_dock);
+  viewport_dock_->setWidget(viewport_widget_);
+  addDockWidget(Qt::LeftDockWidgetArea, viewport_dock_);
 
   // Now connect viewport visualization actions (after viewport widget is
   // created)
@@ -250,10 +249,17 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(viewport_widget_, &ViewportWidget::fpsUpdated, status_bar_widget_,
           &StatusBarWidget::setFPS);
 
+  // Create dock widget for geometry spreadsheet (tabbed with viewport)
+  geometry_spreadsheet_dock_ = new QDockWidget("Geometry Spreadsheet", this);
+  geometry_spreadsheet_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+
+  // Create geometry spreadsheet widget
+  geometry_spreadsheet_ = new nodeflux::studio::GeometrySpreadsheet(this);
+  geometry_spreadsheet_dock_->setWidget(geometry_spreadsheet_);
+
   // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
-  node_graph_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
-                                    Qt::RightDockWidgetArea);
+  node_graph_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
 
   // Create node graph widget and connect to backend
   node_graph_widget_ = new NodeGraphWidget(this);
@@ -274,12 +280,11 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onNodeSelectionChanged);
 
   // Add node graph to the right of viewport
-  splitDockWidget(viewport_dock, node_graph_dock_, Qt::Horizontal);
+  splitDockWidget(viewport_dock_, node_graph_dock_, Qt::Horizontal);
 
   // Create dock widget for properties (FAR RIGHT)
   property_dock_ = new QDockWidget("Properties", this);
-  property_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
-                                  Qt::RightDockWidgetArea);
+  property_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
 
   // Create property panel
   property_panel_ = new PropertyPanel(this);
@@ -288,29 +293,29 @@ auto MainWindow::setupDockWidgets() -> void {
   // Add properties to the right of node graph
   splitDockWidget(node_graph_dock_, property_dock_, Qt::Horizontal);
 
-  // Create dock widget for geometry spreadsheet (BOTTOM - tabbed with
-  // properties)
-  geometry_spreadsheet_dock_ = new QDockWidget("Geometry Spreadsheet", this);
-  geometry_spreadsheet_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-  // Create geometry spreadsheet widget
-  geometry_spreadsheet_ = new nodeflux::studio::GeometrySpreadsheet(this);
-  geometry_spreadsheet_dock_->setWidget(geometry_spreadsheet_);
-
-  // Add as a tab with the property panel
-  addDockWidget(Qt::RightDockWidgetArea, geometry_spreadsheet_dock_);
-  tabifyDockWidget(property_dock_, geometry_spreadsheet_dock_);
-
-  // Keep property panel as the active tab initially
-  property_dock_->raise();
-
   // Set initial sizes: Viewport (500px), Node Graph (400px), Properties (300px)
-  resizeDocks({viewport_dock, node_graph_dock_, property_dock_},
+  resizeDocks({viewport_dock_, node_graph_dock_, property_dock_},
               {500, 400, 300}, Qt::Horizontal);
+
+  // Add as a tab with the viewport
+  addDockWidget(Qt::LeftDockWidgetArea, geometry_spreadsheet_dock_);
+  tabifyDockWidget(viewport_dock_, geometry_spreadsheet_dock_);
 
   // Connect property changes to viewport updates
   connect(property_panel_, &PropertyPanel::parameterChanged, this,
           &MainWindow::onParameterChanged);
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+  QMainWindow::showEvent(event);
+
+  // Force viewport to be the active tab on first show
+  static bool first_show = true;
+  if (first_show) {
+    first_show = false;
+    viewport_dock_->raise();
+    viewport_dock_->show();
+  }
 }
 
 void MainWindow::onParameterChanged() {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QShowEvent>
 #include <memory>
 
 // Forward declarations
@@ -30,6 +31,9 @@ Q_OBJECT // This macro is required for Qt signals/slots system
     public : explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
 
+protected:
+  void showEvent(QShowEvent *event) override;
+
 private:
   // UI setup methods
   void setupMenuBar();
@@ -47,6 +51,7 @@ private:
   NodeGraphWidget *node_graph_widget_;
   StatusBarWidget *status_bar_widget_;
   nodeflux::studio::GeometrySpreadsheet *geometry_spreadsheet_;
+  QDockWidget *viewport_dock_;
   QDockWidget *property_dock_;
   QDockWidget *node_graph_dock_;
   QDockWidget *geometry_spreadsheet_dock_;
