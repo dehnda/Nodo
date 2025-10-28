@@ -4,9 +4,11 @@
         <file>resources/styles/dark_theme.qss</file>
 
         <!-- Nodo Logos -->
-        <file alias="logo/nodo_icon.svg">../nodo_logo_icon.svg</file>
-        <file alias="logo/nodo_small.svg">../nodo_logo_small.svg</file>
-        <file alias="logo/nodo_horizontal.svg">../nodo_logo_horizontal.svg</file>
+        <file alias="logo/nodo_icon.svg">resources/logos/nodo_logo_icon.svg</file>
+        <file alias="logo/nodo_small.svg">resources/logos/nodo_logo_small.svg</file>
+        <file alias="logo/nodo_horizontal.svg">resources/logos/nodo_logo_horizontal.svg</file>
+        <file alias="logo/nodo_concept.svg">resources/logos/nodo_logo_concept.svg</file>
+        <file alias="logo/nodo_monochrome.svg">resources/logos/nodo_logo_monochrome.svg</file>
 
         <!-- Iconoir Icons from external/iconoir/icons/regular/ -->
         <!-- File Operations -->
