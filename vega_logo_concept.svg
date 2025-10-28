@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (optional - remove for transparent) -->
+  <rect width="400" height="400" fill="#1a1a1f"/>
+
+  <!-- Main geometric star/node pattern -->
+  <g id="vega-logo">
+    <!-- Central bright star point -->
+    <circle cx="200" cy="200" r="8" fill="#4A9EFF" opacity="1">
+      <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Mesh triangulation radiating from center -->
+    <!-- Top triangle -->
+    <path d="M 200 200 L 200 80 L 280 140 Z"
+          fill="none"
+          stroke="#4A9EFF"
+          stroke-width="2"
+          opacity="0.6"/>
+
+    <!-- Top-right triangle -->
+    <path d="M 200 200 L 280 140 L 320 220 Z"
+          fill="none"
+          stroke="#6FB1FF"
+          stroke-width="2"
+          opacity="0.5"/>
+
+    <!-- Right triangle -->
+    <path d="M 200 200 L 320 220 L 280 300 Z"
+          fill="none"
+          stroke="#4A9EFF"
+          stroke-width="2"
+          opacity="0.6"/>
+
+    <!-- Bottom-right triangle -->
+    <path d="M 200 200 L 280 300 L 200 320 Z"
+          fill="none"
+          stroke="#6FB1FF"
+          stroke-width="2"
+          opacity="0.5"/>
+
+    <!-- Bottom triangle -->
+    <path d="M 200 200 L 200 320 L 120 300 Z"
+          fill="none"
+          stroke="#4A9EFF"
+          stroke-width="2"
+          opacity="0.6"/>
+
+    <!-- Bottom-left triangle -->
+    <path d="M 200 200 L 120 300 L 80 220 Z"
+          fill="none"
+          stroke="#6FB1FF"
+          stroke-width="2"
+          opacity="0.5"/>
+
+    <!-- Left triangle -->
+    <path d="M 200 200 L 80 220 L 120 140 Z"
+          fill="none"
+          stroke="#4A9EFF"
+          stroke-width="2"
+          opacity="0.6"/>
+
+    <!-- Top-left triangle -->
+    <path d="M 200 200 L 120 140 L 200 80 Z"
+          fill="none"
+          stroke="#6FB1FF"
+          stroke-width="2"
+          opacity="0.5"/>
+
+    <!-- Outer node points (constellation) -->
+    <circle cx="200" cy="80" r="4" fill="#6FB1FF"/>
+    <circle cx="280" cy="140" r="4" fill="#6FB1FF"/>
+    <circle cx="320" cy="220" r="4" fill="#6FB1FF"/>
+    <circle cx="280" cy="300" r="4" fill="#6FB1FF"/>
+    <circle cx="200" cy="320" r="4" fill="#6FB1FF"/>
+    <circle cx="120" cy="300" r="4" fill="#6FB1FF"/>
+    <circle cx="80" cy="220" r="4" fill="#6FB1FF"/>
+    <circle cx="120" cy="140" r="4" fill="#6FB1FF"/>
+
+    <!-- Subtle glow effect -->
+    <circle cx="200" cy="200" r="60" fill="url(#radialGlow)" opacity="0.3"/>
+  </g>
+
+  <!-- Text: VEGA -->
+  <text x="200" y="370"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="48"
+        font-weight="700"
+        fill="#E8E8F0"
+        text-anchor="middle"
+        letter-spacing="8">VEGA</text>
+
+  <!-- Gradient definition -->
+  <defs>
+    <radialGradient id="radialGlow">
+      <stop offset="0%" style="stop-color:#4A9EFF;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#4A9EFF;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+</svg>

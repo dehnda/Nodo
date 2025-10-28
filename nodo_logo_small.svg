@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NODO Small Size Optimized - For 16x16, 32x32 favicons -->
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified for small sizes - matches horizontal logo style -->
+
+  <!-- Background for visibility at small sizes -->
+  <rect width="64" height="64" fill="#0f1419" rx="8"/>
+
+  <g id="nodo-small" transform="translate(32, 32)">
+
+    <!-- Central node - larger for visibility -->
+    <circle cx="0" cy="0" r="6" fill="#FF6B4A"/>
+
+    <!-- Curved connections matching horizontal logo style -->
+    <!-- Top -->
+    <path d="M 0 0 L 0 -18" stroke="url(#gs1)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="-18" r="4" fill="#FF6B4A"/>
+
+    <!-- Top-right -->
+    <path d="M 0 0 L 13 -13" stroke="url(#gs2)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="13" cy="-13" r="3.5" fill="#FF8B6A"/>
+
+    <!-- Right -->
+    <path d="M 0 0 L 18 0" stroke="url(#gs3)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="18" cy="0" r="3" fill="#FFA58A"/>
+
+    <!-- Bottom-right -->
+    <path d="M 0 0 L 13 13" stroke="url(#gs4)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="13" cy="13" r="3.5" fill="#FF8B6A"/>
+
+    <!-- Bottom -->
+    <path d="M 0 0 L 0 18" stroke="url(#gs5)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="18" r="4" fill="#FF6B4A"/>
+
+    <!-- Bottom-left -->
+    <path d="M 0 0 L -13 13" stroke="url(#gs6)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="-13" cy="13" r="3.5" fill="#FF8B6A"/>
+
+    <!-- Left -->
+    <path d="M 0 0 L -18 0" stroke="url(#gs7)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="-18" cy="0" r="3" fill="#FFA58A"/>
+
+    <!-- Top-left -->
+    <path d="M 0 0 L -13 -13" stroke="url(#gs8)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="-13" cy="-13" r="3.5" fill="#FF8B6A"/>
+
+    <!-- Subtle glow -->
+    <circle cx="0" cy="0" r="20" fill="url(#radialGlowS)" opacity="0.15"/>
+
+  </g>
+
+  <!-- Gradients matching horizontal logo -->
+  <defs>
+    <radialGradient id="radialGlowS">
+      <stop offset="0%" style="stop-color:#FF6B4A;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#FF6B4A;stop-opacity:0" />
+    </radialGradient>
+
+    <linearGradient id="gs1" x1="0" y1="0" x2="0" y2="-18">
+      <stop offset="0%" style="stop-color:#FF6B4A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B4A;stop-opacity:0.8" />
+    </linearGradient>
+    <linearGradient id="gs2" x1="0" y1="0" x2="13" y2="-13">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FF8B6A;stop-opacity:0.6" />
+    </linearGradient>
+    <linearGradient id="gs3" x1="0" y1="0" x2="18" y2="0">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FFA58A;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="gs4" x1="0" y1="0" x2="13" y2="13">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FF8B6A;stop-opacity:0.6" />
+    </linearGradient>
+    <linearGradient id="gs5" x1="0" y1="0" x2="0" y2="18">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FF6B4A;stop-opacity:0.8" />
+    </linearGradient>
+    <linearGradient id="gs6" x1="0" y1="0" x2="-13" y2="13">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FF8B6A;stop-opacity:0.6" />
+    </linearGradient>
+    <linearGradient id="gs7" x1="0" y1="0" x2="-18" y2="0">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FFA58A;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="gs8" x1="0" y1="0" x2="-13" y2="-13">
+      <stop offset="0%" style="stop-color:#FF6B4A" />
+      <stop offset="100%" style="stop-color:#FF8B6A;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+
+</svg>

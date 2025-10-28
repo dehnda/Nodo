@@ -22,9 +22,11 @@
 #include <QFileInfo>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QLabel>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPixmap>
 #include <QStatusBar>
 #include <QToolButton>
 
@@ -52,7 +54,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   setupUndoRedo();
 
   // Set window properties
-  setWindowTitle("NodeFlux Studio");
+  setWindowTitle("Nodo");
+  setWindowIcon(QIcon(":/logo/nodo_small.svg"));
   resize(1280, 720);
 }
 
@@ -63,17 +66,6 @@ MainWindow::~MainWindow() {
 auto MainWindow::setupMenuBar() -> void {
   // Get the menu bar (QMainWindow provides this)
   QMenuBar *menuBar = this->menuBar();
-
-  // Add logo to the left of menu bar
-  auto *logo_label = new QLabel("⚡ NodeFlux", menuBar);
-  logo_label->setStyleSheet("QLabel {"
-                            "  font-size: 16px;"
-                            "  font-weight: 700;"
-                            "  color: #4a9eff;"
-                            "  padding: 4px 12px 4px 8px;"
-                            "  margin-right: 8px;"
-                            "}");
-  menuBar->setCornerWidget(logo_label, Qt::TopLeftCorner);
 
   // Create a File menu
   QMenu *fileMenu = menuBar->addMenu("&File");

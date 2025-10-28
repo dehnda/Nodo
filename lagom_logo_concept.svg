@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#f5f5f0"/>
+
+  <!-- Main logo concept: Perfect balance/golden ratio in mesh generation -->
+  <g id="lagom-logo">
+
+    <!-- Minimalist circular balance symbol -->
+    <!-- Outer circle - the container -->
+    <circle cx="200" cy="200" r="80"
+            fill="none"
+            stroke="#2d3748"
+            stroke-width="2"
+            opacity="0.8"/>
+
+    <!-- Inner balanced geometric pattern - perfect triangulation -->
+    <!-- Top triangle -->
+    <path d="M 200 140 L 240 180 L 160 180 Z"
+          fill="none"
+          stroke="#4A9EFF"
+          stroke-width="2.5"
+          stroke-linejoin="round"/>
+
+    <!-- Bottom left triangle -->
+    <path d="M 160 180 L 170 220 L 140 200 Z"
+          fill="none"
+          stroke="#6FB1FF"
+          stroke-width="2"
+          stroke-linejoin="round"/>
+
+    <!-- Bottom right triangle -->
+    <path d="M 240 180 L 260 200 L 230 220 Z"
+          fill="none"
+          stroke="#6FB1FF"
+          stroke-width="2"
+          stroke-linejoin="round"/>
+
+    <!-- Center bottom triangle -->
+    <path d="M 160 180 L 240 180 L 200 240 Z"
+          fill="none"
+          stroke="#4A9EFF"
+          stroke-width="2.5"
+          stroke-linejoin="round"/>
+
+    <!-- Center point - the balance point -->
+    <circle cx="200" cy="200" r="5" fill="#2d3748"/>
+
+    <!-- Subtle node points at vertices -->
+    <circle cx="200" cy="140" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="240" cy="180" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="160" cy="180" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="200" cy="240" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="140" cy="200" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="260" cy="200" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="170" cy="220" r="3" fill="#2d3748" opacity="0.6"/>
+    <circle cx="230" cy="220" r="3" fill="#2d3748" opacity="0.6"/>
+
+    <!-- Minimalist horizontal lines suggesting "just right" measurement -->
+    <line x1="120" y1="200" x2="280" y2="200"
+          stroke="#2d3748"
+          stroke-width="1"
+          opacity="0.3"
+          stroke-dasharray="4,4"/>
+
+  </g>
+
+  <!-- Text: LAGOM -->
+  <text x="200" y="330"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="56"
+        font-weight="300"
+        fill="#2d3748"
+        text-anchor="middle"
+        letter-spacing="12">LAGOM</text>
+
+  <!-- Swedish subtitle with meaning -->
+  <text x="200" y="360"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="12"
+        font-weight="400"
+        fill="#718096"
+        text-anchor="middle"
+        letter-spacing="3">JUST THE RIGHT AMOUNT</text>
+
+  <!-- Decorative minimal corner accents (Nordic design style) -->
+  <g opacity="0.15">
+    <!-- Top left corner -->
+    <line x1="40" y1="40" x2="70" y2="40" stroke="#2d3748" stroke-width="2"/>
+    <line x1="40" y1="40" x2="40" y2="70" stroke="#2d3748" stroke-width="2"/>
+
+    <!-- Top right corner -->
+    <line x1="360" y1="40" x2="330" y2="40" stroke="#2d3748" stroke-width="2"/>
+    <line x1="360" y1="40" x2="360" y2="70" stroke="#2d3748" stroke-width="2"/>
+
+    <!-- Bottom left corner -->
+    <line x1="40" y1="360" x2="70" y2="360" stroke="#2d3748" stroke-width="2"/>
+    <line x1="40" y1="360" x2="40" y2="330" stroke="#2d3748" stroke-width="2"/>
+
+    <!-- Bottom right corner -->
+    <line x1="360" y1="360" x2="330" y2="360" stroke="#2d3748" stroke-width="2"/>
+    <line x1="360" y1="360" x2="360" y2="330" stroke="#2d3748" stroke-width="2"/>
+  </g>
+
+</svg>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#1a1a1f"/>
+
+  <!-- Main logo concept: Anvil/Hammer meeting geometric mesh -->
+  <g id="smi-logo">
+
+    <!-- Stylized anvil made of geometric shapes -->
+    <g id="anvil">
+      <!-- Anvil top (where the work happens) -->
+      <rect x="140" y="160" width="120" height="20" fill="#FF6B9D" rx="2"/>
+
+      <!-- Anvil body - geometric trapezoid -->
+      <path d="M 150 180 L 250 180 L 240 220 L 160 220 Z"
+            fill="#FF6B9D"
+            opacity="0.9"/>
+
+      <!-- Anvil base -->
+      <rect x="130" y="220" width="140" height="15" fill="#FF6B9D" opacity="0.7" rx="2"/>
+    </g>
+
+    <!-- Hammer striking - creating mesh particles -->
+    <g id="hammer">
+      <!-- Hammer head (geometric) -->
+      <rect x="240" y="100" width="50" height="25" fill="#4A9EFF" rx="2">
+        <animateTransform
+          attributeName="transform"
+          type="translate"
+          values="0,0; 0,10; 0,0"
+          dur="1.5s"
+          repeatCount="indefinite"/>
+      </rect>
+
+      <!-- Hammer handle -->
+      <rect x="285" y="110" width="8" height="50" fill="#6FB1FF" rx="1">
+        <animateTransform
+          attributeName="transform"
+          type="translate"
+          values="0,0; 0,10; 0,0"
+          dur="1.5s"
+          repeatCount="indefinite"/>
+      </rect>
+    </g>
+
+    <!-- Impact particles - triangular mesh fragments -->
+    <g id="sparks">
+      <!-- Triangle sparks flying off -->
+      <path d="M 200 150 L 210 140 L 205 130"
+            fill="none"
+            stroke="#FFD33D"
+            stroke-width="2"
+            opacity="0.8">
+        <animate attributeName="opacity"
+                 values="0;0.8;0"
+                 dur="1.5s"
+                 repeatCount="indefinite"/>
+      </path>
+
+      <path d="M 190 145 L 180 135 L 175 145"
+            fill="none"
+            stroke="#FFD33D"
+            stroke-width="2"
+            opacity="0.6">
+        <animate attributeName="opacity"
+                 values="0;0.6;0"
+                 dur="1.5s"
+                 begin="0.3s"
+                 repeatCount="indefinite"/>
+      </path>
+
+      <path d="M 220 155 L 230 150 L 235 160"
+            fill="none"
+            stroke="#FFD33D"
+            stroke-width="2"
+            opacity="0.7">
+        <animate attributeName="opacity"
+                 values="0;0.7;0"
+                 dur="1.5s"
+                 begin="0.5s"
+                 repeatCount="indefinite"/>
+      </path>
+
+      <!-- Small geometric particles -->
+      <circle cx="185" cy="140" r="3" fill="#FFD33D" opacity="0">
+        <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="140;120;140" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+
+      <circle cx="215" cy="145" r="2" fill="#FFD33D" opacity="0">
+        <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.2s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="145;125;145" dur="1.5s" begin="0.2s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- Mesh wireframe emerging from anvil -->
+    <g id="mesh-creation" opacity="0.6">
+      <!-- Bottom mesh triangles forming -->
+      <path d="M 160 240 L 180 260 L 140 260 Z"
+            fill="none"
+            stroke="#4A9EFF"
+            stroke-width="1.5"/>
+      <path d="M 180 260 L 200 240 L 160 240 Z"
+            fill="none"
+            stroke="#6FB1FF"
+            stroke-width="1.5"/>
+      <path d="M 200 240 L 220 260 L 180 260 Z"
+            fill="none"
+            stroke="#4A9EFF"
+            stroke-width="1.5"/>
+      <path d="M 220 260 L 240 240 L 200 240 Z"
+            fill="none"
+            stroke="#6FB1FF"
+            stroke-width="1.5"/>
+      <path d="M 240 240 L 260 260 L 220 260 Z"
+            fill="none"
+            stroke="#4A9EFF"
+            stroke-width="1.5"/>
+    </g>
+
+  </g>
+
+  <!-- Text: SMI -->
+  <text x="200" y="330"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="72"
+        font-weight="900"
+        fill="#E8E8F0"
+        text-anchor="middle"
+        letter-spacing="16">SMI</text>
+
+  <!-- Tagline -->
+  <text x="200" y="360"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="14"
+        font-weight="400"
+        fill="#808090"
+        text-anchor="middle"
+        letter-spacing="4">FORGE · FLOW · CREATE</text>
+
+</svg>

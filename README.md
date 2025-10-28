@@ -1,10 +1,12 @@
-# NodeFluxEngine
+# Nodo
+
+![Nodo Logo](nodo_logo_concept.svg)
 
 A modern C++20 **GPU-accelerated procedural mesh generation library** with node-based workflows and real-time performance.
 
 ## 🎯 Vision
 
-NodeFluxEngine is the **first GPU-native procedural mesh generation system** that combines:
+Nodo is the **first GPU-native procedural mesh generation system** that combines:
 - **🔥 Houdini-inspired SOP workflow** with visual node-based operations
 - **⚡ Complete GPU acceleration** for real-time performance
 - **🧠 Intelligent caching & data flow** for complex procedural workflows
@@ -89,8 +91,8 @@ int main() {
 pip install "conan>=2.0"
 
 # 2. Clone the repository
-git clone https://github.com/dehnda/NodeFluxEngine.git
-cd NodeFluxEngine
+git clone https://github.com/dehnda/nodo.git
+cd nodo
 
 # 3. Install dependencies with Conan
 conan install . --output-folder=build --build=missing

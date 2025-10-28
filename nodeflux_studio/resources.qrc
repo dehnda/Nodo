@@ -3,6 +3,11 @@
     <qresource prefix="/">
         <file>resources/styles/dark_theme.qss</file>
 
+        <!-- Nodo Logos -->
+        <file alias="logo/nodo_icon.svg">../nodo_logo_icon.svg</file>
+        <file alias="logo/nodo_small.svg">../nodo_logo_small.svg</file>
+        <file alias="logo/nodo_horizontal.svg">../nodo_logo_horizontal.svg</file>
+
         <!-- Iconoir Icons from external/iconoir/icons/regular/ -->
         <!-- File Operations -->
         <file alias="icons/iconoir/page-plus.svg">../external/iconoir/icons/regular/page-plus.svg</file>
