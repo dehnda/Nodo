@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   setupUndoRedo();
 
   // Set window properties
-  setWindowTitle("Nodo");
+  setWindowTitle("NODO - Connected Creation");
   setWindowIcon(QIcon(":/logo/nodo_small.svg"));
   resize(1280, 720);
 }
@@ -184,18 +184,18 @@ auto MainWindow::setupMenuBar() -> void {
   };
 
   // File operation buttons
-  auto *new_btn = createIconButton(nodo_studio::IconManager::Icon::FileNew,
-                                   "New Scene");
+  auto *new_btn =
+      createIconButton(nodo_studio::IconManager::Icon::FileNew, "New Scene");
   connect(new_btn, &QToolButton::clicked, this, &MainWindow::onNewScene);
   toolbar_layout->addWidget(new_btn);
 
-  auto *open_btn = createIconButton(
-      nodo_studio::IconManager::Icon::FileOpen, "Open Scene");
+  auto *open_btn =
+      createIconButton(nodo_studio::IconManager::Icon::FileOpen, "Open Scene");
   connect(open_btn, &QToolButton::clicked, this, &MainWindow::onOpenScene);
   toolbar_layout->addWidget(open_btn);
 
-  auto *save_btn = createIconButton(
-      nodo_studio::IconManager::Icon::FileSave, "Save Scene");
+  auto *save_btn =
+      createIconButton(nodo_studio::IconManager::Icon::FileSave, "Save Scene");
   connect(save_btn, &QToolButton::clicked, this, &MainWindow::onSaveScene);
   toolbar_layout->addWidget(save_btn);
 
@@ -207,8 +207,8 @@ auto MainWindow::setupMenuBar() -> void {
   toolbar_layout->addWidget(divider);
 
   // Graph operation button
-  auto *play_btn = createIconButton(nodo_studio::IconManager::Icon::Play,
-                                    "Execute Graph");
+  auto *play_btn =
+      createIconButton(nodo_studio::IconManager::Icon::Play, "Execute Graph");
   connect(play_btn, &QToolButton::clicked, this,
           &MainWindow::onCreateTestGraph);
   toolbar_layout->addWidget(play_btn);

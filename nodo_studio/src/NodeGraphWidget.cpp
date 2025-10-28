@@ -3,12 +3,18 @@
 #include "IconManager.h"
 #include "NodeCreationMenu.h"
 #include "UndoStack.h"
+#include <QApplication>
 #include <QContextMenuEvent>
+#include <QFont>
+#include <QFontDatabase>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QPainterPath>
+#include <QPixmap>
+#include <QString>
 #include <QStyleOption>
+#include <QSvgRenderer>
 #include <QWheelEvent>
 #include <cmath>
 #include <nodo/graph/node_graph.hpp>
@@ -451,8 +457,7 @@ void NodeGraphicsItem::drawActionButtons(QPainter *painter) {
 
     // Draw icon
     QColor icon_color = active ? Qt::white : QColor(192, 192, 200);
-    QPixmap icon_pixmap =
-        nodo_studio::Icons::getPixmap(icon, 12, icon_color);
+    QPixmap icon_pixmap = nodo_studio::Icons::getPixmap(icon, 12, icon_color);
     painter->drawPixmap(QPointF(x + (ACTION_BUTTON_SIZE - 12) / 2.0,
                                 button_y + (ACTION_BUTTON_SIZE - 12) / 2.0),
                         icon_pixmap);
@@ -1413,6 +1418,9 @@ void NodeGraphWidget::drawBackground(QPainter *painter, const QRectF &rect) {
 
   // Draw grid
   draw_grid(painter, rect);
+
+  // Draw watermark logo in bottom right corner
+  draw_watermark_logo(painter, rect);
 }
 
 void NodeGraphWidget::draw_grid(QPainter *painter, const QRectF &rect) {
@@ -1452,6 +1460,96 @@ void NodeGraphWidget::draw_grid(QPainter *painter, const QRectF &rect) {
   }
 }
 
+void NodeGraphWidget::draw_watermark_logo(QPainter *painter,
+                                          const QRectF &rect) {
+  // Load the horizontal logo
+  static QSvgRenderer logo_renderer(QString(":/logo/nodo_horizontal.svg"));
+  if (!logo_renderer.isValid()) {
+    return;
+  }
+
+  // Save painter state
+  painter->save();
+
+  // Reset any transformations to work in device coordinates (unaffected by
+  // zoom)
+  painter->resetTransform();
+
+  // Get the widget's viewport size in device coordinates
+  QRect viewport = this->viewport()->rect();
+
+  // Fixed logo size and padding in screen pixels (independent of zoom) - Made
+  // bigger and bolder
+  constexpr float LOGO_MAX_WIDTH = 300.0F; // Increased from 200
+  constexpr float LOGO_MAX_HEIGHT = 90.0F; // Increased from 60
+  constexpr float PADDING = 30.0F;         // Increased padding slightly
+
+  QSize logo_size = logo_renderer.defaultSize();
+  float scale_x = LOGO_MAX_WIDTH / logo_size.width();
+  float scale_y = LOGO_MAX_HEIGHT / logo_size.height();
+  float scale = qMin(scale_x, scale_y);
+
+  float logo_width = logo_size.width() * scale;
+  float logo_height = logo_size.height() * scale;
+
+  // Position in bottom right corner of the viewport (screen coordinates)
+  float logo_x = viewport.right() - logo_width - PADDING;
+  float logo_y = viewport.bottom() - logo_height - PADDING;
+
+  QRectF logo_rect(logo_x, logo_y, logo_width, logo_height);
+
+  // Apply semi-transparent monochrome effect - Made more visible
+  painter->setOpacity(0.25F); // Increased opacity for better visibility
+
+  // Create a temporary pixmap with high DPI support for crisp font rendering
+  qreal device_pixel_ratio = devicePixelRatio();
+  QSize pixmap_size = logo_rect.size().toSize() * device_pixel_ratio;
+  QPixmap logo_pixmap(pixmap_size);
+  logo_pixmap.setDevicePixelRatio(device_pixel_ratio);
+  logo_pixmap.fill(Qt::transparent);
+
+  QPainter logo_painter(&logo_pixmap);
+  // Enable all high-quality rendering hints for best font reproduction
+  logo_painter.setRenderHint(QPainter::Antialiasing, true);
+  logo_painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+  logo_painter.setRenderHint(QPainter::TextAntialiasing, true);
+  logo_painter.setRenderHint(QPainter::LosslessImageRendering, true);
+
+  // Set font hinting for better text rendering
+  QFont font("Arial", -1, QFont::DemiBold); // Match SVG font specification
+  font.setHintingPreference(QFont::PreferFullHinting);
+  logo_painter.setFont(font);
+
+  // Scale the painter for device pixel ratio
+  logo_painter.scale(device_pixel_ratio, device_pixel_ratio);
+
+  // Render the SVG with precise scaling
+  QRectF render_rect(0, 0, logo_width, logo_height);
+  logo_renderer.render(&logo_painter, render_rect);
+  logo_painter.end();
+
+  // Apply monochrome effect with bold enhancement
+  QPainter mono_painter(&logo_pixmap);
+  mono_painter.setCompositionMode(QPainter::CompositionMode_SourceAtop);
+  mono_painter.fillRect(
+      logo_pixmap.rect(),
+      QColor(255, 255, 255, 200)); // Slightly more opaque white
+  mono_painter.end();
+
+  // Draw the processed logo with a subtle shadow effect for boldness
+  // First draw a slight offset shadow
+  painter->setOpacity(0.1F);
+  QRectF shadow_rect = logo_rect.adjusted(1, 1, 1, 1);
+  painter->drawPixmap(shadow_rect, logo_pixmap, logo_pixmap.rect());
+
+  // Then draw the main logo
+  painter->setOpacity(0.25F);
+  painter->drawPixmap(logo_rect, logo_pixmap, logo_pixmap.rect());
+
+  // Restore painter state
+  painter->restore();
+}
+
 void NodeGraphWidget::on_node_moved(NodeGraphicsItem *node) {
   // Sync position back to backend graph
   if (graph_ != nullptr) {
@@ -1475,8 +1573,7 @@ void NodeGraphWidget::create_node_at_position(nodo::graph::NodeType type,
 
   // Use undo/redo command if available
   if (undo_stack_ != nullptr) {
-    auto cmd =
-        nodo::studio::create_add_node_command(this, graph_, type, pos);
+    auto cmd = nodo::studio::create_add_node_command(this, graph_, type, pos);
     undo_stack_->push(std::move(cmd));
 
     // Get the node ID from the command (it was executed during push)

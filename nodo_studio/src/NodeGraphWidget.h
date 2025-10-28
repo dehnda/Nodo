@@ -9,7 +9,6 @@
 #include <memory>
 #include <unordered_map>
 
-
 // Forward declarations and includes
 namespace nodo::graph {
 class NodeGraph;
@@ -348,8 +347,7 @@ private:
   void remove_node_item(int node_id);
   void remove_connection_item(int connection_id);
   void update_all_connections();
-  void create_node_at_position(nodo::graph::NodeType type,
-                               const QPointF &pos);
+  void create_node_at_position(nodo::graph::NodeType type, const QPointF &pos);
 
   // Node creation menu helpers
   void on_node_menu_selected(const QString &type_id);
@@ -357,4 +355,5 @@ private:
 
   // Grid drawing
   void draw_grid(QPainter *painter, const QRectF &rect);
+  void draw_watermark_logo(QPainter *painter, const QRectF &rect);
 };
