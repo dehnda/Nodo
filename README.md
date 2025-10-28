@@ -1,6 +1,6 @@
 # Nodo
 
-![Nodo Logo](nodo_logo_concept.svg)
+![Nodo Logo](nodo_studio/resources/logos/nodo_logo_horizontal.svg)
 
 A modern C++20 **GPU-accelerated procedural mesh generation library** with node-based workflows and real-time performance.
 
