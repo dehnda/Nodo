@@ -1,8 +1,16 @@
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
+
 #include "nodo/sop/array_sop.hpp"
 #include "nodo/core/math.hpp"
 #include "nodo/core/types.hpp"
 
 #include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace attrs = nodo::core::standard_attrs;
 

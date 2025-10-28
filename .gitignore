@@ -159,3 +159,6 @@ qrc_*.cpp
 .qmake.stash
 *.pro.user
 *.pro.user.*
+
+# cmake user presest
+CMakeUserPresets.json

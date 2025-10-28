@@ -111,7 +111,7 @@ target_link_libraries(nodo_core
 
 # Compiler warnings
 if(MSVC)
-    target_compile_options(nodo_core PRIVATE /W4)
+    target_compile_options(nodo_core PRIVATE /W4 /bigobj)
 else()
     target_compile_options(nodo_core PRIVATE
         -Wall

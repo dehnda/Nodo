@@ -1,9 +1,17 @@
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
+
 #include "nodo/sop/normal_sop.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include <Eigen/Dense>
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace nodo::sop {
 

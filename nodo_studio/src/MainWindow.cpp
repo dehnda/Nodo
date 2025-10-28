@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   setupUndoRedo();
 
   // Set window properties
-  setWindowTitle("NODO - Connected Creation");
+  setWindowTitle("Nodo");
   setWindowIcon(QIcon(":/logo/nodo_small.svg"));
   resize(1280, 720);
 }

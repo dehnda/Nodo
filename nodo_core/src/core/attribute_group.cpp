@@ -1,8 +1,10 @@
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/attribute_types.hpp"
 #include <algorithm>
+#include <numeric>
 #include <random>
 #include <unordered_map>
+
 
 namespace nodo::core {
 
