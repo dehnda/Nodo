@@ -21,6 +21,8 @@
         <file alias="icons/iconoir/sphere.svg">../external/iconoir/icons/regular/sphere.svg</file>
         <file alias="icons/iconoir/refresh-circle.svg">../external/iconoir/icons/regular/refresh-circle.svg</file>
         <file alias="icons/iconoir/frame-simple.svg">../external/iconoir/icons/regular/frame-simple.svg</file>
+        <file alias="icons/iconoir/eye.svg">../external/iconoir/icons/regular/eye.svg</file>
+        <file alias="icons/iconoir/eye-closed.svg">../external/iconoir/icons/regular/eye-closed.svg</file>
 
         <!-- Node Generators -->
         <file alias="icons/iconoir/cube.svg">../external/iconoir/icons/regular/cube.svg</file>

@@ -36,6 +36,8 @@ public:
     Shaded,
     ResetCamera,
     FitView,
+    Eye,
+    EyeClosed,
 
     // Node generators
     Sphere,

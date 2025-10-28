@@ -284,6 +284,8 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onNodesDeleted);
   connect(node_graph_widget_, &NodeGraphWidget::selection_changed, this,
           &MainWindow::onNodeSelectionChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_display_flag_changed, this,
+          &MainWindow::onNodeDisplayFlagChanged);
 
   // Add node graph to the right of viewport
   splitDockWidget(viewport_dock_, node_graph_dock_, Qt::Horizontal);
@@ -325,8 +327,7 @@ void MainWindow::showEvent(QShowEvent *event) {
 }
 
 void MainWindow::onParameterChanged() {
-  // When a parameter changes in the property panel, re-execute the selected
-  // node
+  // When a parameter changes in the property panel, re-execute the graph
   auto selected_nodes = node_graph_widget_->get_selected_node_ids();
   if (!selected_nodes.isEmpty()) {
     int node_id = selected_nodes.first();
@@ -336,7 +337,18 @@ void MainWindow::onParameterChanged() {
       execution_engine_->invalidate_node(*node_graph_, node_id);
     }
 
-    executeAndDisplayNode(node_id);
+    // Find which node has the display flag set and update viewport if needed
+    if (node_graph_widget_) {
+      // Get all nodes and find the one with display flag
+      auto node_items = node_graph_widget_->get_all_node_items();
+      for (auto *item : node_items) {
+        if (item && item->has_display_flag()) {
+          // Execute and display the node that has the display flag
+          executeAndDisplayNode(item->get_node_id());
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -658,11 +670,11 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
 }
 
 void MainWindow::onNodeSelectionChanged() {
-  // When selection changes, display the selected node's output
+  // When selection changes, update property panel but DON'T change viewport
+  // Viewport should only update when display button is explicitly clicked
   auto selected_nodes = node_graph_widget_->get_selected_node_ids();
   if (!selected_nodes.isEmpty()) {
     int selected_id = selected_nodes.first();
-    executeAndDisplayNode(selected_id);
 
     // Update property panel to show selected node's parameters
     if (node_graph_ != nullptr) {
@@ -686,7 +698,7 @@ void MainWindow::onNodeSelectionChanged() {
              node_type == NodeType::CopyToPoints);
 
         if (is_sop) {
-          // Get geometry from execution engine
+          // Get geometry from execution engine for spreadsheet
           if (execution_engine_) {
             auto geo_data = execution_engine_->get_node_geometry(selected_id);
             if (geo_data) {
@@ -707,6 +719,15 @@ void MainWindow::onNodeSelectionChanged() {
     property_panel_->clearProperties();
     geometry_spreadsheet_->clear();
   }
+}
+
+void MainWindow::onNodeDisplayFlagChanged(int node_id, bool display_flag) {
+  // When display button is clicked, execute and show that node in viewport
+  if (display_flag) {
+    executeAndDisplayNode(node_id);
+  }
+  // If display flag is turned off, we don't change the viewport
+  // (it keeps showing whatever was displayed before)
 }
 
 void MainWindow::updateDisplayFlagVisuals() {

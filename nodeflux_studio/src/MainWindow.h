@@ -101,6 +101,7 @@ private slots:
   void onConnectionsDeleted(QVector<int> connection_ids);
   void onNodesDeleted(QVector<int> node_ids);
   void onNodeSelectionChanged();
+  void onNodeDisplayFlagChanged(int node_id, bool display_flag);
 
   // Property panel callback
   void onParameterChanged();

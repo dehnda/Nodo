@@ -184,6 +184,66 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   // Only handle left mouse button for selection and dragging
   // Middle mouse is handled by the view for panning
   if (event->button() == Qt::LeftButton) {
+    QPointF click_pos = event->pos();
+
+    // Check if clicking on action buttons (in header area)
+    if (click_pos.y() >= 0 && click_pos.y() <= NODE_HEADER_HEIGHT) {
+      float button_y = (NODE_HEADER_HEIGHT - ACTION_BUTTON_SIZE) / 2.0;
+      float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
+      float button_spacing = ACTION_BUTTON_SIZE + 4.0;
+
+      // Helper to check if clicked on a button
+      auto isClickedButton = [&](float x) -> bool {
+        QRectF button_rect(x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
+        return button_rect.contains(click_pos);
+      };
+
+      // Info button (no action yet)
+      if (isClickedButton(button_x)) {
+        event->accept();
+        return;
+      }
+      button_x -= button_spacing;
+
+      // Lock button
+      if (isClickedButton(button_x)) {
+        lock_flag_ = !lock_flag_;
+        update();
+        event->accept();
+        return;
+      }
+      button_x -= button_spacing;
+
+      // Display button
+      if (isClickedButton(button_x)) {
+        has_display_flag_ = !has_display_flag_;
+        update();
+
+        // Notify the widget about display flag change
+        if (scene()) {
+          for (QGraphicsView *view : scene()->views()) {
+            NodeGraphWidget *widget = qobject_cast<NodeGraphWidget *>(view);
+            if (widget) {
+              widget->on_node_display_flag_changed(node_id_, has_display_flag_);
+              break;
+            }
+          }
+        }
+
+        event->accept();
+        return;
+      }
+      button_x -= button_spacing;
+
+      // Bypass button
+      if (isClickedButton(button_x)) {
+        bypass_flag_ = !bypass_flag_;
+        update();
+        event->accept();
+        return;
+      }
+    }
+
     // Store starting position for undo/redo
     drag_start_position_ = pos();
     is_dragging_ = true;
@@ -233,8 +293,36 @@ void NodeGraphicsItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event) {
   QGraphicsItem::hoverEnterEvent(event);
 }
 
+void NodeGraphicsItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event) {
+  QPointF hover_pos = event->pos();
+
+  // Check if hovering over action buttons (in header area)
+  if (hover_pos.y() >= 0 && hover_pos.y() <= NODE_HEADER_HEIGHT) {
+    float button_y = (NODE_HEADER_HEIGHT - ACTION_BUTTON_SIZE) / 2.0;
+    float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
+    float button_spacing = ACTION_BUTTON_SIZE + 4.0;
+
+    // Check all button positions
+    for (int i = 0; i < 4; ++i) {
+      QRectF button_rect(button_x, button_y, ACTION_BUTTON_SIZE,
+                         ACTION_BUTTON_SIZE);
+      if (button_rect.contains(hover_pos)) {
+        setCursor(Qt::PointingHandCursor);
+        QGraphicsItem::hoverMoveEvent(event);
+        return;
+      }
+      button_x -= button_spacing;
+    }
+  }
+
+  // Not over a button, use default cursor
+  setCursor(Qt::ArrowCursor);
+  QGraphicsItem::hoverMoveEvent(event);
+}
+
 void NodeGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
   set_hovered(false);
+  setCursor(Qt::ArrowCursor);
   QGraphicsItem::hoverLeaveEvent(event);
 }
 
@@ -352,41 +440,38 @@ void NodeGraphicsItem::drawActionButtons(QPainter *painter) {
   float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
   float button_spacing = ACTION_BUTTON_SIZE + 4.0;
 
+  // Helper to draw icon button
+  auto drawButton = [&](float x, bool active, const QColor &active_color,
+                        nodeflux_studio::IconManager::Icon icon) {
+    QRectF rect(x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
+    QColor bg_color = active ? active_color : QColor(255, 255, 255, 20);
+    painter->setBrush(bg_color);
+    painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
+    painter->drawRoundedRect(rect, 6.0, 6.0);
+
+    // Draw icon
+    QColor icon_color = active ? Qt::white : QColor(192, 192, 200);
+    QPixmap icon_pixmap =
+        nodeflux_studio::Icons::getPixmap(icon, 12, icon_color);
+    painter->drawPixmap(QPointF(x + (ACTION_BUTTON_SIZE - 12) / 2.0,
+                                button_y + (ACTION_BUTTON_SIZE - 12) / 2.0),
+                        icon_pixmap);
+  };
+
   // Info button
-  QRectF info_rect(button_x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
-  painter->setBrush(QColor(255, 255, 255, 20));
-  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
-  painter->drawRoundedRect(info_rect, 6.0, 6.0);
-  painter->setPen(QColor(192, 192, 200));
-  QFont icon_font = painter->font();
-  icon_font.setPointSize(12);
-  painter->setFont(icon_font);
-  painter->drawText(info_rect, Qt::AlignCenter, "i");
+  drawButton(button_x, false, QColor(255, 255, 255, 20),
+             nodeflux_studio::IconManager::Icon::Info);
   button_x -= button_spacing;
 
   // Lock button
-  QRectF lock_rect(button_x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
-  QColor lock_bg =
-      lock_flag_ ? QColor(255, 107, 157) : QColor(255, 255, 255, 20);
-  painter->setBrush(lock_bg);
-  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
-  painter->drawRoundedRect(lock_rect, 6.0, 6.0);
-  painter->setPen(lock_flag_ ? Qt::white : QColor(192, 192, 200));
-  painter->drawText(lock_rect, Qt::AlignCenter, "🔒");
+  drawButton(
+      button_x, lock_flag_, QColor(255, 107, 157),
+      nodeflux_studio::IconManager::Icon::Success); // Using checkmark for lock
   button_x -= button_spacing;
 
   // Display button (eye icon)
-  QRectF display_rect(button_x, button_y, ACTION_BUTTON_SIZE,
-                      ACTION_BUTTON_SIZE);
-  QColor display_bg =
-      has_display_flag_ ? QColor(74, 158, 255) : QColor(255, 255, 255, 20);
-  painter->setBrush(display_bg);
-  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
-  painter->drawRoundedRect(display_rect, 6.0, 6.0);
-  painter->setPen(has_display_flag_ ? Qt::white : QColor(192, 192, 200));
-  icon_font.setPointSize(11);
-  painter->setFont(icon_font);
-  painter->drawText(display_rect, Qt::AlignCenter, "👁");
+  drawButton(button_x, has_display_flag_, QColor(74, 158, 255),
+             nodeflux_studio::IconManager::Icon::Eye);
   button_x -= button_spacing;
 
   // Bypass button
@@ -397,10 +482,13 @@ void NodeGraphicsItem::drawActionButtons(QPainter *painter) {
   painter->setBrush(bypass_bg);
   painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
   painter->drawRoundedRect(bypass_rect, 6.0, 6.0);
-  painter->setPen(bypass_flag_ ? QColor(26, 26, 31) : QColor(192, 192, 200));
-  icon_font.setPointSize(14);
-  painter->setFont(icon_font);
-  painter->drawText(bypass_rect, Qt::AlignCenter, "⊘");
+  QColor bypass_icon_color =
+      bypass_flag_ ? QColor(26, 26, 31) : QColor(192, 192, 200);
+  QPixmap bypass_pixmap = nodeflux_studio::Icons::getPixmap(
+      nodeflux_studio::IconManager::Icon::Error, 12, bypass_icon_color);
+  painter->drawPixmap(QPointF(button_x + (ACTION_BUTTON_SIZE - 12) / 2.0,
+                              button_y + (ACTION_BUTTON_SIZE - 12) / 2.0),
+                      bypass_pixmap);
 }
 
 void NodeGraphicsItem::drawStatusBar(QPainter *painter) {
@@ -881,6 +969,16 @@ QVector<int> NodeGraphWidget::get_selected_node_ids() const {
   QVector<int> result;
   for (int node_id : selected_nodes_) {
     result.push_back(node_id);
+  }
+  return result;
+}
+
+QVector<NodeGraphicsItem *> NodeGraphWidget::get_all_node_items() const {
+  QVector<NodeGraphicsItem *> result;
+  for (const auto &[node_id, node_item] : node_items_) {
+    if (node_item != nullptr) {
+      result.push_back(node_item);
+    }
   }
   return result;
 }
@@ -1420,6 +1518,12 @@ void NodeGraphWidget::on_scene_selection_changed() {
   }
 
   emit selection_changed();
+}
+
+void NodeGraphWidget::on_node_display_flag_changed(int node_id,
+                                                   bool display_flag) {
+  // Emit signal so MainWindow can update the viewport
+  emit node_display_flag_changed(node_id, display_flag);
 }
 
 void NodeGraphWidget::on_node_menu_selected(const QString &type_id) {

@@ -96,6 +96,10 @@ QString IconManager::getUnicodeFallback(Icon icon) const {
     return "⟲";
   case Icon::FitView:
     return "⊡";
+  case Icon::Eye:
+    return "👁";
+  case Icon::EyeClosed:
+    return "✕";
 
   // Node generators
   case Icon::Sphere:
@@ -219,6 +223,10 @@ QString IconManager::getIconFileName(Icon icon) const {
     return "refresh-circle";
   case Icon::FitView:
     return "frame-simple";
+  case Icon::Eye:
+    return "eye";
+  case Icon::EyeClosed:
+    return "eye-closed";
 
   // Node generators
   case Icon::Sphere:
