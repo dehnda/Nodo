@@ -84,31 +84,27 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
   positions.push_back({0.0F, static_cast<float>(-radius), 0.0F});
 
   // Generate faces
-  // Top cap faces
+  // Top cap faces (triangles - pole creates triangles, not quads)
   for (int segment = 0; segment < u_segments; ++segment) {
     const int next_segment = (segment + 1) % u_segments;
     primitive_vertices.push_back({0, 1 + segment, 1 + next_segment});
   }
 
-  // Middle faces
+  // Middle faces (quads)
   for (int ring = 0; ring < v_segments - 2; ++ring) {
     for (int segment = 0; segment < u_segments; ++segment) {
       const int next_segment = (segment + 1) % u_segments;
       const int current_ring = 1 + (ring * u_segments);
       const int next_ring = 1 + ((ring + 1) * u_segments);
 
-      // First triangle
+      // Single quad (counter-clockwise winding)
       primitive_vertices.push_back({current_ring + segment, next_ring + segment,
+                                    next_ring + next_segment,
                                     current_ring + next_segment});
-
-      // Second triangle
-      primitive_vertices.push_back({current_ring + next_segment,
-                                    next_ring + segment,
-                                    next_ring + next_segment});
     }
   }
 
-  // Bottom cap faces
+  // Bottom cap faces (triangles - pole creates triangles, not quads)
   const int bottom_pole = num_vertices - 1;
   const int last_ring = 1 + ((v_segments - 2) * u_segments);
   for (int segment = 0; segment < u_segments; ++segment) {

@@ -107,7 +107,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
   }
 
   // Generate faces
-  // Side faces
+  // Side faces (quads)
   for (int height_ring = 0; height_ring < height_segments; ++height_ring) {
     for (int segment = 0; segment < radial_segments; ++segment) {
       const int next_segment = (segment + 1) % radial_segments;
@@ -120,13 +120,10 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int current_vertex_next_ring = next_ring_base + segment;
       const int next_vertex_next_ring = next_ring_base + next_segment;
 
-      // First triangle
-      primitive_vertices.push_back(
-          {current_vertex, next_vertex_next_ring, next_vertex});
-
-      // Second triangle
-      primitive_vertices.push_back(
-          {current_vertex, current_vertex_next_ring, next_vertex_next_ring});
+      // Single quad (counter-clockwise winding)
+      primitive_vertices.push_back({current_vertex, next_vertex,
+                                    next_vertex_next_ring,
+                                    current_vertex_next_ring});
     }
   }
 

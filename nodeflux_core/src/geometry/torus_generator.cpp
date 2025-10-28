@@ -98,7 +98,7 @@ TorusGenerator::generate(double major_radius, double minor_radius,
     }
   }
 
-  // Generate faces
+  // Generate quad faces
   for (int major_idx = 0; major_idx < major_segments; ++major_idx) {
     const int next_major = (major_idx + 1) % major_segments;
 
@@ -111,9 +111,8 @@ TorusGenerator::generate(double major_radius, double minor_radius,
       const int vert_11 = (next_major * minor_segments) + next_minor;
       const int vert_10 = (next_major * minor_segments) + minor_idx;
 
-      // Create two triangles for the quad
-      topology.add_primitive({vert_00, vert_01, vert_11});
-      topology.add_primitive({vert_00, vert_11, vert_10});
+      // Single quad (counter-clockwise winding)
+      topology.add_primitive({vert_00, vert_01, vert_11, vert_10});
     }
   }
 

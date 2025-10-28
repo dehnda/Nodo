@@ -730,17 +730,13 @@ void ViewportWidget::paintGL() {
   // Draw mesh
   vao_->bind();
 
-  if (wireframe_mode_) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  }
-
-  // Only draw faces if we have any
-  if (index_count_ > 0) {
-    glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, nullptr);
-  }
-
-  if (wireframe_mode_) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  // In wireframe mode, skip rendering filled faces (we'll use edge lines
+  // instead) This gives us proper quad edges without triangulation diagonals
+  if (!wireframe_mode_) {
+    // Only draw faces if we have any
+    if (index_count_ > 0) {
+      glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, nullptr);
+    }
   }
 
   vao_->release();
@@ -1384,7 +1380,9 @@ void ViewportWidget::extractEdgesFromMesh(const nodeflux::core::Mesh &mesh) {
 }
 
 void ViewportWidget::drawEdges() {
-  if (!show_edges_ || !edge_vao_ || edge_vertex_count_ == 0) {
+  // Draw edges if: 1) show_edges_ is enabled, OR 2) wireframe mode is enabled
+  if ((!show_edges_ && !wireframe_mode_) || !edge_vao_ ||
+      edge_vertex_count_ == 0) {
     return;
   }
 

@@ -82,7 +82,7 @@ PlaneGenerator::generate(double width, double height, int width_segments,
     }
   }
 
-  // Generate faces
+  // Generate quad faces
   for (int row = 0; row < height_segments; ++row) {
     for (int col = 0; col < width_segments; ++col) {
       const int top_left = (row * vertices_per_row) + col;
@@ -90,11 +90,8 @@ PlaneGenerator::generate(double width, double height, int width_segments,
       const int bottom_left = ((row + 1) * vertices_per_row) + col;
       const int bottom_right = bottom_left + 1;
 
-      // First triangle (top-left, bottom-left, top-right)
-      topology.add_primitive({top_left, bottom_left, top_right});
-
-      // Second triangle (top-right, bottom-left, bottom-right)
-      topology.add_primitive({top_right, bottom_left, bottom_right});
+      // Single quad (counter-clockwise winding)
+      topology.add_primitive({top_left, bottom_left, bottom_right, top_right});
     }
   }
 
