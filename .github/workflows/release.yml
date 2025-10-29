@@ -1,0 +1,193 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v0.1.0, v1.0.0-beta, etc.
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            qt6-base-dev \
+            qt6-base-dev-tools \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            python3-pip
+      
+      - name: Install Conan
+        run: |
+          pip3 install conan
+          conan profile detect --force
+      
+      - name: Configure CMake
+        run: |
+          cmake --preset=default
+      
+      - name: Build
+        run: |
+          cmake --build --preset=default --config Release
+      
+      - name: Run tests
+        run: |
+          cd build/Debug
+          ctest --output-on-failure
+      
+      - name: Package Linux release
+        run: |
+          mkdir -p nodo-linux
+          
+          # Copy binary
+          cp build/Debug/nodo_studio/nodo_studio nodo-linux/
+          
+          # Copy licenses
+          cp LICENSE nodo-linux/
+          cp THIRD_PARTY_LICENSES.txt nodo-linux/
+          
+          # Copy example projects
+          cp -r projects nodo-linux/
+          
+          # Create tarball
+          tar -czf nodo-linux-x64.tar.gz nodo-linux/
+      
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodo-linux-x64
+          path: nodo-linux-x64.tar.gz
+
+  build-windows:
+    runs-on: windows-2022
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Conan
+        run: |
+          pip install conan
+          conan profile detect --force
+      
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v2
+      
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.7.3'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          modules: 'qtbase'
+      
+      - name: Configure CMake
+        run: |
+          cmake --preset=default -G "Visual Studio 17 2022"
+      
+      - name: Build
+        run: |
+          cmake --build build --config Release
+      
+      - name: Run tests
+        run: |
+          cd build/Release
+          ctest --output-on-failure
+      
+      - name: Package Windows release
+        run: |
+          mkdir nodo-windows
+          
+          # Copy binary
+          copy build\Release\nodo_studio\nodo_studio.exe nodo-windows\
+          
+          # Copy Qt DLLs (Qt installed by action is in PATH)
+          copy $env:Qt6_DIR\bin\Qt6Core.dll nodo-windows\
+          copy $env:Qt6_DIR\bin\Qt6Gui.dll nodo-windows\
+          copy $env:Qt6_DIR\bin\Qt6Widgets.dll nodo-windows\
+          copy $env:Qt6_DIR\bin\Qt6OpenGL.dll nodo-windows\
+          copy $env:Qt6_DIR\bin\Qt6OpenGLWidgets.dll nodo-windows\
+          
+          # Copy licenses
+          copy LICENSE nodo-windows\
+          copy THIRD_PARTY_LICENSES.txt nodo-windows\
+          
+          # Copy example projects
+          xcopy projects nodo-windows\projects\ /E /I
+          
+          # Create zip
+          Compress-Archive -Path nodo-windows\* -DestinationPath nodo-windows-x64.zip
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodo-windows-x64
+          path: nodo-windows-x64.zip
+
+  create-release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nodo-linux-x64
+      
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nodo-windows-x64
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            nodo-linux-x64.tar.gz
+            nodo-windows-x64.zip
+          draft: false
+          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+          body: |
+            ## Nodo Beta Release
+            
+            **Status:** Private Beta - For Testing Only
+            
+            ### What's Included
+            - Nodo Studio application
+            - 28 working SOP nodes
+            - Example project files
+            - Licenses
+            
+            ### Installation
+            
+            **Linux:**
+            ```bash
+            tar -xzf nodo-linux-x64.tar.gz
+            cd nodo-linux
+            ./nodo_studio
+            ```
+            
+            **Windows:**
+            1. Extract `nodo-windows-x64.zip`
+            2. Double-click `nodo_studio.exe`
+            
+            ### Known Issues
+            - CPU-based implementation (GPU acceleration coming soon)
+            - Beta software - expect bugs!
+            
+            ### Feedback
+            Please report issues on the GitHub Issues page.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
