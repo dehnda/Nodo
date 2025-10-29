@@ -93,7 +93,7 @@ private:
   ErrorCallback error_callback_;
 
   // Helper methods
-  std::vector<std::shared_ptr<core::GeometryContainer>>
+  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
   gather_input_geometries(const NodeGraph &graph, int node_id);
   void notify_progress(int completed, int total);
   void notify_error(const std::string &error, int node_id);

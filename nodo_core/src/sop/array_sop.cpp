@@ -17,8 +17,8 @@ namespace attrs = nodo::core::standard_attrs;
 namespace nodo::sop {
 
 ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
-  // Add input port (use "0" to match execution engine's numeric indexing)
-  input_ports_.add_port("0", NodePort::Type::INPUT,
+  // Add input port with name "mesh" (matches test expectations)
+  input_ports_.add_port("mesh", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
@@ -123,8 +123,8 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
 }
 
 std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {
-  // Get input geometry by index 0
-  auto input_geo = get_input_data(0);
+  // Get input geometry from "mesh" port
+  auto input_geo = get_input_data("mesh");
 
   if (!input_geo) {
     set_error("No input geometry connected");

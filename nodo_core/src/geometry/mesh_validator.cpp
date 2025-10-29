@@ -155,10 +155,12 @@ bool MeshValidator::is_closed(const core::Mesh &mesh) {
   std::map<Edge, int> edge_count;
 
   // Count occurrences of each edge
+  // Handle both triangles and quads (or any n-gon)
   for (int face_idx = 0; face_idx < mesh.faces().rows(); ++face_idx) {
-    for (int edge_idx = 0; edge_idx < 3; ++edge_idx) {
+    int num_verts = mesh.faces().cols(); // 3 for triangles, 4 for quads
+    for (int edge_idx = 0; edge_idx < num_verts; ++edge_idx) {
       int vert1 = mesh.faces()(face_idx, edge_idx);
-      int vert2 = mesh.faces()(face_idx, (edge_idx + 1) % 3);
+      int vert2 = mesh.faces()(face_idx, (edge_idx + 1) % num_verts);
       Edge edge(vert1, vert2);
       edge_count[edge]++;
     }

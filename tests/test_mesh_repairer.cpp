@@ -3,7 +3,6 @@
 #include <nodo/geometry/mesh_repairer.hpp>
 #include <nodo/geometry/mesh_validator.hpp>
 
-
 using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
@@ -23,20 +22,32 @@ static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
   }
 
   // Extract faces and triangulate quads if needed
+  // Convert vertex indices to point indices
   std::vector<Eigen::Vector3i> triangle_list;
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &verts = topology.get_primitive_vertices(prim_idx);
-    if (verts.size() == 3) {
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+
+    // Convert vertex indices to point indices
+    std::vector<int> point_indices;
+    for (int vert_idx : vert_indices) {
+      point_indices.push_back(topology.get_vertex_point(vert_idx));
+    }
+
+    if (point_indices.size() == 3) {
       // Triangle - add directly
-      triangle_list.emplace_back(verts[0], verts[1], verts[2]);
-    } else if (verts.size() == 4) {
+      triangle_list.emplace_back(point_indices[0], point_indices[1],
+                                 point_indices[2]);
+    } else if (point_indices.size() == 4) {
       // Quad - triangulate (fan from first vertex)
-      triangle_list.emplace_back(verts[0], verts[1], verts[2]);
-      triangle_list.emplace_back(verts[0], verts[2], verts[3]);
-    } else if (verts.size() > 4) {
+      triangle_list.emplace_back(point_indices[0], point_indices[1],
+                                 point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[2],
+                                 point_indices[3]);
+    } else if (point_indices.size() > 4) {
       // N-gon - triangulate (fan from first vertex)
-      for (size_t i = 1; i < verts.size() - 1; ++i) {
-        triangle_list.emplace_back(verts[0], verts[i], verts[i + 1]);
+      for (size_t i = 1; i < point_indices.size() - 1; ++i) {
+        triangle_list.emplace_back(point_indices[0], point_indices[i],
+                                   point_indices[i + 1]);
       }
     }
   }

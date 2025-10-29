@@ -138,8 +138,8 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // Gather input geometries and set them on the SOP
     auto input_geometries = gather_input_geometries(graph, node_id);
-    for (size_t i = 0; i < input_geometries.size(); ++i) {
-      sop->set_input_data(static_cast<int>(i), input_geometries[i]);
+    for (const auto &[port_index, geometry] : input_geometries) {
+      sop->set_input_data(port_index, geometry);
     }
 
     // Execute the SOP (cook)
@@ -241,9 +241,10 @@ void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
   }
 }
 
-std::vector<std::shared_ptr<core::GeometryContainer>>
+std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
 ExecutionEngine::gather_input_geometries(const NodeGraph &graph, int node_id) {
-  std::vector<std::shared_ptr<core::GeometryContainer>> input_geometries;
+  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
+      input_geometries;
 
   // Get all connections that target this node
   const auto &connections = graph.get_connections();
@@ -254,7 +255,9 @@ ExecutionEngine::gather_input_geometries(const NodeGraph &graph, int node_id) {
       auto geometry_iterator = geometry_cache_.find(connection.source_node_id);
       if (geometry_iterator != geometry_cache_.end() &&
           geometry_iterator->second != nullptr) {
-        input_geometries.push_back(geometry_iterator->second);
+        // Map the target pin index to the geometry
+        input_geometries[connection.target_pin_index] =
+            geometry_iterator->second;
       }
     }
   }

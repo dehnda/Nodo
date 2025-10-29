@@ -54,8 +54,9 @@ TEST_F(NoiseDisplacementTest, GraphExecutionIntegration) {
   // Add noise displacement node
   int noise_id = node_graph.add_node(graph::NodeType::NoiseDisplacement);
 
-  // Connect sphere to noise displacement
-  node_graph.add_connection(sphere_id, noise_id, 0, 0);
+  // Connect sphere to noise displacement (source_node, source_pin, target_node,
+  // target_pin)
+  node_graph.add_connection(sphere_id, 0, noise_id, 0);
 
   // Set display node
   node_graph.set_display_node(noise_id);
