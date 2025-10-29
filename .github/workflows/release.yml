@@ -89,7 +89,9 @@ jobs:
             echo "ERROR: Conan toolchain file not found!"
             exit 1
           fi
-          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release      - name: Build
+          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build
         run: |
           cmake --build build/Debug --config Release
 
