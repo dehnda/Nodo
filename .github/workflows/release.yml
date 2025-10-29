@@ -18,6 +18,8 @@ jobs:
             build-essential \
             cmake \
             ninja-build \
+            make \
+            g++ \
             qt6-base-dev \
             qt6-base-dev-tools \
             libgl1-mesa-dev \
@@ -74,12 +76,20 @@ jobs:
       - name: Install Conan dependencies
         run: |
           conan install . --output-folder=build/Debug --build=missing -s build_type=Release -o system_qt=True
+          echo "Contents of build/Debug:"
+          ls -la build/Debug/
+          echo "Contents of build/Debug/generators:"
+          ls -la build/Debug/generators/ || echo "generators directory not found"
+          echo "Searching for conan_toolchain.cmake:"
+          find build/Debug -name "conan_toolchain.cmake" -type f || echo "No toolchain file found"
 
       - name: Configure CMake
         run: |
-          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
+          if [ ! -f build/Debug/generators/conan_toolchain.cmake ]; then
+            echo "ERROR: Conan toolchain file not found!"
+            exit 1
+          fi
+          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release      - name: Build
         run: |
           cmake --build build/Debug --config Release
 
