@@ -12,11 +12,13 @@ class NodeFluxEngineConan(ConanFile):
     # Options
     options = {
         "with_tests": [True, False],
+        "system_qt": [True, False],
     }
 
     # Default options for dependencies
     default_options = {
         "with_tests": False,
+        "system_qt": False,
         "boost/*:without_test": True,
         "gtest/*:shared": False,
         "qt/*:shared": True,
@@ -60,8 +62,9 @@ class NodeFluxEngineConan(ConanFile):
         # Expression evaluation for WrangleSOP (header-only, MIT license)
         self.requires("exprtk/0.0.2")
 
-        # Qt for UI
-        self.requires("qt/6.7.0")
+        # Qt for UI (skip if using system Qt)
+        if not self.options.system_qt:
+            self.requires("qt/6.7.0")
 
         # Testing
         self.requires("gtest/1.14.0")
