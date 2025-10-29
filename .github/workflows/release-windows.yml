@@ -17,10 +17,12 @@ jobs:
         run: |
           pip install conan
           conan profile detect --force
+          # Set C++20 standard in the profile
+          conan profile show default
 
       - name: Install Conan dependencies
         run: |
-          conan install . --output-folder=build/Release --build=missing -s build_type=Release -o system_qt=False
+          conan install . --output-folder=build/Release --build=missing -s build_type=Release -s compiler.cppstd=20 -o system_qt=False
           echo "Contents of build/Release:"
           dir build\Release
           echo "Searching for conan_toolchain.cmake:"
