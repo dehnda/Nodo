@@ -62,7 +62,9 @@ jobs:
             libxcb-present-dev \
             libxcb-composite0-dev \
             libxcb-ewmh-dev \
-            libxcb-res0-dev
+            libxcb-res0-dev \
+            libxcb-util-dev \
+            libxcb-util0-dev
 
       - name: Install Conan
         run: |
