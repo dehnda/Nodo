@@ -1,13 +1,14 @@
 #pragma once
 
-#include <QGraphicsItem>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QWidget>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPainter>
+#include <QtWidgets/QGraphicsItem>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QWidget>
 #include <memory>
 #include <unordered_map>
+
 
 // Forward declarations and includes
 namespace nodo::graph {
