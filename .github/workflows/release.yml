@@ -32,6 +32,10 @@ jobs:
           pip3 install conan
           conan profile detect --force
       
+      - name: Install Conan dependencies
+        run: |
+          conan install . --output-folder=build/Debug --build=missing -s build_type=Release
+      
       - name: Configure CMake
         run: |
           cmake --preset=default
@@ -43,14 +47,18 @@ jobs:
       - name: Run tests
         run: |
           cd build/Debug
-          ctest --output-on-failure
+          ctest --output-on-failure -C Release
       
       - name: Package Linux release
         run: |
           mkdir -p nodo-linux
           
-          # Copy binary
-          cp build/Debug/nodo_studio/nodo_studio nodo-linux/
+          # Copy binary (check both possible locations)
+          if [ -f build/Debug/nodo_studio/nodo_studio ]; then
+            cp build/Debug/nodo_studio/nodo_studio nodo-linux/
+          elif [ -f build/Release/nodo_studio/nodo_studio ]; then
+            cp build/Release/nodo_studio/nodo_studio nodo-linux/
+          fi
           
           # Copy licenses
           cp LICENSE nodo-linux/
@@ -80,6 +88,10 @@ jobs:
           pip install conan
           conan profile detect --force
       
+      - name: Install Conan dependencies
+        run: |
+          conan install . --output-folder=build/Release --build=missing -s build_type=Release
+      
       - name: Setup MSVC
         uses: microsoft/setup-msbuild@v2
       
@@ -103,14 +115,18 @@ jobs:
       - name: Run tests
         run: |
           cd build/Release
-          ctest --output-on-failure
+          ctest --output-on-failure -C Release
       
       - name: Package Windows release
         run: |
           mkdir nodo-windows
           
-          # Copy binary
-          copy build\Release\nodo_studio\nodo_studio.exe nodo-windows\
+          # Copy binary (check both possible locations)
+          if (Test-Path "build\Release\nodo_studio\nodo_studio.exe") {
+            copy build\Release\nodo_studio\nodo_studio.exe nodo-windows\
+          } elseif (Test-Path "build\Debug\nodo_studio\Release\nodo_studio.exe") {
+            copy build\Debug\nodo_studio\Release\nodo_studio.exe nodo-windows\
+          }
           
           # Copy Qt DLLs (Qt installed by action is in PATH)
           copy $env:Qt6_DIR\bin\Qt6Core.dll nodo-windows\
