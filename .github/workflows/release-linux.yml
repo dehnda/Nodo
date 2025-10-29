@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release (Linux)
 
 on:
   workflow_dispatch:  # Only allows manual trigger from GitHub UI (disabled auto-trigger for now)
@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -98,7 +98,7 @@ jobs:
           fi
           echo "Found toolchain at: $TOOLCHAIN"
           cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DCMAKE_BUILD_TYPE=Release
-      
+
       - name: Build
         run: |
           cmake --build build/Debug --config Release
@@ -135,12 +135,6 @@ jobs:
           name: nodo-linux-x64
           path: nodo-linux-x64.tar.gz
 
-  # Windows build disabled for now - focus on Linux first
-  # build-windows:
-  #   runs-on: windows-2022
-  #   steps:
-  #     ...
-
   create-release:
     needs: [build-linux]
     runs-on: ubuntu-latest
@@ -160,7 +154,7 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
           body: |
-            ## Nodo Beta Release
+            ## Nodo Beta Release (Linux)
 
             **Status:** Private Beta - For Testing Only
 
@@ -178,8 +172,6 @@ jobs:
             cd nodo-linux
             ./nodo_studio
             ```
-
-            **Windows:** Coming soon!
 
             ### Known Issues
             - CPU-based implementation (GPU acceleration coming soon)

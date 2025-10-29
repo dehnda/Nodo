@@ -5,71 +5,90 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          cmake \
-          pkg-config \
-          libgl1-mesa-dev \
-          libglu1-mesa-dev \
-          libxrandr-dev \
-          libxinerama-dev \
-          libxcursor-dev \
-          libxi-dev \
-          libglfw3-dev \
-          python3-pip
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            pkg-config \
+            python3-pip \
+            qt6-base-dev \
+            libqt6svg6-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libx11-dev \
+            libxext-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxrender-dev \
+            libxcb1-dev \
+            libxcb-glx0-dev \
+            libxcb-keysyms1-dev \
+            libxcb-image0-dev \
+            libxcb-shm0-dev \
+            libxcb-icccm4-dev \
+            libxcb-sync-dev \
+            libxcb-xfixes0-dev \
+            libxcb-shape0-dev \
+            libxcb-randr0-dev \
+            libxcb-render-util0-dev \
+            libxcb-util-dev \
+            libxcb-xinerama0-dev \
+            libxcb-xkb-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev
 
-    - name: Install Conan
-      run: |
-        pip3 install conan==2.*
-        conan profile detect --force
+      - name: Install Conan
+        run: |
+          pip3 install conan
+          conan profile detect --force
 
-    - name: Cache Conan packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.conan2
-        key: conan-${{ runner.os }}-${{ hashFiles('conanfile.txt') }}
-        restore-keys: |
-          conan-${{ runner.os }}-
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2
+          key: conan-${{ runner.os }}-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            conan-${{ runner.os }}-
 
-    - name: Install dependencies with Conan
-      run: |
-        conan install . --output-folder=build --build=missing
+      - name: Install Conan dependencies
+        run: |
+          conan install . --output-folder=build/Debug --build=missing -s build_type=Debug -o system_qt=True
 
-    - name: Configure CMake
-      run: |
-        cmake --preset conan-debug
+      - name: Configure CMake
+        run: |
+          TOOLCHAIN=$(find build/Debug -name "conan_toolchain.cmake" -type f | head -1)
+          if [ -z "$TOOLCHAIN" ]; then
+            echo "Error: Conan toolchain file not found!"
+            exit 1
+          fi
+          echo "Found toolchain at: $TOOLCHAIN"
+          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DCMAKE_BUILD_TYPE=Debug
 
-    - name: Build
-      run: |
-        cmake --build build --parallel
+      - name: Build
+        run: |
+          cmake --build build/Debug --config Debug --parallel
 
-    - name: Run tests
-      run: |
-        cd build
-        ctest --output-on-failure --verbose
+      - name: Run tests
+        run: |
+          cd build/Debug
+          ctest --output-on-failure --verbose -C Debug
 
-    - name: Run specific test binary (fallback)
-      if: failure()
-      run: |
-        cd build
-        if [ -f "tests/nodeflux_tests" ]; then
-          ./tests/nodeflux_tests --gtest_output=xml:test_results.xml
-        fi
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: build/test_results.xml
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: build/Debug/Testing/Temporary/LastTest.log

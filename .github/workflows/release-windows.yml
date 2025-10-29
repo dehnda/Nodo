@@ -1,0 +1,135 @@
+name: Build and Release (Windows)
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Conan
+        run: |
+          pip install conan
+          conan profile detect --force
+
+      - name: Install Conan dependencies
+        run: |
+          conan install . --output-folder=build/Release --build=missing -s build_type=Release -o system_qt=False
+          echo "Contents of build/Release:"
+          dir build\Release
+          echo "Searching for conan_toolchain.cmake:"
+          dir build\Release\generators\conan_toolchain.cmake
+
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure CMake
+        run: |
+          $TOOLCHAIN = (Get-ChildItem -Path build\Release -Filter conan_toolchain.cmake -Recurse | Select-Object -First 1).FullName
+          if (-not $TOOLCHAIN) {
+            Write-Error "Conan toolchain file not found!"
+            exit 1
+          }
+          Write-Host "Found toolchain at: $TOOLCHAIN"
+          cmake -S . -B build/Release -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022"
+
+      - name: Build
+        run: |
+          cmake --build build/Release --config Release
+
+      - name: Run tests
+        run: |
+          cd build/Release
+          ctest --output-on-failure -C Release
+
+      - name: Package Windows release
+        run: |
+          mkdir nodo-windows
+
+          # Copy binary (check possible locations)
+          if (Test-Path "build\Release\nodo_studio\Release\nodo_studio.exe") {
+            copy build\Release\nodo_studio\Release\nodo_studio.exe nodo-windows\
+          } elseif (Test-Path "build\Release\nodo_studio\nodo_studio.exe") {
+            copy build\Release\nodo_studio\nodo_studio.exe nodo-windows\
+          }
+
+          # Copy Qt DLLs from Conan build
+          $QT_BIN = (Get-ChildItem -Path build\Release -Filter Qt6Core.dll -Recurse | Select-Object -First 1).DirectoryName
+          if ($QT_BIN) {
+            Write-Host "Found Qt DLLs at: $QT_BIN"
+            copy "$QT_BIN\Qt6Core.dll" nodo-windows\
+            copy "$QT_BIN\Qt6Gui.dll" nodo-windows\
+            copy "$QT_BIN\Qt6Widgets.dll" nodo-windows\
+            copy "$QT_BIN\Qt6OpenGL.dll" nodo-windows\ -ErrorAction SilentlyContinue
+            copy "$QT_BIN\Qt6OpenGLWidgets.dll" nodo-windows\ -ErrorAction SilentlyContinue
+            copy "$QT_BIN\Qt6Svg.dll" nodo-windows\ -ErrorAction SilentlyContinue
+          }
+
+          # Copy Visual C++ Runtime (if needed)
+          # Usually bundled with Qt or in system, but let's be safe
+
+          # Copy licenses
+          copy LICENSE nodo-windows\
+          copy THIRD_PARTY_LICENSES.txt nodo-windows\
+
+          # Copy example projects
+          xcopy projects nodo-windows\projects\ /E /I
+
+          # Create zip
+          Compress-Archive -Path nodo-windows\* -DestinationPath nodo-windows-x64.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodo-windows-x64
+          path: nodo-windows-x64.zip
+
+  create-release:
+    needs: [build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nodo-windows-x64
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            nodo-windows-x64.zip
+          draft: false
+          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+          body: |
+            ## Nodo Beta Release (Windows)
+
+            **Status:** Private Beta - For Testing Only
+
+            ### What's Included
+            - Nodo Studio application
+            - 28 working SOP nodes
+            - Example project files
+            - Licenses
+
+            ### Installation
+
+            **Windows:**
+            1. Extract `nodo-windows-x64.zip`
+            2. Double-click `nodo_studio.exe`
+
+            ### Known Issues
+            - CPU-based implementation (GPU acceleration coming soon)
+            - Beta software - expect bugs!
+
+            ### Feedback
+            Please report issues on the GitHub Issues page.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
