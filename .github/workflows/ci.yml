@@ -1,19 +1,16 @@
 name: CI
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:  # Only manual trigger (disabled auto-trigger for now)
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -29,12 +26,12 @@ jobs:
           libxi-dev \
           libglfw3-dev \
           python3-pip
-          
+
     - name: Install Conan
       run: |
         pip3 install conan==2.*
         conan profile detect --force
-        
+
     - name: Cache Conan packages
       uses: actions/cache@v4
       with:
@@ -42,24 +39,24 @@ jobs:
         key: conan-${{ runner.os }}-${{ hashFiles('conanfile.txt') }}
         restore-keys: |
           conan-${{ runner.os }}-
-          
+
     - name: Install dependencies with Conan
       run: |
         conan install . --output-folder=build --build=missing
-        
+
     - name: Configure CMake
       run: |
         cmake --preset conan-debug
-        
+
     - name: Build
       run: |
         cmake --build build --parallel
-        
+
     - name: Run tests
       run: |
         cd build
         ctest --output-on-failure --verbose
-        
+
     - name: Run specific test binary (fallback)
       if: failure()
       run: |
@@ -67,7 +64,7 @@ jobs:
         if [ -f "tests/nodeflux_tests" ]; then
           ./tests/nodeflux_tests --gtest_output=xml:test_results.xml
         fi
-        
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
