@@ -22,6 +22,7 @@ jobs:
             g++ \
             qt6-base-dev \
             qt6-base-dev-tools \
+            qt6-svg-dev \
             libgl1-mesa-dev \
             libglu1-mesa-dev \
             python3-pip \
