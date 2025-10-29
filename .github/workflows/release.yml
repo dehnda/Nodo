@@ -38,11 +38,11 @@ jobs:
       
       - name: Configure CMake
         run: |
-          cmake --preset=default
+          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
       
       - name: Build
         run: |
-          cmake --build --preset=default --config Release
+          cmake --build build/Debug --config Release
       
       - name: Run tests
         run: |
@@ -106,11 +106,11 @@ jobs:
       
       - name: Configure CMake
         run: |
-          cmake --preset=default -G "Visual Studio 17 2022"
+          cmake -S . -B build/Release -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022"
       
       - name: Build
         run: |
-          cmake --build build --config Release
+          cmake --build build/Release --config Release
       
       - name: Run tests
         run: |
