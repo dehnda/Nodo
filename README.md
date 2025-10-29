@@ -186,8 +186,12 @@ All comprehensive documentation is consolidated in **[CLAUDE.md](CLAUDE.md)**:
 
 ## 🤝 Contributing
 
-NodeFluxEngine is actively developed. See the roadmap for current priorities and feel free to contribute!
+Nodo is currently proprietary software. For collaboration opportunities or feature requests, please contact the developer.
 
 ## 📄 License
 
-MIT License
+Proprietary Software - All Rights Reserved
+Copyright (c) 2025 Daniel Dehne
+
+This is proprietary software. See LICENSE file for terms of use.
+Third-party components used under their respective licenses (see THIRD_PARTY_LICENSES.txt).
