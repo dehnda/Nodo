@@ -1480,9 +1480,9 @@ void NodeGraphWidget::draw_watermark_logo(QPainter *painter,
 
   // Fixed logo size and padding in screen pixels (independent of zoom) - Made
   // bigger and bolder
-  constexpr float LOGO_MAX_WIDTH = 300.0F; // Increased from 200
-  constexpr float LOGO_MAX_HEIGHT = 90.0F; // Increased from 60
-  constexpr float PADDING = 30.0F;         // Increased padding slightly
+  constexpr float LOGO_MAX_WIDTH = 400.0F;
+  constexpr float LOGO_MAX_HEIGHT = 100.0F;
+  constexpr float PADDING = 15.0F;
 
   QSize logo_size = logo_renderer.defaultSize();
   float scale_x = LOGO_MAX_WIDTH / logo_size.width();
@@ -1493,7 +1493,7 @@ void NodeGraphWidget::draw_watermark_logo(QPainter *painter,
   float logo_height = logo_size.height() * scale;
 
   // Position in bottom right corner of the viewport (screen coordinates)
-  float logo_x = viewport.right() - logo_width - PADDING;
+  float logo_x = viewport.right() - logo_width - PADDING + 50.0F;
   float logo_y = viewport.bottom() - logo_height - PADDING;
 
   QRectF logo_rect(logo_x, logo_y, logo_width, logo_height);

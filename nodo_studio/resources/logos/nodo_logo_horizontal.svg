@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- NODO Horizontal Lockup - For headers, website banners, etc. -->
-<svg width="600" height="200" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+<svg width="410" height="120" viewBox="0 0 410 120" xmlns="http://www.w3.org/2000/svg">
   <!-- Background (transparent for web use) -->
-  <rect width="600" height="200" fill="transparent"/>
+  <rect width="410" height="120" fill="transparent"/>
 
   <!-- Icon on left -->
-  <g id="icon" transform="translate(50, 100)">
+  <g id="icon" transform="translate(60, 60)">
     <!-- Central node -->
     <circle cx="0" cy="0" r="12" fill="#FF6B4A"/>
 
@@ -38,20 +38,20 @@
   </g>
 
   <!-- Text: NODO -->
-  <text x="170" y="125"
+  <text x="140" y="75"
         font-family="Arial, Helvetica, sans-serif"
-        font-size="80"
+        font-size="60"
         font-weight="600"
         fill="#E8E8F0"
-        letter-spacing="8">NODO</text>
+        letter-spacing="6">NODO</text>
 
   <!-- Tagline -->
-  <text x="170" y="150"
+  <text x="140" y="95"
         font-family="Arial, Helvetica, sans-serif"
-        font-size="14"
+        font-size="11"
         font-weight="400"
         fill="#808090"
-        letter-spacing="3">CONNECTED CREATION</text>
+        letter-spacing="2.5">CONNECTED CREATION</text>
 
   <!-- Gradients -->
   <defs>
