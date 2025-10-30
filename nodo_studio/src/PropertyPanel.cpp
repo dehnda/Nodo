@@ -13,9 +13,21 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
+#include <QTimer>
 #include <iostream>
 
 PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
+
+  // Initialize throttle timer for slider updates
+  slider_update_timer_ = new QTimer(this);
+  slider_update_timer_->setSingleShot(true);
+  slider_update_timer_->setInterval(150); // Update every 150ms during drag
+  connect(slider_update_timer_, &QTimer::timeout, this, [this]() {
+    if (has_pending_update_ && pending_slider_callback_) {
+      pending_slider_callback_();
+      has_pending_update_ = false;
+    }
+  });
 
   // Create main layout
   auto *main_layout = new QVBoxLayout(this);
@@ -248,9 +260,29 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
           &QSlider::setValue);
   connect(slider, &QSlider::valueChanged, spinbox, &QSpinBox::setValue);
 
-  // Call callback only when slider is released (not during drag)
-  connect(slider, &QSlider::sliderReleased,
-          [spinbox, callback]() { callback(spinbox->value()); });
+  // Throttled callback during slider drag - updates periodically
+  connect(slider, &QSlider::valueChanged, [this, spinbox, callback](int) {
+    if (slider_update_timer_->isActive()) {
+      // Timer is running, just update the pending callback
+      has_pending_update_ = true;
+      pending_slider_callback_ = [spinbox, callback]() {
+        callback(spinbox->value());
+      };
+    } else {
+      // Start the timer and immediately execute once
+      callback(spinbox->value());
+      has_pending_update_ = false;
+      slider_update_timer_->start();
+    }
+  });
+
+  // Final callback when slider is released
+  connect(slider, &QSlider::sliderReleased, [this, spinbox, callback]() {
+    // Stop timer and execute final update
+    slider_update_timer_->stop();
+    has_pending_update_ = false;
+    callback(spinbox->value());
+  });
 
   // Connect spinbox to callback only when editing is finished
   connect(spinbox, &QSpinBox::editingFinished,
@@ -357,9 +389,29 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
     spinbox->blockSignals(false);
   });
 
-  // Call callback only when slider is released (not during drag)
-  connect(slider, &QSlider::sliderReleased,
-          [spinbox, callback]() { callback(spinbox->value()); });
+  // Throttled callback during slider drag - updates periodically
+  connect(slider, &QSlider::valueChanged, [this, spinbox, callback](int) {
+    if (slider_update_timer_->isActive()) {
+      // Timer is running, just update the pending callback
+      has_pending_update_ = true;
+      pending_slider_callback_ = [spinbox, callback]() {
+        callback(spinbox->value());
+      };
+    } else {
+      // Start the timer and immediately execute once
+      callback(spinbox->value());
+      has_pending_update_ = false;
+      slider_update_timer_->start();
+    }
+  });
+
+  // Final callback when slider is released
+  connect(slider, &QSlider::sliderReleased, [this, spinbox, callback]() {
+    // Stop timer and execute final update
+    slider_update_timer_->stop();
+    has_pending_update_ = false;
+    callback(spinbox->value());
+  });
 
   // Connect spinbox to callback only when editing is finished
   connect(spinbox, &QDoubleSpinBox::editingFinished,
@@ -1575,8 +1627,7 @@ void PropertyPanel::buildResampleParameters(nodo::graph::GraphNode *node) {
       });
 }
 
-void PropertyPanel::buildPolyExtrudeParameters(
-    nodo::graph::GraphNode *node) {
+void PropertyPanel::buildPolyExtrudeParameters(nodo::graph::GraphNode *node) {
   using namespace nodo::graph;
 
   addHeader("Poly Extrude");
@@ -1680,8 +1731,7 @@ void PropertyPanel::buildScatterParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildCopyToPointsParameters(
-    nodo::graph::GraphNode *node) {
+void PropertyPanel::buildCopyToPointsParameters(nodo::graph::GraphNode *node) {
   using namespace nodo::graph;
 
   addHeader("Copy to Points");

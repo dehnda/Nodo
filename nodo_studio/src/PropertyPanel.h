@@ -2,8 +2,10 @@
 
 #include <QLabel>
 #include <QScrollArea>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <functional>
 #include <memory>
 
 // Forward declare node classes
@@ -32,9 +34,7 @@ public:
   void clearProperties();
 
   // Get the currently displayed node
-  nodo::graph::GraphNode *getCurrentNode() const {
-    return current_graph_node_;
-  }
+  nodo::graph::GraphNode *getCurrentNode() const { return current_graph_node_; }
 
 signals:
   // Emitted when a parameter changes
@@ -55,6 +55,11 @@ private:
   nodo::graph::GraphNode *current_graph_node_ = nullptr;
   nodo::graph::NodeGraph *current_graph_ = nullptr;
 
+  // Throttle mechanism for slider updates
+  QTimer *slider_update_timer_ = nullptr;
+  std::function<void()> pending_slider_callback_;
+  bool has_pending_update_ = false;
+
   // Helper methods for building UI
   void clearLayout();
   void addSeparator();
@@ -67,8 +72,7 @@ private:
                           double max, std::function<void(double)> callback);
   void addBoolParameter(const QString &label, bool value,
                         std::function<void(bool)> callback);
-  void addButtonParameter(const QString &label,
-                          std::function<void()> callback);
+  void addButtonParameter(const QString &label, std::function<void()> callback);
   void addStringParameter(const QString &label, const QString &value,
                           std::function<void(const QString &)> callback);
   void addFilePathParameter(const QString &label, const QString &value,
