@@ -86,6 +86,12 @@ public:
   }
   bool is_locked() const { return lock_flag_; }
 
+  void set_wireframe_flag(bool flag) {
+    wireframe_flag_ = flag;
+    update();
+  }
+  bool has_wireframe_flag() const { return wireframe_flag_; }
+
   // Compact mode
   void set_compact_mode(bool compact) {
     compact_mode_ = compact;
@@ -142,6 +148,7 @@ private:
   bool has_error_flag_ = false;
   bool bypass_flag_ = false;
   bool lock_flag_ = false;
+  bool wireframe_flag_ = false;
   bool compact_mode_ = false;
 
   // Performance stats
@@ -277,6 +284,9 @@ public:
   // Called by NodeGraphicsItem when display button is clicked
   void on_node_display_flag_changed(int node_id, bool display_flag);
 
+  // Called by NodeGraphicsItem when wireframe button is clicked
+  void on_node_wireframe_flag_changed(int node_id, bool wireframe_flag);
+
 signals:
   void node_selected(int node_id);
   void node_double_clicked(int node_id);
@@ -287,6 +297,7 @@ signals:
   void selection_changed();
   void node_created(int node_id);
   void node_display_flag_changed(int node_id, bool display_flag);
+  void node_wireframe_flag_changed(int node_id, bool wireframe_flag);
 
 protected:
   bool event(QEvent *event) override;

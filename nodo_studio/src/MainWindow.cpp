@@ -278,6 +278,8 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onNodeSelectionChanged);
   connect(node_graph_widget_, &NodeGraphWidget::node_display_flag_changed, this,
           &MainWindow::onNodeDisplayFlagChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_wireframe_flag_changed,
+          this, &MainWindow::onNodeWireframeFlagChanged);
 
   // Add node graph to the right of viewport
   splitDockWidget(viewport_dock_, node_graph_dock_, Qt::Horizontal);
@@ -720,6 +722,41 @@ void MainWindow::onNodeDisplayFlagChanged(int node_id, bool display_flag) {
   }
   // If display flag is turned off, we don't change the viewport
   // (it keeps showing whatever was displayed before)
+}
+
+void MainWindow::onNodeWireframeFlagChanged(int node_id, bool wireframe_flag) {
+  if (!wireframe_flag) {
+    // Wireframe turned off - remove this node's wireframe overlay
+    viewport_widget_->removeWireframeOverlay(node_id);
+    qDebug() << "Wireframe disabled for node" << node_id;
+    return;
+  }
+
+  // Wireframe turned on - execute and show this node's geometry in wireframe
+  if (node_graph_ == nullptr || execution_engine_ == nullptr) {
+    return;
+  }
+
+  // Execute the entire graph to get this node's geometry
+  bool success = execution_engine_->execute_graph(*node_graph_);
+
+  if (success) {
+    // Get the geometry result for this specific node
+    auto geometry = execution_engine_->get_node_geometry(node_id);
+
+    qDebug() << "MainWindow::onNodeWireframeFlagChanged - node_id:" << node_id
+             << "geometry:" << (geometry ? "found" : "NULL");
+
+    if (geometry) {
+      qDebug() << "Wireframe geometry has" << geometry->point_count()
+               << "points and" << geometry->primitive_count() << "primitives";
+
+      // Add this geometry as a wireframe overlay to the viewport
+      viewport_widget_->addWireframeOverlay(node_id, *geometry);
+
+      qDebug() << "Wireframe overlay added to viewport for node" << node_id;
+    }
+  }
 }
 
 void MainWindow::updateDisplayFlagVisuals() {

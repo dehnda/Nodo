@@ -37,7 +37,7 @@ NodeGraphicsItem::NodeGraphicsItem(int node_id, const QString &node_name,
 }
 
 QRectF NodeGraphicsItem::boundingRect() const {
-  // Add some padding for selection outline
+  // Add some padding for selection outline and pins
   constexpr float PADDING = 4.0F;
   float height = getTotalHeight();
 
@@ -48,8 +48,13 @@ QRectF NodeGraphicsItem::boundingRect() const {
         BUTTON_TOOLBAR_WIDTH + 8.0F; // 4px gap + toolbar + 4px padding
   }
 
-  return QRectF(-PADDING, -PADDING, total_width + 2.0F * PADDING,
-                height + 2.0F * PADDING);
+  // Extend bounding rect to include pins (which are offset by PIN_RADIUS
+  // outside node)
+  float top_offset = PIN_RADIUS + PADDING;    // Include input pins above node
+  float bottom_offset = PIN_RADIUS + PADDING; // Include output pins below node
+
+  return QRectF(-PADDING, -top_offset, total_width + 2.0F * PADDING,
+                height + top_offset + bottom_offset);
 }
 
 QColor NodeGraphicsItem::getNodeColor() const {
@@ -151,16 +156,19 @@ void NodeGraphicsItem::paint(QPainter *painter,
     drawButtonToolbar(painter);
   }
 
-  // Draw input pins (at top) - orange/coral color like screenshot
-  painter->setPen(QPen(QColor(35, 35, 40), 2.0)); // Border
-  painter->setBrush(QColor(255, 140, 90));        // Orange/coral
+  // Get node type color for pins
+  QColor pin_color = getNodeColor();
+
+  // Draw input pins (at top) - match node color theme
+  painter->setPen(QPen(QColor(20, 20, 25), 2.0)); // Dark border
+  painter->setBrush(pin_color);
   for (int i = 0; i < input_count_; ++i) {
     QPointF pin_pos = get_input_pin_pos(i);
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
   }
 
-  // Draw output pins (at bottom) - orange/coral color
-  painter->setBrush(QColor(255, 140, 90)); // Orange/coral
+  // Draw output pins (at bottom) - match node color theme
+  painter->setBrush(pin_color);
   for (int i = 0; i < output_count_; ++i) {
     QPointF pin_pos = get_output_pin_pos(i);
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
@@ -168,21 +176,21 @@ void NodeGraphicsItem::paint(QPainter *painter,
 }
 
 QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
-  // Vertical flow: input pins at TOP
+  // Vertical flow: input pins at TOP, offset above the node
   const float center_x = NODE_WIDTH / 2.0F;
   const float offset =
       static_cast<float>(index) - (static_cast<float>(input_count_ - 1) / 2.0F);
   const float x = center_x + (offset * PIN_SPACING);
-  return QPointF(x, 0);
+  return QPointF(x, -PIN_RADIUS); // Position above node edge
 }
 
 QPointF NodeGraphicsItem::get_output_pin_pos(int index) const {
-  // Vertical flow: output pins at BOTTOM
+  // Vertical flow: output pins at BOTTOM, offset below the node
   const float center_x = NODE_WIDTH / 2.0F;
   const float offset = static_cast<float>(index) -
                        (static_cast<float>(output_count_ - 1) / 2.0F);
   const float x = center_x + (offset * PIN_SPACING);
-  return QPointF(x, getTotalHeight());
+  return QPointF(x, getTotalHeight() + PIN_RADIUS); // Position below node edge
 }
 
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
@@ -228,10 +236,23 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
         }
         button_y += BUTTON_SIZE + BUTTON_SPACING;
 
-        // Wireframe button (WIRE) - bypass flag
+        // Wireframe button (WIRE) - toggles wireframe preview
         if (isClickedButton(button_y)) {
-          bypass_flag_ = !bypass_flag_;
+          wireframe_flag_ = !wireframe_flag_;
           update();
+
+          // Notify the widget about wireframe flag change
+          if (scene()) {
+            for (QGraphicsView *view : scene()->views()) {
+              NodeGraphWidget *widget = qobject_cast<NodeGraphWidget *>(view);
+              if (widget) {
+                widget->on_node_wireframe_flag_changed(node_id_,
+                                                       wireframe_flag_);
+                break;
+              }
+            }
+          }
+
           event->accept();
           return;
         }
@@ -459,8 +480,9 @@ void NodeGraphicsItem::drawButtonToolbar(QPainter *painter) {
              nodo_studio::IconManager::Icon::Eye);
   button_y += BUTTON_SIZE + BUTTON_SPACING;
 
-  // Wireframe button (WIRE) - represented by bypass flag
-  drawButton(button_y, bypass_flag_, QColor(100, 100, 110),
+  // Wireframe button (WIRE) - shows node geometry in wireframe (yellow/gold
+  // when active)
+  drawButton(button_y, wireframe_flag_, QColor(255, 204, 0),
              nodo_studio::IconManager::Icon::Wireframe);
   button_y += BUTTON_SIZE + BUTTON_SPACING;
 
@@ -1521,6 +1543,12 @@ void NodeGraphWidget::on_node_display_flag_changed(int node_id,
                                                    bool display_flag) {
   // Emit signal so MainWindow can update the viewport
   emit node_display_flag_changed(node_id, display_flag);
+}
+
+void NodeGraphWidget::on_node_wireframe_flag_changed(int node_id,
+                                                     bool wireframe_flag) {
+  // Emit signal so MainWindow can update the viewport with wireframe overlay
+  emit node_wireframe_flag_changed(node_id, wireframe_flag);
 }
 
 void NodeGraphWidget::on_node_menu_selected(const QString &type_id) {

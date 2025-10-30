@@ -37,6 +37,12 @@ public:
   // Set the geometry to display
   void setGeometry(const nodo::core::GeometryContainer &geometry);
 
+  // Wireframe overlay management
+  void addWireframeOverlay(int node_id,
+                           const nodo::core::GeometryContainer &geometry);
+  void removeWireframeOverlay(int node_id);
+  void clearWireframeOverlays();
+
   void clearMesh();
 
   // Camera controls
@@ -116,6 +122,15 @@ private:
   std::shared_ptr<nodo::core::GeometryContainer>
       current_geometry_; // Store for normal visualization
 
+  // Wireframe overlay storage (node_id -> geometry)
+  struct WireframeOverlay {
+    std::shared_ptr<nodo::core::GeometryContainer> geometry;
+    std::unique_ptr<QOpenGLVertexArrayObject> vao;
+    std::unique_ptr<QOpenGLBuffer> vertex_buffer;
+    int vertex_count = 0;
+  };
+  std::map<int, std::unique_ptr<WireframeOverlay>> wireframe_overlays_;
+
   // Camera state
   QMatrix4x4 projection_matrix_;
   QMatrix4x4 view_matrix_;
@@ -161,8 +176,7 @@ private:
   void setupAxes();
   void updateCamera();
   void calculateMeshBounds(const nodo::core::Mesh &mesh);
-  void
-  extractEdgesFromGeometry(const nodo::core::GeometryContainer &geometry);
+  void extractEdgesFromGeometry(const nodo::core::GeometryContainer &geometry);
   void extractEdgesFromMesh(const nodo::core::Mesh &mesh);
   void drawNormals();
   void drawVertexNormals();
@@ -171,4 +185,5 @@ private:
   void drawAxes();
   void drawEdges();
   void drawVertices();
+  void drawWireframeOverlays();
 };

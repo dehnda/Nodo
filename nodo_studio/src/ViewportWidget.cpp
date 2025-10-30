@@ -169,9 +169,8 @@ void ViewportWidget::setGeometry(
   makeCurrent();
 
   // Get positions from "P" attribute
-  const auto *positions =
-      geometry.get_point_attribute_typed<nodo::core::Vec3f>(
-          nodo::core::standard_attrs::P);
+  const auto *positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
+      nodo::core::standard_attrs::P);
   if (positions == nullptr) {
     clearMesh();
     doneCurrent();
@@ -580,6 +579,96 @@ void ViewportWidget::clearMesh() {
   update();
 }
 
+void ViewportWidget::addWireframeOverlay(
+    int node_id, const nodo::core::GeometryContainer &geometry) {
+  makeCurrent();
+
+  // Get positions from "P" attribute
+  const auto *positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
+      nodo::core::standard_attrs::P);
+  if (positions == nullptr) {
+    doneCurrent();
+    return;
+  }
+
+  const auto &pos_values = positions->values();
+  const auto &topology = geometry.topology();
+
+  // Build wireframe edge data
+  std::vector<float> edge_vertex_data;
+
+  // Process polygon primitives to extract edges
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto vertex_indices = topology.get_primitive_vertices(prim_idx);
+    const size_t num_vertices = vertex_indices.size();
+
+    // For each edge in the polygon
+    for (size_t i = 0; i < num_vertices; ++i) {
+      const size_t next_i = (i + 1) % num_vertices;
+      const size_t v1_idx = vertex_indices[i];
+      const size_t v2_idx = vertex_indices[next_i];
+
+      const auto &p1 = pos_values[v1_idx];
+      const auto &p2 = pos_values[v2_idx];
+
+      // Add edge as two vertices (line segment)
+      edge_vertex_data.push_back(p1.x());
+      edge_vertex_data.push_back(p1.y());
+      edge_vertex_data.push_back(p1.z());
+
+      edge_vertex_data.push_back(p2.x());
+      edge_vertex_data.push_back(p2.y());
+      edge_vertex_data.push_back(p2.z());
+    }
+  }
+
+  if (edge_vertex_data.empty()) {
+    doneCurrent();
+    return;
+  }
+
+  // Create or update overlay
+  auto overlay = std::make_unique<WireframeOverlay>();
+  overlay->geometry =
+      std::make_shared<nodo::core::GeometryContainer>(geometry.clone());
+  overlay->vao = std::make_unique<QOpenGLVertexArrayObject>();
+  overlay->vertex_buffer =
+      std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+  overlay->vertex_count = static_cast<int>(edge_vertex_data.size() / 3);
+
+  overlay->vao->create();
+  overlay->vao->bind();
+
+  overlay->vertex_buffer->create();
+  overlay->vertex_buffer->bind();
+  overlay->vertex_buffer->allocate(
+      edge_vertex_data.data(),
+      static_cast<int>(edge_vertex_data.size() * sizeof(float)));
+
+  // Setup vertex attributes
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+  overlay->vao->release();
+  overlay->vertex_buffer->release();
+
+  // Store overlay
+  wireframe_overlays_[node_id] = std::move(overlay);
+
+  doneCurrent();
+  update();
+}
+
+void ViewportWidget::removeWireframeOverlay(int node_id) {
+  wireframe_overlays_.erase(node_id);
+  update();
+}
+
+void ViewportWidget::clearWireframeOverlays() {
+  wireframe_overlays_.clear();
+  update();
+}
+
 void ViewportWidget::resetCamera() {
   camera_distance_ = 5.0F;
   camera_rotation_ = QVector3D(-30.0F, 45.0F, 0.0F);
@@ -781,6 +870,11 @@ void ViewportWidget::paintGL() {
 
   if (show_vertices_ || is_point_cloud) {
     drawVertices();
+  }
+
+  // Draw wireframe overlays on top of everything
+  if (!wireframe_overlays_.empty()) {
+    drawWireframeOverlays();
   }
 
   // Draw normals if enabled
@@ -1465,6 +1559,35 @@ void ViewportWidget::drawVertices() {
 #endif
   glDisable(GL_PROGRAM_POINT_SIZE);
   glDisable(GL_BLEND);
+}
+
+void ViewportWidget::drawWireframeOverlays() {
+  if (!simple_shader_program_) {
+    return;
+  }
+
+  simple_shader_program_->bind();
+  simple_shader_program_->setUniformValue("model", model_matrix_);
+  simple_shader_program_->setUniformValue("view", view_matrix_);
+  simple_shader_program_->setUniformValue("projection", projection_matrix_);
+
+  // Use a bright color for wireframe overlays (yellow/gold)
+  simple_shader_program_->setUniformValue("color", QVector3D(1.0F, 0.8F, 0.0F));
+
+  // Use standard line width for wireframe overlays
+  glLineWidth(1.0F);
+
+  // Draw each wireframe overlay
+  for (const auto &[node_id, overlay] : wireframe_overlays_) {
+    if (overlay && overlay->vao && overlay->vertex_count > 0) {
+      overlay->vao->bind();
+      glDrawArrays(GL_LINES, 0, overlay->vertex_count);
+      overlay->vao->release();
+    }
+  }
+
+  glLineWidth(1.0F);
+  simple_shader_program_->release();
 }
 
 void ViewportWidget::drawVertexNormals() {
