@@ -158,27 +158,31 @@ private:
   bool is_dragging_ = false;
 
   // Visual constants
-  static constexpr float NODE_WIDTH = 240.0F; // Wider for more content
+  static constexpr float NODE_WIDTH = 200.0F; // Base node width
   static constexpr float NODE_HEADER_HEIGHT = 32.0F;
-  static constexpr float NODE_STATUS_HEIGHT = 24.0F;
-  static constexpr float NODE_BODY_HEIGHT = 60.0F;
-  static constexpr float NODE_FOOTER_HEIGHT = 28.0F;
-  static constexpr float NODE_COMPACT_HEIGHT = 56.0F; // Just header + status
+  static constexpr float NODE_BODY_HEIGHT = 48.0F;
+  static constexpr float NODE_FOOTER_HEIGHT = 24.0F;
+
+  // Button toolbar (right side, outside node)
+  static constexpr float BUTTON_TOOLBAR_WIDTH = 36.0F;
+  static constexpr float BUTTON_SIZE = 32.0F;
+  static constexpr float BUTTON_SPACING = 4.0F;
+  static constexpr float NODE_COMPACT_HEIGHT = 56.0F; // Just header
   static constexpr float PIN_RADIUS = 8.0F;
   static constexpr float PIN_SPACING = 80.0F;
-  static constexpr float ACTION_BUTTON_SIZE = 28.0F;
 
   // Helper methods
   QColor getNodeColor() const;
   QRectF getHeaderRect() const;
-  QRectF getStatusRect() const;
   QRectF getBodyRect() const;
   QRectF getFooterRect() const;
   float getTotalHeight() const;
 
+  // Button toolbar rect (outside node, to the right)
+  QRectF getButtonToolbarRect() const;
+
   void drawHeader(QPainter *painter);
-  void drawActionButtons(QPainter *painter);
-  void drawStatusBar(QPainter *painter);
+  void drawButtonToolbar(QPainter *painter);
   void drawBody(QPainter *painter);
   void drawFooter(QPainter *painter);
 };

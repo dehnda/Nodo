@@ -40,7 +40,15 @@ QRectF NodeGraphicsItem::boundingRect() const {
   // Add some padding for selection outline
   constexpr float PADDING = 4.0F;
   float height = getTotalHeight();
-  return QRectF(-PADDING, -PADDING, NODE_WIDTH + 2.0F * PADDING,
+
+  // Include button toolbar width if not in compact mode
+  float total_width = NODE_WIDTH;
+  if (!compact_mode_) {
+    total_width +=
+        BUTTON_TOOLBAR_WIDTH + 8.0F; // 4px gap + toolbar + 4px padding
+  }
+
+  return QRectF(-PADDING, -PADDING, total_width + 2.0F * PADDING,
                 height + 2.0F * PADDING);
 }
 
@@ -110,61 +118,52 @@ void NodeGraphicsItem::paint(QPainter *painter,
   float total_height = getTotalHeight();
   QRectF node_rect(0, 0, NODE_WIDTH, total_height);
 
-  // Get base color from node type
-  QColor base_color = getNodeColor();
+  // Draw selection glow FIRST (behind everything)
+  if (selected_ && !has_error_flag_) {
+    // Expand rect slightly for glow effect and use same corner radius
+    QRectF glow_rect = node_rect.adjusted(-3.0, -3.0, 3.0, 3.0);
+    painter->setPen(
+        QPen(QColor(74, 158, 255, 40), 8.0)); // Blue glow, more transparent
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRoundedRect(
+        glow_rect, 10.0, 10.0); // Slightly larger radius to match expanded rect
+  }
 
   // Determine outline color based on error state or selection
-  QColor outline_color = QColor(255, 255, 255, 40); // Subtle white border
+  QColor outline_color = QColor(50, 50, 55); // Subtle border
   if (has_error_flag_) {
-    outline_color = QColor(239, 68, 68); // Red error (#ef4444)
+    outline_color = QColor(239, 68, 68); // Red error
   } else if (selected_) {
-    outline_color = QColor(74, 158, 255); // Blue selection (#4a9eff)
+    outline_color = QColor(74, 158, 255); // Blue selection
   }
 
   // Draw main node background with solid dark color
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(QColor(26, 26, 31)); // #1a1a1f - solid dark background
-  painter->drawRoundedRect(node_rect, 12.0, 12.0);
-
-  // Draw outline on top
   painter->setPen(QPen(outline_color, 2.0));
-  painter->setBrush(Qt::NoBrush);
-  painter->drawRoundedRect(node_rect, 12.0, 12.0);
+  painter->setBrush(QColor(35, 35, 40)); // Dark background
+  painter->drawRoundedRect(node_rect, 8.0, 8.0);
 
   // Draw each section
   drawHeader(painter);
-  drawStatusBar(painter);
 
   if (!compact_mode_) {
     drawBody(painter);
     drawFooter(painter);
+    drawButtonToolbar(painter);
   }
 
-  // Draw input pins (at top)
-  painter->setPen(QPen(QColor(31, 31, 38), 2.0)); // Border
-  painter->setBrush(QColor(74, 158, 255));        // Blue
+  // Draw input pins (at top) - orange/coral color like screenshot
+  painter->setPen(QPen(QColor(35, 35, 40), 2.0)); // Border
+  painter->setBrush(QColor(255, 140, 90));        // Orange/coral
   for (int i = 0; i < input_count_; ++i) {
     QPointF pin_pos = get_input_pin_pos(i);
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
   }
 
-  // Draw output pins (at bottom)
-  painter->setBrush(QColor(255, 107, 157)); // Pink
+  // Draw output pins (at bottom) - orange/coral color
+  painter->setBrush(QColor(255, 140, 90)); // Orange/coral
   for (int i = 0; i < output_count_; ++i) {
     QPointF pin_pos = get_output_pin_pos(i);
     painter->drawEllipse(pin_pos, PIN_RADIUS, PIN_RADIUS);
-  }
-
-  // Draw selection or error glow
-  if (has_error_flag_) {
-    painter->setPen(QPen(QColor(239, 68, 68, 80), 8.0)); // Red glow for errors
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRoundedRect(node_rect, 12.0, 12.0);
-  } else if (selected_) {
-    painter->setPen(
-        QPen(QColor(74, 158, 255, 50), 8.0)); // Blue glow for selection
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRoundedRect(node_rect, 12.0, 12.0);
   }
 }
 
@@ -192,61 +191,59 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   if (event->button() == Qt::LeftButton) {
     QPointF click_pos = event->pos();
 
-    // Check if clicking on action buttons (in header area)
-    if (click_pos.y() >= 0 && click_pos.y() <= NODE_HEADER_HEIGHT) {
-      float button_y = (NODE_HEADER_HEIGHT - ACTION_BUTTON_SIZE) / 2.0;
-      float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
-      float button_spacing = ACTION_BUTTON_SIZE + 4.0;
+    // Check if clicking on button toolbar (right side, in compact mode skip)
+    if (!compact_mode_) {
+      QRectF toolbar_rect = getButtonToolbarRect();
 
-      // Helper to check if clicked on a button
-      auto isClickedButton = [&](float x) -> bool {
-        QRectF button_rect(x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
-        return button_rect.contains(click_pos);
-      };
+      if (toolbar_rect.contains(click_pos)) {
+        float button_x =
+            toolbar_rect.left() + (BUTTON_TOOLBAR_WIDTH - BUTTON_SIZE) / 2.0;
+        float button_y = toolbar_rect.top() + 4.0;
 
-      // Info button (no action yet)
-      if (isClickedButton(button_x)) {
-        event->accept();
-        return;
-      }
-      button_x -= button_spacing;
+        // Helper to check if clicked on a button
+        auto isClickedButton = [&](float y) -> bool {
+          QRectF button_rect(button_x, y, BUTTON_SIZE, BUTTON_SIZE);
+          return button_rect.contains(click_pos);
+        };
 
-      // Lock button
-      if (isClickedButton(button_x)) {
-        lock_flag_ = !lock_flag_;
-        update();
-        event->accept();
-        return;
-      }
-      button_x -= button_spacing;
+        // Display button (VIEW)
+        if (isClickedButton(button_y)) {
+          has_display_flag_ = !has_display_flag_;
+          update();
 
-      // Display button
-      if (isClickedButton(button_x)) {
-        has_display_flag_ = !has_display_flag_;
-        update();
-
-        // Notify the widget about display flag change
-        if (scene()) {
-          for (QGraphicsView *view : scene()->views()) {
-            NodeGraphWidget *widget = qobject_cast<NodeGraphWidget *>(view);
-            if (widget) {
-              widget->on_node_display_flag_changed(node_id_, has_display_flag_);
-              break;
+          // Notify the widget about display flag change
+          if (scene()) {
+            for (QGraphicsView *view : scene()->views()) {
+              NodeGraphWidget *widget = qobject_cast<NodeGraphWidget *>(view);
+              if (widget) {
+                widget->on_node_display_flag_changed(node_id_,
+                                                     has_display_flag_);
+                break;
+              }
             }
           }
+
+          event->accept();
+          return;
         }
+        button_y += BUTTON_SIZE + BUTTON_SPACING;
 
-        event->accept();
-        return;
-      }
-      button_x -= button_spacing;
+        // Wireframe button (WIRE) - bypass flag
+        if (isClickedButton(button_y)) {
+          bypass_flag_ = !bypass_flag_;
+          update();
+          event->accept();
+          return;
+        }
+        button_y += BUTTON_SIZE + BUTTON_SPACING;
 
-      // Bypass button
-      if (isClickedButton(button_x)) {
-        bypass_flag_ = !bypass_flag_;
-        update();
-        event->accept();
-        return;
+        // Pass-through button (PASS) - lock flag
+        if (isClickedButton(button_y)) {
+          lock_flag_ = !lock_flag_;
+          update();
+          event->accept();
+          return;
+        }
       }
     }
 
@@ -302,22 +299,14 @@ void NodeGraphicsItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event) {
 void NodeGraphicsItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event) {
   QPointF hover_pos = event->pos();
 
-  // Check if hovering over action buttons (in header area)
-  if (hover_pos.y() >= 0 && hover_pos.y() <= NODE_HEADER_HEIGHT) {
-    float button_y = (NODE_HEADER_HEIGHT - ACTION_BUTTON_SIZE) / 2.0;
-    float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
-    float button_spacing = ACTION_BUTTON_SIZE + 4.0;
+  // Check if hovering over button toolbar (right side)
+  if (!compact_mode_) {
+    QRectF toolbar_rect = getButtonToolbarRect();
 
-    // Check all button positions
-    for (int i = 0; i < 4; ++i) {
-      QRectF button_rect(button_x, button_y, ACTION_BUTTON_SIZE,
-                         ACTION_BUTTON_SIZE);
-      if (button_rect.contains(hover_pos)) {
-        setCursor(Qt::PointingHandCursor);
-        QGraphicsItem::hoverMoveEvent(event);
-        return;
-      }
-      button_x -= button_spacing;
+    if (toolbar_rect.contains(hover_pos)) {
+      setCursor(Qt::PointingHandCursor);
+      QGraphicsItem::hoverMoveEvent(event);
+      return;
     }
   }
 
@@ -370,280 +359,193 @@ float NodeGraphicsItem::getTotalHeight() const {
   if (compact_mode_) {
     return NODE_COMPACT_HEIGHT;
   }
-  return NODE_HEADER_HEIGHT + NODE_STATUS_HEIGHT + NODE_BODY_HEIGHT +
-         NODE_FOOTER_HEIGHT;
+  return NODE_HEADER_HEIGHT + NODE_BODY_HEIGHT + NODE_FOOTER_HEIGHT;
 }
 
 QRectF NodeGraphicsItem::getHeaderRect() const {
   return QRectF(0, 0, NODE_WIDTH, NODE_HEADER_HEIGHT);
 }
 
-QRectF NodeGraphicsItem::getStatusRect() const {
-  return QRectF(0, NODE_HEADER_HEIGHT, NODE_WIDTH, NODE_STATUS_HEIGHT);
-}
-
 QRectF NodeGraphicsItem::getBodyRect() const {
-  return QRectF(0, NODE_HEADER_HEIGHT + NODE_STATUS_HEIGHT, NODE_WIDTH,
-                NODE_BODY_HEIGHT);
+  return QRectF(0, NODE_HEADER_HEIGHT, NODE_WIDTH, NODE_BODY_HEIGHT);
 }
 
 QRectF NodeGraphicsItem::getFooterRect() const {
-  float y = NODE_HEADER_HEIGHT + NODE_STATUS_HEIGHT + NODE_BODY_HEIGHT;
+  float y = NODE_HEADER_HEIGHT + NODE_BODY_HEIGHT;
   return QRectF(0, y, NODE_WIDTH, NODE_FOOTER_HEIGHT);
+}
+
+QRectF NodeGraphicsItem::getButtonToolbarRect() const {
+  // Button toolbar is to the right of the node, aligned with entire node
+  float toolbar_y = 0.0F; // Start at top of node (aligned with header)
+  float toolbar_height = getTotalHeight(); // Full node height
+  return QRectF(NODE_WIDTH + 4.0F, toolbar_y, BUTTON_TOOLBAR_WIDTH,
+                toolbar_height);
 }
 
 void NodeGraphicsItem::drawHeader(QPainter *painter) {
   QRectF header_rect = getHeaderRect();
-  QColor base_color = getNodeColor();
 
-  // Draw header gradient background
-  QLinearGradient header_gradient(0, 0, 0, NODE_HEADER_HEIGHT);
-  header_gradient.setColorAt(0, base_color.lighter(110));
-  header_gradient.setColorAt(1, base_color);
-  painter->setBrush(header_gradient);
+  // Simple solid header background with rounded top corners
+  painter->setBrush(QColor(42, 42, 47));
   painter->setPen(Qt::NoPen);
 
-  // Draw rounded top
+  // Draw header with rounded top corners only
   QPainterPath header_path;
   header_path.moveTo(0, NODE_HEADER_HEIGHT);
-  header_path.lineTo(0, 12.0);
-  header_path.quadTo(0, 0, 12.0, 0);
-  header_path.lineTo(NODE_WIDTH - 12.0, 0);
-  header_path.quadTo(NODE_WIDTH, 0, NODE_WIDTH, 12.0);
+  header_path.lineTo(0, 8.0);
+  header_path.arcTo(0, 0, 16.0, 16.0, 180, -90); // Top-left corner
+  header_path.lineTo(NODE_WIDTH - 8.0, 0);
+  header_path.arcTo(NODE_WIDTH - 16.0, 0, 16.0, 16.0, 90,
+                    -90); // Top-right corner
   header_path.lineTo(NODE_WIDTH, NODE_HEADER_HEIGHT);
-  header_path.closeSubpath();
+  header_path.lineTo(0, NODE_HEADER_HEIGHT);
   painter->drawPath(header_path);
 
-  // Draw border at bottom of header
-  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
-  painter->drawLine(0, NODE_HEADER_HEIGHT, NODE_WIDTH, NODE_HEADER_HEIGHT);
-
-  // Draw node icon (simple colored circle)
-  float icon_size = 20.0;
-  float icon_x = 12.0;
-  float icon_y = (NODE_HEADER_HEIGHT - icon_size) / 2.0;
-  QRectF icon_rect(icon_x, icon_y, icon_size, icon_size);
-  painter->setBrush(QColor(0, 0, 0, 80));
-  painter->setPen(Qt::NoPen);
-  painter->drawRoundedRect(icon_rect, 6.0, 6.0);
-
-  // Draw node name
-  painter->setPen(Qt::white);
-  QFont font = painter->font();
-  font.setPointSize(10);
-  font.setBold(true);
-  painter->setFont(font);
-  QRectF text_rect(icon_x + icon_size + 8.0, 0,
-                   NODE_WIDTH - icon_x - icon_size - 120.0, NODE_HEADER_HEIGHT);
-  painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, node_name_);
-
-  // Draw action buttons
-  drawActionButtons(painter);
-}
-
-void NodeGraphicsItem::drawActionButtons(QPainter *painter) {
-  float button_y = (NODE_HEADER_HEIGHT - ACTION_BUTTON_SIZE) / 2.0;
-  float button_x = NODE_WIDTH - 12.0 - ACTION_BUTTON_SIZE;
-  float button_spacing = ACTION_BUTTON_SIZE + 4.0;
-
-  // Helper to draw icon button
-  auto drawButton = [&](float x, bool active, const QColor &active_color,
-                        nodo_studio::IconManager::Icon icon) {
-    QRectF rect(x, button_y, ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE);
-    QColor bg_color = active ? active_color : QColor(255, 255, 255, 20);
-    painter->setBrush(bg_color);
-    painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
-    painter->drawRoundedRect(rect, 6.0, 6.0);
-
-    // Draw icon
-    QColor icon_color = active ? Qt::white : QColor(192, 192, 200);
-    QPixmap icon_pixmap = nodo_studio::Icons::getPixmap(icon, 12, icon_color);
-    painter->drawPixmap(QPointF(x + (ACTION_BUTTON_SIZE - 12) / 2.0,
-                                button_y + (ACTION_BUTTON_SIZE - 12) / 2.0),
-                        icon_pixmap);
-  };
-
-  // Info button
-  drawButton(button_x, false, QColor(255, 255, 255, 20),
-             nodo_studio::IconManager::Icon::Info);
-  button_x -= button_spacing;
-
-  // Lock button
-  drawButton(
-      button_x, lock_flag_, QColor(255, 107, 157),
-      nodo_studio::IconManager::Icon::Success); // Using checkmark for lock
-  button_x -= button_spacing;
-
-  // Display button (eye icon)
-  drawButton(button_x, has_display_flag_, QColor(74, 158, 255),
-             nodo_studio::IconManager::Icon::Eye);
-  button_x -= button_spacing;
-
-  // Bypass button
-  QRectF bypass_rect(button_x, button_y, ACTION_BUTTON_SIZE,
-                     ACTION_BUTTON_SIZE);
-  QColor bypass_bg =
-      bypass_flag_ ? QColor(255, 211, 61) : QColor(255, 255, 255, 20);
-  painter->setBrush(bypass_bg);
-  painter->setPen(QPen(QColor(255, 255, 255, 30), 1.0));
-  painter->drawRoundedRect(bypass_rect, 6.0, 6.0);
-  QColor bypass_icon_color =
-      bypass_flag_ ? QColor(26, 26, 31) : QColor(192, 192, 200);
-  QPixmap bypass_pixmap = nodo_studio::Icons::getPixmap(
-      nodo_studio::IconManager::Icon::Error, 12, bypass_icon_color);
-  painter->drawPixmap(QPointF(button_x + (ACTION_BUTTON_SIZE - 12) / 2.0,
-                              button_y + (ACTION_BUTTON_SIZE - 12) / 2.0),
-                      bypass_pixmap);
-}
-
-void NodeGraphicsItem::drawStatusBar(QPainter *painter) {
-  QRectF status_rect = getStatusRect();
-
-  // Background
-  painter->setBrush(QColor(0, 0, 0, 80));
-  painter->setPen(Qt::NoPen);
-  painter->drawRect(status_rect);
-
-  // Bottom border
-  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
-  painter->drawLine(0, status_rect.bottom(), NODE_WIDTH, status_rect.bottom());
-
-  // Status indicator dot
+  // Status indicator dot (left side) - blue dot like in screenshot
   float dot_x = 12.0;
-  float dot_y = status_rect.top() + (NODE_STATUS_HEIGHT / 2.0);
-  QColor dot_color = has_error_flag_ ? QColor(255, 107, 157)
-                                     : QColor(74, 222, 128); // Red or green
+  float dot_y = NODE_HEADER_HEIGHT / 2.0;
+  QColor dot_color = has_error_flag_ ? QColor(239, 68, 68)
+                                     : QColor(74, 158, 255); // Red or blue
   painter->setBrush(dot_color);
   painter->setPen(Qt::NoPen);
-  painter->drawEllipse(QPointF(dot_x, dot_y), 4.0, 4.0);
+  painter->drawEllipse(QPointF(dot_x, dot_y), 5.0, 5.0);
 
-  // Status text
-  painter->setPen(QColor(160, 160, 168));
-  QFont status_font = painter->font();
-  status_font.setPointSize(9);
-  status_font.setFamily("monospace");
-  painter->setFont(status_font);
+  // Draw node name (white text)
+  painter->setPen(QColor(240, 240, 245));
+  QFont font = painter->font();
+  font.setPointSize(10);
+  font.setBold(false);
+  painter->setFont(font);
+  QRectF text_rect(dot_x + 16.0, 0, NODE_WIDTH - dot_x - 20.0,
+                   NODE_HEADER_HEIGHT);
+  painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, node_name_);
+}
 
-  QString status_text = has_error_flag_ ? "Error" : "Cached";
-  QRectF text_rect(dot_x + 12.0, status_rect.top(), 100.0, NODE_STATUS_HEIGHT);
-  painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, status_text);
+void NodeGraphicsItem::drawButtonToolbar(QPainter *painter) {
+  QRectF toolbar_rect = getButtonToolbarRect();
 
-  // Cook time (right side)
-  if (cook_time_ms_ > 0.0) {
-    painter->setPen(QColor(74, 158, 255));
-    status_font.setBold(true);
-    painter->setFont(status_font);
-    QString time_text = QString("%1ms").arg(cook_time_ms_, 0, 'f', 1);
-    QRectF time_rect(NODE_WIDTH - 80.0, status_rect.top(), 68.0,
-                     NODE_STATUS_HEIGHT);
-    painter->drawText(time_rect, Qt::AlignVCenter | Qt::AlignRight, time_text);
-  }
+  // Background for button toolbar - dark semi-transparent
+  painter->setBrush(QColor(30, 30, 35, 220));
+  painter->setPen(QPen(QColor(50, 50, 55), 1.0));
+  painter->drawRoundedRect(toolbar_rect, 6.0, 6.0);
+
+  // Calculate button positions (stacked vertically, centered in toolbar)
+  float button_x =
+      toolbar_rect.left() + (BUTTON_TOOLBAR_WIDTH - BUTTON_SIZE) / 2.0;
+  float button_y =
+      toolbar_rect.top() +
+      (toolbar_rect.height() - (3 * BUTTON_SIZE + 2 * BUTTON_SPACING)) / 2.0;
+
+  // Helper to draw a button with icon and optional text label
+  auto drawButton = [&](float y, bool active, const QColor &active_color,
+                        nodo_studio::IconManager::Icon icon) {
+    QRectF button_rect(button_x, y, BUTTON_SIZE, BUTTON_SIZE);
+    QColor bg_color = active ? active_color : QColor(50, 50, 55);
+    painter->setBrush(bg_color);
+    painter->setPen(QPen(QColor(70, 70, 75), 1.0));
+    painter->drawRoundedRect(button_rect, 4.0, 4.0);
+
+    // Draw icon centered in button
+    QColor icon_color = active ? Qt::white : QColor(160, 160, 165);
+    QPixmap icon_pixmap = nodo_studio::Icons::getPixmap(icon, 16, icon_color);
+    float icon_x = button_x + (BUTTON_SIZE - 16) / 2.0;
+    float icon_y = y + (BUTTON_SIZE - 16) / 2.0;
+    painter->drawPixmap(QPointF(icon_x, icon_y), icon_pixmap);
+  };
+
+  // Display button (VIEW) - eye icon
+  drawButton(button_y, has_display_flag_, QColor(74, 158, 255),
+             nodo_studio::IconManager::Icon::Eye);
+  button_y += BUTTON_SIZE + BUTTON_SPACING;
+
+  // Wireframe button (WIRE) - represented by bypass flag
+  drawButton(button_y, bypass_flag_, QColor(100, 100, 110),
+             nodo_studio::IconManager::Icon::Wireframe);
+  button_y += BUTTON_SIZE + BUTTON_SPACING;
+
+  // Pass-through button (PASS) - represented by lock flag, use checkmark
+  drawButton(button_y, lock_flag_, QColor(100, 100, 110),
+             nodo_studio::IconManager::Icon::Success);
 }
 
 void NodeGraphicsItem::drawBody(QPainter *painter) {
   QRectF body_rect = getBodyRect();
 
-  // Background - dark semi-transparent
-  painter->setBrush(QColor(26, 26, 31)); // #1a1a1f
+  // Background - same as overall node background
+  painter->setBrush(QColor(35, 35, 40));
   painter->setPen(Qt::NoPen);
   painter->drawRect(body_rect);
 
-  // Bottom border
-  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
-  painter->drawLine(0, body_rect.bottom(), NODE_WIDTH, body_rect.bottom());
+  // Draw cook time centered (like in screenshot: "2.4ms")
+  if (cook_time_ms_ > 0.0) {
+    painter->setPen(QColor(160, 160, 168)); // Gray text
+    QFont time_font = painter->font();
+    time_font.setPointSize(10);
+    time_font.setBold(false);
+    painter->setFont(time_font);
 
-  // Draw parameters from real node data
-  if (parameters_.empty()) {
-    return; // No parameters to display
-  }
-
-  QFont param_font = painter->font();
-  param_font.setPointSize(9);
-  painter->setFont(param_font);
-
-  float param_y = body_rect.top() + 10.0;
-  float param_spacing = 18.0;
-  int max_params = 2; // Show max 2 parameters in body (limited space)
-
-  for (int i = 0;
-       i < std::min(max_params, static_cast<int>(parameters_.size())); ++i) {
-    const auto &[param_name, param_value] = parameters_[i];
-
-    // Draw parameter name (left side)
-    painter->setPen(QColor(160, 160, 168));
-    param_font.setBold(false);
-    painter->setFont(param_font);
-    painter->drawText(QRectF(16.0, param_y, 100.0, 14.0), Qt::AlignLeft,
-                      param_name);
-
-    // Draw parameter value (right side) with highlighted background
-    painter->setPen(QColor(224, 224, 224));
-    param_font.setFamily("monospace");
-    painter->setFont(param_font);
-    painter->setBrush(QColor(74, 158, 255, 40));
-    painter->drawRoundedRect(
-        QRectF(NODE_WIDTH - 80.0, param_y - 2.0, 64.0, 16.0), 4.0, 4.0);
-    painter->drawText(QRectF(NODE_WIDTH - 76.0, param_y, 56.0, 14.0),
-                      Qt::AlignCenter, param_value);
-
-    param_y += param_spacing;
+    QString time_text = QString("%1ms").arg(cook_time_ms_, 0, 'f', 1);
+    painter->drawText(body_rect, Qt::AlignCenter, time_text);
   }
 }
 
 void NodeGraphicsItem::drawFooter(QPainter *painter) {
   QRectF footer_rect = getFooterRect();
 
-  // Background
-  painter->setBrush(QColor(0, 0, 0, 80));
+  // Background with rounded bottom corners
+  painter->setBrush(QColor(30, 30, 35));
   painter->setPen(Qt::NoPen);
 
-  // Draw rounded bottom
+  // Draw footer with rounded bottom corners only
   QPainterPath footer_path;
   footer_path.moveTo(0, footer_rect.top());
-  footer_path.lineTo(0, footer_rect.bottom() - 12.0);
-  footer_path.quadTo(0, footer_rect.bottom(), 12.0, footer_rect.bottom());
-  footer_path.lineTo(NODE_WIDTH - 12.0, footer_rect.bottom());
-  footer_path.quadTo(NODE_WIDTH, footer_rect.bottom(), NODE_WIDTH,
-                     footer_rect.bottom() - 12.0);
+  footer_path.lineTo(0, footer_rect.bottom() - 8.0);
+  footer_path.arcTo(0, footer_rect.bottom() - 16.0, 16.0, 16.0, 180,
+                    90); // Bottom-left corner
+  footer_path.lineTo(NODE_WIDTH - 8.0, footer_rect.bottom());
+  footer_path.arcTo(NODE_WIDTH - 16.0, footer_rect.bottom() - 16.0, 16.0, 16.0,
+                    270, 90); // Bottom-right corner
   footer_path.lineTo(NODE_WIDTH, footer_rect.top());
-  footer_path.closeSubpath();
+  footer_path.lineTo(0, footer_rect.top());
   painter->drawPath(footer_path);
 
-  // Top border
-  painter->setPen(QPen(QColor(255, 255, 255, 25), 1.0));
-  painter->drawLine(0, footer_rect.top(), NODE_WIDTH, footer_rect.top());
-
-  // Stats
+  // Stats font
   QFont stats_font = painter->font();
   stats_font.setPointSize(8);
-  stats_font.setFamily("monospace");
   painter->setFont(stats_font);
 
-  float stat_x = 12.0;
-  float stat_y = footer_rect.top() + (NODE_FOOTER_HEIGHT / 2.0) + 4.0;
+  painter->setPen(QColor(130, 130, 140)); // Gray text
 
-  // Helper to draw icon + text for stats
+  // Helper to draw icon + stat value
   auto drawStat = [&](float x, nodo_studio::IconManager::Icon icon,
-                      const QString &text) {
-    QPixmap icon_pixmap =
-        nodo_studio::Icons::getPixmap(icon, 10, QColor(128, 128, 136));
-    painter->drawPixmap(QPointF(x, stat_y - 8.0), icon_pixmap);
-    painter->setPen(QColor(192, 192, 200));
-    painter->drawText(QPointF(x + 14.0, stat_y), text);
+                      const QString &value) {
+    // Draw icon
+    QColor icon_color = QColor(120, 120, 130);
+    QPixmap icon_pixmap = nodo_studio::Icons::getPixmap(icon, 12, icon_color);
+    float icon_y = footer_rect.top() + (NODE_FOOTER_HEIGHT - 12) / 2.0;
+    painter->drawPixmap(QPointF(x, icon_y), icon_pixmap);
+
+    // Draw value text next to icon
+    QRectF text_rect(x + 16.0, footer_rect.top(), 40.0, NODE_FOOTER_HEIGHT);
+    painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, value);
   };
 
-  // Vertices
-  drawStat(stat_x, nodo_studio::IconManager::Icon::Extrude,
+  // Calculate positions for left, middle, right alignment
+  float left_x = 12.0;
+  float middle_x = (NODE_WIDTH - 40.0) / 2.0; // Center approximately
+  float right_x = NODE_WIDTH - 60.0;
+
+  // Left: Vertices (sphere icon represents geometry)
+  drawStat(left_x, nodo_studio::IconManager::Icon::Sphere,
            QString::number(vertex_count_));
 
-  // Triangles
-  stat_x = 80.0;
-  drawStat(stat_x, nodo_studio::IconManager::Icon::Sphere,
+  // Middle: Triangles (extrude icon represents faces/triangles)
+  drawStat(middle_x, nodo_studio::IconManager::Icon::Extrude,
            QString::number(triangle_count_));
 
-  // Memory
-  stat_x = NODE_WIDTH - 68.0;
-  drawStat(stat_x, nodo_studio::IconManager::Icon::FileSave,
+  // Right: Memory (file save icon represents data/memory)
+  drawStat(right_x, nodo_studio::IconManager::Icon::FileSave,
            QString("%1KB").arg(memory_kb_));
 }
 
