@@ -9,7 +9,6 @@
 #include <memory>
 #include <unordered_map>
 
-
 // Forward declarations and includes
 namespace nodo::graph {
 class NodeGraph;
@@ -166,7 +165,7 @@ private:
   static constexpr float NODE_FOOTER_HEIGHT = 28.0F;
   static constexpr float NODE_COMPACT_HEIGHT = 56.0F; // Just header + status
   static constexpr float PIN_RADIUS = 8.0F;
-  static constexpr float PIN_SPACING = 20.0F;
+  static constexpr float PIN_SPACING = 80.0F;
   static constexpr float ACTION_BUTTON_SIZE = 28.0F;
 
   // Helper methods
