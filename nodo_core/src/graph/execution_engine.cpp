@@ -103,14 +103,12 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     }
 
     // Check if this node is already cached and valid
-    // For now, we always recompute since we don't have dirty tracking yet
-    // TODO: Implement proper dirty flag system
+    // Only use cache if node doesn't need update
     auto cached_it = geometry_cache_.find(node_id);
-    bool has_valid_cache = (cached_it != geometry_cache_.end());
+    bool has_valid_cache =
+        (cached_it != geometry_cache_.end()) && !node->needs_update();
 
-    // Skip execution if already cached (OPTIMIZATION)
-    // This is a simple heuristic - a proper implementation would check if
-    // inputs or parameters have changed
+    // Skip execution if already cached and doesn't need update
     if (has_valid_cache) {
       std::cout << "⚡ Using cached result for node " << node_id << " ("
                 << node->get_name() << ")" << std::endl;
@@ -163,6 +161,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       auto mesh_result = convert_container_to_mesh(*geometry_result);
       node->set_output_mesh(mesh_result);
       node->set_error(false); // Clear any previous error
+      node->mark_updated();   // Mark as no longer needing update
     } else {
       // Get the actual error message from the SOPNode
       std::string error_msg = sop->get_last_error();

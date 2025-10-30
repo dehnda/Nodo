@@ -1247,10 +1247,8 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
               pin_index);
           undo_stack_->push(std::move(cmd));
 
-          // Emit signal (command already created the visual representation)
-          emit connection_created(connection_source_node_->get_node_id(),
-                                  connection_source_pin_,
-                                  target_node_item->get_node_id(), pin_index);
+          // Signal is now emitted from the command's execute() method
+          // so it works for both regular creation and undo/redo
         }
       }
     }

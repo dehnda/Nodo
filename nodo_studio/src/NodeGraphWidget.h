@@ -264,6 +264,12 @@ public:
   }
   NodeGraphicsItem *get_node_item_public(int node_id);
 
+  // Called by commands to emit signals for graph updates
+  void emit_connection_created_signal(int source_node, int source_pin,
+                                      int target_node, int target_pin) {
+    emit connection_created(source_node, source_pin, target_node, target_pin);
+  }
+
   // Called by NodeGraphicsItem when display button is clicked
   void on_node_display_flag_changed(int node_id, bool display_flag);
 
