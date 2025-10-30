@@ -164,10 +164,16 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       node->set_output_mesh(mesh_result);
       node->set_error(false); // Clear any previous error
     } else {
-      std::cout << "❌ Node " << node_id
-                << " execution failed - no result generated" << std::endl;
-      node->set_error(true, "Execution failed - no result generated");
-      notify_error("Execution failed - no result generated", node_id);
+      // Get the actual error message from the SOPNode
+      std::string error_msg = sop->get_last_error();
+      if (error_msg.empty()) {
+        error_msg = "Execution failed - no result generated";
+      }
+
+      std::cout << "❌ Node " << node_id << " (" << sop->get_type()
+                << ") execution failed: " << error_msg << std::endl;
+      node->set_error(true, error_msg);
+      notify_error(error_msg, node_id);
       return false;
     }
   }

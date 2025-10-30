@@ -1,0 +1,172 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 4,
+      "target_pin": 0
+    },
+    {
+      "id": 3,
+      "source_node": 3,
+      "source_pin": 0,
+      "target_node": 4,
+      "target_pin": 1
+    }
+  ],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "Sphere",
+      "parameters": [
+        {
+          "name": "radius",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "u_segments",
+          "type": "int",
+          "value": 32
+        },
+        {
+          "name": "v_segments",
+          "type": "int",
+          "value": 16
+        },
+        {
+          "name": "group",
+          "type": "string",
+          "value": ""
+        }
+      ],
+      "position": [
+        -219.0,
+        -175.0
+      ],
+      "type": "Sphere"
+    },
+    {
+      "id": 2,
+      "name": "Sphere",
+      "parameters": [
+        {
+          "name": "radius",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "u_segments",
+          "type": "int",
+          "value": 32
+        },
+        {
+          "name": "v_segments",
+          "type": "int",
+          "value": 16
+        },
+        {
+          "name": "group",
+          "type": "string",
+          "value": ""
+        }
+      ],
+      "position": [
+        50.0,
+        -155.0
+      ],
+      "type": "Sphere"
+    },
+    {
+      "id": 3,
+      "name": "Transform",
+      "parameters": [
+        {
+          "name": "group",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "name": "translate_x",
+          "type": "float",
+          "value": -0.6000000238418579
+        },
+        {
+          "name": "translate_y",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "translate_z",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "rotate_x",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "rotate_y",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "rotate_z",
+          "type": "float",
+          "value": 0.0
+        },
+        {
+          "name": "scale_x",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "scale_y",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "scale_z",
+          "type": "float",
+          "value": 1.0
+        }
+      ],
+      "position": [
+        18.0,
+        58.0
+      ],
+      "type": "Transform"
+    },
+    {
+      "id": 4,
+      "name": "Boolean",
+      "parameters": [
+        {
+          "name": "operation",
+          "type": "int",
+          "value": 2
+        },
+        {
+          "name": "group",
+          "type": "string",
+          "value": ""
+        }
+      ],
+      "position": [
+        -57.11111068725586,
+        307.8888854980469
+      ],
+      "type": "Boolean"
+    }
+  ],
+  "version": "1.0"
+}

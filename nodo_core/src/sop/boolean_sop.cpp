@@ -16,6 +16,7 @@ container_to_mesh(const core::GeometryContainer &container) {
   if (!p_storage)
     return nullptr;
 
+  // Copy vertices with double precision for Manifold
   Eigen::MatrixXd vertices(topology.point_count(), 3);
   auto p_span = p_storage->values();
   for (size_t i = 0; i < p_span.size(); ++i) {
@@ -33,10 +34,26 @@ container_to_mesh(const core::GeometryContainer &container) {
       point_indices.push_back(topology.get_vertex_point(vi));
     }
 
-    // Triangulate the polygon (simple fan triangulation)
-    if (point_indices.size() >= 3) {
+    // Triangulate based on polygon size
+    // IMPORTANT: Reverse winding order to fix negative volume issue
+    // (GeometryContainer stores faces in clockwise order, but Manifold expects
+    // counter-clockwise)
+    if (point_indices.size() == 3) {
+      // Already a triangle - reverse winding
+      triangle_list.emplace_back(point_indices[2], point_indices[1],
+                                 point_indices[0]);
+    } else if (point_indices.size() == 4) {
+      // Quad: split into two triangles using diagonal split, with reversed
+      // winding
+      triangle_list.emplace_back(point_indices[2], point_indices[1],
+                                 point_indices[0]);
+      triangle_list.emplace_back(point_indices[3], point_indices[2],
+                                 point_indices[0]);
+    } else if (point_indices.size() > 4) {
+      // N-gon: use fan triangulation from first vertex, with reversed winding
       for (size_t i = 1; i + 1 < point_indices.size(); ++i) {
-        triangle_list.emplace_back(point_indices[0], point_indices[i], point_indices[i + 1]);
+        triangle_list.emplace_back(point_indices[i + 1], point_indices[i],
+                                   point_indices[0]);
       }
     }
   }
@@ -84,6 +101,61 @@ mesh_to_container(const core::Mesh &mesh) {
     }
   }
 
+  // Compute face normals first to check orientation
+  std::vector<core::Vec3f> face_normals(faces.rows());
+  for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
+    int idx0 = faces(face_idx, 0);
+    int idx1 = faces(face_idx, 1);
+    int idx2 = faces(face_idx, 2);
+
+    core::Vec3f v0 = vertices.row(idx0).cast<float>();
+    core::Vec3f v1 = vertices.row(idx1).cast<float>();
+    core::Vec3f v2 = vertices.row(idx2).cast<float>();
+
+    // Compute face normal using cross product (CCW winding -> outward normal)
+    core::Vec3f edge1 = v1 - v0;
+    core::Vec3f edge2 = v2 - v0;
+    face_normals[face_idx] = edge1.cross(edge2);
+
+    float length = face_normals[face_idx].norm();
+    if (length > 1e-6F) {
+      face_normals[face_idx] /= length;
+    }
+  }
+
+  // Compute vertex normals by averaging adjacent face normals
+  container->add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+  auto *normals = container->get_point_attribute_typed<core::Vec3f>(attrs::N);
+  if (normals != nullptr) {
+    // Initialize all normals to zero
+    for (size_t i = 0; i < container->topology().point_count(); ++i) {
+      (*normals)[i] = core::Vec3f{0.0F, 0.0F, 0.0F};
+    }
+
+    // Accumulate face normals at each vertex
+    for (int face_idx = 0; face_idx < faces.rows(); ++face_idx) {
+      int idx0 = faces(face_idx, 0);
+      int idx1 = faces(face_idx, 1);
+      int idx2 = faces(face_idx, 2);
+
+      // Accumulate normalized face normals to vertex normals
+      (*normals)[idx0] += face_normals[face_idx];
+      (*normals)[idx1] += face_normals[face_idx];
+      (*normals)[idx2] += face_normals[face_idx];
+    }
+
+    // Normalize all vertex normals
+    for (size_t i = 0; i < container->topology().point_count(); ++i) {
+      float length = (*normals)[i].norm();
+      if (length > 1e-6F) {
+        (*normals)[i] /= length;
+      } else {
+        // Degenerate normal, set to up vector
+        (*normals)[i] = core::Vec3f{0.0F, 1.0F, 0.0F};
+      }
+    }
+  }
+
   return container;
 }
 
@@ -105,16 +177,16 @@ BooleanSOP::BooleanSOP(const std::string &node_name)
 
 std::shared_ptr<core::GeometryContainer> BooleanSOP::execute() {
   // Get input geometries (using numeric port names)
-  auto input_a = get_input_data(0);  // Port "0"
-  auto input_b = get_input_data(1);  // Port "1"
+  auto input_a = get_input_data(0); // Port "0"
+  auto input_b = get_input_data(1); // Port "1"
 
   if (!input_a) {
-    set_error("Missing input geometry A");
+    set_error("Missing input geometry A (port 0 not connected)");
     return nullptr;
   }
 
   if (!input_b) {
-    set_error("Missing input geometry B");
+    set_error("Missing input geometry B (port 1 not connected)");
     return nullptr;
   }
 
