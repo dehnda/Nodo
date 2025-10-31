@@ -31,36 +31,42 @@ NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string &name)
                          .label("Amplitude")
                          .range(0.0, 10.0)
                          .category("Noise")
+                         .description("Displacement strength (height of noise)")
                          .build());
 
   register_parameter(define_float_parameter("frequency", 1.0F)
                          .label("Frequency")
                          .range(0.01, 10.0)
                          .category("Noise")
+                         .description("Noise pattern frequency (scale)")
                          .build());
 
   register_parameter(define_int_parameter("octaves", 4)
                          .label("Octaves")
                          .range(1, 8)
                          .category("Noise")
+                         .description("Number of noise layers to combine")
                          .build());
 
   register_parameter(define_float_parameter("lacunarity", 2.0F)
                          .label("Lacunarity")
                          .range(1.0, 4.0)
                          .category("Noise")
+                         .description("Frequency multiplier for each octave")
                          .build());
 
   register_parameter(define_float_parameter("persistence", 0.5F)
                          .label("Persistence")
                          .range(0.0, 1.0)
                          .category("Noise")
+                         .description("Amplitude multiplier for each octave")
                          .build());
 
   register_parameter(define_int_parameter("seed", 42)
                          .label("Seed")
                          .range(0, 10000)
                          .category("Noise")
+                         .description("Random seed for noise pattern")
                          .build());
 }
 

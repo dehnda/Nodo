@@ -25,29 +25,35 @@ NormalSOP::NormalSOP(const std::string &name) : SOPNode(name, "Normal") {
                          .label("Normal Type")
                          .options({"Vertex", "Face", "Point"})
                          .category("Normal")
+                         .description("Where to compute and store normals")
                          .build());
 
   // Weighting method (for vertex/point normals)
-  register_parameter(define_int_parameter("weighting", 0)
-                         .label("Weighting")
-                         .options({"Equal", "By Area", "By Angle"})
-                         .category("Normal")
-                         .visible_when("normal_type", 0) // Only for vertex
-                         .build());
+  register_parameter(
+      define_int_parameter("weighting", 0)
+          .label("Weighting")
+          .options({"Equal", "By Area", "By Angle"})
+          .category("Normal")
+          .visible_when("normal_type", 0) // Only for vertex
+          .description("How to weight normal contributions from adjacent faces")
+          .build());
 
   // Cusp angle (for splitting normals at sharp edges)
-  register_parameter(define_float_parameter("cusp_angle", 60.0f)
-                         .label("Cusp Angle")
-                         .range(0.0f, 180.0f)
-                         .category("Normal")
-                         .visible_when("normal_type", 0)
-                         .build());
+  register_parameter(
+      define_float_parameter("cusp_angle", 60.0f)
+          .label("Cusp Angle")
+          .range(0.0f, 180.0f)
+          .category("Normal")
+          .visible_when("normal_type", 0)
+          .description("Angle threshold for splitting normals at sharp edges")
+          .build());
 
   // Reverse normals
   register_parameter(define_int_parameter("reverse", 0)
                          .label("Reverse")
                          .options({"No", "Yes"})
                          .category("Normal")
+                         .description("Flip normal direction")
                          .build());
 }
 

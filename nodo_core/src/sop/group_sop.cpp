@@ -13,6 +13,7 @@ GroupSOP::GroupSOP(const std::string &name) : SOPNode(name, "Group") {
   register_parameter(define_string_parameter("group_name", "group1")
                          .label("Group Name")
                          .category("Group")
+                         .description("Name of the group to create or modify")
                          .build());
 
   // Element class (Point or Primitive)
@@ -20,47 +21,58 @@ GroupSOP::GroupSOP(const std::string &name) : SOPNode(name, "Group") {
                          .label("Group Type")
                          .options({"Points", "Primitives"})
                          .category("Group")
+                         .description("Type of geometry elements to group")
                          .build());
 
   // Operation mode
-  register_parameter(define_int_parameter("operation", 0)
-                         .label("Operation")
-                         .options({"Create/Replace", "Add to Existing",
-                                   "Remove from Existing"})
-                         .category("Group")
-                         .build());
+  register_parameter(
+      define_int_parameter("operation", 0)
+          .label("Operation")
+          .options(
+              {"Create/Replace", "Add to Existing", "Remove from Existing"})
+          .category("Group")
+          .description("How to modify existing group (create, add, or remove)")
+          .build());
 
   // Selection method - dropdown
-  register_parameter(define_int_parameter("selection_mode", 0)
-                         .label("Selection Mode")
-                         .options({"Range", "Every Nth", "Random", "All"})
-                         .category("Selection")
-                         .build());
+  register_parameter(
+      define_int_parameter("selection_mode", 0)
+          .label("Selection Mode")
+          .options({"Range", "Every Nth", "Random", "All"})
+          .category("Selection")
+          .description(
+              "Method for selecting elements (range, pattern, random, or all)")
+          .build());
 
   // Range parameters
   register_parameter(define_int_parameter("range_start", 0)
                          .label("Start")
                          .range(0, 10000)
                          .category("Range")
+                         .description("First element index in range selection")
                          .build());
 
   register_parameter(define_int_parameter("range_end", 10)
                          .label("End")
                          .range(0, 10000)
                          .category("Range")
+                         .description("Last element index in range selection")
                          .build());
 
   // Pattern parameters (Every Nth)
-  register_parameter(define_int_parameter("pattern_step", 2)
-                         .label("Step")
-                         .range(1, 100)
-                         .category("Pattern")
-                         .build());
+  register_parameter(
+      define_int_parameter("pattern_step", 2)
+          .label("Step")
+          .range(1, 100)
+          .category("Pattern")
+          .description("Select every Nth element (e.g., 2 = every other)")
+          .build());
 
   register_parameter(define_int_parameter("pattern_offset", 0)
                          .label("Offset")
                          .range(0, 100)
                          .category("Pattern")
+                         .description("Starting offset for pattern selection")
                          .build());
 
   // Random parameters
@@ -68,12 +80,14 @@ GroupSOP::GroupSOP(const std::string &name) : SOPNode(name, "Group") {
                          .label("Count")
                          .range(1, 10000)
                          .category("Random")
+                         .description("Number of random elements to select")
                          .build());
 
   register_parameter(define_int_parameter("random_seed", 0)
                          .label("Seed")
                          .range(0, 10000)
                          .category("Random")
+                         .description("Random seed for reproducible selection")
                          .build());
 }
 

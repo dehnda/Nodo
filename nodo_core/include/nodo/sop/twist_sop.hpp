@@ -23,32 +23,41 @@ public:
       : SOPNode(name, "Twist") {
 
     // Twist angle in degrees per unit
-    register_parameter(define_float_parameter("angle", 90.0F)
-                           .label("Angle")
-                           .range(-360.0F, 360.0F)
-                           .category("Deformation")
-                           .build());
+    register_parameter(
+        define_float_parameter("angle", 90.0F)
+            .label("Angle")
+            .range(-360.0F, 360.0F)
+            .category("Deformation")
+            .description("Twist angle in degrees per unit distance")
+            .build());
 
     // Axis to twist around
-    register_parameter(define_int_parameter("axis", 1)
-                           .label("Axis")
-                           .options({"X", "Y", "Z"})
-                           .category("Deformation")
-                           .build());
+    register_parameter(
+        define_int_parameter("axis", 1)
+            .label("Axis")
+            .options({"X", "Y", "Z"})
+            .category("Deformation")
+            .description("Axis around which to twist the geometry")
+            .build());
 
     // Twist origin
-    register_parameter(define_float_parameter("origin", 0.0F)
-                           .label("Origin")
-                           .range(-10.0F, 10.0F)
-                           .category("Deformation")
-                           .build());
+    register_parameter(
+        define_float_parameter("origin", 0.0F)
+            .label("Origin")
+            .range(-10.0F, 10.0F)
+            .category("Deformation")
+            .description(
+                "Position along axis where twist starts (zero rotation)")
+            .build());
 
     // Twist rate
-    register_parameter(define_int_parameter("rate", 0)
-                           .label("Rate")
-                           .options({"Linear", "Squared"})
-                           .category("Deformation")
-                           .build());
+    register_parameter(
+        define_int_parameter("rate", 0)
+            .label("Rate")
+            .options({"Linear", "Squared"})
+            .category("Deformation")
+            .description("Twist falloff (linear or squared distance)")
+            .build());
   }
 
 protected:

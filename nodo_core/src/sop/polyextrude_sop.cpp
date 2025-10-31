@@ -15,19 +15,24 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string &name)
                          .label("Distance")
                          .range(0.0, 10.0)
                          .category("Extrusion")
+                         .description("Distance to extrude each face")
                          .build());
 
-  register_parameter(define_float_parameter("inset", 0.0F)
-                         .label("Inset")
-                         .range(0.0, 1.0)
-                         .category("Extrusion")
-                         .build());
+  register_parameter(
+      define_float_parameter("inset", 0.0F)
+          .label("Inset")
+          .range(0.0, 1.0)
+          .category("Extrusion")
+          .description("Amount to inset face borders before extrusion")
+          .build());
 
-  register_parameter(define_int_parameter("individual_faces", 1)
-                         .label("Individual Faces")
-                         .range(0, 1)
-                         .category("Extrusion")
-                         .build());
+  register_parameter(
+      define_int_parameter("individual_faces", 1)
+          .label("Individual Faces")
+          .range(0, 1)
+          .category("Extrusion")
+          .description("Extrude each face separately (1) or as a group (0)")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::execute() {

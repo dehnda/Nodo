@@ -27,35 +27,44 @@ public:
       : SOPNode(name, "Lattice") {
 
     // Lattice divisions
-    register_parameter(define_int_parameter("divisions_x", 3)
-                           .label("Divisions X")
-                           .range(2, 20)
-                           .category("Lattice")
-                           .build());
+    register_parameter(
+        define_int_parameter("divisions_x", 3)
+            .label("Divisions X")
+            .range(2, 20)
+            .category("Lattice")
+            .description("Number of lattice divisions along X axis")
+            .build());
 
-    register_parameter(define_int_parameter("divisions_y", 3)
-                           .label("Divisions Y")
-                           .range(2, 20)
-                           .category("Lattice")
-                           .build());
+    register_parameter(
+        define_int_parameter("divisions_y", 3)
+            .label("Divisions Y")
+            .range(2, 20)
+            .category("Lattice")
+            .description("Number of lattice divisions along Y axis")
+            .build());
 
-    register_parameter(define_int_parameter("divisions_z", 3)
-                           .label("Divisions Z")
-                           .range(2, 20)
-                           .category("Lattice")
-                           .build());
+    register_parameter(
+        define_int_parameter("divisions_z", 3)
+            .label("Divisions Z")
+            .range(2, 20)
+            .category("Lattice")
+            .description("Number of lattice divisions along Z axis")
+            .build());
 
     // Auto bounds
-    register_parameter(define_bool_parameter("auto_bounds", true)
-                           .label("Auto Bounds")
-                           .category("Lattice")
-                           .build());
+    register_parameter(
+        define_bool_parameter("auto_bounds", true)
+            .label("Auto Bounds")
+            .category("Lattice")
+            .description("Automatically fit lattice to input geometry bounds")
+            .build());
 
     // Interpolation mode
     register_parameter(define_int_parameter("mode", 0)
                            .label("Mode")
                            .options({"Trilinear", "Nearest"})
                            .category("Deformation")
+                           .description("Interpolation method for deformation")
                            .build());
   }
 

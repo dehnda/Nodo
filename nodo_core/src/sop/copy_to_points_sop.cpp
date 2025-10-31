@@ -18,33 +18,43 @@ CopyToPointsSOP::CopyToPointsSOP(const std::string &node_name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(define_int_parameter("use_point_normals", 1)
-                         .label("Use Point Normals")
-                         .range(0, 1)
-                         .category("Copy")
-                         .build());
+  register_parameter(
+      define_int_parameter("use_point_normals", 1)
+          .label("Use Point Normals")
+          .range(0, 1)
+          .category("Copy")
+          .description("Orient copies using point normals if available")
+          .build());
 
-  register_parameter(define_int_parameter("use_point_scale", 1)
-                         .label("Use Point Scale")
-                         .range(0, 1)
-                         .category("Copy")
-                         .build());
+  register_parameter(
+      define_int_parameter("use_point_scale", 1)
+          .label("Use Point Scale")
+          .range(0, 1)
+          .category("Copy")
+          .description("Scale copies using point scale attribute")
+          .build());
 
-  register_parameter(define_float_parameter("uniform_scale", 1.0F)
-                         .label("Uniform Scale")
-                         .range(0.01, 10.0)
-                         .category("Copy")
-                         .build());
+  register_parameter(
+      define_float_parameter("uniform_scale", 1.0F)
+          .label("Uniform Scale")
+          .range(0.01, 10.0)
+          .category("Copy")
+          .description("Uniform scale factor applied to all copies")
+          .build());
 
-  register_parameter(define_string_parameter("scale_attribute", "point_index")
-                         .label("Scale Attribute")
-                         .category("Copy")
-                         .build());
+  register_parameter(
+      define_string_parameter("scale_attribute", "point_index")
+          .label("Scale Attribute")
+          .category("Copy")
+          .description("Point attribute name to use for per-copy scaling")
+          .build());
 
-  register_parameter(define_string_parameter("rotation_attribute", "")
-                         .label("Rotation Attribute")
-                         .category("Copy")
-                         .build());
+  register_parameter(
+      define_string_parameter("rotation_attribute", "")
+          .label("Rotation Attribute")
+          .category("Copy")
+          .description("Point attribute name for per-copy rotation")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {

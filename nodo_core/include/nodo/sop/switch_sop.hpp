@@ -25,6 +25,7 @@ public:
                            .label("Select Input")
                            .range(0, 9)
                            .category("Switch")
+                           .description("Index of input to pass through (0-9)")
                            .build());
   }
 

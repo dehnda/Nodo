@@ -16,51 +16,66 @@ MirrorSOP::MirrorSOP(const std::string &name) : SOPNode(name, "Mirror") {
                          .label("Plane")
                          .options({"XY", "XZ", "YZ", "Custom"})
                          .category("Mirror")
+                         .description("Mirror plane (XY, XZ, YZ, or custom)")
                          .build());
 
-  register_parameter(define_int_parameter("keep_original", 1)
-                         .label("Keep Original")
-                         .range(0, 1)
-                         .category("Mirror")
-                         .build());
+  register_parameter(
+      define_int_parameter("keep_original", 1)
+          .label("Keep Original")
+          .range(0, 1)
+          .category("Mirror")
+          .description("Keep original geometry along with mirrored copy")
+          .build());
 
   // Custom plane point
-  register_parameter(define_float_parameter("custom_point_x", 0.0F)
-                         .label("Custom Point X")
-                         .range(-100.0, 100.0)
-                         .category("Custom Plane")
-                         .build());
+  register_parameter(
+      define_float_parameter("custom_point_x", 0.0F)
+          .label("Custom Point X")
+          .range(-100.0, 100.0)
+          .category("Custom Plane")
+          .description("X coordinate of point on custom mirror plane")
+          .build());
 
-  register_parameter(define_float_parameter("custom_point_y", 0.0F)
-                         .label("Custom Point Y")
-                         .range(-100.0, 100.0)
-                         .category("Custom Plane")
-                         .build());
+  register_parameter(
+      define_float_parameter("custom_point_y", 0.0F)
+          .label("Custom Point Y")
+          .range(-100.0, 100.0)
+          .category("Custom Plane")
+          .description("Y coordinate of point on custom mirror plane")
+          .build());
 
-  register_parameter(define_float_parameter("custom_point_z", 0.0F)
-                         .label("Custom Point Z")
-                         .range(-100.0, 100.0)
-                         .category("Custom Plane")
-                         .build());
+  register_parameter(
+      define_float_parameter("custom_point_z", 0.0F)
+          .label("Custom Point Z")
+          .range(-100.0, 100.0)
+          .category("Custom Plane")
+          .description("Z coordinate of point on custom mirror plane")
+          .build());
 
   // Custom plane normal
-  register_parameter(define_float_parameter("custom_normal_x", 0.0F)
-                         .label("Custom Normal X")
-                         .range(-1.0, 1.0)
-                         .category("Custom Plane")
-                         .build());
+  register_parameter(
+      define_float_parameter("custom_normal_x", 0.0F)
+          .label("Custom Normal X")
+          .range(-1.0, 1.0)
+          .category("Custom Plane")
+          .description("X component of custom mirror plane normal")
+          .build());
 
-  register_parameter(define_float_parameter("custom_normal_y", 1.0F)
-                         .label("Custom Normal Y")
-                         .range(-1.0, 1.0)
-                         .category("Custom Plane")
-                         .build());
+  register_parameter(
+      define_float_parameter("custom_normal_y", 1.0F)
+          .label("Custom Normal Y")
+          .range(-1.0, 1.0)
+          .category("Custom Plane")
+          .description("Y component of custom mirror plane normal")
+          .build());
 
-  register_parameter(define_float_parameter("custom_normal_z", 0.0F)
-                         .label("Custom Normal Z")
-                         .range(-1.0, 1.0)
-                         .category("Custom Plane")
-                         .build());
+  register_parameter(
+      define_float_parameter("custom_normal_z", 0.0F)
+          .label("Custom Normal Z")
+          .range(-1.0, 1.0)
+          .category("Custom Plane")
+          .description("Z component of custom mirror plane normal")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {

@@ -45,6 +45,7 @@ public:
             .options({primitive_type_to_string(PrimitiveType::Polygon),
                       primitive_type_to_string(PrimitiveType::Points)})
             .category("Universal")
+            .description("Output geometry type (polygon mesh or point cloud)")
             .build());
 
     // Size parameters
@@ -52,12 +53,14 @@ public:
                            .label("Size X")
                            .range(0.01, 1000.0)
                            .category("Size")
+                           .description("Width of the grid in X direction")
                            .build());
 
     register_parameter(define_float_parameter("size_z", DEFAULT_SIZE)
                            .label("Size Z")
                            .range(0.01, 1000.0)
                            .category("Size")
+                           .description("Depth of the grid in Z direction")
                            .build());
 
     // Resolution parameters
@@ -65,12 +68,14 @@ public:
                            .label("Columns")
                            .range(1, 1000)
                            .category("Resolution")
+                           .description("Number of divisions along X axis")
                            .build());
 
     register_parameter(define_int_parameter("rows", DEFAULT_RESOLUTION)
                            .label("Rows")
                            .range(1, 1000)
                            .category("Resolution")
+                           .description("Number of divisions along Z axis")
                            .build());
   }
 

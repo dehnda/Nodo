@@ -27,6 +27,7 @@ public:
     register_parameter(define_string_parameter("group_name", "group1")
                            .label("Group Name")
                            .category("Group")
+                           .description("Name of the group to promote/convert")
                            .build());
 
     // Source element class
@@ -34,6 +35,7 @@ public:
                            .label("From Type")
                            .options({"Points", "Primitives"})
                            .category("Group")
+                           .description("Source element type of the group")
                            .build());
 
     // Target element class
@@ -41,19 +43,24 @@ public:
                            .label("To Type")
                            .options({"Points", "Primitives"})
                            .category("Group")
+                           .description("Target element type for the group")
                            .build());
 
     // Promotion mode
-    register_parameter(define_int_parameter("mode", 0)
-                           .label("Mode")
-                           .options({"Any", "All"})
-                           .category("Options")
-                           .build());
+    register_parameter(
+        define_int_parameter("mode", 0)
+            .label("Mode")
+            .options({"Any", "All"})
+            .category("Options")
+            .description(
+                "Include element if any or all connected elements are in group")
+            .build());
 
     // Delete original group
     register_parameter(define_int_parameter("delete_original", 0)
                            .label("Delete Original")
                            .category("Options")
+                           .description("Remove original group after promotion")
                            .build());
   }
 

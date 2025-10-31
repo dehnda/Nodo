@@ -37,19 +37,23 @@ public:
                            .label("Radius")
                            .range(0.01, 100.0)
                            .category("Size")
+                           .description("Radius of the sphere")
                            .build());
 
     // Resolution parameters
-    register_parameter(define_int_parameter("segments", DEFAULT_SEGMENTS)
-                           .label("Segments")
-                           .range(3, 256)
-                           .category("Resolution")
-                           .build());
+    register_parameter(
+        define_int_parameter("segments", DEFAULT_SEGMENTS)
+            .label("Segments")
+            .range(3, 256)
+            .category("Resolution")
+            .description("Number of vertical segments (longitude)")
+            .build());
 
     register_parameter(define_int_parameter("rings", DEFAULT_RINGS)
                            .label("Rings")
                            .range(3, 128)
                            .category("Resolution")
+                           .description("Number of horizontal rings (latitude)")
                            .build());
   }
 

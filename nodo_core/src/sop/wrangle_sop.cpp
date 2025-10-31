@@ -30,14 +30,17 @@ WrangleSOP::WrangleSOP(const std::string &node_name)
           .label("Run Over")
           .options({"Points", "Primitives", "Vertices", "Detail"})
           .category("Wrangle")
+          .description("Element class to iterate over and modify")
           .build());
 
   // Expression code
-  register_parameter(define_string_parameter(
-                         "expression", "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;")
-                         .label("Expression")
-                         .category("Wrangle")
-                         .build());
+  register_parameter(
+      define_string_parameter("expression",
+                              "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;")
+          .label("Expression")
+          .category("Wrangle")
+          .description("VEX-style expression to modify geometry attributes")
+          .build());
 
   // Note: Group parameter is inherited from SOPNode base class
 }

@@ -35,20 +35,24 @@ public:
                            .label("Frame")
                            .range(1, 240)
                            .category("Time")
+                           .description("Current frame number for animation")
                            .build());
 
     // FPS
-    register_parameter(define_float_parameter("fps", 24.0F)
-                           .label("FPS")
-                           .range(1.0, 120.0)
-                           .category("Time")
-                           .build());
+    register_parameter(
+        define_float_parameter("fps", 24.0F)
+            .label("FPS")
+            .range(1.0, 120.0)
+            .category("Time")
+            .description("Frames per second for time calculation")
+            .build());
 
     // Start frame (for normalized time)
     register_parameter(define_int_parameter("start_frame", 1)
                            .label("Start Frame")
                            .range(1, 1000)
                            .category("Time Range")
+                           .description("First frame of animation range")
                            .build());
 
     // End frame (for normalized time)
@@ -56,6 +60,7 @@ public:
                            .label("End Frame")
                            .range(1, 10000)
                            .category("Time Range")
+                           .description("Last frame of animation range")
                            .build());
   }
 

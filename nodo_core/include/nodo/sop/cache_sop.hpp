@@ -30,24 +30,30 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // Enable caching
-    register_parameter(define_int_parameter("enable_cache", 0)
-                           .label("Enable Cache")
-                           .options({"Off", "On"})
-                           .category("Cache")
-                           .build());
+    register_parameter(
+        define_int_parameter("enable_cache", 0)
+            .label("Enable Cache")
+            .options({"Off", "On"})
+            .category("Cache")
+            .description("Store cooked geometry to avoid recomputation")
+            .build());
 
     // Lock cache (prevents auto-clearing)
-    register_parameter(define_int_parameter("lock_cache", 0)
-                           .label("Lock Cache")
-                           .options({"Off", "On"})
-                           .category("Cache")
-                           .build());
+    register_parameter(
+        define_int_parameter("lock_cache", 0)
+            .label("Lock Cache")
+            .options({"Off", "On"})
+            .category("Cache")
+            .description("Prevent cache from being automatically cleared")
+            .build());
 
     // Clear cache button (int acting as button)
-    register_parameter(define_int_parameter("clear_cache", 0)
-                           .label("Clear Cache")
-                           .category("Cache")
-                           .build());
+    register_parameter(
+        define_int_parameter("clear_cache", 0)
+            .label("Clear Cache")
+            .category("Cache")
+            .description("Force refresh by clearing cached geometry")
+            .build());
   }
 
 protected:

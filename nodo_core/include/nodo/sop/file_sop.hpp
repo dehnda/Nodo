@@ -26,15 +26,18 @@ public:
     // No input ports - this is a source node
 
     // File path parameter
-    register_parameter(define_string_parameter("file_path", "")
-                           .label("File Path")
-                           .category("File")
-                           .build());
+    register_parameter(
+        define_string_parameter("file_path", "")
+            .label("File Path")
+            .category("File")
+            .description("Path to geometry file to import (e.g., .obj)")
+            .build());
 
     // Reload button (int parameter acting as button)
     register_parameter(define_int_parameter("reload", 0)
                            .label("Reload")
                            .category("File")
+                           .description("Reload file from disk")
                            .build());
   }
 

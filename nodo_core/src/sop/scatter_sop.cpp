@@ -20,28 +20,34 @@ ScatterSOP::ScatterSOP(const std::string &node_name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(define_int_parameter("point_count", 100)
-                         .label("Point Count")
-                         .range(1, 10000)
-                         .category("Scatter")
-                         .build());
+  register_parameter(
+      define_int_parameter("point_count", 100)
+          .label("Point Count")
+          .range(1, 10000)
+          .category("Scatter")
+          .description("Number of points to scatter on geometry surface")
+          .build());
 
   register_parameter(define_int_parameter("seed", 42)
                          .label("Seed")
                          .range(0, 99999)
                          .category("Scatter")
+                         .description("Random seed for point distribution")
                          .build());
 
-  register_parameter(define_float_parameter("density", 1.0F)
-                         .label("Density")
-                         .range(0.0, 10.0)
-                         .category("Scatter")
-                         .build());
+  register_parameter(
+      define_float_parameter("density", 1.0F)
+          .label("Density")
+          .range(0.0, 10.0)
+          .category("Scatter")
+          .description("Density multiplier for point distribution")
+          .build());
 
   register_parameter(define_int_parameter("use_face_area", 1)
                          .label("Use Face Area")
                          .range(0, 1)
                          .category("Scatter")
+                         .description("Weight point distribution by face area")
                          .build());
 }
 

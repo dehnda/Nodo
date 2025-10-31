@@ -27,18 +27,23 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // Color mode
-    register_parameter(define_int_parameter("color_mode", 0)
-                           .label("Color Mode")
-                           .options({"Constant", "Random", "Ramp"})
-                           .category("Color")
-                           .build());
+    register_parameter(
+        define_int_parameter("color_mode", 0)
+            .label("Color Mode")
+            .options({"Constant", "Random", "Ramp"})
+            .category("Color")
+            .description(
+                "Color assignment method (constant, random, or gradient ramp)")
+            .build());
 
     // Element class (which geometry elements to color)
-    register_parameter(define_int_parameter("class", 0)
-                           .label("Class")
-                           .options({"Point", "Vertex", "Primitive"})
-                           .category("Color")
-                           .build());
+    register_parameter(
+        define_int_parameter("class", 0)
+            .label("Class")
+            .options({"Point", "Vertex", "Primitive"})
+            .category("Color")
+            .description("Geometry element type to assign colors to")
+            .build());
 
     // Constant color
     register_parameter(define_float_parameter("color_r", 1.0F)
@@ -46,21 +51,26 @@ public:
                            .range(0.0, 1.0)
                            .category("Constant")
                            .visible_when("color_mode", 0)
+                           .description("Red component of constant color (0-1)")
                            .build());
 
-    register_parameter(define_float_parameter("color_g", 1.0F)
-                           .label("Color G")
-                           .range(0.0, 1.0)
-                           .category("Constant")
-                           .visible_when("color_mode", 0)
-                           .build());
+    register_parameter(
+        define_float_parameter("color_g", 1.0F)
+            .label("Color G")
+            .range(0.0, 1.0)
+            .category("Constant")
+            .visible_when("color_mode", 0)
+            .description("Green component of constant color (0-1)")
+            .build());
 
-    register_parameter(define_float_parameter("color_b", 1.0F)
-                           .label("Color B")
-                           .range(0.0, 1.0)
-                           .category("Constant")
-                           .visible_when("color_mode", 0)
-                           .build());
+    register_parameter(
+        define_float_parameter("color_b", 1.0F)
+            .label("Color B")
+            .range(0.0, 1.0)
+            .category("Constant")
+            .visible_when("color_mode", 0)
+            .description("Blue component of constant color (0-1)")
+            .build());
 
     // Random seed
     register_parameter(define_int_parameter("seed", 0)
@@ -68,29 +78,36 @@ public:
                            .range(0, 10000)
                            .category("Random")
                            .visible_when("color_mode", 1)
+                           .description("Random seed for color generation")
                            .build());
 
     // Ramp start color
-    register_parameter(define_float_parameter("ramp_start_r", 0.0F)
-                           .label("Start R")
-                           .range(0.0, 1.0)
-                           .category("Ramp")
-                           .visible_when("color_mode", 2)
-                           .build());
+    register_parameter(
+        define_float_parameter("ramp_start_r", 0.0F)
+            .label("Start R")
+            .range(0.0, 1.0)
+            .category("Ramp")
+            .visible_when("color_mode", 2)
+            .description("Red component of ramp start color (0-1)")
+            .build());
 
-    register_parameter(define_float_parameter("ramp_start_g", 0.0F)
-                           .label("Start G")
-                           .range(0.0, 1.0)
-                           .category("Ramp")
-                           .visible_when("color_mode", 2)
-                           .build());
+    register_parameter(
+        define_float_parameter("ramp_start_g", 0.0F)
+            .label("Start G")
+            .range(0.0, 1.0)
+            .category("Ramp")
+            .visible_when("color_mode", 2)
+            .description("Green component of ramp start color (0-1)")
+            .build());
 
-    register_parameter(define_float_parameter("ramp_start_b", 1.0F)
-                           .label("Start B")
-                           .range(0.0, 1.0)
-                           .category("Ramp")
-                           .visible_when("color_mode", 2)
-                           .build());
+    register_parameter(
+        define_float_parameter("ramp_start_b", 1.0F)
+            .label("Start B")
+            .range(0.0, 1.0)
+            .category("Ramp")
+            .visible_when("color_mode", 2)
+            .description("Blue component of ramp start color (0-1)")
+            .build());
 
     // Ramp end color
     register_parameter(define_float_parameter("ramp_end_r", 1.0F)
@@ -98,29 +115,36 @@ public:
                            .range(0.0, 1.0)
                            .category("Ramp")
                            .visible_when("color_mode", 2)
+                           .description("Red component of ramp end color (0-1)")
                            .build());
 
-    register_parameter(define_float_parameter("ramp_end_g", 0.0F)
-                           .label("End G")
-                           .range(0.0, 1.0)
-                           .category("Ramp")
-                           .visible_when("color_mode", 2)
-                           .build());
+    register_parameter(
+        define_float_parameter("ramp_end_g", 0.0F)
+            .label("End G")
+            .range(0.0, 1.0)
+            .category("Ramp")
+            .visible_when("color_mode", 2)
+            .description("Green component of ramp end color (0-1)")
+            .build());
 
-    register_parameter(define_float_parameter("ramp_end_b", 0.0F)
-                           .label("End B")
-                           .range(0.0, 1.0)
-                           .category("Ramp")
-                           .visible_when("color_mode", 2)
-                           .build());
+    register_parameter(
+        define_float_parameter("ramp_end_b", 0.0F)
+            .label("End B")
+            .range(0.0, 1.0)
+            .category("Ramp")
+            .visible_when("color_mode", 2)
+            .description("Blue component of ramp end color (0-1)")
+            .build());
 
     // Ramp axis
-    register_parameter(define_int_parameter("ramp_axis", 1)
-                           .label("Ramp Axis")
-                           .options({"X", "Y", "Z"})
-                           .category("Ramp")
-                           .visible_when("color_mode", 2)
-                           .build());
+    register_parameter(
+        define_int_parameter("ramp_axis", 1)
+            .label("Ramp Axis")
+            .options({"X", "Y", "Z"})
+            .category("Ramp")
+            .visible_when("color_mode", 2)
+            .description("Axis along which to apply color gradient")
+            .build());
   }
 
 protected:

@@ -29,12 +29,14 @@ public:
     register_parameter(define_string_parameter("group_a", "group1")
                            .label("Group A")
                            .category("Groups")
+                           .description("Name of first group to combine")
                            .build());
 
     // Second group
     register_parameter(define_string_parameter("group_b", "group2")
                            .label("Group B")
                            .category("Groups")
+                           .description("Name of second group to combine")
                            .build());
 
     // Operation
@@ -44,12 +46,15 @@ public:
             .options({"Union (A | B)", "Intersect (A & B)", "Subtract (A - B)",
                       "Symmetric Diff (A ^ B)"})
             .category("Operation")
+            .description("Boolean operation to combine groups (union, "
+                         "intersect, subtract, or XOR)")
             .build());
 
     // Output group name
     register_parameter(define_string_parameter("output_group", "combined")
                            .label("Output Group")
                            .category("Output")
+                           .description("Name for the resulting combined group")
                            .build());
 
     // Element class
@@ -57,6 +62,7 @@ public:
                            .label("Group Type")
                            .options({"Points", "Primitives"})
                            .category("Groups")
+                           .description("Type of elements in the groups")
                            .build());
   }
 

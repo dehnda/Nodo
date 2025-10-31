@@ -31,6 +31,7 @@ public:
     register_parameter(define_string_parameter("output_name", "output1")
                            .label("Output Name")
                            .category("Output")
+                           .description("Name identifier for this output")
                            .build());
 
     // Render flag
@@ -38,6 +39,7 @@ public:
                            .label("Render")
                            .options({"Off", "On"})
                            .category("Output")
+                           .description("Include this output in rendering")
                            .build());
 
     // Display flag
@@ -45,6 +47,7 @@ public:
                            .label("Display")
                            .options({"Off", "On"})
                            .category("Output")
+                           .description("Show this output in the viewport")
                            .build());
   }
 

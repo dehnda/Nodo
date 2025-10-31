@@ -14,6 +14,7 @@ ExtrudeSOP::ExtrudeSOP(const std::string &name) : SOPNode(name, "Extrude") {
                          .label("Distance")
                          .range(0.0, 10.0)
                          .category("Extrusion")
+                         .description("Distance to extrude faces")
                          .build());
 
   register_parameter(
@@ -21,35 +22,45 @@ ExtrudeSOP::ExtrudeSOP(const std::string &name) : SOPNode(name, "Extrude") {
           .label("Mode")
           .options({"Face Normals", "Uniform Direction", "Region Normals"})
           .category("Extrusion")
+          .description(
+              "Extrusion direction mode (per-face, uniform, or region)")
           .build());
 
-  register_parameter(define_float_parameter("inset", 0.0F)
-                         .label("Inset")
-                         .range(0.0, 5.0)
-                         .category("Extrusion")
-                         .build());
+  register_parameter(
+      define_float_parameter("inset", 0.0F)
+          .label("Inset")
+          .range(0.0, 5.0)
+          .category("Extrusion")
+          .description("Amount to inset face borders before extrusion")
+          .build());
 
   // Direction vector (for uniform mode)
-  register_parameter(define_float_parameter("direction_x", 0.0F)
-                         .label("Direction X")
-                         .range(-1.0, 1.0)
-                         .category("Direction")
-                         .visible_when("mode", 1)
-                         .build());
+  register_parameter(
+      define_float_parameter("direction_x", 0.0F)
+          .label("Direction X")
+          .range(-1.0, 1.0)
+          .category("Direction")
+          .visible_when("mode", 1)
+          .description("X component of uniform extrusion direction")
+          .build());
 
-  register_parameter(define_float_parameter("direction_y", 0.0F)
-                         .label("Direction Y")
-                         .range(-1.0, 1.0)
-                         .category("Direction")
-                         .visible_when("mode", 1)
-                         .build());
+  register_parameter(
+      define_float_parameter("direction_y", 0.0F)
+          .label("Direction Y")
+          .range(-1.0, 1.0)
+          .category("Direction")
+          .visible_when("mode", 1)
+          .description("Y component of uniform extrusion direction")
+          .build());
 
-  register_parameter(define_float_parameter("direction_z", 1.0F)
-                         .label("Direction Z")
-                         .range(-1.0, 1.0)
-                         .category("Direction")
-                         .visible_when("mode", 1)
-                         .build());
+  register_parameter(
+      define_float_parameter("direction_z", 1.0F)
+          .label("Direction Z")
+          .range(-1.0, 1.0)
+          .category("Direction")
+          .visible_when("mode", 1)
+          .description("Z component of uniform extrusion direction")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {

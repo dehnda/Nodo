@@ -172,6 +172,8 @@ BooleanSOP::BooleanSOP(const std::string &node_name)
                          .label("Operation")
                          .options({"Union", "Intersection", "Difference"})
                          .category("Boolean")
+                         .description("Boolean operation: Union (A+B), "
+                                      "Intersection (A∩B), or Difference (A-B)")
                          .build());
 }
 

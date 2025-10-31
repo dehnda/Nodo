@@ -12,17 +12,20 @@ ResampleSOP::ResampleSOP(const std::string &name) : SOPNode(name, "Resample") {
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(define_int_parameter("mode", 0)
-                         .label("Mode")
-                         .options({"By Count", "By Length"})
-                         .category("Resample")
-                         .build());
+  register_parameter(
+      define_int_parameter("mode", 0)
+          .label("Mode")
+          .options({"By Count", "By Length"})
+          .category("Resample")
+          .description("Resampling mode: fixed point count or segment length")
+          .build());
 
   register_parameter(define_int_parameter("point_count", 10)
                          .label("Point Count")
                          .range(2, 1000)
                          .category("Resample")
                          .visible_when("mode", 0)
+                         .description("Target number of points per primitive")
                          .build());
 
   register_parameter(define_float_parameter("segment_length", 0.1F)
@@ -30,6 +33,7 @@ ResampleSOP::ResampleSOP(const std::string &name) : SOPNode(name, "Resample") {
                          .range(0.001, 10.0)
                          .category("Resample")
                          .visible_when("mode", 1)
+                         .description("Target length of each segment")
                          .build());
 }
 

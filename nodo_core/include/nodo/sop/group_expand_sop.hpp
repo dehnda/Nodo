@@ -30,6 +30,7 @@ public:
     register_parameter(define_string_parameter("group_name", "group1")
                            .label("Group Name")
                            .category("Group")
+                           .description("Name of the group to expand or shrink")
                            .build());
 
     // Element class
@@ -37,21 +38,27 @@ public:
                            .label("Group Type")
                            .options({"Points", "Primitives"})
                            .category("Group")
+                           .description("Type of elements in the group")
                            .build());
 
     // Operation
-    register_parameter(define_int_parameter("operation", 0)
-                           .label("Operation")
-                           .options({"Expand", "Shrink"})
-                           .category("Operation")
-                           .build());
+    register_parameter(
+        define_int_parameter("operation", 0)
+            .label("Operation")
+            .options({"Expand", "Shrink"})
+            .category("Operation")
+            .description(
+                "Grow group by adding neighbors or shrink by removing boundary")
+            .build());
 
     // Iterations
-    register_parameter(define_int_parameter("iterations", 1)
-                           .label("Iterations")
-                           .range(1, 100)
-                           .category("Operation")
-                           .build());
+    register_parameter(
+        define_int_parameter("iterations", 1)
+            .label("Iterations")
+            .range(1, 100)
+            .category("Operation")
+            .description("Number of times to repeat expand/shrink operation")
+            .build());
   }
 
   ~GroupExpandSOP() override = default;

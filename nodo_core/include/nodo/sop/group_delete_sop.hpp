@@ -22,17 +22,23 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // Group name pattern (supports wildcards)
-    register_parameter(define_string_parameter("pattern", "*")
-                           .label("Pattern")
-                           .category("Group")
-                           .build());
+    register_parameter(
+        define_string_parameter("pattern", "*")
+            .label("Pattern")
+            .category("Group")
+            .description(
+                "Group name pattern to delete (supports * and ? wildcards)")
+            .build());
 
     // Element class to delete groups from
-    register_parameter(define_int_parameter("element_class", 0)
-                           .label("Group Type")
-                           .options({"Points", "Primitives", "Edges", "All"})
-                           .category("Group")
-                           .build());
+    register_parameter(
+        define_int_parameter("element_class", 0)
+            .label("Group Type")
+            .options({"Points", "Primitives", "Edges", "All"})
+            .category("Group")
+            .description(
+                "Type of groups to delete (point, primitive, edge, or all)")
+            .build());
   }
 
   ~GroupDeleteSOP() override = default;

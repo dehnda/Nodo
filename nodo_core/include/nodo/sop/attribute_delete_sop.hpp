@@ -26,10 +26,12 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // Attribute pattern (supports wildcards)
-    register_parameter(define_string_parameter("pattern", "temp_*")
-                           .label("Pattern")
-                           .category("Attribute")
-                           .build());
+    register_parameter(
+        define_string_parameter("pattern", "temp_*")
+            .label("Pattern")
+            .category("Attribute")
+            .description("Attribute name pattern (supports * and ? wildcards)")
+            .build());
 
     // Element class (which geometry elements to delete from)
     register_parameter(
@@ -37,14 +39,17 @@ public:
             .label("Class")
             .options({"Point", "Primitive", "Vertex", "Detail", "All"})
             .category("Attribute")
+            .description("Geometry element type to delete attributes from")
             .build());
 
     // Invert pattern (delete everything EXCEPT matching)
-    register_parameter(define_int_parameter("invert", 0)
-                           .label("Invert Pattern")
-                           .options({"No", "Yes"})
-                           .category("Options")
-                           .build());
+    register_parameter(
+        define_int_parameter("invert", 0)
+            .label("Invert Pattern")
+            .options({"No", "Yes"})
+            .category("Options")
+            .description("Delete all attributes except those matching pattern")
+            .build());
   }
 
 protected:

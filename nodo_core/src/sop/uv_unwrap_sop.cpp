@@ -15,62 +15,76 @@ UVUnwrapSOP::UVUnwrapSOP(const std::string &name) : SOPNode(name, "UVUnwrap") {
                          .label("Max Chart Size")
                          .range(0.0f, 1.0f)
                          .category("Charts")
+                         .description("Maximum chart size (0=unlimited)")
                          .build());
 
   register_parameter(define_float_parameter("max_cost", 2.0f)
                          .label("Max Cost")
                          .range(0.1f, 10.0f)
                          .category("Charts")
+                         .description("Maximum cost for chart creation")
                          .build());
 
-  register_parameter(define_int_parameter("max_iterations", 1)
-                         .label("Max Iterations")
-                         .range(1, 10)
-                         .category("Charts")
-                         .build());
+  register_parameter(
+      define_int_parameter("max_iterations", 1)
+          .label("Max Iterations")
+          .range(1, 10)
+          .category("Charts")
+          .description("Maximum unwrapping iterations for refinement")
+          .build());
 
   // Seam control
-  register_parameter(define_float_parameter("normal_deviation_weight", 2.0f)
-                         .label("Normal Deviation Weight")
-                         .range(0.0f, 10.0f)
-                         .category("Seams")
-                         .build());
+  register_parameter(
+      define_float_parameter("normal_deviation_weight", 2.0f)
+          .label("Normal Deviation Weight")
+          .range(0.0f, 10.0f)
+          .category("Seams")
+          .description("Weight for normal direction changes when placing seams")
+          .build());
 
   register_parameter(define_float_parameter("normal_seam_weight", 4.0f)
                          .label("Normal Seam Weight")
                          .range(0.0f, 2000.0f)
                          .category("Seams")
+                         .description("Weight for normal-based seam placement")
                          .build());
 
   register_parameter(define_float_parameter("roundness_weight", 0.01f)
                          .label("Roundness Weight")
                          .range(0.0f, 1.0f)
                          .category("Seams")
+                         .description("Weight for preferring rounder charts")
                          .build());
 
   register_parameter(define_float_parameter("straightness_weight", 6.0f)
                          .label("Straightness Weight")
                          .range(0.0f, 20.0f)
                          .category("Seams")
+                         .description("Weight for preferring straight seams")
                          .build());
 
-  register_parameter(define_float_parameter("texture_seam_weight", 0.5f)
-                         .label("Texture Seam Weight")
-                         .range(0.0f, 10.0f)
-                         .category("Seams")
-                         .build());
+  register_parameter(
+      define_float_parameter("texture_seam_weight", 0.5f)
+          .label("Texture Seam Weight")
+          .range(0.0f, 10.0f)
+          .category("Seams")
+          .description("Weight for texture coordinate discontinuities")
+          .build());
 
   // Pack options
-  register_parameter(define_int_parameter("resolution", 1024)
-                         .label("Resolution")
-                         .range(256, 4096)
-                         .category("Packing")
-                         .build());
+  register_parameter(
+      define_int_parameter("resolution", 1024)
+          .label("Resolution")
+          .range(256, 4096)
+          .category("Packing")
+          .description("Texture resolution for packing calculations")
+          .build());
 
   register_parameter(define_float_parameter("padding", 2.0f)
                          .label("Padding")
                          .range(0.0f, 16.0f)
                          .category("Packing")
+                         .description("Padding between UV islands in pixels")
                          .build());
 }
 

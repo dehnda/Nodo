@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <variant>
 
-
 namespace nodo {
 
 // Forward declaration
@@ -51,6 +50,7 @@ public:
     std::string name;             // Internal identifier
     std::string label;            // UI display name
     std::string category;         // UI grouping (optional)
+    std::string description;      // Tooltip/help text (optional)
     Type type;                    // Data type
     ParameterValue default_value; // Default value
 
@@ -87,6 +87,11 @@ public:
 
     ParameterBuilder &category(const std::string &cat) {
       def_.category = cat;
+      return *this;
+    }
+
+    ParameterBuilder &description(const std::string &desc) {
+      def_.description = desc;
       return *this;
     }
 

@@ -36,12 +36,14 @@ public:
                            .label("Radius")
                            .range(0.01, 100.0)
                            .category("Size")
+                           .description("Radius of the cylinder")
                            .build());
 
     register_parameter(define_float_parameter("height", DEFAULT_HEIGHT)
                            .label("Height")
                            .range(0.01, 100.0)
                            .category("Size")
+                           .description("Height of the cylinder along Y axis")
                            .build());
 
     // Resolution parameters
@@ -50,6 +52,7 @@ public:
             .label("Radial Segments")
             .range(3, 256)
             .category("Resolution")
+            .description("Number of segments around the circumference")
             .build());
 
     register_parameter(
@@ -57,18 +60,22 @@ public:
             .label("Height Segments")
             .range(1, 100)
             .category("Resolution")
+            .description("Number of segments along the height")
             .build());
 
     // Cap options
     register_parameter(define_bool_parameter("top_cap", true)
                            .label("Top Cap")
                            .category("Caps")
+                           .description("Enable top cap (circular face at +Y)")
                            .build());
 
-    register_parameter(define_bool_parameter("bottom_cap", true)
-                           .label("Bottom Cap")
-                           .category("Caps")
-                           .build());
+    register_parameter(
+        define_bool_parameter("bottom_cap", true)
+            .label("Bottom Cap")
+            .category("Caps")
+            .description("Enable bottom cap (circular face at -Y)")
+            .build());
   }
 
   void set_radius(float radius) { set_parameter("radius", radius); }

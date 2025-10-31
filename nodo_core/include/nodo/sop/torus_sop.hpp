@@ -36,6 +36,7 @@ public:
             .label("Major Radius")
             .range(0.01, 100.0)
             .category("Size")
+            .description("Distance from torus center to tube center")
             .build());
 
     register_parameter(
@@ -43,6 +44,7 @@ public:
             .label("Minor Radius")
             .range(0.01, 100.0)
             .category("Size")
+            .description("Radius of the tube cross-section")
             .build());
 
     // Resolution parameters
@@ -51,6 +53,7 @@ public:
             .label("Major Segments")
             .range(3, 256)
             .category("Resolution")
+            .description("Number of segments around the major circle")
             .build());
 
     register_parameter(
@@ -58,6 +61,7 @@ public:
             .label("Minor Segments")
             .range(3, 128)
             .category("Resolution")
+            .description("Number of segments around the tube cross-section")
             .build());
   }
 

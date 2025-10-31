@@ -18,54 +18,63 @@ TransformSOP::TransformSOP(const std::string &name)
                          .label("Translate X")
                          .range(-100.0, 100.0)
                          .category("Translation")
+                         .description("Translation along X axis")
                          .build());
 
   register_parameter(define_float_parameter("translate_y", 0.0F)
                          .label("Translate Y")
                          .range(-100.0, 100.0)
                          .category("Translation")
+                         .description("Translation along Y axis")
                          .build());
 
   register_parameter(define_float_parameter("translate_z", 0.0F)
                          .label("Translate Z")
                          .range(-100.0, 100.0)
                          .category("Translation")
+                         .description("Translation along Z axis")
                          .build());
 
   register_parameter(define_float_parameter("rotate_x", 0.0F)
                          .label("Rotate X")
                          .range(-360.0, 360.0)
                          .category("Rotation")
+                         .description("Rotation around X axis in degrees")
                          .build());
 
   register_parameter(define_float_parameter("rotate_y", 0.0F)
                          .label("Rotate Y")
                          .range(-360.0, 360.0)
                          .category("Rotation")
+                         .description("Rotation around Y axis in degrees")
                          .build());
 
   register_parameter(define_float_parameter("rotate_z", 0.0F)
                          .label("Rotate Z")
                          .range(-360.0, 360.0)
                          .category("Rotation")
+                         .description("Rotation around Z axis in degrees")
                          .build());
 
   register_parameter(define_float_parameter("scale_x", 1.0F)
                          .label("Scale X")
                          .range(0.01, 10.0)
                          .category("Scale")
+                         .description("Scale factor along X axis")
                          .build());
 
   register_parameter(define_float_parameter("scale_y", 1.0F)
                          .label("Scale Y")
                          .range(0.01, 10.0)
                          .category("Scale")
+                         .description("Scale factor along Y axis")
                          .build());
 
   register_parameter(define_float_parameter("scale_z", 1.0F)
                          .label("Scale Z")
                          .range(0.01, 10.0)
                          .category("Scale")
+                         .description("Scale factor along Z axis")
                          .build());
 }
 

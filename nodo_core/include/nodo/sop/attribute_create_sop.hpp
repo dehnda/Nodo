@@ -29,21 +29,27 @@ public:
     register_parameter(define_string_parameter("name", "myattrib")
                            .label("Name")
                            .category("Attribute")
+                           .description("Name of the attribute to create")
                            .build());
 
     // Element class (which geometry elements to add attribute to)
-    register_parameter(define_int_parameter("class", 0)
-                           .label("Class")
-                           .options({"Point", "Primitive", "Vertex", "Detail"})
-                           .category("Attribute")
-                           .build());
+    register_parameter(
+        define_int_parameter("class", 0)
+            .label("Class")
+            .options({"Point", "Primitive", "Vertex", "Detail"})
+            .category("Attribute")
+            .description("Geometry element type to store attribute on")
+            .build());
 
     // Attribute type
-    register_parameter(define_int_parameter("type", 0)
-                           .label("Type")
-                           .options({"Float", "Vector", "Integer"})
-                           .category("Attribute")
-                           .build());
+    register_parameter(
+        define_int_parameter("type", 0)
+            .label("Type")
+            .options({"Float", "Vector", "Integer"})
+            .category("Attribute")
+            .description(
+                "Data type of the attribute (float, vector, or integer)")
+            .build());
 
     // Default value for Float type
     register_parameter(define_float_parameter("value_float", 0.0F)
@@ -51,6 +57,7 @@ public:
                            .range(-100.0, 100.0)
                            .category("Value")
                            .visible_when("type", 0)
+                           .description("Default value for float attribute")
                            .build());
 
     // Default value for Vector type
@@ -59,6 +66,7 @@ public:
                            .range(-100.0, 100.0)
                            .category("Value")
                            .visible_when("type", 1)
+                           .description("X component of default vector value")
                            .build());
 
     register_parameter(define_float_parameter("value_y", 0.0F)
@@ -66,6 +74,7 @@ public:
                            .range(-100.0, 100.0)
                            .category("Value")
                            .visible_when("type", 1)
+                           .description("Y component of default vector value")
                            .build());
 
     register_parameter(define_float_parameter("value_z", 0.0F)
@@ -73,6 +82,7 @@ public:
                            .range(-100.0, 100.0)
                            .category("Value")
                            .visible_when("type", 1)
+                           .description("Z component of default vector value")
                            .build());
 
     // Default value for Integer type
@@ -81,6 +91,7 @@ public:
                            .range(-1000, 1000)
                            .category("Value")
                            .visible_when("type", 2)
+                           .description("Default value for integer attribute")
                            .build());
   }
 

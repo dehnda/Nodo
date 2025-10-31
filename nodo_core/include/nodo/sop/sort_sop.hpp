@@ -30,6 +30,7 @@ public:
                            .label("Sort")
                            .options({"Points", "Primitives"})
                            .category("Sort")
+                           .description("Type of elements to sort")
                            .build());
 
     // Sort key
@@ -38,6 +39,7 @@ public:
                            .options({"X Position", "Y Position", "Z Position",
                                      "Reverse", "Random", "Attribute"})
                            .category("Sort")
+                           .description("Criteria for sorting elements")
                            .build());
 
     // Attribute name for attribute-based sorting
@@ -45,14 +47,17 @@ public:
                            .label("Attribute")
                            .category("Sort")
                            .visible_when("key", 5)
+                           .description("Attribute name to sort by")
                            .build());
 
     // Sort order (visible for position and attribute modes)
-    register_parameter(define_int_parameter("order", 0)
-                           .label("Order")
-                           .options({"Ascending", "Descending"})
-                           .category("Sort")
-                           .build());
+    register_parameter(
+        define_int_parameter("order", 0)
+            .label("Order")
+            .options({"Ascending", "Descending"})
+            .category("Sort")
+            .description("Sort direction (ascending or descending)")
+            .build());
 
     // Random seed
     register_parameter(define_int_parameter("seed", 0)
@@ -60,6 +65,7 @@ public:
                            .range(0, 10000)
                            .category("Random")
                            .visible_when("key", 4)
+                           .description("Random seed for shuffle mode")
                            .build());
   }
 

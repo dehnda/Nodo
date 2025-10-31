@@ -23,23 +23,29 @@ SubdivisionSOP::SubdivisionSOP(const std::string &name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(define_int_parameter("subdivision_levels", 1)
-                         .label("Subdivision Levels")
-                         .range(0, 5)
-                         .category("Subdivision")
-                         .build());
+  register_parameter(
+      define_int_parameter("subdivision_levels", 1)
+          .label("Subdivision Levels")
+          .range(0, 5)
+          .category("Subdivision")
+          .description("Number of subdivision iterations to apply")
+          .build());
 
-  register_parameter(define_int_parameter("method", 0)
-                         .label("Method")
-                         .options({"Catmull-Clark", "Simple"})
-                         .category("Subdivision")
-                         .build());
+  register_parameter(
+      define_int_parameter("method", 0)
+          .label("Method")
+          .options({"Catmull-Clark", "Simple"})
+          .category("Subdivision")
+          .description("Subdivision algorithm (Catmull-Clark smooth or simple)")
+          .build());
 
-  register_parameter(define_int_parameter("preserve_boundaries", 1)
-                         .label("Preserve Boundaries")
-                         .range(0, 1)
-                         .category("Subdivision")
-                         .build());
+  register_parameter(
+      define_int_parameter("preserve_boundaries", 1)
+          .label("Preserve Boundaries")
+          .range(0, 1)
+          .category("Subdivision")
+          .description("Keep mesh boundaries sharp during subdivision")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> SubdivisionSOP::execute() {

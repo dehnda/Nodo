@@ -26,12 +26,14 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .label("Array Type")
                          .options({"Linear", "Radial", "Grid"})
                          .category("Array")
+                         .description("Array pattern (linear, radial, or grid)")
                          .build());
 
   register_parameter(define_int_parameter("count", 3)
                          .label("Count")
                          .range(1, 100)
                          .category("Array")
+                         .description("Number of copies to create")
                          .build());
 
   // Linear array parameters (visible when array_type == 0)
@@ -40,6 +42,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(-100.0, 100.0)
                          .category("Linear")
                          .visible_when("array_type", 0)
+                         .description("Offset between copies along X axis")
                          .build());
 
   register_parameter(define_float_parameter("linear_offset_y", 0.0F)
@@ -47,6 +50,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(-100.0, 100.0)
                          .category("Linear")
                          .visible_when("array_type", 0)
+                         .description("Offset between copies along Y axis")
                          .build());
 
   register_parameter(define_float_parameter("linear_offset_z", 0.0F)
@@ -54,6 +58,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(-100.0, 100.0)
                          .category("Linear")
                          .visible_when("array_type", 0)
+                         .description("Offset between copies along Z axis")
                          .build());
 
   // Radial array parameters (visible when array_type == 1)
@@ -62,6 +67,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(-100.0, 100.0)
                          .category("Radial")
                          .visible_when("array_type", 1)
+                         .description("X coordinate of radial array center")
                          .build());
 
   register_parameter(define_float_parameter("radial_center_y", 0.0F)
@@ -69,6 +75,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(-100.0, 100.0)
                          .category("Radial")
                          .visible_when("array_type", 1)
+                         .description("Y coordinate of radial array center")
                          .build());
 
   register_parameter(define_float_parameter("radial_center_z", 0.0F)
@@ -76,6 +83,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(-100.0, 100.0)
                          .category("Radial")
                          .visible_when("array_type", 1)
+                         .description("Z coordinate of radial array center")
                          .build());
 
   register_parameter(define_float_parameter("radial_radius", 2.0F)
@@ -83,14 +91,17 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(0.0, 100.0)
                          .category("Radial")
                          .visible_when("array_type", 1)
+                         .description("Radius of the circular array")
                          .build());
 
-  register_parameter(define_float_parameter("angle_step", 60.0F)
-                         .label("Angle Step")
-                         .range(0.0, 360.0)
-                         .category("Radial")
-                         .visible_when("array_type", 1)
-                         .build());
+  register_parameter(
+      define_float_parameter("angle_step", 60.0F)
+          .label("Angle Step")
+          .range(0.0, 360.0)
+          .category("Radial")
+          .visible_when("array_type", 1)
+          .description("Angular spacing between copies in degrees")
+          .build());
 
   // Grid array parameters (visible when array_type == 2)
   register_parameter(define_int_parameter("grid_width", 3)
@@ -98,6 +109,7 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(1, 50)
                          .category("Grid")
                          .visible_when("array_type", 2)
+                         .description("Number of copies along X axis in grid")
                          .build());
 
   register_parameter(define_int_parameter("grid_height", 3)
@@ -105,21 +117,26 @@ ArraySOP::ArraySOP(const std::string &name) : SOPNode(name, "Array") {
                          .range(1, 50)
                          .category("Grid")
                          .visible_when("array_type", 2)
+                         .description("Number of copies along Y axis in grid")
                          .build());
 
-  register_parameter(define_float_parameter("grid_spacing_x", 1.0F)
-                         .label("Spacing X")
-                         .range(0.01, 100.0)
-                         .category("Grid")
-                         .visible_when("array_type", 2)
-                         .build());
+  register_parameter(
+      define_float_parameter("grid_spacing_x", 1.0F)
+          .label("Spacing X")
+          .range(0.01, 100.0)
+          .category("Grid")
+          .visible_when("array_type", 2)
+          .description("Spacing between grid copies along X axis")
+          .build());
 
-  register_parameter(define_float_parameter("grid_spacing_y", 1.0F)
-                         .label("Spacing Y")
-                         .range(0.01, 100.0)
-                         .category("Grid")
-                         .visible_when("array_type", 2)
-                         .build());
+  register_parameter(
+      define_float_parameter("grid_spacing_y", 1.0F)
+          .label("Spacing Y")
+          .range(0.01, 100.0)
+          .category("Grid")
+          .visible_when("array_type", 2)
+          .description("Spacing between grid copies along Y axis")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {

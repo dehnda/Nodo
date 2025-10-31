@@ -28,15 +28,18 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // File path parameter
-    register_parameter(define_string_parameter("file_path", "")
-                           .label("File Path")
-                           .category("Export")
-                           .build());
+    register_parameter(
+        define_string_parameter("file_path", "")
+            .label("File Path")
+            .category("Export")
+            .description("Destination file path for export (e.g., output.obj)")
+            .build());
 
     // Export button (int parameter acting as button)
     register_parameter(define_int_parameter("export_now", 0)
                            .label("Export Now")
                            .category("Export")
+                           .description("Trigger export to file")
                            .build());
   }
 

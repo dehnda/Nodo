@@ -14,43 +14,51 @@ LineSOP::LineSOP(const std::string &name) : SOPNode(name, "Line") {
                          .label("Start X")
                          .range(-100.0, 100.0)
                          .category("Start Point")
+                         .description("X coordinate of the line start point")
                          .build());
 
   register_parameter(define_float_parameter("start_y", 0.0F)
                          .label("Start Y")
                          .range(-100.0, 100.0)
                          .category("Start Point")
+                         .description("Y coordinate of the line start point")
                          .build());
 
   register_parameter(define_float_parameter("start_z", 0.0F)
                          .label("Start Z")
                          .range(-100.0, 100.0)
                          .category("Start Point")
+                         .description("Z coordinate of the line start point")
                          .build());
 
   register_parameter(define_float_parameter("end_x", 5.0F)
                          .label("End X")
                          .range(-100.0, 100.0)
                          .category("End Point")
+                         .description("X coordinate of the line end point")
                          .build());
 
   register_parameter(define_float_parameter("end_y", 0.0F)
                          .label("End Y")
                          .range(-100.0, 100.0)
                          .category("End Point")
+                         .description("Y coordinate of the line end point")
                          .build());
 
   register_parameter(define_float_parameter("end_z", 0.0F)
                          .label("End Z")
                          .range(-100.0, 100.0)
                          .category("End Point")
+                         .description("Z coordinate of the line end point")
                          .build());
 
-  register_parameter(define_int_parameter("segments", 10)
-                         .label("Segments")
-                         .range(1, 1000)
-                         .category("Line")
-                         .build());
+  register_parameter(
+      define_int_parameter("segments", 10)
+          .label("Segments")
+          .range(1, 1000)
+          .category("Line")
+          .description("Number of segments (points = segments + 1)")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> LineSOP::execute() {

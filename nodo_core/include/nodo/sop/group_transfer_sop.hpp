@@ -29,32 +29,40 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // Group name pattern to transfer
-    register_parameter(define_string_parameter("pattern", "*")
-                           .label("Group Pattern")
-                           .category("Groups")
-                           .build());
+    register_parameter(
+        define_string_parameter("pattern", "*")
+            .label("Group Pattern")
+            .category("Groups")
+            .description(
+                "Pattern for groups to transfer (supports * and ? wildcards)")
+            .build());
 
     // Element class
     register_parameter(define_int_parameter("element_class", 0)
                            .label("Group Type")
                            .options({"Points", "Primitives"})
                            .category("Groups")
+                           .description("Type of groups to transfer")
                            .build());
 
     // Transfer method
-    register_parameter(define_int_parameter("method", 0)
-                           .label("Transfer Method")
-                           .options({"By Index", "By Position"})
-                           .category("Method")
-                           .build());
+    register_parameter(
+        define_int_parameter("method", 0)
+            .label("Transfer Method")
+            .options({"By Index", "By Position"})
+            .category("Method")
+            .description("Match elements by index or closest position")
+            .build());
 
     // Distance threshold for position-based matching
-    register_parameter(define_float_parameter("threshold", 0.001F)
-                           .label("Distance Threshold")
-                           .range(0.0F, 10.0F)
-                           .category("Method")
-                           .visible_when("method", 1)
-                           .build());
+    register_parameter(
+        define_float_parameter("threshold", 0.001F)
+            .label("Distance Threshold")
+            .range(0.0F, 10.0F)
+            .category("Method")
+            .visible_when("method", 1)
+            .description("Maximum distance for position-based matching")
+            .build());
   }
 
   ~GroupTransferSOP() override = default;

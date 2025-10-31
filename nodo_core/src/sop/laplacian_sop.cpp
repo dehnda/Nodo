@@ -122,23 +122,30 @@ LaplacianSOP::LaplacianSOP(const std::string &name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(define_int_parameter("iterations", 5)
-                         .label("Iterations")
-                         .range(1, 100)
-                         .category("Smoothing")
-                         .build());
+  register_parameter(
+      define_int_parameter("iterations", 5)
+          .label("Iterations")
+          .range(1, 100)
+          .category("Smoothing")
+          .description("Number of smoothing iterations to perform")
+          .build());
 
-  register_parameter(define_float_parameter("lambda", 0.5F)
-                         .label("Lambda")
-                         .range(0.0, 1.0)
-                         .category("Smoothing")
-                         .build());
+  register_parameter(
+      define_float_parameter("lambda", 0.5F)
+          .label("Lambda")
+          .range(0.0, 1.0)
+          .category("Smoothing")
+          .description("Smoothing strength (0 = none, 1 = maximum)")
+          .build());
 
-  register_parameter(define_int_parameter("method", 0)
-                         .label("Method")
-                         .options({"Uniform", "Cotangent", "Taubin"})
-                         .category("Smoothing")
-                         .build());
+  register_parameter(
+      define_int_parameter("method", 0)
+          .label("Method")
+          .options({"Uniform", "Cotangent", "Taubin"})
+          .category("Smoothing")
+          .description(
+              "Smoothing algorithm (uniform, cotangent-weighted, or Taubin)")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {

@@ -33,38 +33,47 @@ public:
                            .label("Width")
                            .range(0.01, 100.0)
                            .category("Size")
+                           .description("Width of the box along X axis")
                            .build());
 
     register_parameter(define_float_parameter("height", DEFAULT_SIZE)
                            .label("Height")
                            .range(0.01, 100.0)
                            .category("Size")
+                           .description("Height of the box along Y axis")
                            .build());
 
     register_parameter(define_float_parameter("depth", DEFAULT_SIZE)
                            .label("Depth")
                            .range(0.01, 100.0)
                            .category("Size")
+                           .description("Depth of the box along Z axis")
                            .build());
 
     // Subdivision parameters
-    register_parameter(define_int_parameter("width_segments", DEFAULT_SEGMENTS)
-                           .label("Width Segments")
-                           .range(1, 100)
-                           .category("Subdivisions")
-                           .build());
+    register_parameter(
+        define_int_parameter("width_segments", DEFAULT_SEGMENTS)
+            .label("Width Segments")
+            .range(1, 100)
+            .category("Subdivisions")
+            .description("Number of subdivisions along width (X)")
+            .build());
 
-    register_parameter(define_int_parameter("height_segments", DEFAULT_SEGMENTS)
-                           .label("Height Segments")
-                           .range(1, 100)
-                           .category("Subdivisions")
-                           .build());
+    register_parameter(
+        define_int_parameter("height_segments", DEFAULT_SEGMENTS)
+            .label("Height Segments")
+            .range(1, 100)
+            .category("Subdivisions")
+            .description("Number of subdivisions along height (Y)")
+            .build());
 
-    register_parameter(define_int_parameter("depth_segments", DEFAULT_SEGMENTS)
-                           .label("Depth Segments")
-                           .range(1, 100)
-                           .category("Subdivisions")
-                           .build());
+    register_parameter(
+        define_int_parameter("depth_segments", DEFAULT_SEGMENTS)
+            .label("Depth Segments")
+            .range(1, 100)
+            .category("Subdivisions")
+            .description("Number of subdivisions along depth (Z)")
+            .build());
   }
 
   void set_size(float width, float height, float depth) {

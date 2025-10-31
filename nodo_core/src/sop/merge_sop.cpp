@@ -13,11 +13,13 @@ MergeSOP::MergeSOP(const std::string &name) : SOPNode(name, "Merge") {
   }
 
   // Optional parameter to control how many inputs are visible
-  register_parameter(define_int_parameter("num_inputs", 2)
-                         .label("Number of Inputs")
-                         .range(1, 4)
-                         .category("Merge")
-                         .build());
+  register_parameter(
+      define_int_parameter("num_inputs", 2)
+          .label("Number of Inputs")
+          .range(1, 4)
+          .category("Merge")
+          .description("Number of visible input ports for merging geometry")
+          .build());
 }
 
 std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
