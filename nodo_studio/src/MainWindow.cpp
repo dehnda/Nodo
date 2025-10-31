@@ -657,6 +657,17 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
   // Update undo/redo actions
   updateUndoRedoActions();
 
+  // update display if needed
+  if (node_graph_->get_display_node() == -1) {
+    if (node_graph_->get_nodes().empty()) {
+      return; // No nodes left to display
+    }
+    int new_display_node_id = node_graph_->get_nodes().back()->get_id();
+    if (new_display_node_id != -1) {
+      executeAndDisplayNode(new_display_node_id);
+    }
+  }
+
   QString msg = QString("Deleted %1 node(s)").arg(node_ids.size());
   if (status_bar_widget_ != nullptr) {
     status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, msg);
