@@ -37,13 +37,18 @@ Nodo is the **first GPU-native procedural mesh generation system** that combines
 
 ## 🚀 Development Status & Roadmap
 
-See **[CLAUDE.md](CLAUDE.md)** for the complete project documentation including:
-- Full implementation status (what's done vs what's missing)
-- Development roadmap and priorities
+See **[ROADMAP.md](ROADMAP.md)** for the complete development plan including:
+- Strategic goals and timeline (Q4 2025 - 2027+)
+- Current phase: Property panel system implementation (Phase 1)
+- Future engine integration plans (Godot/Unity/Unreal)
+- Decision points and success metrics
+
+See **[CLAUDE.md](CLAUDE.md)** for technical documentation:
 - Architecture guide and code style
 - How to add new SOP nodes
+- Implementation details
 
-**Current Focus**: GPU compute shader implementation, UI/UX enhancements, and file format support.
+**Current Focus (October 2025)**: Backend parameter system + property panel UI for all 44 nodes.
 
 ## Quick Start
 

@@ -1,8 +1,14 @@
 # Property Panel Implementation Plan
 
+> **Note:** This is a detailed technical implementation document for **Phase 1** of the [main ROADMAP.md](../ROADMAP.md).
+> For strategic planning and high-level timeline, see the roadmap.
+
 ## Executive Summary
 
-This document outlines a comprehensive plan to implement the auto-generated property panel system based on the 7 HTML concept patches (44 nodes total). The implementation will use a data-driven approach where node parameter definitions automatically generate Qt UI components.
+This document outlines the technical implementation details for Phase 1: auto-generated property panel system based on 7 HTML concept patches (44 nodes total). The implementation uses a data-driven approach where node parameter definitions automatically generate Qt UI components.
+
+**Timeline:** Q4 2025 - Q1 2026 (12-14 weeks)  
+**Goal:** Complete backend + UI for all 44 nodes with universal parameters
 
 ---
 
@@ -894,11 +900,43 @@ Vector3Widget composes three FloatWidgets.
 
 ---
 
-## 🔮 Future Enhancements
+## 🏗️ Engine-Ready Additions (Phase 1.5)
 
-### Post-MVP:
+As you implement Phase 1, add these small touches to prepare for potential engine integration (see [ROADMAP.md Phase 2](../ROADMAP.md#phase-2-engine-ready-architecture-q1-q2-2026)):
+
+### Parameter Metadata Enhancements
+```cpp
+// Add descriptions for tooltips and external API documentation
+.addParameter("radius", ParameterType::Float)
+    .withDefault(1.0f)
+    .withRange(0.01f, 100.0f)
+    .withDescription("Controls the sphere radius")  // 👈 Add this
+    .withLabel("Radius");
+
+// Add node versioning for future compatibility
+class SphereNode : public SOPNode {
+public:
+    static constexpr int NODE_VERSION = 1;  // � Add this
+    int getVersion() const override { return NODE_VERSION; }
+};
+```
+
+### Architectural Discipline
+- ✅ Keep Qt out of nodo_core (verify with `grep -r "Q[A-Z]" nodo_core/`)
+- ✅ Use stable parameter names (never change after v1.0)
+- ✅ Parameter labels can change, parameter IDs cannot
+- ✅ All geometry operations work without GUI
+
+**Effort:** ~1 hour per week during Phase 1  
+**Benefit:** Smooth path to Phase 2 (headless/engine integration)
+
+---
+
+## �🔮 Future Enhancements
+
+### Post-MVP (Phase 3+):
 1. **Parameter Presets**: Save/load parameter configurations
-2. **Expression Support**: Python expressions for parameter values
+2. **Expression Support**: Python/Lua expressions for parameter values
 3. **Animation Keyframes**: Timeline integration
 4. **Parameter Linking**: Drive one param from another
 5. **Custom Widgets**: Node-specific UI (color ramps, curves)

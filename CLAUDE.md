@@ -1,188 +1,813 @@
-# CLAUDE.md
+# CLAUDE.md - Developer Reference# CLAUDE.md - Developer Reference
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
 
-NodeFluxEngine is a **production-ready C++20 GPU-accelerated procedural mesh generation library** with a Houdini-inspired SOP (Surface Operator) workflow. The project provides a complete node-based procedural modeling system with intelligent caching, visual editing, and real-time performance.
+> **For strategic planning and roadmap:** See [ROADMAP.md](ROADMAP.md)  > **For strategic planning and roadmap:** See [ROADMAP.md](ROADMAP.md)  
 
-### Current Status: Production Ready ✅
+> **For documentation navigation:** See [docs/NAVIGATION.md](docs/NAVIGATION.md)> **For documentation navigation:** See [docs/NAVIGATION.md](docs/NAVIGATION.md)
 
-**Core Achievement**: We have built a complete, working procedural mesh generation system that rivals industry tools.
 
-- **28 Working SOP Nodes** - Full procedural workflow capability (Week 3 & 5 complete!)
-- **Qt Studio Application** - Visual node editor with 3D viewport
-- **Complete Data Flow System** - Smart caching and dependency resolution
-- **Comprehensive Testing** - 253 unit tests covering all major systems
-- **Modern Architecture** - Clean C++20 design with robust error handling
-- **Production Features** - UV unwrapping, boolean ops, instancing, deformation, expression-based manipulation, and more
 
----
+This file provides technical reference for developers working on Nodo's codebase.This file provides technical reference for developers working on Nodo's codebase.
 
-## What's Actually Implemented (October 2025)
 
-### ✅ Core Infrastructure (Complete)
 
-**Build System**:
-- CMake 3.20+ with Conan 2.x dependency management
-- Cross-platform support (Linux, Windows via WSL)
-- Automated build tasks for VS Code
-- Clean preset-based configuration
+------
 
-**Dependencies (Auto-managed by Conan)**:
-- Eigen3 3.4.0 - Linear algebra
-- CGAL 5.6.1 - Boolean operations
-- Qt 6.7.3 - GUI framework
-- Google Test 1.14.0 - Testing
-- fmt, nlohmann_json, GMP/MPFR
 
-**Error Handling**:
-- Thread-local error storage (`nodeflux::core::Error`)
-- `std::optional<T>` for operations that can fail (NO `std::expected` - C++23 only)
-- Node execution states: CLEAN, DIRTY, COMPUTING, ERROR
 
-### ✅ Core Data Structures (Complete)
+## Quick Project Context## Quick Project Context
 
-**Mesh (`nodeflux::core::Mesh`)**:
-- Eigen::MatrixXd for vertices and faces
-- Vertex normals, face normals, bounds calculation
-- Thread-safe, move-optimized
-- Comprehensive validation system
 
-**GeometryContainer (`nodeflux::core::GeometryContainer`)** - Modern Attribute System v2.0:
-- Primary geometry container with unified attribute storage
-- Structure-of-Arrays (SoA) layout for cache efficiency and SIMD
-- Four element classes: Point, Vertex, Primitive, Detail
-- Type-safe attribute access with AttributeStorage<T> templates
-- Support for Vec2f, Vec3f, Vec4f, float, int, Mat3f, Mat4f, Quatf, string
-- Houdini-compatible standard names ("P", "N", "Cd", "uv", "Alpha", "v", "pscale")
-- Advanced features:
-  - Attribute promotion/demotion between element classes
-  - Named groups for selection with boolean operations
-  - Comprehensive interpolation (linear, cubic, weighted, barycentric, bilinear, slerp)
-- Performance: 34.5M/s sequential write, 10.3M/s sequential read (1M Vec3f)
-- Full documentation: [API Reference](docs/ATTRIBUTE_SYSTEM_API.md)
 
-**GeometryData (`nodeflux::sop::GeometryData`)**:
-- Primary data container passed between nodes
-- Contains GeometryContainer (modern) + legacy Mesh (for compatibility)
-- Clone, merge, and transform operations
-- Attribute type system with variant storage
+**Nodo** is a C++20 procedural modeling application with:**Nodo** is a C++20 procedural modeling application with:
 
-**Legacy: GeometryAttributes** (deprecated, kept for compatibility):
-- Old attribute system, replaced by GeometryContainer
-- Being phased out in favor of unified GeometryContainer approach
+- **44 node types** across 7 categories (geometry, transform, boolean, etc.)- **44 node types** across 7 categories (geometry, transform, boolean, etc.)
 
-### ✅ SOP Node System (Production Ready)
+- **Qt-based Studio** with visual node editor and 3D viewport- **Qt-based Studio** with visual node editor and 3D viewport
 
-**Base Class (`nodeflux::sop::SOPNode`)**:
-- Located: `nodeflux_core/include/nodeflux/sop/sop_node.hpp`
-- Smart caching with automatic dirty state management
-- Input/output port system with type checking
-- Parameter system with variant types
-- Execution timing and performance tracking
-- `cook()` method pattern for all nodes
+- **nodo_core library** (pure C++, no Qt) + **nodo_studio** (Qt UI)- **nodo_core library** (pure C++, no Qt) + **nodo_studio** (Qt UI)
 
-**Node Ports (`nodeflux::sop::NodePort`)**:
-- Type-safe connections between nodes
-- Multiple port types: GEOMETRY, TRANSFORM, SCALAR, etc.
-- Connection validation and data flow
+- **Manifold geometry kernel** for robust boolean operations- **Manifold geometry kernel** for robust boolean operations
 
-### ✅ Implemented SOP Nodes (28 Total - Production Ready!)
+- **Modern attribute system** with point/primitive/vertex/detail classes- **Modern attribute system** with point/primitive/vertex/detail classes
 
-**Location**: `nodeflux_core/include/nodeflux/sop/`
 
-**Generators (5 nodes)**:
-- `sphere_sop.hpp` - UV sphere and icosphere variants ✅
-- `line_sop.hpp` - Line generation ✅
-- Plus: Box, Cylinder, Plane, Torus (in `/nodes/` directory) ✅
 
-**IO (2 nodes)**:
+**Current Phase (Oct 2025):** Phase 1 - Implementing backend parameters + property panel UI**Current Phase (Oct 2025):** Phase 1 - Implementing backend parameters + property panel UI
+
+
+
+------
+
+
+
+## Code Style Guide## Code Style Guide
+
+
+
+### Naming Conventions### Naming Conventions
+
+
+
+- **Variables/Functions**: `snake_case` (e.g., `vertex_count`, `calculate_bounds()`)- **Variables/Functions**: `snake_case` (e.g., `vertex_count`, `calculate_bounds()`)
+
+- **Types/Classes**: `PascalCase` (e.g., `GeometryData`, `SOPNode`)- **Types/Classes**: `PascalCase` (e.g., `GeometryData`, `SOPNode`)
+
+- **Constants**: `UPPER_SNAKE_CASE` (e.g., `DEFAULT_RADIUS`)- **Constants**: `UPPER_SNAKE_CASE` (e.g., `DEFAULT_RADIUS`)
+
+- **Private Members**: trailing underscore (e.g., `vertex_count_`, `cache_`)- **Private Members**: trailing underscore (e.g., `vertex_count_`, `cache_`)
+
+- **Namespaces**: `lowercase` (e.g., `nodo::core`, `nodo::sop`)- **Namespaces**: `lowercase` (e.g., `nodo::core`, `nodo::sop`)
+
+
+
+### C++ Standards & Patterns### C++ Standards & Patterns
+
+
+
+**Use C++20 Features**:**Use C++20 Features**:
+
+```cpp```cpp
+
+// ✅ GOOD// ✅ GOOD
+
+std::optional<Mesh> result = generate_mesh();std::optional<Mesh> result = generate_mesh();
+
+if (result.has_value()) { /* use result */ }if (result.has_value()) { /* use result */ }
+
+
+
+auto [vertices, faces] = extract_geometry();  // structured bindingsauto [vertices, faces] = extract_geometry();  // structured bindings
+
+
+
+if (auto input = get_input(); input) { /* use input */ }  // if-initif (auto input = get_input(); input) { /* use input */ }  // if-init
+
+
+
+// ❌ BAD - Don't use C++23 features// ❌ BAD - Don't use C++23 features
+
+std::expected<Mesh, Error> result;  // ❌ Not available in C++20std::expected<Mesh, Error> result;  // ❌ Not available in C++20
+
+``````
+
+
+
+**Error Handling Pattern**:**Error Handling Pattern**:
+
+```cpp```cpp
+
+// Return std::optional for operations that can fail// Return std::optional for operations that can fail
+
+std::optional<std::shared_ptr<GeometryData>> cook() override {std::optional<std::shared_ptr<GeometryData>> cook() override {
+
+    auto input = get_input_data(0);    auto input = get_input_data(0);
+
+    if (!input) {    if (!input) {
+
+        set_error("No input geometry");        set_error("No input geometry");
+
+        return std::nullopt;  // ✅        return std::nullopt;  // ✅
+
+    }    }
+
+    // ... process ...    // ... process ...
+
+    return output;    return output;
+
+}}
+
+``````
+
+
+
+**Style Requirements**:**Style Requirements**:
+
+```cpp```cpp
+
+// ✅ GOOD// ✅ GOOD
+
+float radius = 2.0F;           // Uppercase Ffloat radius = 2.0F;           // Uppercase F
+
+if (ptr != nullptr) { }        // Explicit nullptr checkif (ptr != nullptr) { }        // Explicit nullptr check
+
+MyClass::static_method();      // Static methods via classMyClass::static_method();      // Static methods via class
+
+
+
+// ❌ BAD// ❌ BAD
+
+float radius = 2.0f;           // Lowercase ffloat radius = 2.0f;           // Lowercase f
+
+if (ptr) { }                   // Implicit pointer checkif (ptr) { }                   // Implicit pointer check
+
+instance.static_method();      // Don't call static via instanceinstance.static_method();      // Don't call static via instance
+
+``````
+
+
+
+### Performance Guidelines### Performance Guidelines
+
+
+
+- Use **Eigen** for vectorized math (avoid manual loops)- Use **Eigen** for vectorized math (avoid manual loops)
+
+- **Reserve** container capacity when size is known- **Reserve** container capacity when size is known
+
+- Prefer **move semantics** for large data (`std::move`)- Prefer **move semantics** for large data (`std::move`)
+
+- **Profile before optimizing** (use benchmarks)- **Profile before optimizing** (use benchmarks)
+
+- Use **const references** for input parameters: `const Mesh&`- Use **const references** for input parameters: `const Mesh&`
+
+
+
+------
+
+
+
+## Architecture Overview## Architecture Overview
+
+
+
+### Project Structure### Project Structure
+
+
+
+``````
+
+nodo_core/           # Pure C++ library (NO Qt dependencies)nodo_core/           # Pure C++ library (NO Qt dependencies)
+
+├── include/nodo/├── include/nodo/
+
+│   ├── core/        # Mesh, GeometryContainer, attributes│   ├── core/        # Mesh, GeometryContainer, attributes
+
+│   ├── sop/         # SOPNode base class + all node types│   ├── sop/         # SOPNode base class + all node types
+
+│   └── graph/       # NodeGraph, execution engine│   └── graph/       # NodeGraph, execution engine
+
+└── src/             # Implementations└── src/             # Implementations
+
+
+
+nodo_studio/         # Qt GUI applicationnodo_studio/         # Qt GUI application
+
+├── src/├── src/
+
+│   ├── MainWindow.cpp       # Main application window│   ├── MainWindow.cpp       # Main application window
+
+│   ├── NodeGraphWidget.cpp  # Visual node editor│   ├── NodeGraphWidget.cpp  # Visual node editor
+
+│   ├── ViewportWidget.cpp   # 3D OpenGL viewport│   ├── ViewportWidget.cpp   # 3D OpenGL viewport
+
+│   └── PropertyPanel.cpp    # Node parameter UI│   └── PropertyPanel.cpp    # Node parameter UI
+
+└── resources/       # Icons, shaders, UI resources└── resources/       # Icons, shaders, UI resources
+
+
+
+tests/               # Google Test unit teststests/               # Google Test unit tests
+
+docs/                # Documentation, design conceptsdocs/                # Documentation, design concepts
+
+``````
+
+
+
+### Key Design Patterns### Key Design Patterns
+
+
+
+**SOP Node Pattern**:**SOP Node Pattern**:
+
+```cpp```cpp
+
+class MyCustomSOP : public SOPNode {class MyCustomSOP : public SOPNode {
+
+public:public:
+
+    MyCustomSOP(const std::string& name) : SOPNode(name, "MyCustom") {    MyCustomSOP(const std::string& name) : SOPNode(name, "MyCustom") {
+
+        cook_setup();  // Define parameters        cook_setup();  // Define parameters
+
+    }    }
+
+
+
+protected:protected:
+
+    void cook_setup() override {    void cook_setup() override {
+
+        // Define parameters with fluent API        // Define parameters with fluent API
+
+        define_float_parameter("radius", 1.0F)        define_float_parameter("radius", 1.0F)
+
+            .label("Radius")            .label("Radius")
+
+            .range(0.01F, 100.0F)            .range(0.01F, 100.0F)
+
+            .description("Controls sphere radius");            .description("Controls sphere radius");
+
+    }    }
+
+
+
+    std::optional<std::shared_ptr<GeometryData>> cook() override {    std::optional<std::shared_ptr<GeometryData>> cook() override {
+
+        // Get input        // Get input
+
+        auto input = get_input_data(0);        auto input = get_input_data(0);
+
+        if (!input) {        if (!input) {
+
+            set_error("No input geometry");            set_error("No input geometry");
+
+            return std::nullopt;            return std::nullopt;
+
+        }        }
+
+
+
+        // Get parameters        // Get parameters
+
+        float radius = get_parameter<float>("radius");        float radius = get_parameter<float>("radius");
+
+
+
+        // Create output        // Create output
+
+        auto output = std::make_shared<GeometryData>(*input);        auto output = std::make_shared<GeometryData>(*input);
+
+                
+
+        // TODO: Modify geometry        // TODO: Modify geometry
+
+                
+
+        return output;        return output;
+
+    }    }
+
+};};
+
+``````
+
+
+
+**Data Flow Pattern**:**Data Flow Pattern**:
+
+``````
+
+User modifies parameter → Node marked dirty →User modifies parameter → Node marked dirty →
+
+Cook input dependencies → Execute node.cook() →Cook input dependencies → Execute node.cook() →
+
+Update output cache → Propagate to connected nodesUpdate output cache → Propagate to connected nodes
+
+``````
+
+
+
+**Caching**: Automatic - node only re-executes when:**Caching**: Automatic - node only re-executes when:
+
+- Input data changes- Input data changes
+
+- Parameters change via `mark_dirty()`- Parameters change via `mark_dirty()`
+
+- Manually forced- Manually forced
+
+
+
+------
+
+
+
+## Core Data Structures## Core Data Structures
+
+
+
+### GeometryContainer (Modern)### GeometryContainer (Modern)
+
+Primary geometry container with Houdini-style attributes:Primary geometry container with Houdini-style attributes:
+
+```cpp```cpp
+
+GeometryContainer container;GeometryContainer container;
+
+
+
+// Add attributes// Add attributes
+
+container.addPointAttribute<Vec3f>("P");     // Position (standard)container.addPointAttribute<Vec3f>("P");     // Position (standard)
+
+container.addPointAttribute<Vec3f>("N");     // Normalcontainer.addPointAttribute<Vec3f>("N");     // Normal
+
+container.addPointAttribute<Vec3f>("Cd");    // Colorcontainer.addPointAttribute<Vec3f>("Cd");    // Color
+
+container.addPrimitiveAttribute<int>("material_id");container.addPrimitiveAttribute<int>("material_id");
+
+
+
+// Access attributes// Access attributes
+
+auto& positions = container.getPointAttribute<Vec3f>("P");auto& positions = container.getPointAttribute<Vec3f>("P");
+
+positions[0] = Vec3f(1.0f, 2.0f, 3.0f);positions[0] = Vec3f(1.0f, 2.0f, 3.0f);
+
+
+
+// Groups// Groups
+
+container.addPointGroup("selected_points");container.addPointGroup("selected_points");
+
+container.addPrimitiveGroup("material_1");container.addPrimitiveGroup("material_1");
+
+``````
+
+
+
+See [docs/ATTRIBUTE_SYSTEM_API.md](docs/ATTRIBUTE_SYSTEM_API.md) for complete API.See [docs/ATTRIBUTE_SYSTEM_API.md](docs/ATTRIBUTE_SYSTEM_API.md) for complete API.
+
+
+
+### SOPNode Parameter System### SOPNode Parameter System
+
+
+
+```cpp```cpp
+
+// In cook_setup():// In cook_setup():
+
+define_float_parameter("radius", 1.0F)define_float_parameter("radius", 1.0F)
+
+    .label("Radius")                      // UI display name    .label("Radius")                      // UI display name
+
+    .range(0.01F, 100.0F)                // Min/max    .range(0.01F, 100.0F)                // Min/max
+
+    .description("Sphere radius")         // Tooltip    .description("Sphere radius")         // Tooltip
+
+    .category("Size");                    // Section grouping    .category("Size");                    // Section grouping
+
+
+
+define_int_parameter("mode", 0)define_int_parameter("mode", 0)
+
+    .label("Type")    .label("Type")
+
+    .options({"UV Sphere", "Icosphere"})  // Dropdown    .options({"UV Sphere", "Icosphere"})  // Dropdown
+
+    .category("Mode");    .category("Mode");
+
+
+
+define_vector3_parameter("center", {0, 0, 0})define_vector3_parameter("center", {0, 0, 0})
+
+    .label("Center")    .label("Center")
+
+    .description("Sphere center position");    .description("Sphere center position");
+
+
+
+// In cook():// In cook():
+
+float radius = get_parameter<float>("radius");float radius = get_parameter<float>("radius");
+
+int mode = get_parameter<int>("mode");int mode = get_parameter<int>("mode");
+
+Vec3f center = get_parameter<Vec3f>("center");Vec3f center = get_parameter<Vec3f>("center");
+
+``````
+
+
+
+------
+
+
+
+## Adding a New SOP Node## Adding a New SOP Node
+
+
+
+### Step 1: Create Header File### Step 1: Create Header File
+
+`nodo_core/include/nodo/sop/nodes/my_node_sop.hpp`:`nodo_core/include/nodo/sop/nodes/my_node_sop.hpp`:
+
+```cpp```cpp
+
+#pragma once#pragma once
+
+
+
+#include "nodo/sop/sop_node.hpp"#include "nodo/sop/sop_node.hpp"
+
+
+
+namespace nodo::sop {namespace nodo::sop {
+
+
+
+class MyNodeSOP : public SOPNode {class MyNodeSOP : public SOPNode {
+
+public:public:
+
+    explicit MyNodeSOP(const std::string& name);    explicit MyNodeSOP(const std::string& name);
+
+    ~MyNodeSOP() override = default;    ~MyNodeSOP() override = default;
+
+
+
+    // Node metadata    // Node metadata
+
+    static constexpr int NODE_VERSION = 1;    static constexpr int NODE_VERSION = 1;
+
+    int getVersion() const override { return NODE_VERSION; }    int getVersion() const override { return NODE_VERSION; }
+
+
+
+protected:protected:
+
+    void cook_setup() override;    void cook_setup() override;
+
+    std::optional<std::shared_ptr<GeometryData>> cook() override;    std::optional<std::shared_ptr<GeometryData>> cook() override;
+
+
+
+private:private:
+
+    // Parameters (cached for performance)    // Parameters (cached for performance)
+
+    float my_param_ = 1.0F;    float my_param_ = 1.0F;
+
+};};
+
+
+
+} // namespace nodo::sop} // namespace nodo::sop
+
+``````
+
+
+
+### Step 2: Create Implementation### Step 2: Create Implementation
+
+`nodo_core/src/sop/nodes/my_node_sop.cpp`:`nodo_core/src/sop/nodes/my_node_sop.cpp`:
+
+```cpp```cpp
+
+#include "nodo/sop/nodes/my_node_sop.hpp"#include "nodo/sop/nodes/my_node_sop.hpp"
+
+
+
+namespace nodo::sop {namespace nodo::sop {
+
+
+
+MyNodeSOP::MyNodeSOP(const std::string& name)MyNodeSOP::MyNodeSOP(const std::string& name)
+
+    : SOPNode(name, "MyNode") {    : SOPNode(name, "MyNode") {
+
+    cook_setup();    cook_setup();
+
+}}
+
+
+
+void MyNodeSOP::cook_setup() {void MyNodeSOP::cook_setup() {
+
+    // Universal parameter (inherited from SOPNode)    // Universal parameter (inherited from SOPNode)
+
+    // Group parameter is automatic    // Group parameter is automatic
+
+        
+
+    // Define node-specific parameters    // Define node-specific parameters
+
+    define_float_parameter("my_param", 1.0F)    define_float_parameter("my_param", 1.0F)
+
+        .label("My Parameter")        .label("My Parameter")
+
+        .range(0.0F, 10.0F)        .range(0.0F, 10.0F)
+
+        .description("Controls my operation")        .description("Controls my operation")
+
+        .category("Parameters");        .category("Parameters");
+
+}}
+
+
+
+std::optional<std::shared_ptr<GeometryData>> MyNodeSOP::cook() {std::optional<std::shared_ptr<GeometryData>> MyNodeSOP::cook() {
+
+    auto input = get_input_data(0);    auto input = get_input_data(0);
+
+    if (!input) {    if (!input) {
+
+        set_error("No input geometry");        set_error("No input geometry");
+
+        return std::nullopt;        return std::nullopt;
+
+    }    }
+
+
+
+    // Get parameters    // Get parameters
+
+    my_param_ = get_parameter<float>("my_param");    my_param_ = get_parameter<float>("my_param");
+
+        
+
+    // Create output (copy input)    // Create output (copy input)
+
+    auto output = std::make_shared<GeometryData>(*input);    auto output = std::make_shared<GeometryData>(*input);
+
+        
+
+    // TODO: Implement your geometry operation    // TODO: Implement your geometry operation
+
+    // Example: scale all points    // Example: scale all points
+
+    auto& container = output->container;    auto& container = output->container;
+
+    auto& positions = container.getPointAttribute<Vec3f>("P");    auto& positions = container.getPointAttribute<Vec3f>("P");
+
+    for (size_t i = 0; i < positions.size(); ++i) {    for (size_t i = 0; i < positions.size(); ++i) {
+
+        positions[i] *= my_param_;        positions[i] *= my_param_;
+
+    }    }
+
+        
+
+    return output;    return output;
+
+}}
+
+
+
+} // namespace nodo::sop} // namespace nodo::sop
+
+``````
+
+
+
+### Step 3: Add to CMakeLists.txt### Step 3: Add to CMakeLists.txt
+
+Add your files to `nodo_core/CMakeLists.txt`.Add your files to `nodo_core/CMakeLists.txt`.
+
+
+
+### Step 4: Write Tests### Step 4: Write Tests
+
+`tests/test_my_node_sop.cpp`:`tests/test_my_node_sop.cpp`:
+
+```cpp```cpp
+
+#include <gtest/gtest.h>#include <gtest/gtest.h>
+
+#include "nodo/sop/nodes/my_node_sop.hpp"#include "nodo/sop/nodes/my_node_sop.hpp"
+
+
+
+TEST(MyNodeSOPTest, BasicFunctionality) {TEST(MyNodeSOPTest, BasicFunctionality) {
+
+    auto node = std::make_shared<nodo::sop::MyNodeSOP>("test");    auto node = std::make_shared<nodo::sop::MyNodeSOP>("test");
+
+    node->set_parameter("my_param", 2.0F);    node->set_parameter("my_param", 2.0F);
+
+        
+
+    // ... test logic ...    // ... test logic ...
+
+        
+
+    EXPECT_TRUE(result.has_value());    EXPECT_TRUE(result.has_value());
+
+}}
+
+``````
+
+
+
+### Step 5: Register in Studio (Optional)### Step 5: Register in Studio (Optional)
+
+Add to node factory in `nodo_studio` if you want it in the UI.Add to node factory in `nodo_studio` if you want it in the UI.
+
+
+
+------
+
 - `file_sop.hpp` - File import (OBJ support) ✅
-- `export_sop.hpp` - File export with manual export button ✅
 
-**Deformation/Modifiers (5 nodes)**:
+## Build System- `export_sop.hpp` - File export with manual export button ✅
+
+
+
+### Common Commands**Deformation/Modifiers (5 nodes)**:
+
 - `extrude_sop.hpp` - Face extrusion with caps (normal/uniform modes) ✅
-- `polyextrude_sop.hpp` - Per-polygon extrusion (individual/connected) ✅
-- `laplacian_sop.hpp` - 3 smoothing algorithms (uniform, cotan, taubin) ✅
-- `subdivision_sop.hpp` - Catmull-Clark and Simple subdivision ✅
-- `resample_sop.hpp` - Edge/curve resampling (by count/length) ✅
 
-**Expression/Code (1 node)**:
-- `wrangle_sop.hpp` - Expression-based manipulation with exprtk ✅ (Oct 27, 2025)
+```bash- `polyextrude_sop.hpp` - Per-polygon extrusion (individual/connected) ✅
+
+# Initial setup- `laplacian_sop.hpp` - 3 smoothing algorithms (uniform, cotan, taubin) ✅
+
+conan install . --output-folder=build --build=missing- `subdivision_sop.hpp` - Catmull-Clark and Simple subdivision ✅
+
+cmake --preset conan-debug- `resample_sop.hpp` - Edge/curve resampling (by count/length) ✅
+
+
+
+# Build everything**Expression/Code (1 node)**:
+
+cmake --build build --parallel- `wrangle_sop.hpp` - Expression-based manipulation with exprtk ✅ (Oct 27, 2025)
+
   - Attribute access: @P, @N, @Cd, @ptnum, @numpt
-  - Mathematical expressions for per-point/primitive operations
-  - Automatic preprocessing of syntax (@P.y → Py, = → :=)
 
-**Array/Duplication (3 nodes)**:
-- `array_sop.hpp` - Linear, radial, and grid duplication patterns ✅
+# Build specific target  - Mathematical expressions for per-point/primitive operations
+
+cmake --build build --target nodo_studio  - Automatic preprocessing of syntax (@P.y → Py, = → :=)
+
+
+
+# Run tests**Array/Duplication (3 nodes)**:
+
+./build/tests/nodo_tests- `array_sop.hpp` - Linear, radial, and grid duplication patterns ✅
+
 - `scatter_sop.hpp` - Random point distribution ✅
-- `copy_to_points_sop.hpp` - Instance geometry to points ✅
+
+# Run specific test- `copy_to_points_sop.hpp` - Instance geometry to points ✅
+
+./build/tests/nodo_tests --gtest_filter=SphereSOPTest.*
 
 **Utility/Selection (3 nodes)**:
-- `delete_sop.hpp` - Remove elements by group/pattern ✅
-- `group_sop.hpp` - Assign elements to named groups ✅
-- `normal_sop.hpp` - Compute and manipulate normals ✅
 
-**UV/Texture (1 node)**:
-- `uv_unwrap_sop.hpp` - UV mapping with xatlas (full seam control) ✅
+# Clean rebuild- `delete_sop.hpp` - Remove elements by group/pattern ✅
 
-**Boolean/Transform (3 nodes)**:
+rm -rf build- `group_sop.hpp` - Assign elements to named groups ✅
+
+# ... then repeat setup steps- `normal_sop.hpp` - Compute and manipulate normals ✅
+
+
+
+# Release build**UV/Texture (1 node)**:
+
+cmake --preset conan-release- `uv_unwrap_sop.hpp` - UV mapping with xatlas (full seam control) ✅
+
+cmake --build build --config Release
+
+```**Boolean/Transform (3 nodes)**:
+
 - `boolean_sop.hpp` - Union/Intersection/Difference with Manifold ✅ (Oct 26, 2025)
-- `mirror_sop.hpp` (194 lines) - Mirror across planes
-- Transform nodes (built into system)
 
-**Advanced (1 node)**:
-- `noise_displacement_sop.hpp` - Procedural noise deformation
+### Dependencies (Auto-managed by Conan)- `mirror_sop.hpp` (194 lines) - Mirror across planes
+
+- **Manifold** - Robust geometry kernel- Transform nodes (built into system)
+
+- **Qt 6.7.3** - GUI framework  
+
+- **Eigen3 3.4.0** - Linear algebra**Advanced (1 node)**:
+
+- **Google Test 1.14.0** - Unit testing- `noise_displacement_sop.hpp` - Procedural noise deformation
+
+- **fmt**, **nlohmann_json** - Utilities
 
 ### ✅ Node Graph System (Complete)
 
+---
+
 **Location**: `nodeflux_core/include/nodeflux/graph/`
 
+## Key File Locations
+
 **NodeGraph (`node_graph.hpp`)** - 272 lines:
-- Pure data model (separate from UI)
-- Supports 24+ node types
-- Add/remove/connect nodes
-- Topological sorting for execution
-- JSON serialization via `GraphSerializer`
 
-**ExecutionEngine (`execution_engine.cpp`)**:
-- Smart dependency resolution
-- Incremental updates (only rebuild changed branches)
-- Caching at node level
-- Error propagation
+| Component | Path |- Pure data model (separate from UI)
 
-### ✅ Qt Studio Application (Fully Functional)
+|-----------|------|- Supports 24+ node types
 
-**Location**: `nodeflux_studio/src/`
+| SOP Base Class | `nodo_core/include/nodo/sop/sop_node.hpp` |- Add/remove/connect nodes
 
-**Features**:
+| All SOP Nodes | `nodo_core/include/nodo/sop/nodes/*.hpp` |- Topological sorting for execution
+
+| Node Graph | `nodo_core/include/nodo/graph/node_graph.hpp` |- JSON serialization via `GraphSerializer`
+
+| Execution Engine | `nodo_core/src/graph/execution_engine.cpp` |
+
+| Geometry Container | `nodo_core/include/nodo/core/geometry_container.hpp` |**ExecutionEngine (`execution_engine.cpp`)**:
+
+| Geometry Data | `nodo_core/include/nodo/sop/geometry_data.hpp` |- Smart dependency resolution
+
+| Qt Main Window | `nodo_studio/src/MainWindow.cpp` |- Incremental updates (only rebuild changed branches)
+
+| Node Graph Widget | `nodo_studio/src/NodeGraphWidget.cpp` |- Caching at node level
+
+| 3D Viewport | `nodo_studio/src/ViewportWidget.cpp` |- Error propagation
+
+| Property Panel | `nodo_studio/src/PropertyPanel.cpp` |
+
+| Tests | `tests/test_*.cpp` |### ✅ Qt Studio Application (Fully Functional)
+
+
+
+---**Location**: `nodeflux_studio/src/`
+
+
+
+## Important Notes**Features**:
+
 - Visual node graph editor with drag-and-drop
-- Property panel for parameter editing
-- 3D viewport with OpenGL rendering
-- Scene save/load (JSON format)
-- Dark theme (Oct 19, 2025)
+
+### Thread Safety- Property panel for parameter editing
+
+- Most operations are NOT thread-safe- 3D viewport with OpenGL rendering
+
+- Avoid concurrent mesh modifications- Scene save/load (JSON format)
+
+- Node cooking is single-threaded (for now)- Dark theme (Oct 19, 2025)
+
 - Display/render/bypass flags (Houdini-style)
 
-**ViewportWidget** - 1112 lines of sophisticated rendering:
-- Blinn-Phong shading with lighting
-- Wireframe mode
+### Memory Management
+
+- Use smart pointers (`std::shared_ptr`, `std::unique_ptr`)**ViewportWidget** - 1112 lines of sophisticated rendering:
+
+- RAII for resource cleanup- Blinn-Phong shading with lighting
+
+- Move semantics for large meshes- Wireframe mode
+
 - Vertex/edge/face normal visualization
-- Grid and axis display
-- Camera controls (orbit, pan, zoom)
-- Point cloud rendering
-- Multisampling (4x MSAA)
+
+### API Stability (Phase 1 Goal)- Grid and axis display
+
+- **Parameter names are stable IDs** - never change after release- Camera controls (orbit, pan, zoom)
+
+- **Labels can change** - they're just display strings- Point cloud rendering
+
+- **Add node versions** - `static constexpr int NODE_VERSION = 1;`- Multisampling (4x MSAA)
+
+- **Keep Qt out of nodo_core** - verify with `grep -r "Q[A-Z]" nodo_core/`
 
 ### ✅ Spatial Acceleration (Complete)
 
-**BVH System**:
-- 45x speedup over brute-force for boolean operations
-- Used automatically by BooleanSOP
-- Bounding volume hierarchy for ray/mesh intersection
+### Git Workflow
 
-### ✅ Import/Export (OBJ Complete)
+- Main branch: `main`**BVH System**:
 
-**OBJ Format** (`nodeflux_core/include/nodeflux/io/`):
+- Clean commit history- 45x speedup over brute-force for boolean operations
+
+- Descriptive commit messages- Used automatically by BooleanSOP
+
+- Don't create summary documents unless requested- Bounding volume hierarchy for ray/mesh intersection
+
+
+
+---### ✅ Import/Export (OBJ Complete)
+
+
+
+*For more information, see [ROADMAP.md](ROADMAP.md) and [docs/NAVIGATION.md](docs/NAVIGATION.md)***OBJ Format** (`nodeflux_core/include/nodeflux/io/`):
+
 - Full Wavefront OBJ export via ExportSOP
 - Manual export trigger with "Export Now" button in property panel
 - Pass-through node design (geometry flows to output)
