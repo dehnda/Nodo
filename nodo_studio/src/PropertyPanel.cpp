@@ -1,6 +1,20 @@
 #include "PropertyPanel.h"
 #include "IconManager.h"
+#include "ParameterWidgetFactory.h"
 #include <nodo/graph/node_graph.hpp>
+#include <nodo/sop/sop_node.hpp>
+
+// Widget includes
+#include "widgets/BaseParameterWidget.h"
+#include "widgets/CheckboxWidget.h"
+#include "widgets/DropdownWidget.h"
+#include "widgets/FilePathWidget.h"
+#include "widgets/FloatWidget.h"
+#include "widgets/IntWidget.h"
+#include "widgets/ModeSelectorWidget.h"
+#include "widgets/TextWidget.h"
+#include "widgets/Vector3Widget.h"
+
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -997,6 +1011,236 @@ void PropertyPanel::setGraphNode(nodo::graph::GraphNode *node,
       node->set_parameter("export_now", nodo::graph::NodeParameter(
                                             "export_now", true, "Export Now"));
       // Emit signal to trigger graph update
+      emit parameterChanged();
+    });
+  }
+}
+
+void PropertyPanel::connectParameterWidget(
+    nodo_studio::widgets::BaseParameterWidget *widget,
+    const nodo::graph::NodeParameter &param, nodo::graph::GraphNode *node,
+    nodo::graph::NodeGraph *graph) {
+
+  using namespace nodo::graph;
+
+  // Connect widget-specific signals based on widget type
+  // We'll use dynamic_cast to determine the actual widget type and connect
+  // appropriately
+
+  if (auto *float_widget =
+          dynamic_cast<nodo_studio::widgets::FloatWidget *>(widget)) {
+    float_widget->setValueChangedCallback([this, node,
+                                           param](double new_value) {
+      auto updated_param = NodeParameter(
+          param.name, static_cast<float>(new_value), param.label,
+          param.ui_range.float_min, param.ui_range.float_max, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+      node->set_parameter(param.name, updated_param);
+      emit parameterChanged();
+    });
+  } else if (auto *int_widget =
+                 dynamic_cast<nodo_studio::widgets::IntWidget *>(widget)) {
+    int_widget->setValueChangedCallback([this, node, param](int new_value) {
+      auto updated_param = NodeParameter(
+          param.name, new_value, param.label, param.ui_range.int_min,
+          param.ui_range.int_max, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+      node->set_parameter(param.name, updated_param);
+      emit parameterChanged();
+    });
+  } else if (auto *vec3_widget =
+                 dynamic_cast<nodo_studio::widgets::Vector3Widget *>(widget)) {
+    vec3_widget->setValueChangedCallback([this, node, param](double x, double y,
+                                                             double z) {
+      std::array<float, 3> new_value = {
+          static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
+      auto updated_param = NodeParameter(
+          param.name, new_value, param.label, param.ui_range.float_min,
+          param.ui_range.float_max, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+      node->set_parameter(param.name, updated_param);
+      emit parameterChanged();
+    });
+  } else if (auto *mode_widget =
+                 dynamic_cast<nodo_studio::widgets::ModeSelectorWidget *>(
+                     widget)) {
+    mode_widget->setSelectionChangedCallback(
+        [this, node, param, graph](int new_value, const QString &) {
+          auto updated_param =
+              NodeParameter(param.name, new_value, param.string_options,
+                            param.label, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+          node->set_parameter(param.name, updated_param);
+
+          // Check if this parameter controls visibility of others
+          bool controls_visibility = false;
+          for (const auto &p : node->get_parameters()) {
+            if (p.category_control_param == param.name) {
+              controls_visibility = true;
+              break;
+            }
+          }
+          if (controls_visibility) {
+            buildFromNode(node, graph); // Rebuild UI to show/hide parameters
+          }
+
+          emit parameterChanged();
+        });
+  } else if (auto *dropdown_widget =
+                 dynamic_cast<nodo_studio::widgets::DropdownWidget *>(widget)) {
+    dropdown_widget->setSelectionChangedCallback(
+        [this, node, param, graph](int new_value, const QString &) {
+          auto updated_param =
+              NodeParameter(param.name, new_value, param.string_options,
+                            param.label, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+          node->set_parameter(param.name, updated_param);
+
+          // Check if this parameter controls visibility
+          bool controls_visibility = false;
+          for (const auto &p : node->get_parameters()) {
+            if (p.category_control_param == param.name) {
+              controls_visibility = true;
+              break;
+            }
+          }
+          if (controls_visibility) {
+            buildFromNode(node, graph);
+          }
+
+          emit parameterChanged();
+        });
+  } else if (auto *checkbox_widget =
+                 dynamic_cast<nodo_studio::widgets::CheckboxWidget *>(widget)) {
+    checkbox_widget->setValueChangedCallback(
+        [this, node, param](bool new_value) {
+          auto updated_param =
+              NodeParameter(param.name, new_value, param.label, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+          node->set_parameter(param.name, updated_param);
+          emit parameterChanged();
+        });
+  } else if (auto *text_widget =
+                 dynamic_cast<nodo_studio::widgets::TextWidget *>(widget)) {
+    text_widget->setTextEditingFinishedCallback(
+        [this, node, param](const QString &new_value) {
+          auto updated_param = NodeParameter(
+              param.name, new_value.toStdString(), param.label, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+          node->set_parameter(param.name, updated_param);
+          emit parameterChanged();
+        });
+  } else if (auto *file_widget =
+                 dynamic_cast<nodo_studio::widgets::FilePathWidget *>(widget)) {
+    file_widget->setPathChangedCallback([this, node,
+                                         param](const QString &new_value) {
+      auto updated_param = NodeParameter(param.name, new_value.toStdString(),
+                                         param.label, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+      node->set_parameter(param.name, updated_param);
+      emit parameterChanged();
+    });
+  }
+}
+
+void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
+                                  nodo::graph::NodeGraph *graph) {
+  if (node == nullptr || graph == nullptr) {
+    clearProperties();
+    return;
+  }
+
+  clearLayout();
+  current_graph_node_ = node;
+  current_graph_ = graph;
+
+  QString node_name = QString::fromStdString(node->get_name());
+  title_label_->setText(node_name + " Properties");
+
+  // Get all parameters from the node
+  const auto &params = node->get_parameters();
+
+  if (params.empty()) {
+    auto *label = new QLabel("No parameters available", content_widget_);
+    label->setAlignment(Qt::AlignCenter);
+    label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
+    content_layout_->insertWidget(0, label);
+    return;
+  }
+
+  // Separate universal and regular parameters
+  std::vector<const nodo::graph::NodeParameter *> universal_params;
+  std::vector<const nodo::graph::NodeParameter *> regular_params;
+
+  for (const auto &param : params) {
+    // Check visibility conditions
+    if (!param.category_control_param.empty() &&
+        param.category_control_value >= 0) {
+      auto control_param = node->get_parameter(param.category_control_param);
+      if (control_param.has_value() &&
+          control_param->int_value != param.category_control_value) {
+        continue; // Skip hidden parameter
+      }
+    }
+
+    // Categorize parameters
+    if (param.category == "Universal" || param.name == "group") {
+      universal_params.push_back(&param);
+    } else {
+      regular_params.push_back(&param);
+    }
+  }
+
+  // Render universal parameters section (if any)
+  if (!universal_params.empty()) {
+    addHeader("Universal");
+    for (const auto *param : universal_params) {
+      auto *widget = nodo_studio::ParameterWidgetFactory::createWidget(
+          *param, content_widget_);
+      if (widget != nullptr) {
+        connectParameterWidget(widget, *param, node, graph);
+        content_layout_->insertWidget(content_layout_->count() - 1, widget);
+      }
+    }
+    addSeparator();
+  }
+
+  // Render regular parameters by category
+  std::map<std::string, std::vector<const nodo::graph::NodeParameter *>>
+      params_by_category;
+  for (const auto *param : regular_params) {
+    std::string category =
+        param->category.empty() ? "Parameters" : param->category;
+    params_by_category[category].push_back(param);
+  }
+
+  for (const auto &[category, category_params] : params_by_category) {
+    addHeader(QString::fromStdString(category));
+
+    for (const auto *param : category_params) {
+      auto *widget = nodo_studio::ParameterWidgetFactory::createWidget(
+          *param, content_widget_);
+      if (widget != nullptr) {
+        connectParameterWidget(widget, *param, node, graph);
+        content_layout_->insertWidget(content_layout_->count() - 1, widget);
+      }
+    }
+  }
+
+  // Add Export button for Export nodes
+  if (node->get_type() == nodo::graph::NodeType::Export) {
+    addSeparator();
+    addButtonParameter("Export Now", [this, node]() {
+      node->set_parameter("export_now", nodo::graph::NodeParameter(
+                                            "export_now", true, "Export Now"));
       emit parameterChanged();
     });
   }

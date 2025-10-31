@@ -12,7 +12,12 @@
 namespace nodo::graph {
 class GraphNode;
 class NodeGraph;
+struct NodeParameter;
 } // namespace nodo::graph
+
+namespace nodo_studio::widgets {
+class BaseParameterWidget;
+} // namespace nodo_studio::widgets
 
 /**
  * @brief Property panel for editing node parameters
@@ -30,6 +35,10 @@ public:
   // Set GraphNode from node graph system
   void setGraphNode(nodo::graph::GraphNode *node,
                     nodo::graph::NodeGraph *graph);
+
+  // NEW: Auto-generate UI from node parameter definitions using widget factory
+  void buildFromNode(nodo::graph::GraphNode *node,
+                     nodo::graph::NodeGraph *graph);
 
   void clearProperties();
 
@@ -64,6 +73,12 @@ private:
   void clearLayout();
   void addSeparator();
   void addHeader(const QString &text);
+
+  // Connect parameter widget callbacks to backend updates
+  void connectParameterWidget(nodo_studio::widgets::BaseParameterWidget *widget,
+                              const nodo::graph::NodeParameter &param,
+                              nodo::graph::GraphNode *node,
+                              nodo::graph::NodeGraph *graph);
 
   // Parameter widget builders
   void addIntParameter(const QString &label, int value, int min, int max,
