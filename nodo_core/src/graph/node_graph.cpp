@@ -415,7 +415,6 @@ int NodeGraph::add_node_with_id(int node_id, NodeType type,
   initialize_node_parameters_from_sop(*node);
 
   nodes_.push_back(std::move(node));
-  nodes_.push_back(std::move(node));
 
   // Update next_node_id if necessary to avoid ID conflicts
   if (node_id >= next_node_id_) {

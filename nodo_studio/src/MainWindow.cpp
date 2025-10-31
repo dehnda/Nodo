@@ -866,9 +866,11 @@ void MainWindow::onUndo() {
     updateUndoRedoActions();
 
     // Trigger re-execution and display update
-    int display_node = node_graph_->get_display_node();
-    if (display_node >= 0) {
-      executeAndDisplayNode(display_node);
+    if (!node_graph_->get_nodes().empty()) {
+      int display_node = node_graph_->get_display_node();
+      if (display_node >= 0) {
+        executeAndDisplayNode(display_node);
+      }
     }
     node_graph_widget_->rebuild_from_graph();
     updateDisplayFlagVisuals();
