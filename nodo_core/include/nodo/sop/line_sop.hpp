@@ -15,6 +15,8 @@ namespace nodo::sop {
  */
 class LineSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit LineSOP(const std::string &name = "line");
 
 protected:

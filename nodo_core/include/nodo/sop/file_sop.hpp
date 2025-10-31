@@ -18,30 +18,24 @@ namespace sop {
  * Future formats could include STL, PLY, glTF, etc.
  */
 class FileSOP : public SOPNode {
-private:
-  static constexpr const char *DEFAULT_PATH = "";
-
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit FileSOP(const std::string &node_name = "file")
-      : SOPNode(node_name, "FileSOP") {
+      : SOPNode(node_name, "File") {
+    // No input ports - this is a source node
 
-    // Set default parameters
-    set_parameter("file_path", std::string(DEFAULT_PATH));
-    set_parameter("reload", false); // Button to force reload
-  }
+    // File path parameter
+    register_parameter(define_string_parameter("file_path", "")
+                           .label("File Path")
+                           .category("File")
+                           .build());
 
-  /**
-   * @brief Set file path to import
-   */
-  void set_file_path(const std::string &path) {
-    set_parameter("file_path", path);
-  }
-
-  /**
-   * @brief Get current file path
-   */
-  std::string get_file_path() const {
-    return get_parameter<std::string>("file_path", DEFAULT_PATH);
+    // Reload button (int parameter acting as button)
+    register_parameter(define_int_parameter("reload", 0)
+                           .label("Reload")
+                           .category("File")
+                           .build());
   }
 
   /**
@@ -57,12 +51,11 @@ protected:
    * @brief Execute file import
    */
   std::shared_ptr<core::GeometryContainer> execute() override {
-    const std::string file_path =
-        get_parameter<std::string>("file_path", DEFAULT_PATH);
+    const std::string file_path = get_parameter<std::string>("file_path", "");
 
     // Reset reload flag
-    if (get_parameter<bool>("reload", false)) {
-      set_parameter("reload", false);
+    if (get_parameter<int>("reload", 0) != 0) {
+      set_parameter("reload", 0);
     }
 
     // Check if file path is provided

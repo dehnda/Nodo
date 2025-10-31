@@ -17,6 +17,8 @@ namespace nodo::sop {
  */
 class NoiseDisplacementSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit NoiseDisplacementSOP(const std::string &name = "noise_displacement");
 
 protected:

@@ -18,6 +18,7 @@
 #include "nodo/sop/mirror_sop.hpp"
 #include "nodo/sop/noise_displacement_sop.hpp"
 #include "nodo/sop/normal_sop.hpp"
+#include "nodo/sop/null_sop.hpp"
 #include "nodo/sop/polyextrude_sop.hpp"
 #include "nodo/sop/resample_sop.hpp"
 #include "nodo/sop/scatter_sop.hpp"
@@ -104,6 +105,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<DeleteSOP>(name);
   case NodeType::Switch:
     return std::make_shared<SwitchSOP>(name);
+  case NodeType::Null:
+    return std::make_shared<NullSOP>(name);
   case NodeType::UVUnwrap:
     return std::make_shared<UVUnwrapSOP>(name);
   case NodeType::Wrangle:

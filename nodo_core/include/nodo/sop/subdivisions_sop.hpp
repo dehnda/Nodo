@@ -16,6 +16,8 @@ namespace nodo::sop {
  */
 class SubdivisionSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit SubdivisionSOP(const std::string &name = "subdivision");
 
   // Configuration methods

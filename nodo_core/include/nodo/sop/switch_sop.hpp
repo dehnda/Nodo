@@ -9,20 +9,28 @@ namespace nodo::sop {
  * @brief Switch SOP node - selects one of multiple inputs based on index
  */
 class SwitchSOP : public SOPNode {
-private:
-  static constexpr int DEFAULT_INDEX = 0;
-
 public:
-  explicit SwitchSOP(const std::string &node_name = "switch")
-      : SOPNode(node_name, "SwitchSOP") {
-    set_parameter("index", DEFAULT_INDEX);
-  }
+  static constexpr int NODE_VERSION = 1;
 
-  void set_index(int index) { set_parameter("index", index); }
+  explicit SwitchSOP(const std::string &node_name = "switch")
+      : SOPNode(node_name, "Switch") {
+    // Multiple geometry inputs (up to 10)
+    for (int i = 0; i < 10; ++i) {
+      input_ports_.add_port(std::to_string(i), NodePort::Type::INPUT,
+                            NodePort::DataType::GEOMETRY, this);
+    }
+
+    // Index parameter
+    register_parameter(define_int_parameter("index", 0)
+                           .label("Select Input")
+                           .range(0, 9)
+                           .category("Switch")
+                           .build());
+  }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
-    const int index = get_parameter<int>("index", DEFAULT_INDEX);
+    const int index = get_parameter<int>("index", 0);
 
     // Collect all connected inputs
     std::vector<std::shared_ptr<core::GeometryContainer>> inputs;

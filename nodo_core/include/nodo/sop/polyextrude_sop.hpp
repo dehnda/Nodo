@@ -16,6 +16,8 @@ namespace nodo::sop {
  */
 class PolyExtrudeSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit PolyExtrudeSOP(const std::string &name = "polyextrude");
 
   // Parameters

@@ -18,33 +18,26 @@ namespace sop {
  * Future formats could include STL, PLY, glTF, etc.
  */
 class ExportSOP : public SOPNode {
-private:
-  static constexpr const char *DEFAULT_PATH = "";
-
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit ExportSOP(const std::string &node_name = "export")
-      : SOPNode(node_name, "ExportSOP") {
+      : SOPNode(node_name, "Export") {
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
 
-    // Set default parameters
-    set_parameter("file_path", std::string(DEFAULT_PATH));
-    set_parameter("export_now", false); // Button to trigger export
-  }
+    // File path parameter
+    register_parameter(define_string_parameter("file_path", "")
+                           .label("File Path")
+                           .category("Export")
+                           .build());
 
-  /**
-   * @brief Set file path to export to
-   */
-  void set_file_path(const std::string &path) {
-    set_parameter("file_path", path);
-  }
-
-  /**
-   * @brief Get current file path
-   */
-  std::string get_file_path() const {
-    return get_parameter<std::string>("file_path", DEFAULT_PATH);
+    // Export button (int parameter acting as button)
+    register_parameter(define_int_parameter("export_now", 0)
+                           .label("Export Now")
+                           .category("Export")
+                           .build());
   }
 
   /**
@@ -67,13 +60,12 @@ protected:
       return nullptr;
     }
 
-    const std::string file_path =
-        get_parameter<std::string>("file_path", DEFAULT_PATH);
-    const bool should_export = get_parameter<bool>("export_now", false);
+    const std::string file_path = get_parameter<std::string>("file_path", "");
+    const bool should_export = get_parameter<int>("export_now", 0) != 0;
 
     // Reset export flag
     if (should_export) {
-      set_parameter("export_now", false);
+      set_parameter("export_now", 0);
     }
 
     // Check if file path is provided
