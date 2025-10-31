@@ -13,6 +13,8 @@ namespace nodo::sop {
  */
 class UVUnwrapSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit UVUnwrapSOP(const std::string &name);
   ~UVUnwrapSOP() override = default;
 

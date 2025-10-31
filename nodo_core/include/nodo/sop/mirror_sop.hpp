@@ -19,6 +19,8 @@ namespace nodo::sop {
  */
 class MirrorSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   enum class MirrorPlane {
     XY,    ///< Mirror across XY plane (Z=0)
     XZ,    ///< Mirror across XZ plane (Y=0)

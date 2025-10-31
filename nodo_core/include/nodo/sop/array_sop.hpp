@@ -17,6 +17,8 @@ namespace nodo::sop {
  */
 class ArraySOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   enum class ArrayType {
     LINEAR = 0, ///< Copies along a line with specified offset
     RADIAL = 1, ///< Copies around a center point with rotation

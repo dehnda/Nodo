@@ -17,6 +17,8 @@ namespace nodo::sop {
  */
 class ExtrudeSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   /// Extrusion modes for different geometric operations
   enum class ExtrusionMode {
     FACE_NORMALS,      ///< Extrude along individual face normals

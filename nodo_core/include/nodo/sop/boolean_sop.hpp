@@ -14,6 +14,8 @@ namespace nodo::sop {
  */
 class BooleanSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   enum class OperationType {
     UNION = 0,        ///< Combine meshes (A ∪ B)
     INTERSECTION = 1, ///< Keep only overlapping parts (A ∩ B)

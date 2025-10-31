@@ -16,6 +16,8 @@ namespace nodo::sop {
  */
 class NormalSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit NormalSOP(const std::string &name);
 
   std::shared_ptr<core::GeometryContainer> execute() override;

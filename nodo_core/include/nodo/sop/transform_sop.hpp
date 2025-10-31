@@ -16,6 +16,8 @@ namespace nodo::sop {
  */
 class TransformSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   /**
    * @brief Construct transform operator with name
    * @param name Unique identifier for this SOP instance

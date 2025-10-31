@@ -16,6 +16,8 @@ namespace nodo::sop {
  */
 class ResampleSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   enum class Mode {
     BY_COUNT = 0, ///< Resample to exact point count
     BY_LENGTH = 1 ///< Resample with target segment length

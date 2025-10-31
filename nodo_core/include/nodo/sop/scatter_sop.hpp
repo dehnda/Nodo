@@ -20,6 +20,9 @@ namespace nodo::sop {
  * Migrated to use unified attribute system (GeometryContainer).
  */
 class ScatterSOP : public SOPNode {
+public:
+  static constexpr int NODE_VERSION = 1;
+
 private:
   // Default scatter parameters
   static constexpr int DEFAULT_POINT_COUNT = 100;

@@ -20,6 +20,8 @@ namespace nodo::sop {
  */
 class GroupSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit GroupSOP(const std::string &name);
   ~GroupSOP() override = default;
 

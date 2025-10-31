@@ -18,6 +18,8 @@ namespace nodo::sop {
  */
 class LaplacianSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   /// Smoothing algorithm variants
   enum class SmoothingMethod {
     UNIFORM,   ///< Uniform Laplacian (simple average)

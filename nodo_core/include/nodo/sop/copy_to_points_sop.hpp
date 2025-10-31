@@ -13,6 +13,9 @@ namespace nodo::sop {
  * in the input point cloud, with support for attribute-driven transformations.
  */
 class CopyToPointsSOP : public SOPNode {
+public:
+  static constexpr int NODE_VERSION = 1;
+
 private:
   static constexpr bool DEFAULT_USE_POINT_NORMALS = true;
   static constexpr bool DEFAULT_USE_POINT_SCALE = true;

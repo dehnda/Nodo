@@ -16,6 +16,8 @@ namespace nodo::sop {
  */
 class MergeSOP : public SOPNode {
 public:
+  static constexpr int NODE_VERSION = 1;
+
   explicit MergeSOP(const std::string &node_name);
 
 protected:
