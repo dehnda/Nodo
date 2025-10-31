@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodo Studio - Modify Node Properties</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #1e1e1e;
+            color: #cccccc;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #858585;
+            font-size: 13px;
+        }
+
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        /* Property Panel Container */
+        .property-panel {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #2d2d30;
+            padding: 12px 16px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .node-icon {
+            width: 32px;
+            height: 32px;
+            background: #ce9178;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .panel-header h2 {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .node-type {
+            color: #858585;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-content {
+            padding: 16px;
+        }
+
+        /* Description */
+        .node-description {
+            color: #999999;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            padding: 10px;
+            background: #1e1e1e;
+            border-radius: 3px;
+            border-left: 3px solid #ce9178;
+        }
+
+        /* Universal Section - Always at top */
+        .universal-section {
+            margin-bottom: 16px;
+        }
+
+        .universal-label {
+            color: #858585;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 0.8px;
+        }
+
+        /* Parameter Sections */
+        .param-section {
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            color: #858585;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* Parameter Row */
+        .param-row {
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            min-height: 28px;
+        }
+
+        .param-label {
+            color: #cccccc;
+            font-size: 12px;
+            cursor: default;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .param-label:hover {
+            color: #ffffff;
+        }
+
+        .param-hint {
+            color: #858585;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        /* Input Controls */
+        .param-input {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #cccccc;
+            font-size: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            transition: all 0.15s;
+        }
+
+        .param-input:hover {
+            border-color: #007acc;
+        }
+
+        .param-input:focus {
+            outline: none;
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+
+        .param-input.number {
+            text-align: right;
+        }
+
+        /* Vector Inputs */
+        .vector-input {
+            display: flex;
+            gap: 6px;
+        }
+
+        .vector-component {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .vector-label {
+            font-size: 11px;
+            font-weight: 600;
+            width: 12px;
+            text-align: center;
+        }
+
+        .vector-label.x { color: #f48771; }
+        .vector-label.y { color: #89d185; }
+        .vector-label.z { color: #4a9eff; }
+
+        .vector-component input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 4px;
+            background: #3c3c3c;
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .slider-track {
+            height: 100%;
+            background: #007acc;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+        }
+
+        .slider-value {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #cccccc;
+            font-size: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            width: 60px;
+            text-align: right;
+        }
+
+        /* Dropdown */
+        .param-select {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #cccccc;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .param-select:hover {
+            border-color: #007acc;
+        }
+
+        .param-select:focus {
+            outline: none;
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+
+        /* Checkbox */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .param-checkbox {
+            width: 16px;
+            height: 16px;
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s;
+        }
+
+        .param-checkbox:hover {
+            border-color: #007acc;
+        }
+
+        .param-checkbox.checked {
+            background: #007acc;
+            border-color: #007acc;
+        }
+
+        .param-checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            color: #ffffff;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 4px;
+            background: #3c3c3c;
+            padding: 3px;
+            border-radius: 3px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #858585;
+            padding: 6px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .mode-btn:hover {
+            color: #cccccc;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .mode-btn.active {
+            background: #007acc;
+            color: #ffffff;
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #3e3e42;
+        }
+
+        .notes-title {
+            color: #858585;
+            font-size: 11px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .notes-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .notes-list li {
+            color: #999999;
+            font-size: 11px;
+            line-height: 1.6;
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .notes-list li::before {
+            content: '•';
+            position: absolute;
+            left: 6px;
+            color: #007acc;
+        }
+
+        /* Drag indicator */
+        .drag-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #007acc;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            margin-left: 4px;
+        }
+
+        .param-label:hover .drag-indicator {
+            opacity: 1;
+        }
+
+        /* Dragging state */
+        .param-label.dragging {
+            cursor: ew-resize;
+            color: #007acc;
+        }
+
+        .param-input.dragging {
+            cursor: ew-resize;
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+
+        body.dragging {
+            cursor: ew-resize !important;
+            user-select: none;
+        }
+
+        body.dragging * {
+            cursor: ew-resize !important;
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none;
+        }
+
+        .disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Modify Nodes - Property Panel Designs</h1>
+            <p>Consistent property panel layouts for all modify/deform nodes. <strong>Left-click drag</strong> on labels or values to adjust. <strong>Shift</strong> = slow, <strong>Ctrl</strong> = fast, <strong>Alt</strong> = snap to integer.</p>
+        </div>
+
+        <div class="nodes-grid">
+            <!-- EXTRUDE NODE -->
+            <div class="property-panel" data-node="extrude">
+                <div class="panel-header">
+                    <div class="node-icon">↗️</div>
+                    <div>
+                        <h2>Extrude</h2>
+                        <div class="node-type">Modifier • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Extrudes faces along normals or custom direction. Supports individual face extrusion and edge loop operations.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <!-- MODE SELECTOR -->
+                    <div class="param-section">
+                        <div class="param-row">
+                            <label class="param-label">
+                                Extrude Type
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="normal">Normal</button>
+                                <button class="mode-btn" data-mode="direction">Direction</button>
+                                <button class="mode-btn" data-mode="individual">Individual</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <!-- Normal Mode -->
+                        <div class="param-row" data-visible-when="mode:normal">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Distance
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <!-- Direction Mode -->
+                        <div class="param-row hidden" data-visible-when="mode:direction">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Direction
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="vector-input">
+                                <div class="vector-component">
+                                    <span class="vector-label x">X</span>
+                                    <input type="text" class="param-input number" value="0.000">
+                                </div>
+                                <div class="vector-component">
+                                    <span class="vector-label y">Y</span>
+                                    <input type="text" class="param-input number" value="1.000">
+                                </div>
+                                <div class="vector-component">
+                                    <span class="vector-label z">Z</span>
+                                    <input type="text" class="param-input number" value="0.000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="param-row hidden" data-visible-when="mode:direction">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Distance
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <!-- Individual Mode -->
+                        <div class="param-row hidden" data-visible-when="mode:individual">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Scale
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <div class="param-row hidden" data-visible-when="mode:individual">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Distance
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <!-- Common Parameters -->
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Offset
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.000">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Cap Ends</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Merge Vertices</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Three extrusion methods</li>
+                            <li><strong>Normal Mode:</strong> Extrudes along face normals (default)</li>
+                            <li><strong>Direction Mode:</strong> Extrudes along custom vector direction</li>
+                            <li><strong>Individual Mode:</strong> Each face extrudes separately with scale</li>
+                            <li>Offset creates inset before extrusion</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBDIVIDE NODE -->
+            <div class="property-panel" data-node="subdivide">
+                <div class="panel-header">
+                    <div class="node-icon">〰️</div>
+                    <div>
+                        <h2>Subdivide</h2>
+                        <div class="node-type">Modifier • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Subdivides mesh using various algorithms. Catmull-Clark for smooth surfaces, Linear for edge detail.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <!-- MODE SELECTOR -->
+                    <div class="param-section">
+                        <div class="param-row">
+                            <label class="param-label">
+                                Algorithm
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="catmull">Catmull-Clark</button>
+                                <button class="mode-btn" data-mode="linear">Linear</button>
+                                <button class="mode-btn" data-mode="simple">Simple</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Subdivisions
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 20%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="2">
+                            </div>
+                        </div>
+
+                        <!-- Catmull-Clark specific -->
+                        <div class="param-row" data-visible-when="mode:catmull">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Smoothness
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <div class="param-row" data-visible-when="mode:catmull">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Crease Sharpness
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.000">
+                        </div>
+
+                        <!-- Linear specific -->
+                        <div class="param-row hidden" data-visible-when="mode:linear">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Interpolation
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Edge</option>
+                                <option>Face</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Preserve Boundaries</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Smooth UVs</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Different subdivision algorithms</li>
+                            <li><strong>Catmull-Clark:</strong> Smooth subdivision surface (default)</li>
+                            <li><strong>Linear:</strong> Simple edge/face splitting without smoothing</li>
+                            <li><strong>Simple:</strong> Fast midpoint subdivision</li>
+                            <li>Subdivisions range: 1-6 (exponential face growth)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOISE NODE -->
+            <div class="property-panel" data-node="noise">
+                <div class="panel-header">
+                    <div class="node-icon">🌊</div>
+                    <div>
+                        <h2>Noise</h2>
+                        <div class="node-type">Modifier • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Displaces vertices with various noise types. Perlin for organic shapes, Voronoi for cellular patterns.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <!-- MODE SELECTOR -->
+                    <div class="param-section">
+                        <div class="param-row">
+                            <label class="param-label">
+                                Noise Type
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="perlin">Perlin</button>
+                                <button class="mode-btn" data-mode="simplex">Simplex</button>
+                                <button class="mode-btn" data-mode="voronoi">Voronoi</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Amplitude
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Frequency
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Offset
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="vector-input">
+                                <div class="vector-component">
+                                    <span class="vector-label x">X</span>
+                                    <input type="text" class="param-input number" value="0.000">
+                                </div>
+                                <div class="vector-component">
+                                    <span class="vector-label y">Y</span>
+                                    <input type="text" class="param-input number" value="0.000">
+                                </div>
+                                <div class="vector-component">
+                                    <span class="vector-label z">Z</span>
+                                    <input type="text" class="param-input number" value="0.000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Perlin/Simplex specific -->
+                        <div class="param-row" data-visible-when="mode:perlin,simplex">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Octaves
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 40%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="4">
+                            </div>
+                        </div>
+
+                        <div class="param-row" data-visible-when="mode:perlin,simplex">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Roughness
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.500">
+                        </div>
+
+                        <!-- Voronoi specific -->
+                        <div class="param-row hidden" data-visible-when="mode:voronoi">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Distance Metric
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Euclidean</option>
+                                <option>Manhattan</option>
+                                <option>Chebyshev</option>
+                            </select>
+                        </div>
+
+                        <div class="param-row hidden" data-visible-when="mode:voronoi">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Randomness
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <!-- Common -->
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Seed
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Direction</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Displace Along
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Normals</option>
+                                <option>Custom Direction</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Different noise algorithms</li>
+                            <li><strong>Perlin:</strong> Classic smooth noise (default)</li>
+                            <li><strong>Simplex:</strong> Improved Perlin with less directional artifacts</li>
+                            <li><strong>Voronoi:</strong> Cellular/Worley noise patterns</li>
+                            <li>Octaves add detail layers (1-8 recommended)</li>
+                            <li>Roughness controls octave falloff (0-1)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BEVEL NODE -->
+            <div class="property-panel" data-node="bevel">
+                <div class="panel-header">
+                    <div class="node-icon">◢</div>
+                    <div>
+                        <h2>Bevel</h2>
+                        <div class="node-type">Modifier • No Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Rounds edges and corners with customizable segments and profile. Essential for realistic hard-surface modeling.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Amount
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.100">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Segments
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 25%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="2">
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Profile
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.500">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Angle Limit
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="30.000">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Clamp Overlap</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Loop Slide</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li>Amount: Width of bevel in world units</li>
+                            <li>Segments: Number of subdivisions (1-16)</li>
+                            <li>Profile: 0.5 = circular, &lt;0.5 = concave, &gt;0.5 = convex</li>
+                            <li>Angle Limit: Only bevel edges above this angle</li>
+                            <li>Clamp prevents overlapping bevels</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMOOTH NODE -->
+            <div class="property-panel" data-node="smooth">
+                <div class="panel-header">
+                    <div class="node-icon">⚪</div>
+                    <div>
+                        <h2>Smooth</h2>
+                        <div class="node-type">Modifier • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Smooths mesh by averaging vertex positions. Laplacian for uniform smoothing, Taubin for volume-preserving.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <!-- MODE SELECTOR -->
+                    <div class="param-section">
+                        <div class="param-row">
+                            <label class="param-label">
+                                Algorithm
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="laplacian">Laplacian</button>
+                                <button class="mode-btn" data-mode="taubin">Taubin</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Iterations
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 20%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="5">
+                            </div>
+                        </div>
+
+                        <!-- Laplacian specific -->
+                        <div class="param-row" data-visible-when="mode:laplacian">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Strength
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.500">
+                        </div>
+
+                        <!-- Taubin specific -->
+                        <div class="param-row hidden" data-visible-when="mode:taubin">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Lambda
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.500">
+                        </div>
+
+                        <div class="param-row hidden" data-visible-when="mode:taubin">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Mu
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="-0.530">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Preserve Volume</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Boundary Vertices</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Different smoothing algorithms</li>
+                            <li><strong>Laplacian:</strong> Simple averaging, may shrink mesh</li>
+                            <li><strong>Taubin:</strong> Alternating smooth/unsooth to preserve volume</li>
+                            <li>Iterations: Number of smoothing passes (1-100)</li>
+                            <li>Higher iterations = more smoothing effect</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISPLACE NODE -->
+            <div class="property-panel" data-node="displace">
+                <div class="panel-header">
+                    <div class="node-icon">📊</div>
+                    <div>
+                        <h2>Displace</h2>
+                        <div class="node-type">Modifier • No Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Displaces vertices based on attribute values or texture. Useful for height maps and terrain generation.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Strength
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="1.000">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Midlevel
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.500">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Attribute
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="displacement">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Direction
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Normal</option>
+                                <option>X Axis</option>
+                                <option>Y Axis</option>
+                                <option>Z Axis</option>
+                                <option>Custom</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Use UVs</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li>Reads from point/vertex attribute</li>
+                            <li>Strength: Multiplier for displacement amount</li>
+                            <li>Midlevel: 0.5 = neutral (0 displacement)</li>
+                            <li>Can use texture input via UVs</li>
+                            <li>Commonly used with noise for terrains</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== VALUE SCRUBBING SYSTEM =====
+        class ValueScrubber {
+            constructor() {
+                this.isDragging = false;
+                this.startX = 0;
+                this.startValue = 0;
+                this.currentInput = null;
+                this.sensitivity = 0.1;
+                this.shiftSensitivity = 0.01;
+                this.ctrlSensitivity = 1.0;
+
+                this.init();
+            }
+
+            init() {
+                document.querySelectorAll('.param-input.number, .slider-value').forEach(input => {
+                    input.addEventListener('mousedown', (e) => this.startDrag(e, input));
+                    input.addEventListener('dblclick', (e) => {
+                        e.stopPropagation();
+                        input.select();
+                    });
+                });
+
+                document.querySelectorAll('.param-label').forEach(label => {
+                    label.addEventListener('mousedown', (e) => {
+                        const row = label.closest('.param-row');
+                        const input = row.querySelector('.param-input.number, .slider-value');
+                        if (input && !input.matches(':focus')) {
+                            e.preventDefault();
+                            this.startDrag(e, input, label);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.vector-label').forEach(label => {
+                    label.addEventListener('mousedown', (e) => {
+                        const input = label.closest('.vector-component').querySelector('.param-input.number');
+                        if (input) {
+                            e.preventDefault();
+                            this.startDrag(e, input, label);
+                        }
+                    });
+                });
+
+                document.addEventListener('mousemove', (e) => this.onDrag(e));
+                document.addEventListener('mouseup', (e) => this.stopDrag(e));
+            }
+
+            startDrag(e, input, label = null) {
+                if (input.matches(':focus')) return;
+
+                if (e.button === 0) {
+                    e.preventDefault();
+
+                    this.isDragging = true;
+                    this.startX = e.clientX;
+                    this.currentInput = input;
+                    this.startValue = parseFloat(input.value) || 0;
+
+                    document.body.classList.add('dragging');
+                    if (label) label.classList.add('dragging');
+                    input.classList.add('dragging');
+                }
+            }
+
+            onDrag(e) {
+                if (!this.isDragging || !this.currentInput) return;
+
+                const deltaX = e.clientX - this.startX;
+
+                let sensitivity = this.sensitivity;
+                if (e.shiftKey) {
+                    sensitivity = this.shiftSensitivity;
+                } else if (e.ctrlKey || e.metaKey) {
+                    sensitivity = this.ctrlSensitivity;
+                }
+
+                let newValue = this.startValue + (deltaX * sensitivity);
+
+                if (e.altKey) {
+                    newValue = Math.round(newValue);
+                }
+
+                const decimalPlaces = this.getDecimalPlaces(this.startValue);
+                newValue = parseFloat(newValue.toFixed(decimalPlaces));
+
+                this.currentInput.value = newValue.toFixed(decimalPlaces);
+
+                const row = this.currentInput.closest('.param-row');
+                if (row) {
+                    const slider = row.querySelector('.slider-track');
+                    if (slider) {
+                        const percentage = Math.max(0, Math.min(100, (newValue / 100) * 100));
+                        slider.style.width = percentage + '%';
+                    }
+                }
+            }
+
+            stopDrag(e) {
+                if (this.isDragging) {
+                    document.body.classList.remove('dragging');
+                    document.querySelectorAll('.dragging').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
+
+                    this.isDragging = false;
+                    this.currentInput = null;
+                }
+            }
+
+            getDecimalPlaces(value) {
+                const str = value.toString();
+                const decimalIndex = str.indexOf('.');
+                return decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
+            }
+        }
+
+        const scrubber = new ValueScrubber();
+
+        // Make checkboxes interactive
+        document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', () => {
+                checkbox.classList.toggle('checked');
+            });
+        });
+
+        // Make mode buttons interactive
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parent = btn.closest('.mode-selector');
+                const panel = btn.closest('.property-panel');
+                const mode = btn.dataset.mode;
+
+                parent.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Handle comma-separated modes (e.g., "mode:perlin,simplex")
+                panel.querySelectorAll('[data-visible-when]').forEach(param => {
+                    const visibleWhen = param.dataset.visibleWhen;
+                    const modes = visibleWhen.replace('mode:', '').split(',');
+                    const shouldShow = modes.includes(mode);
+                    param.classList.toggle('hidden', !shouldShow);
+                });
+            });
+        });
+
+        console.log('Modify Node Properties Loaded');
+        console.log('- 6 nodes: Extrude, Subdivide, Noise, Bevel, Smooth, Displace');
+        console.log('- 4 nodes with modes: Extrude, Subdivide, Noise, Smooth');
+        console.log('- 2 nodes without modes: Bevel, Displace');
+        console.log('- Full value scrubbing with Shift/Ctrl/Alt modifiers');
+    </script>
+</body>
+</html>

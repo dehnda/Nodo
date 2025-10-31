@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodo Studio - Boolean & Combine Node Properties</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #1e1e1e;
+            color: #cccccc;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #858585;
+            font-size: 13px;
+        }
+
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        /* Property Panel Container */
+        .property-panel {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #2d2d30;
+            padding: 12px 16px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .node-icon {
+            width: 32px;
+            height: 32px;
+            background: #c586c0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .panel-header h2 {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .node-type {
+            color: #858585;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-content {
+            padding: 16px;
+        }
+
+        /* Description */
+        .node-description {
+            color: #999999;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            padding: 10px;
+            background: #1e1e1e;
+            border-radius: 3px;
+            border-left: 3px solid #c586c0;
+        }
+
+        /* Universal Section */
+        .universal-section {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .universal-label {
+            color: #858585;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* Parameter Sections */
+        .param-section {
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            color: #858585;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* Parameter Row */
+        .param-row {
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            min-height: 28px;
+        }
+
+        .param-label {
+            color: #cccccc;
+            font-size: 12px;
+            cursor: default;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .param-label:hover {
+            color: #ffffff;
+        }
+
+        /* Input Controls */
+        .param-input {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #cccccc;
+            font-size: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            transition: all 0.15s;
+        }
+
+        .param-input:hover {
+            border-color: #007acc;
+        }
+
+        .param-input:focus {
+            outline: none;
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+
+        .param-input.number {
+            text-align: right;
+        }
+
+        /* Vector Inputs */
+        .vector-input {
+            display: flex;
+            gap: 6px;
+        }
+
+        .vector-component {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .vector-label {
+            font-size: 11px;
+            font-weight: 600;
+            width: 12px;
+            text-align: center;
+        }
+
+        .vector-label.x { color: #f48771; }
+        .vector-label.y { color: #89d185; }
+        .vector-label.z { color: #4a9eff; }
+
+        .vector-component input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 4px;
+            background: #3c3c3c;
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .slider-track {
+            height: 100%;
+            background: #007acc;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+        }
+
+        .slider-value {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #cccccc;
+            font-size: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            width: 60px;
+            text-align: right;
+        }
+
+        /* Dropdown */
+        .param-select {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #cccccc;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .param-select:hover {
+            border-color: #007acc;
+        }
+
+        .param-select:focus {
+            outline: none;
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+
+        /* Checkbox */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .param-checkbox {
+            width: 16px;
+            height: 16px;
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s;
+        }
+
+        .param-checkbox:hover {
+            border-color: #007acc;
+        }
+
+        .param-checkbox.checked {
+            background: #007acc;
+            border-color: #007acc;
+        }
+
+        .param-checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            color: #ffffff;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 4px;
+            background: #3c3c3c;
+            padding: 3px;
+            border-radius: 3px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #858585;
+            padding: 6px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .mode-btn:hover {
+            color: #cccccc;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .mode-btn.active {
+            background: #007acc;
+            color: #ffffff;
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #3e3e42;
+        }
+
+        .notes-title {
+            color: #858585;
+            font-size: 11px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .notes-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .notes-list li {
+            color: #999999;
+            font-size: 11px;
+            line-height: 1.6;
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .notes-list li::before {
+            content: '•';
+            position: absolute;
+            left: 6px;
+            color: #007acc;
+        }
+
+        /* Drag indicator */
+        .drag-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #007acc;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            margin-left: 4px;
+        }
+
+        .param-label:hover .drag-indicator {
+            opacity: 1;
+        }
+
+        /* Dragging state */
+        .param-label.dragging {
+            cursor: ew-resize;
+            color: #007acc;
+        }
+
+        .param-input.dragging {
+            cursor: ew-resize;
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+
+        body.dragging {
+            cursor: ew-resize !important;
+            user-select: none;
+        }
+
+        body.dragging * {
+            cursor: ew-resize !important;
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none;
+        }
+
+        .disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Boolean & Combine Nodes - Property Panel Designs</h1>
+            <p>Consistent property panel layouts for boolean operations and geometry combining nodes. <strong>Left-click drag</strong> on labels or values to adjust. <strong>Shift</strong> = slow, <strong>Ctrl</strong> = fast, <strong>Alt</strong> = snap to integer.</p>
+        </div>
+
+        <div class="nodes-grid">
+            <!-- BOOLEAN NODE -->
+            <div class="property-panel" data-node="boolean">
+                <div class="panel-header">
+                    <div class="node-icon">➕</div>
+                    <div>
+                        <h2>Boolean</h2>
+                        <div class="node-type">Boolean • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Performs CSG operations on manifold meshes. Union combines, Subtract cuts away, Intersect keeps overlap.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Mode</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Operation
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="union">Union</button>
+                                <button class="mode-btn" data-mode="subtract">Subtract</button>
+                                <button class="mode-btn" data-mode="intersect">Intersect</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Method
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Manifold</option>
+                                <option>Cork</option>
+                                <option>Fast (Approximate)</option>
+                            </select>
+                        </div>
+
+                        <!-- Union/Intersect specific -->
+                        <div class="param-row" data-visible-when="mode:union,intersect">
+                            <label class="param-label">Merge Threshold</label>
+                            <input type="text" class="param-input number" value="0.0001">
+                        </div>
+
+                        <!-- Subtract specific -->
+                        <div class="param-row hidden" data-visible-when="mode:subtract">
+                            <label class="param-label">Keep Inside</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Remove Interior</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Triangulate</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Validate Output</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Three CSG operations</li>
+                            <li><strong>Union:</strong> Combines meshes into single volume (A + B)</li>
+                            <li><strong>Subtract:</strong> Removes B from A (A - B)</li>
+                            <li><strong>Intersect:</strong> Keeps only overlapping volume (A ∩ B)</li>
+                            <li>Requires manifold (watertight) input meshes</li>
+                            <li>Manifold library recommended for robust results</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MERGE NODE -->
+            <div class="property-panel" data-node="merge">
+                <div class="panel-header">
+                    <div class="node-icon">🔀</div>
+                    <div>
+                        <h2>Merge</h2>
+                        <div class="node-type">Combine • No Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Combines multiple geometry inputs into single output. Simple concatenation without intersection testing.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Merge Points</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Distance
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.001">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Remove Duplicates</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Preserve Groups</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Transform</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Apply Transforms</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li>Simple geometry combination (no boolean operations)</li>
+                            <li>Merge Points welds vertices within distance threshold</li>
+                            <li>Remove Duplicates eliminates identical points</li>
+                            <li>Groups and attributes are preserved by default</li>
+                            <li>Use for combining non-overlapping geometry</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JOIN NODE -->
+            <div class="property-panel" data-node="join">
+                <div class="panel-header">
+                    <div class="node-icon">🔗</div>
+                    <div>
+                        <h2>Join</h2>
+                        <div class="node-type">Combine • No Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Combines geometry and automatically welds overlapping elements. Smart merging with connectivity detection.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Distance
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.001">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Join Method
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Vertices Only</option>
+                                <option>Edges & Vertices</option>
+                                <option>Faces & Edges</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Remove Duplicates</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Fix Normals</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Create Seam Group</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li>Automatically welds matching vertices within distance</li>
+                            <li>Join Method controls what topology is merged</li>
+                            <li>Fix Normals ensures consistent face orientation</li>
+                            <li>Create Seam Group marks welded boundaries</li>
+                            <li>Useful for combining mesh parts into watertight model</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SPLIT NODE -->
+            <div class="property-panel" data-node="split">
+                <div class="panel-header">
+                    <div class="node-icon">✂️</div>
+                    <div>
+                        <h2>Split</h2>
+                        <div class="node-type">Boolean • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Separates geometry by connectivity or groups. Breaks apart disconnected pieces or splits based on criteria.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Mode</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Split Method
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="connectivity">Connectivity</button>
+                                <button class="mode-btn" data-mode="groups">Groups</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <!-- Groups mode -->
+                        <div class="param-row hidden" data-visible-when="mode:groups">
+                            <label class="param-label">
+                                Group Pattern
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="*" placeholder="Group name pattern">
+                        </div>
+
+                        <!-- Connectivity mode -->
+                        <div class="param-row" data-visible-when="mode:connectivity">
+                            <label class="param-label">
+                                Element Type
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Primitives</option>
+                                <option>Points</option>
+                                <option>Edges</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Output</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Create Groups</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Output Mode
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>All Pieces</option>
+                                <option>Largest Only</option>
+                                <option>By Index</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Connectivity vs group-based splitting</li>
+                            <li><strong>Connectivity Mode:</strong> Separates disconnected mesh islands</li>
+                            <li><strong>Groups Mode:</strong> Splits based on group membership</li>
+                            <li>Create Groups assigns piece_N group to each separated part</li>
+                            <li>Useful for isolating mesh components or shells</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REMESH NODE -->
+            <div class="property-panel" data-node="remesh">
+                <div class="panel-header">
+                    <div class="node-icon">🔲</div>
+                    <div>
+                        <h2>Remesh</h2>
+                        <div class="node-type">Boolean • Has Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Reconstructs mesh with uniform topology. Quad remeshing for clean topology, Voxel for volume preservation.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Mode</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Method
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="mode-selector">
+                                <button class="mode-btn active" data-mode="quad">Quad</button>
+                                <button class="mode-btn" data-mode="voxel">Voxel</button>
+                                <button class="mode-btn" data-mode="triangle">Triangle</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Parameters</div>
+
+                        <!-- Quad mode -->
+                        <div class="param-row" data-visible-when="mode:quad">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Target Edge Length
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.100">
+                        </div>
+
+                        <div class="param-row" data-visible-when="mode:quad">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Iterations
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 20%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="10">
+                            </div>
+                        </div>
+
+                        <!-- Voxel mode -->
+                        <div class="param-row hidden" data-visible-when="mode:voxel">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Voxel Size
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.050">
+                        </div>
+
+                        <div class="param-row hidden" data-visible-when="mode:voxel">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Adaptivity
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input number" value="0.000">
+                        </div>
+
+                        <!-- Triangle mode -->
+                        <div class="param-row hidden" data-visible-when="mode:triangle">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Target Count
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 25%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="10000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Options</div>
+
+                        <div class="param-row">
+                            <label class="param-label">Preserve Boundaries</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Smooth Output</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li><strong>MODE-BASED NODE:</strong> Different remeshing algorithms</li>
+                            <li><strong>Quad Mode:</strong> Creates quad-dominant mesh with uniform edge length</li>
+                            <li><strong>Voxel Mode:</strong> Volume-based reconstruction (good for booleans)</li>
+                            <li><strong>Triangle Mode:</strong> Triangle mesh with target face count</li>
+                            <li>Use after boolean operations to clean up topology</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEPARATE NODE -->
+            <div class="property-panel" data-node="separate">
+                <div class="panel-header">
+                    <div class="node-icon">📤</div>
+                    <div>
+                        <h2>Separate</h2>
+                        <div class="node-type">Combine • No Modes</div>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="node-description">
+                        Outputs multiple streams from single input based on selection criteria. Splits geometry to multiple outputs.
+                    </div>
+
+                    <!-- UNIVERSAL SECTION -->
+                    <div class="universal-section">
+                        <div class="universal-label">Universal</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Leave empty for all">
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Selection</div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Group
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <input type="text" class="param-input" value="" placeholder="Group name">
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">
+                                Selection Mode
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <select class="param-select">
+                                <option>Group</option>
+                                <option>Attribute</option>
+                                <option>Material</option>
+                                <option>Connectivity</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="param-section">
+                        <div class="section-header">Output</div>
+
+                        <div class="param-row">
+                            <label class="param-label" title="Left-click drag to adjust">
+                                Output Count
+                                <span class="drag-indicator"></span>
+                            </label>
+                            <div class="slider-container">
+                                <div class="slider">
+                                    <div class="slider-track" style="width: 10%;">
+                                        <div class="slider-thumb"></div>
+                                    </div>
+                                </div>
+                                <input type="text" class="slider-value" value="2">
+                            </div>
+                        </div>
+
+                        <div class="param-row">
+                            <label class="param-label">Keep Unselected</label>
+                            <div class="checkbox-container">
+                                <div class="param-checkbox checked"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <div class="notes-title">IMPLEMENTATION NOTES</div>
+                        <ul class="notes-list">
+                            <li>Splits input into multiple output streams</li>
+                            <li>Each output gets geometry matching criteria</li>
+                            <li>Output 0: Selected geometry</li>
+                            <li>Output 1: Unselected (if Keep Unselected enabled)</li>
+                            <li>Useful for branching workflows based on selection</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== VALUE SCRUBBING SYSTEM =====
+        class ValueScrubber {
+            constructor() {
+                this.isDragging = false;
+                this.startX = 0;
+                this.startValue = 0;
+                this.currentInput = null;
+                this.sensitivity = 0.1;
+                this.shiftSensitivity = 0.01;
+                this.ctrlSensitivity = 1.0;
+
+                this.init();
+            }
+
+            init() {
+                document.querySelectorAll('.param-input.number, .slider-value').forEach(input => {
+                    input.addEventListener('mousedown', (e) => this.startDrag(e, input));
+                    input.addEventListener('dblclick', (e) => {
+                        e.stopPropagation();
+                        input.select();
+                    });
+                });
+
+                document.querySelectorAll('.param-label').forEach(label => {
+                    label.addEventListener('mousedown', (e) => {
+                        const row = label.closest('.param-row');
+                        const input = row.querySelector('.param-input.number, .slider-value');
+                        if (input && !input.matches(':focus')) {
+                            e.preventDefault();
+                            this.startDrag(e, input, label);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.vector-label').forEach(label => {
+                    label.addEventListener('mousedown', (e) => {
+                        const input = label.closest('.vector-component').querySelector('.param-input.number');
+                        if (input) {
+                            e.preventDefault();
+                            this.startDrag(e, input, label);
+                        }
+                    });
+                });
+
+                document.addEventListener('mousemove', (e) => this.onDrag(e));
+                document.addEventListener('mouseup', (e) => this.stopDrag(e));
+            }
+
+            startDrag(e, input, label = null) {
+                if (input.matches(':focus')) return;
+
+                if (e.button === 0) {
+                    e.preventDefault();
+
+                    this.isDragging = true;
+                    this.startX = e.clientX;
+                    this.currentInput = input;
+                    this.startValue = parseFloat(input.value) || 0;
+
+                    document.body.classList.add('dragging');
+                    if (label) label.classList.add('dragging');
+                    input.classList.add('dragging');
+                }
+            }
+
+            onDrag(e) {
+                if (!this.isDragging || !this.currentInput) return;
+
+                const deltaX = e.clientX - this.startX;
+
+                let sensitivity = this.sensitivity;
+                if (e.shiftKey) {
+                    sensitivity = this.shiftSensitivity;
+                } else if (e.ctrlKey || e.metaKey) {
+                    sensitivity = this.ctrlSensitivity;
+                }
+
+                let newValue = this.startValue + (deltaX * sensitivity);
+
+                if (e.altKey) {
+                    newValue = Math.round(newValue);
+                }
+
+                const decimalPlaces = this.getDecimalPlaces(this.startValue);
+                newValue = parseFloat(newValue.toFixed(decimalPlaces));
+
+                this.currentInput.value = newValue.toFixed(decimalPlaces);
+
+                const row = this.currentInput.closest('.param-row');
+                if (row) {
+                    const slider = row.querySelector('.slider-track');
+                    if (slider) {
+                        const percentage = Math.max(0, Math.min(100, (newValue / 100) * 100));
+                        slider.style.width = percentage + '%';
+                    }
+                }
+            }
+
+            stopDrag(e) {
+                if (this.isDragging) {
+                    document.body.classList.remove('dragging');
+                    document.querySelectorAll('.dragging').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
+
+                    this.isDragging = false;
+                    this.currentInput = null;
+                }
+            }
+
+            getDecimalPlaces(value) {
+                const str = value.toString();
+                const decimalIndex = str.indexOf('.');
+                return decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
+            }
+        }
+
+        const scrubber = new ValueScrubber();
+
+        // Make checkboxes interactive
+        document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', () => {
+                checkbox.classList.toggle('checked');
+            });
+        });
+
+        // Make mode buttons interactive
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parent = btn.closest('.mode-selector');
+                const panel = btn.closest('.property-panel');
+                const mode = btn.dataset.mode;
+
+                parent.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                panel.querySelectorAll('[data-visible-when]').forEach(param => {
+                    const visibleWhen = param.dataset.visibleWhen;
+                    const modes = visibleWhen.replace('mode:', '').split(',');
+                    const shouldShow = modes.includes(mode);
+                    param.classList.toggle('hidden', !shouldShow);
+                });
+            });
+        });
+
+        console.log('Boolean & Combine Node Properties Loaded');
+        console.log('- 6 nodes: Boolean, Merge, Join, Split, Remesh, Separate');
+        console.log('- 3 nodes with modes: Boolean, Split, Remesh');
+        console.log('- 3 nodes without modes: Merge, Join, Separate');
+        console.log('- Full value scrubbing with Shift/Ctrl/Alt modifiers');
+    </script>
+</body>
+</html>
