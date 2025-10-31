@@ -10,6 +10,7 @@
 #include "nodo/sop/export_sop.hpp"
 #include "nodo/sop/extrude_sop.hpp"
 #include "nodo/sop/file_sop.hpp"
+#include "nodo/sop/grid_sop.hpp"
 #include "nodo/sop/group_sop.hpp"
 #include "nodo/sop/laplacian_sop.hpp"
 #include "nodo/sop/line_sop.hpp"
@@ -17,7 +18,6 @@
 #include "nodo/sop/mirror_sop.hpp"
 #include "nodo/sop/noise_displacement_sop.hpp"
 #include "nodo/sop/normal_sop.hpp"
-#include "nodo/sop/plane_sop.hpp"
 #include "nodo/sop/polyextrude_sop.hpp"
 #include "nodo/sop/resample_sop.hpp"
 #include "nodo/sop/scatter_sop.hpp"
@@ -92,8 +92,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<BoxSOP>(name);
   case NodeType::Cylinder:
     return std::make_shared<CylinderSOP>(name);
-  case NodeType::Plane:
-    return std::make_shared<PlaneSOP>(name);
+  case NodeType::Grid:
+    return std::make_shared<GridSOP>(name);
   case NodeType::Torus:
     return std::make_shared<TorusSOP>(name);
   case NodeType::Merge:

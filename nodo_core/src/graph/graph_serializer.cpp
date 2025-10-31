@@ -255,7 +255,7 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Box";
   case NodeType::Cylinder:
     return "Cylinder";
-  case NodeType::Plane:
+  case NodeType::Grid:
     return "Plane";
   case NodeType::Torus:
     return "Torus";
@@ -307,7 +307,7 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
   if (type_str == "Cylinder")
     return NodeType::Cylinder;
   if (type_str == "Plane")
-    return NodeType::Plane;
+    return NodeType::Grid;
   if (type_str == "Torus")
     return NodeType::Torus;
   if (type_str == "Line")

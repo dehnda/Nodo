@@ -98,7 +98,7 @@ void NodeCreationMenu::populateAllNodes() {
                      "▮",
                      {"primitive", "cylinder"}});
   all_nodes_.append(
-      {"Plane", "plane_sop", "Generator", "▬", {"primitive", "plane", "grid"}});
+      {"Grid", "grid_sop", "Generator", "▭", {"primitive", "grid", "plane"}});
   all_nodes_.append({"Torus",
                      "torus_sop",
                      "Generator",
@@ -359,7 +359,7 @@ QIcon NodeCreationMenu::getNodeIcon(const QString &type_id) const {
     return Icons::get(Icon::Box);
   if (type_id == "cylinder_sop")
     return Icons::get(Icon::Cylinder);
-  if (type_id == "plane_sop")
+  if (type_id == "grid_sop")
     return Icons::get(Icon::Plane);
   if (type_id == "torus_sop")
     return Icons::get(Icon::Torus);

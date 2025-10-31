@@ -23,7 +23,7 @@ enum class NodeType {
   Sphere,
   Box,
   Cylinder,
-  Plane,
+  Grid,
   Torus,
   Line,
 

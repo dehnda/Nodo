@@ -66,7 +66,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   case NodeType::Sphere:
   case NodeType::Box:
   case NodeType::Cylinder:
-  case NodeType::Plane:
+  case NodeType::Grid:
   case NodeType::Torus:
   case NodeType::Line:
     return QColor(200, 120, 60); // Orange
@@ -1570,8 +1570,8 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::Box;
   if (type_id == "cylinder_sop")
     return NodeType::Cylinder;
-  if (type_id == "plane_sop")
-    return NodeType::Plane;
+  if (type_id == "grid_sop")
+    return NodeType::Grid;
   if (type_id == "torus_sop")
     return NodeType::Torus;
   if (type_id == "line_sop")

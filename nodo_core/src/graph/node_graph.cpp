@@ -282,7 +282,7 @@ void GraphNode::setup_pins_for_type() {
     break;
   }
 
-  case NodeType::Plane:
+  case NodeType::Grid:
     parameters_.emplace_back("width", 2.0F);
     parameters_.emplace_back("height", 2.0F);
     output_pins_.push_back(
@@ -678,7 +678,7 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Box";
   case NodeType::Cylinder:
     return "Cylinder";
-  case NodeType::Plane:
+  case NodeType::Grid:
     return "Plane";
   case NodeType::Torus:
     return "Torus";
