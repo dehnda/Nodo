@@ -10,43 +10,47 @@ namespace sop {
 /**
  * @brief Sphere generator SOP node
  *
- * Generates UV spheres with smooth shading. The sphere is created with
- * point-based normals (averaged across shared vertices) for smooth appearance.
- *
- * ## Hard Edges (Future Feature)
- * To implement hard edges (faceted look), we would need to:
- * 1. Add a "cusp_angle" parameter (angle threshold for hard vs soft edges)
- * 2. Split vertices where adjacent face normals differ by > cusp_angle
- * 3. Store normals as VERTEX attributes (not POINT attributes)
- * 4. Each face corner gets its own vertex with the face normal
- *
- * Example workflow:
- * ```
- * // In execute():
- * auto container = sphere_generator->generate();
- * if (cusp_angle < 180.0f) {
- *   utils::compute_hard_edges(*container, cusp_angle);
- * }
- * ```
- *
- * This requires implementing vertex attribute support in GeometryContainer,
- * which is currently set up for it but not fully utilized yet.
+ * Generates UV spheres with customizable radius and resolution.
  */
 class SphereSOP : public SOPNode {
 private:
-  // Default sphere parameters
+  static constexpr int NODE_VERSION = 1;
   static constexpr float DEFAULT_RADIUS = 1.0F;
   static constexpr int DEFAULT_SEGMENTS = 32;
   static constexpr int DEFAULT_RINGS = 16;
 
+  enum class PrimitiveType { Polygon = 0, Points = 1 };
+
 public:
   explicit SphereSOP(const std::string &node_name = "sphere")
-      : SOPNode(node_name, "SphereSOP") {
+      : SOPNode(node_name, "Sphere") {
 
-    // Set default parameters
-    set_parameter("radius", DEFAULT_RADIUS);
-    set_parameter("segments", DEFAULT_SEGMENTS);
-    set_parameter("rings", DEFAULT_RINGS);
+    // Universal: Primitive Type
+    register_parameter(define_int_parameter("primitive_type", 0)
+                           .label("Primitive Type")
+                           .options({"Polygon", "Points"})
+                           .category("Universal")
+                           .build());
+
+    // Radius parameter
+    register_parameter(define_float_parameter("radius", DEFAULT_RADIUS)
+                           .label("Radius")
+                           .range(0.01, 100.0)
+                           .category("Size")
+                           .build());
+
+    // Resolution parameters
+    register_parameter(define_int_parameter("segments", DEFAULT_SEGMENTS)
+                           .label("Segments")
+                           .range(3, 256)
+                           .category("Resolution")
+                           .build());
+
+    register_parameter(define_int_parameter("rings", DEFAULT_RINGS)
+                           .label("Rings")
+                           .range(3, 128)
+                           .category("Resolution")
+                           .build());
   }
 
   /**
@@ -63,17 +67,14 @@ public:
   }
 
 protected:
-  /**
-   * @brief Execute sphere generation
-   */
   std::shared_ptr<core::GeometryContainer> execute() override {
-    const float radius = get_parameter<float>("radius", DEFAULT_RADIUS);
-    const int segments = get_parameter<int>("segments", DEFAULT_SEGMENTS);
-    const int rings = get_parameter<int>("rings", DEFAULT_RINGS);
+    const auto radius = get_parameter<float>("radius", DEFAULT_RADIUS);
+    const auto segments = get_parameter<int>("segments", DEFAULT_SEGMENTS);
+    const auto rings = get_parameter<int>("rings", DEFAULT_RINGS);
+    const auto primitive_type =
+        static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
 
     try {
-      // Generate sphere using CPU generator (returns GeometryContainer
-      // directly)
       auto result = geometry::SphereGenerator::generate_uv_sphere(
           static_cast<double>(radius), segments, rings);
 
@@ -82,8 +83,15 @@ protected:
         return nullptr;
       }
 
-      return std::make_shared<core::GeometryContainer>(
-          std::move(result.value()));
+      auto container =
+          std::make_shared<core::GeometryContainer>(std::move(result.value()));
+
+      if (primitive_type == PrimitiveType::Points) {
+        auto &topology = container->topology();
+        topology.set_primitive_count(0);
+      }
+
+      return container;
 
     } catch (const std::exception &exception) {
       set_error("Exception during sphere generation: " +

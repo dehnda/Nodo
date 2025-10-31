@@ -7,24 +7,64 @@
 namespace nodo::sop {
 
 /**
- * @brief Box generator SOP node
+ * @brief Box (Cube) generator SOP node
  */
 class BoxSOP : public SOPNode {
 private:
-  static constexpr float DEFAULT_WIDTH = 2.0F;
-  static constexpr float DEFAULT_HEIGHT = 2.0F;
-  static constexpr float DEFAULT_DEPTH = 2.0F;
+  static constexpr int NODE_VERSION = 1;
+  static constexpr float DEFAULT_SIZE = 2.0F;
   static constexpr int DEFAULT_SEGMENTS = 1;
+
+  enum class PrimitiveType { Polygon = 0, Points = 1 };
 
 public:
   explicit BoxSOP(const std::string &node_name = "box")
-      : SOPNode(node_name, "BoxSOP") {
-    set_parameter("width", DEFAULT_WIDTH);
-    set_parameter("height", DEFAULT_HEIGHT);
-    set_parameter("depth", DEFAULT_DEPTH);
-    set_parameter("width_segments", DEFAULT_SEGMENTS);
-    set_parameter("height_segments", DEFAULT_SEGMENTS);
-    set_parameter("depth_segments", DEFAULT_SEGMENTS);
+      : SOPNode(node_name, "Box") {
+
+    // Universal: Primitive Type
+    register_parameter(define_int_parameter("primitive_type", 0)
+                           .label("Primitive Type")
+                           .options({"Polygon", "Points"})
+                           .category("Universal")
+                           .build());
+
+    // Size parameters
+    register_parameter(define_float_parameter("width", DEFAULT_SIZE)
+                           .label("Width")
+                           .range(0.01, 100.0)
+                           .category("Size")
+                           .build());
+
+    register_parameter(define_float_parameter("height", DEFAULT_SIZE)
+                           .label("Height")
+                           .range(0.01, 100.0)
+                           .category("Size")
+                           .build());
+
+    register_parameter(define_float_parameter("depth", DEFAULT_SIZE)
+                           .label("Depth")
+                           .range(0.01, 100.0)
+                           .category("Size")
+                           .build());
+
+    // Subdivision parameters
+    register_parameter(define_int_parameter("width_segments", DEFAULT_SEGMENTS)
+                           .label("Width Segments")
+                           .range(1, 100)
+                           .category("Subdivisions")
+                           .build());
+
+    register_parameter(define_int_parameter("height_segments", DEFAULT_SEGMENTS)
+                           .label("Height Segments")
+                           .range(1, 100)
+                           .category("Subdivisions")
+                           .build());
+
+    register_parameter(define_int_parameter("depth_segments", DEFAULT_SEGMENTS)
+                           .label("Depth Segments")
+                           .range(1, 100)
+                           .category("Subdivisions")
+                           .build());
   }
 
   void set_size(float width, float height, float depth) {
@@ -41,15 +81,17 @@ public:
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
-    const float width = get_parameter<float>("width", DEFAULT_WIDTH);
-    const float height = get_parameter<float>("height", DEFAULT_HEIGHT);
-    const float depth = get_parameter<float>("depth", DEFAULT_DEPTH);
-    const int width_segments =
+    const auto width = get_parameter<float>("width", DEFAULT_SIZE);
+    const auto height = get_parameter<float>("height", DEFAULT_SIZE);
+    const auto depth = get_parameter<float>("depth", DEFAULT_SIZE);
+    const auto width_segments =
         get_parameter<int>("width_segments", DEFAULT_SEGMENTS);
-    const int height_segments =
+    const auto height_segments =
         get_parameter<int>("height_segments", DEFAULT_SEGMENTS);
-    const int depth_segments =
+    const auto depth_segments =
         get_parameter<int>("depth_segments", DEFAULT_SEGMENTS);
+    const auto primitive_type =
+        static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
 
     try {
       auto result = geometry::BoxGenerator::generate(
@@ -62,8 +104,15 @@ protected:
         return nullptr;
       }
 
-      return std::make_shared<core::GeometryContainer>(
-          std::move(result.value()));
+      auto container =
+          std::make_shared<core::GeometryContainer>(std::move(result.value()));
+
+      if (primitive_type == PrimitiveType::Points) {
+        auto &topology = container->topology();
+        topology.set_primitive_count(0);
+      }
+
+      return container;
 
     } catch (const std::exception &exception) {
       set_error("Exception during box generation: " +
