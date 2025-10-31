@@ -73,6 +73,7 @@ private:
   void clearLayout();
   void addSeparator();
   void addHeader(const QString &text);
+  void addStyledHeader(const QString &text, const QString &backgroundColor);
 
   // Connect parameter widget callbacks to backend updates
   void connectParameterWidget(nodo_studio::widgets::BaseParameterWidget *widget,

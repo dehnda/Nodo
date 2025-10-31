@@ -15,7 +15,6 @@
 #include "widgets/TextWidget.h"
 #include "widgets/Vector3Widget.h"
 
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -190,6 +189,33 @@ void PropertyPanel::addHeader(const QString &text) {
                         "   padding-bottom: 8px;"
                         "}");
   content_layout_->insertWidget(content_layout_->count() - 1, header);
+}
+
+void PropertyPanel::addStyledHeader(const QString &text,
+                                    const QString &backgroundColor) {
+  // Create container for styled header
+  auto *container = new QWidget(content_widget_);
+  auto *layout = new QHBoxLayout(container);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+
+  auto *header = new QLabel(text, container);
+  header->setStyleSheet(QString("QLabel {"
+                                "   color: #c0c0c8;"
+                                "   font-weight: 600;"
+                                "   font-size: 10px;"
+                                "   letter-spacing: 0.8px;"
+                                "   text-transform: uppercase;"
+                                "   padding: 8px 12px;"
+                                "   background-color: %1;"
+                                "   border-radius: 3px;"
+                                "}")
+                            .arg(backgroundColor));
+
+  layout->addWidget(header);
+  layout->addStretch();
+
+  content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
 void PropertyPanel::addIntParameter(const QString &label, int value, int min,
@@ -797,223 +823,8 @@ void PropertyPanel::addComboParameter(const QString &label, int value,
 
 void PropertyPanel::setGraphNode(nodo::graph::GraphNode *node,
                                  nodo::graph::NodeGraph *graph) {
-  if (node == nullptr || graph == nullptr) {
-    clearProperties();
-    return;
-  }
-
-  clearLayout();
-  current_graph_node_ = node;
-  current_graph_ = graph;
-
-  QString node_name = QString::fromStdString(node->get_name());
-  title_label_->setText(node_name + " Properties");
-
-  // Get all parameters from the node
-  const auto &params = node->get_parameters();
-
-  if (params.empty()) {
-    auto *label = new QLabel("No parameters available", content_widget_);
-    label->setAlignment(Qt::AlignCenter);
-    label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
-    content_layout_->insertWidget(0, label);
-    return;
-  }
-
-  addHeader("Parameters");
-
-  // Dynamically create UI for each parameter
-  for (const auto &param : params) {
-    // Check if this parameter should be visible based on visibility control
-    if (!param.category_control_param.empty() &&
-        param.category_control_value >= 0) {
-      // This parameter has visibility control - check the control parameter's
-      // value
-      auto control_param = node->get_parameter(param.category_control_param);
-      if (control_param.has_value() &&
-          control_param->int_value != param.category_control_value) {
-        continue; // Skip this parameter - control value doesn't match
-      }
-    }
-
-    QString label = QString::fromStdString(param.label);
-
-    switch (param.type) {
-    case nodo::graph::NodeParameter::Type::Float: {
-      double value = static_cast<double>(param.float_value);
-      double min = static_cast<double>(param.ui_range.float_min);
-      double max = static_cast<double>(param.ui_range.float_max);
-
-      addDoubleParameter(
-          label, value, min, max, [this, node, param](double new_value) {
-            auto updated_param = nodo::graph::NodeParameter(
-                param.name, static_cast<float>(new_value), param.label,
-                param.ui_range.float_min, param.ui_range.float_max,
-                param.category);
-            updated_param.category_control_param = param.category_control_param;
-            updated_param.category_control_value = param.category_control_value;
-            node->set_parameter(param.name, updated_param);
-            emit parameterChanged();
-          });
-      break;
-    }
-
-    case nodo::graph::NodeParameter::Type::Int: {
-      // Check if this is a combo box (has string options)
-      if (!param.string_options.empty()) {
-        QStringList options;
-        for (const auto &opt : param.string_options) {
-          options.append(QString::fromStdString(opt));
-        }
-
-        addComboParameter(label, param.int_value, options,
-                          [this, node, param, graph](int new_value) {
-                            // Create updated parameter, preserving all metadata
-                            auto updated_param = nodo::graph::NodeParameter(
-                                param.name, new_value, param.string_options,
-                                param.label, param.category);
-                            updated_param.category_control_param =
-                                param.category_control_param;
-                            updated_param.category_control_value =
-                                param.category_control_value;
-
-                            node->set_parameter(param.name, updated_param);
-
-                            // Check if any parameter uses this as a visibility
-                            // control If so, refresh UI to show/hide controlled
-                            // parameters
-                            bool controls_visibility = false;
-                            for (const auto &p : node->get_parameters()) {
-                              if (p.category_control_param == param.name) {
-                                controls_visibility = true;
-                                break;
-                              }
-                            }
-                            if (controls_visibility) {
-                              setGraphNode(node, graph);
-                            }
-
-                            emit parameterChanged();
-                          });
-      } else {
-        // Regular integer parameter
-        addIntParameter(
-            label, param.int_value, param.ui_range.int_min,
-            param.ui_range.int_max, [this, node, param](int new_value) {
-              auto updated_param = nodo::graph::NodeParameter(
-                  param.name, new_value, param.label, param.ui_range.int_min,
-                  param.ui_range.int_max, param.category);
-              updated_param.category_control_param =
-                  param.category_control_param;
-              updated_param.category_control_value =
-                  param.category_control_value;
-              node->set_parameter(param.name, updated_param);
-              emit parameterChanged();
-            });
-      }
-      break;
-    }
-
-    case nodo::graph::NodeParameter::Type::Bool: {
-      // Skip export_now parameter for Export nodes (we'll add a button instead)
-      if (node->get_type() == nodo::graph::NodeType::Export &&
-          param.name == "export_now") {
-        break;
-      }
-
-      addBoolParameter(
-          label, param.bool_value, [this, node, param](bool new_value) {
-            auto updated_param = nodo::graph::NodeParameter(
-                param.name, new_value, param.label, param.category);
-            updated_param.category_control_param = param.category_control_param;
-            updated_param.category_control_value = param.category_control_value;
-            node->set_parameter(param.name, updated_param);
-            emit parameterChanged();
-          });
-      break;
-    }
-
-    case nodo::graph::NodeParameter::Type::Vector3: {
-      double x = static_cast<double>(param.vector3_value[0]);
-      double y = static_cast<double>(param.vector3_value[1]);
-      double z = static_cast<double>(param.vector3_value[2]);
-      double min = static_cast<double>(param.ui_range.float_min);
-      double max = static_cast<double>(param.ui_range.float_max);
-
-      addVector3Parameter(
-          label, x, y, z, min, max,
-          [this, node, param](double nx, double ny, double nz) {
-            std::array<float, 3> new_value = {static_cast<float>(nx),
-                                              static_cast<float>(ny),
-                                              static_cast<float>(nz)};
-            auto updated_param = nodo::graph::NodeParameter(
-                param.name, new_value, param.label, param.ui_range.float_min,
-                param.ui_range.float_max, param.category);
-            updated_param.category_control_param = param.category_control_param;
-            updated_param.category_control_value = param.category_control_value;
-            node->set_parameter(param.name, updated_param);
-            emit parameterChanged();
-          });
-      break;
-    }
-
-    case nodo::graph::NodeParameter::Type::String: {
-      QString string_value = QString::fromStdString(param.string_value);
-
-      // Use file dialogs for file_path parameters
-      if (param.name == "file_path") {
-        // Check if this is an Export node (use Save dialog) or File node (use
-        // Open dialog)
-        bool is_export_node =
-            (node->get_type() == nodo::graph::NodeType::Export);
-
-        if (is_export_node) {
-          addFileSaveParameter(
-              label, string_value,
-              [this, node, param](const QString &new_value) {
-                node->set_parameter(
-                    param.name,
-                    nodo::graph::NodeParameter(
-                        param.name, new_value.toStdString(), param.label));
-                emit parameterChanged();
-              });
-        } else {
-          addFilePathParameter(
-              label, string_value,
-              [this, node, param](const QString &new_value) {
-                node->set_parameter(
-                    param.name,
-                    nodo::graph::NodeParameter(
-                        param.name, new_value.toStdString(), param.label));
-                emit parameterChanged();
-              });
-        }
-      } else {
-        addStringParameter(
-            label, string_value, [this, node, param](const QString &new_value) {
-              node->set_parameter(
-                  param.name,
-                  nodo::graph::NodeParameter(
-                      param.name, new_value.toStdString(), param.label));
-              emit parameterChanged();
-            });
-      }
-      break;
-    }
-    }
-  }
-
-  // Add Export button for Export nodes
-  if (node->get_type() == nodo::graph::NodeType::Export) {
-    addSeparator();
-    addButtonParameter("Export Now", [this, node]() {
-      // Trigger export by setting export_now parameter to true
-      node->set_parameter("export_now", nodo::graph::NodeParameter(
-                                            "export_now", true, "Export Now"));
-      // Emit signal to trigger graph update
-      emit parameterChanged();
-    });
-  }
+  // Use auto-generation system for all nodes
+  buildFromNode(node, graph);
 }
 
 void PropertyPanel::connectParameterWidget(
@@ -1201,15 +1012,40 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
 
   // Render universal parameters section (if any)
   if (!universal_params.empty()) {
-    addHeader("Universal");
+    // Create styled container for universal parameters
+    auto *universal_container = new QWidget(content_widget_);
+    universal_container->setStyleSheet("QWidget { background-color: #2a2a2e; "
+                                       "border-radius: 4px; padding: 4px; }");
+    auto *universal_layout = new QVBoxLayout(universal_container);
+    universal_layout->setContentsMargins(8, 8, 8, 8);
+    universal_layout->setSpacing(6);
+
+    // Add styled header
+    auto *header_label =
+        new QLabel("Universal Parameters", universal_container);
+    header_label->setStyleSheet("QLabel {"
+                                "   color: #c0c0c8;"
+                                "   font-weight: 600;"
+                                "   font-size: 10px;"
+                                "   letter-spacing: 0.8px;"
+                                "   text-transform: uppercase;"
+                                "   padding: 4px 0px 8px 0px;"
+                                "   background-color: transparent;"
+                                "}");
+    universal_layout->addWidget(header_label);
+
+    // Add universal parameter widgets
     for (const auto *param : universal_params) {
       auto *widget = nodo_studio::ParameterWidgetFactory::createWidget(
-          *param, content_widget_);
+          *param, universal_container);
       if (widget != nullptr) {
         connectParameterWidget(widget, *param, node, graph);
-        content_layout_->insertWidget(content_layout_->count() - 1, widget);
+        universal_layout->addWidget(widget);
       }
     }
+
+    content_layout_->insertWidget(content_layout_->count() - 1,
+                                  universal_container);
     addSeparator();
   }
 
