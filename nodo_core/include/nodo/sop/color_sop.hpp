@@ -36,7 +36,8 @@ public:
                 "Color assignment method (constant, random, or gradient ramp)")
             .build());
 
-    // Element class (which geometry elements to color)
+    // Universal class parameter (customized for color - only
+    // Point/Vertex/Primitive)
     register_parameter(
         define_int_parameter("class", 0)
             .label("Class")

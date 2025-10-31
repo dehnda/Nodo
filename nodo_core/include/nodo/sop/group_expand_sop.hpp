@@ -33,13 +33,8 @@ public:
                            .description("Name of the group to expand or shrink")
                            .build());
 
-    // Element class
-    register_parameter(define_int_parameter("element_class", 0)
-                           .label("Group Type")
-                           .options({"Points", "Primitives"})
-                           .category("Group")
-                           .description("Type of elements in the group")
-                           .build());
+    // Universal group type parameter (from SOPNode base class)
+    add_group_type_parameter();
 
     // Operation
     register_parameter(

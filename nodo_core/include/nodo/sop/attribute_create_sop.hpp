@@ -32,14 +32,8 @@ public:
                            .description("Name of the attribute to create")
                            .build());
 
-    // Element class (which geometry elements to add attribute to)
-    register_parameter(
-        define_int_parameter("class", 0)
-            .label("Class")
-            .options({"Point", "Primitive", "Vertex", "Detail"})
-            .category("Attribute")
-            .description("Geometry element type to store attribute on")
-            .build());
+    // Universal class parameter (from SOPNode base class)
+    add_class_parameter();
 
     // Attribute type
     register_parameter(

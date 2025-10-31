@@ -33,14 +33,8 @@ public:
             .description("Attribute name pattern (supports * and ? wildcards)")
             .build());
 
-    // Element class (which geometry elements to delete from)
-    register_parameter(
-        define_int_parameter("class", 0)
-            .label("Class")
-            .options({"Point", "Primitive", "Vertex", "Detail", "All"})
-            .category("Attribute")
-            .description("Geometry element type to delete attributes from")
-            .build());
+    // Universal class parameter (from SOPNode base class)
+    add_class_parameter();
 
     // Invert pattern (delete everything EXCEPT matching)
     register_parameter(

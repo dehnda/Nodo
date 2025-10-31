@@ -162,10 +162,12 @@ public:
                                           NodePort::DataType::GEOMETRY, this);
 
     // Add universal group parameter (all SOPs inherit this)
-    register_parameter(define_string_parameter("group", "")
-                           .label("Group")
-                           .category("Group")
-                           .build());
+    register_parameter(
+        define_string_parameter("group", "")
+            .label("Group")
+            .category("Group")
+            .description("Name of group to operate on (empty = all elements)")
+            .build());
   }
 
   virtual ~SOPNode() = default;
@@ -393,6 +395,41 @@ protected:
   void register_parameter(const ParameterDefinition &def) {
     parameter_definitions_.push_back(def);
     parameters_[def.name] = def.default_value;
+  }
+
+  /**
+   * @brief Add universal 'class' parameter for attribute operations
+   *
+   * Helper for attribute nodes (AttributeCreate, AttributeDelete, Color, etc.)
+   * to register a standard element class parameter.
+   */
+  void add_class_parameter(const std::string &name = "class",
+                           const std::string &label = "Class",
+                           const std::string &category = "Attribute") {
+    register_parameter(
+        define_int_parameter(name, 0)
+            .label(label)
+            .options({"Point", "Primitive", "Vertex", "Detail", "All"})
+            .category(category)
+            .description("Geometry element class to operate on")
+            .build());
+  }
+
+  /**
+   * @brief Add universal 'element_class' parameter for group operations
+   *
+   * Helper for group nodes (Group, GroupDelete, GroupCombine, etc.)
+   * to register a standard group type parameter.
+   */
+  void add_group_type_parameter(const std::string &name = "element_class",
+                                const std::string &label = "Group Type",
+                                const std::string &category = "Group") {
+    register_parameter(define_int_parameter(name, 0)
+                           .label(label)
+                           .options({"Points", "Primitives"})
+                           .category(category)
+                           .description("Type of geometry elements to group")
+                           .build());
   }
 
   /**

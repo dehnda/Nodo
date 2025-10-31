@@ -29,16 +29,16 @@
 
 #### **M1.1: Backend Parameter Definitions** (Weeks 1-3)
 - [x] Audit all 44 nodes for complete parameter definitions ✅ (43 SOP nodes complete)
-- [ ] Add universal parameters to SOPNode base class:
-  - `group` parameter (all nodes)
-  - `component` parameter (~10 attribute nodes)
-  - `group_type` parameter (~6 group nodes)
-  - `primitive_type` parameter (~6 generator nodes)
+- [x] Add universal parameters to SOPNode base class: ✅
+  - [x] `group` parameter (all nodes) ✅
+  - [x] `class` parameter (attribute nodes via add_class_parameter()) ✅
+  - [x] `element_class` parameter (group nodes via add_group_type_parameter()) ✅
+  - [ ] `primitive_type` parameter (~6 generator nodes) - NOT NEEDED (nodes already have individual implementations)
 - [x] Add parameter descriptions (for tooltips/docs) ✅ (217+ parameters documented)
 - [x] Add node version constants (for future compatibility) ✅ (All nodes have NODE_VERSION)
 - [ ] Ensure zero Qt dependencies in nodo_core
 
-**Deliverable:** All nodes have complete ParameterDefinition with metadata
+**Deliverable:** All nodes have complete ParameterDefinition with metadata ✅ COMPLETE
 
 #### **M1.2: UI Component Library** (Weeks 4-6)
 - [ ] Create reusable Qt widgets matching HTML concepts:
@@ -340,21 +340,22 @@ Proceed with engine integration only if:
 - 44 node types with procedural geometry operations
 - Universal parameter system designed (HTML concepts)
 - Clean nodo_core/nodo_studio separation
-- **Backend parameter audit complete** (43 SOP nodes) ✅
-- **Parameter descriptions added to all nodes** (217+ parameters) ✅
-- **Node version constants added** (NODE_VERSION in all nodes) ✅
+- **Phase 1, M1.1: Backend parameter definitions** ✅ COMPLETE
+  - Backend parameter audit complete (43 SOP nodes)
+  - Parameter descriptions added to all nodes (217+ parameters)
+  - Node version constants added (NODE_VERSION in all nodes)
+  - Universal parameters implemented:
+    - `group` parameter (all nodes via SOPNode base class)
+    - `class` parameter (attribute nodes via add_class_parameter())
+    - `element_class` parameter (group nodes via add_group_type_parameter())
 
 ### 🔄 In Progress
-- **Phase 1, M1.1:** Backend parameter definitions (3/5 tasks complete)
-- Universal parameters implementation needed for SOPNode base class
+- **Phase 1, M1.2:** UI Component Library (next milestone)
 
 ### 📋 Next Up
-- Implement universal parameters in SOPNode base class
-  - `group` parameter (all nodes)
-  - `component` parameter (~10 attribute nodes)
-  - `group_type` parameter (~6 group nodes)
-  - `primitive_type` parameter (~6 generator nodes)
-- Ensure zero Qt dependencies in nodo_core
+- Ensure zero Qt dependencies in nodo_core (cleanup task)
+- Begin M1.2: Create reusable Qt widgets for property panel
+- Design widget library with VS Code dark theme styling
 
 ---
 

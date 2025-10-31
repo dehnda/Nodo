@@ -30,7 +30,7 @@ public:
                 "Group name pattern to delete (supports * and ? wildcards)")
             .build());
 
-    // Element class to delete groups from
+    // Custom group type parameter (GroupDeleteSOP needs Edges and All options)
     register_parameter(
         define_int_parameter("element_class", 0)
             .label("Group Type")

@@ -57,13 +57,8 @@ public:
                            .description("Name for the resulting combined group")
                            .build());
 
-    // Element class
-    register_parameter(define_int_parameter("element_class", 0)
-                           .label("Group Type")
-                           .options({"Points", "Primitives"})
-                           .category("Groups")
-                           .description("Type of elements in the groups")
-                           .build());
+    // Universal group type parameter (from SOPNode base class)
+    add_group_type_parameter("element_class", "Group Type", "Groups");
   }
 
   ~GroupCombineSOP() override = default;

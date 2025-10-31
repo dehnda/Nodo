@@ -16,13 +16,8 @@ GroupSOP::GroupSOP(const std::string &name) : SOPNode(name, "Group") {
                          .description("Name of the group to create or modify")
                          .build());
 
-  // Element class (Point or Primitive)
-  register_parameter(define_int_parameter("element_class", 0)
-                         .label("Group Type")
-                         .options({"Points", "Primitives"})
-                         .category("Group")
-                         .description("Type of geometry elements to group")
-                         .build());
+  // Universal group type parameter (from SOPNode base class)
+  add_group_type_parameter();
 
   // Operation mode
   register_parameter(
