@@ -105,9 +105,15 @@ QColor NodeGraphicsItem::getNodeColor() const {
   // Utilities - Green
   case NodeType::Switch:
   case NodeType::Group:
-  case NodeType::Delete:
+  case NodeType::Blast:
   case NodeType::UVUnwrap:
     return QColor(80, 160, 100); // Green
+
+  // Deformation - Magenta
+  case NodeType::Bend:
+  case NodeType::Twist:
+  case NodeType::Lattice:
+    return QColor(180, 80, 140); // Magenta
 
   default:
     return QColor(60, 60, 70); // Default gray
@@ -1612,8 +1618,16 @@ NodeGraphWidget::string_to_node_type(const QString &type_id) const {
     return NodeType::Merge;
   if (type_id == "group_sop")
     return NodeType::Group;
-  if (type_id == "delete_sop")
-    return NodeType::Delete;
+  if (type_id == "blast_sop")
+    return NodeType::Blast;
+  if (type_id == "sort_sop")
+    return NodeType::Sort;
+  if (type_id == "bend_sop")
+    return NodeType::Bend;
+  if (type_id == "twist_sop")
+    return NodeType::Twist;
+  if (type_id == "lattice_sop")
+    return NodeType::Lattice;
   if (type_id == "uv_unwrap_sop")
     return NodeType::UVUnwrap;
 

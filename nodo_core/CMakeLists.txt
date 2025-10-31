@@ -68,7 +68,6 @@ set(NODO_CORE_SOURCES
     src/sop/sop_factory.cpp
     src/sop/subdivision_sop.cpp
     src/sop/transform_sop.cpp
-    src/sop/delete_sop.cpp
     src/sop/uv_unwrap_sop.cpp
     src/sop/wrangle_sop.cpp
 

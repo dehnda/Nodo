@@ -695,12 +695,14 @@ void MainWindow::onNodeSelectionChanged() {
         bool is_sop =
             (node_type == NodeType::Sphere || node_type == NodeType::Box ||
              node_type == NodeType::Cylinder || node_type == NodeType::Merge ||
-             node_type == NodeType::Group || node_type == NodeType::Delete ||
+             node_type == NodeType::Group || node_type == NodeType::Blast ||
              node_type == NodeType::Transform ||
              node_type == NodeType::Boolean || node_type == NodeType::Array ||
              node_type == NodeType::Normal || node_type == NodeType::UVUnwrap ||
              node_type == NodeType::Scatter ||
-             node_type == NodeType::CopyToPoints);
+             node_type == NodeType::CopyToPoints ||
+             node_type == NodeType::Bend || node_type == NodeType::Twist ||
+             node_type == NodeType::Lattice);
 
         if (is_sop) {
           // Get geometry from execution engine for spreadsheet

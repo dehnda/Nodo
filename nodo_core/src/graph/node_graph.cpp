@@ -715,6 +715,40 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
   case NodeType::Wrangle:
     return "Wrangle";
 
+  // Attributes
+  case NodeType::AttributeCreate:
+    return "AttributeCreate";
+  case NodeType::AttributeDelete:
+    return "AttributeDelete";
+  case NodeType::Color:
+    return "Color";
+
+  // Group Operations
+  case NodeType::GroupDelete:
+    return "GroupDelete";
+  case NodeType::GroupPromote:
+    return "GroupPromote";
+  case NodeType::GroupCombine:
+    return "GroupCombine";
+  case NodeType::GroupExpand:
+    return "GroupExpand";
+  case NodeType::GroupTransfer:
+    return "GroupTransfer";
+
+  // Utility Operations
+  case NodeType::Blast:
+    return "Blast";
+  case NodeType::Sort:
+    return "Sort";
+
+  // Deformation
+  case NodeType::Bend:
+    return "Bend";
+  case NodeType::Twist:
+    return "Twist";
+  case NodeType::Lattice:
+    return "Lattice";
+
   // Boolean Operations
   case NodeType::Boolean:
     return "Boolean";
@@ -730,10 +764,16 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Merge";
   case NodeType::Group:
     return "Group";
-  case NodeType::Delete:
-    return "Delete";
   case NodeType::Switch:
     return "Switch";
+  case NodeType::Null:
+    return "Null";
+  case NodeType::Cache:
+    return "Cache";
+  case NodeType::Time:
+    return "Time";
+  case NodeType::Output:
+    return "Output";
   case NodeType::UVUnwrap:
     return "UVUnwrap";
   }

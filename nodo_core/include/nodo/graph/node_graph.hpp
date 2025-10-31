@@ -43,6 +43,27 @@ enum class NodeType {
   NoiseDisplacement,
   Normal,
 
+  // Attributes
+  AttributeCreate,
+  AttributeDelete,
+  Color,
+
+  // Group Operations
+  GroupDelete,
+  GroupPromote,
+  GroupCombine,
+  GroupExpand,
+  GroupTransfer,
+
+  // Utility Operations
+  Blast,
+  Sort,
+
+  // Deformation
+  Bend,
+  Twist,
+  Lattice,
+
   // Boolean Operations
   Boolean,
 
@@ -53,9 +74,11 @@ enum class NodeType {
   // Utilities
   Merge,
   Group,
-  Delete,
   Switch,
   Null,
+  Cache,
+  Time,
+  Output,
   UVUnwrap,
   Wrangle
 };
