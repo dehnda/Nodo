@@ -40,18 +40,23 @@
 
 **Deliverable:** All nodes have complete ParameterDefinition with metadata ✅ COMPLETE
 
-#### **M1.2: UI Component Library** (Weeks 4-6)
-- [ ] Create reusable Qt widgets matching HTML concepts:
-  - `FloatWidget` with value scrubbing (Shift=0.01x, Ctrl=10x, Alt=snap)
-  - `IntWidget` with value scrubbing
-  - `Vector3Widget` (XYZ with scrubbing)
-  - `ModeSelector` (segmented button control)
-  - `CheckboxWidget`, `DropdownWidget`, `TextWidget`
-  - `SliderWidget`, `ColorWidget`, `FilePathWidget`
-- [ ] Apply VS Code dark theme styling (#1e1e1e, #252526, #007acc)
-- [ ] Universal section styling (gray header, border separator)
+#### **M1.2: UI Component Library** (Weeks 4-6) ✅ COMPLETE
+- [x] Create reusable Qt widgets matching HTML concepts: ✅
+  - [x] `BaseParameterWidget` (base class with VS Code theme) ✅
+  - [x] `FloatWidget` with value scrubbing (Shift=0.01x, Ctrl=10x, Alt=snap) ✅
+  - [x] `IntWidget` with value scrubbing (Shift=fine, Ctrl=coarse, Alt=snap to 5) ✅
+  - [x] `Vector3Widget` (XYZ with per-component scrubbing + uniform mode) ✅
+  - [x] `ModeSelectorWidget` (segmented button control) ✅
+  - [x] `CheckboxWidget`, `DropdownWidget`, `TextWidget` ✅
+  - [x] `SliderWidget`, `ColorWidget`, `FilePathWidget` ✅
+- [x] Apply VS Code dark theme styling (#1e1e1e, #252526, #007acc) ✅
+- [x] CMakeLists.txt integration (all widget files added) ✅
+- [x] Build verification (all widgets compile successfully) ✅
+- [x] Documentation (M1.2_WIDGET_LIBRARY_GUIDE.md created) ✅
+- [ ] Universal section styling (gray header, border separator) - DEFERRED to M1.3
+- [ ] PropertyPanel integration testing
 
-**Deliverable:** Reusable widget library with consistent styling
+**Deliverable:** Reusable widget library with consistent styling ✅ COMPLETE
 
 #### **M1.3: Auto-Generation System** (Weeks 7-9)
 - [ ] Implement `PropertyPanel::buildFromNode()` auto-generation

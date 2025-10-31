@@ -32,6 +32,18 @@ set(STUDIO_SOURCES
     src/GeometrySpreadsheet.cpp
     src/GeometryTableModel.cpp
     src/IconManager.cpp
+    # Parameter widgets
+    src/widgets/BaseParameterWidget.cpp
+    src/widgets/FloatWidget.cpp
+    src/widgets/IntWidget.cpp
+    src/widgets/Vector3Widget.cpp
+    src/widgets/ModeSelectorWidget.cpp
+    src/widgets/CheckboxWidget.cpp
+    src/widgets/DropdownWidget.cpp
+    src/widgets/TextWidget.cpp
+    src/widgets/SliderWidget.cpp
+    src/widgets/ColorWidget.cpp
+    src/widgets/FilePathWidget.cpp
 )
 
 set(STUDIO_HEADERS
@@ -47,6 +59,18 @@ set(STUDIO_HEADERS
     src/GeometrySpreadsheet.h
     src/GeometryTableModel.h
     src/IconManager.h
+    # Parameter widgets
+    src/widgets/BaseParameterWidget.h
+    src/widgets/FloatWidget.h
+    src/widgets/IntWidget.h
+    src/widgets/Vector3Widget.h
+    src/widgets/ModeSelectorWidget.h
+    src/widgets/CheckboxWidget.h
+    src/widgets/DropdownWidget.h
+    src/widgets/TextWidget.h
+    src/widgets/SliderWidget.h
+    src/widgets/ColorWidget.h
+    src/widgets/FilePathWidget.h
 )
 
 # Resource files

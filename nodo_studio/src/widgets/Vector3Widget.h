@@ -1,0 +1,102 @@
+#pragma once
+
+#include "BaseParameterWidget.h"
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <array>
+#include <functional>
+
+namespace nodo_studio {
+namespace widgets {
+
+/**
+ * @brief Widget for editing 3D vector parameters (X, Y, Z)
+ *
+ * Provides three separate spinboxes for X, Y, Z components with:
+ * - Individual value scrubbing on each component label
+ * - Uniform editing support (lock icon to sync all components)
+ * - Per-component range support
+ * - Modifier keys for scrubbing (Shift=fine, Ctrl=coarse, Alt=snap)
+ */
+class Vector3Widget : public BaseParameterWidget {
+  Q_OBJECT
+
+public:
+  /**
+   * @brief Construct a Vector3Widget
+   * @param label Display label for the parameter
+   * @param x Initial X value
+   * @param y Initial Y value
+   * @param z Initial Z value
+   * @param min Minimum value for all components
+   * @param max Maximum value for all components
+   * @param description Tooltip description
+   * @param parent Parent widget
+   */
+  Vector3Widget(const QString &label, double x, double y, double z,
+                double min = -1000.0, double max = 1000.0,
+                const QString &description = QString(),
+                QWidget *parent = nullptr);
+
+  // Value access
+  double getX() const { return values_[0]; }
+  double getY() const { return values_[1]; }
+  double getZ() const { return values_[2]; }
+  std::array<double, 3> getValue() const { return values_; }
+
+  void setX(double x);
+  void setY(double y);
+  void setZ(double z);
+  void setValue(double x, double y, double z);
+  void setValue(const std::array<double, 3> &value);
+
+  // Range control
+  void setRange(double min, double max);
+  void setComponentRange(int component, double min, double max);
+
+  // Uniform editing (lock all components to same value)
+  void setUniformEnabled(bool enabled);
+  bool isUniformEnabled() const { return uniform_enabled_; }
+
+  // Callback support
+  void
+  setValueChangedCallback(std::function<void(double, double, double)> callback);
+
+signals:
+  void valueChangedSignal(double x, double y, double z);
+
+protected:
+  QWidget *createControlWidget() override;
+  bool eventFilter(QObject *obj, QEvent *event) override;
+
+private slots:
+  void onSpinBoxValueChanged(int component, double value);
+
+private:
+  void updateComponent(int component, double value, bool emit_signal = true);
+  void startScrubbing(int component, const QPoint &pos);
+  void updateScrubbing(int component, const QPoint &pos,
+                       Qt::KeyboardModifiers modifiers);
+  void endScrubbing(int component);
+
+  std::array<double, 3> values_{0.0, 0.0, 0.0};
+  std::array<double, 3> min_values_{-1000.0, -1000.0, -1000.0};
+  std::array<double, 3> max_values_{1000.0, 1000.0, 1000.0};
+
+  std::array<QDoubleSpinBox *, 3> spinboxes_{nullptr, nullptr, nullptr};
+  std::array<QLabel *, 3> component_labels_{nullptr, nullptr, nullptr};
+  QPushButton *uniform_button_{nullptr};
+  bool uniform_enabled_{false};
+
+  // Scrubbing state per component
+  std::array<bool, 3> is_scrubbing_{false, false, false};
+  std::array<QPoint, 3> scrub_start_pos_;
+  std::array<double, 3> scrub_start_value_{0.0, 0.0, 0.0};
+
+  std::function<void(double, double, double)> value_changed_callback_;
+};
+
+} // namespace widgets
+} // namespace nodo_studio
