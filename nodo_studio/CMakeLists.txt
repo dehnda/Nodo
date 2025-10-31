@@ -32,6 +32,7 @@ set(STUDIO_SOURCES
     src/GeometrySpreadsheet.cpp
     src/GeometryTableModel.cpp
     src/IconManager.cpp
+    src/ParameterWidgetFactory.cpp
     # Parameter widgets
     src/widgets/BaseParameterWidget.cpp
     src/widgets/FloatWidget.cpp
@@ -59,6 +60,7 @@ set(STUDIO_HEADERS
     src/GeometrySpreadsheet.h
     src/GeometryTableModel.h
     src/IconManager.h
+    src/ParameterWidgetFactory.h
     # Parameter widgets
     src/widgets/BaseParameterWidget.h
     src/widgets/FloatWidget.h
