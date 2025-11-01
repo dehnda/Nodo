@@ -53,7 +53,9 @@
 - [x] CMakeLists.txt integration (all widget files added) ✅
 - [x] Build verification (all widgets compile successfully) ✅
 - [x] Documentation (M1.2_WIDGET_LIBRARY_GUIDE.md created) ✅
-- [ ] Universal section styling (gray header, border separator) - DEFERRED to M1.3
+- ~~[ ] Universal section styling (gray header, border separator) - DEFERRED to M1.3~~
+- [ ] Update implemention for left click node selector with concept from `docs/contex_menu_concept.html`
+- [ ] Implement node library panel with one of the concepts from `node_library_concept.html`
 - [x] PropertyPanel integration testing
 
 **Deliverable:** Reusable widget library with consistent styling ✅ COMPLETE

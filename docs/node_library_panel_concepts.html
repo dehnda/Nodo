@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Library Panel Concepts - Nodo Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 40px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #4a9eff;
+            margin-bottom: 12px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #a0a0a8;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .concept-section {
+            margin-bottom: 60px;
+            background: #252526;
+            border-radius: 8px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .concept-header {
+            margin-bottom: 24px;
+        }
+
+        .concept-title {
+            font-size: 20px;
+            color: #4a9eff;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .concept-description {
+            color: #a0a0a8;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .demo-container {
+            background: #2a2a30;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 20px;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .feature {
+            font-size: 12px;
+            color: #c0c0c8;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .feature::before {
+            content: "✓";
+            color: #89d185;
+            font-weight: bold;
+        }
+
+        /* Common Panel Styles */
+        .library-panel {
+            background: #252526;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            width: 280px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: #2a2a2e;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            color: #e0e0e0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            margin: 12px;
+            background: #1e1e1e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 12px;
+        }
+
+        .search-box::placeholder {
+            color: #808080;
+        }
+
+        /* CONCEPT 1: Accordion Categories */
+        .accordion-panel {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .category-accordion {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .category-header {
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.15s;
+        }
+
+        .category-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .category-name {
+            color: #a0a0a8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .category-arrow {
+            color: #808080;
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .category-arrow.expanded {
+            transform: rotate(90deg);
+        }
+
+        .node-list {
+            background: #1e1e1e;
+        }
+
+        .node-item {
+            padding: 8px 24px 8px 32px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #c0c0c8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+
+        .node-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0e0;
+        }
+
+        .node-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            background: #007acc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* CONCEPT 2: Tab-Based Categories */
+        .tab-panel-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            padding: 8px 12px;
+            background: #2a2a2e;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #a0a0a8;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #c0c0c8;
+        }
+
+        .tab.active {
+            background: #007acc;
+            color: white;
+            border-color: #007acc;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        /* CONCEPT 3: Grid View with Icons */
+        .grid-panel {
+            padding: 12px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .grid-category {
+            margin-bottom: 20px;
+        }
+
+        .grid-category-title {
+            color: #a0a0a8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .grid-node {
+            padding: 12px 8px;
+            background: #1e1e1e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .grid-node:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #007acc;
+            transform: translateY(-1px);
+        }
+
+        .grid-node-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #007acc, #005a9e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .grid-node-name {
+            font-size: 11px;
+            color: #c0c0c8;
+            line-height: 1.2;
+        }
+
+        /* CONCEPT 4: Favorites + Recent */
+        .favorites-section {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            color: #a0a0a8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .node-chip {
+            padding: 4px 10px;
+            background: #1e1e1e;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            font-size: 11px;
+            color: #c0c0c8;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .node-chip:hover {
+            background: #007acc;
+            border-color: #007acc;
+            color: white;
+        }
+
+        .star-icon {
+            color: #ffd700;
+            font-size: 10px;
+        }
+
+        /* CONCEPT 5: Tree View */
+        .tree-container {
+            padding: 8px 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .tree-node {
+            padding: 6px 16px 6px 24px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #c0c0c8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+
+        .tree-node:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tree-node.category {
+            padding-left: 12px;
+            color: #a0a0a8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .tree-node.child {
+            padding-left: 36px;
+        }
+
+        .tree-toggle {
+            color: #808080;
+            font-size: 10px;
+            width: 12px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Node Library Panel Concepts (Beginner-Focused)</h1>
+    <p class="subtitle">Optional discovery tool for newcomers learning the node system - power users use TAB menu</p>
+
+    <!-- CONCEPT 1: Illustrated Node Cards -->
+    <div class="concept-section">
+        <div class="concept-header">
+            <h2 class="concept-title">Concept 1: Illustrated Node Cards with Descriptions</h2>
+            <p class="concept-description">
+                Visual cards showing node previews and short descriptions. Helps beginners understand
+                what each node does before using it. Think "asset store" style browsing.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <div class="library-panel" style="width: 320px; height: 550px;">
+                <div class="panel-header">
+                    <span class="panel-title">Learn Nodes</span>
+                    <span style="color: #808080; font-size: 11px;">📚</span>
+                </div>
+                <input type="text" class="search-box" placeholder="What do you want to create?" />
+                <div style="overflow-y: auto; flex: 1; padding: 12px;">
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 11px; color: #a0a0a8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding: 0 4px;">Geometry Primitives</div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s;">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #007acc, #005a9e); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px; flex-shrink: 0;">S</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Sphere</div>
+                                    <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4;">Creates a 3D sphere with adjustable radius and subdivisions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s;">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #007acc, #005a9e); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px; flex-shrink: 0;">C</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Cube</div>
+                                    <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4;">Generates a box shape with controllable dimensions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.15s;">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #007acc, #005a9e); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px; flex-shrink: 0;">G</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Grid</div>
+                                    <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4;">Creates a flat grid for surfaces and terrains</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 11px; color: #a0a0a8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding: 0 4px;">Transform</div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; cursor: pointer;">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #c586c0, #9d5a9a); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px; flex-shrink: 0;">T</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Transform</div>
+                                    <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4;">Move, rotate, and scale geometry in 3D space</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">Visual learning for beginners</div>
+            <div class="feature">Descriptions explain what each node does</div>
+            <div class="feature">Larger hit targets for discovery</div>
+            <div class="feature">Color-coded by category</div>
+            <div class="feature">Scroll to browse all nodes</div>
+            <div class="feature">Click to add, drag to position</div>
+        </div>
+    </div>
+
+    <!-- CONCEPT 2: Contextual Help Panel -->
+    <div class="concept-section">
+        <div class="concept-header">
+            <h2 class="concept-title">Concept 2: Contextual Tutorial Panel</h2>
+            <p class="concept-description">
+                Guides beginners through common workflows with step-by-step node suggestions.
+                "I want to..." approach that shows relevant nodes for specific tasks.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <div class="library-panel" style="width: 300px;">
+                <div class="panel-header">
+                    <span class="panel-title">Getting Started</span>
+                    <span style="color: #808080; font-size: 11px;">💡</span>
+                </div>
+                <input type="text" class="search-box" placeholder="What do you want to do?" />
+                <div style="overflow-y: auto; flex: 1; padding: 12px;">
+                    <div style="background: rgba(74, 158, 255, 0.15); border-left: 3px solid #4a9eff; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+                        <div style="color: #4a9eff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600;">Getting Started</div>
+                        <div style="color: #c0c0c8; font-size: 12px; line-height: 1.5;">Click a workflow below to see which nodes you need</div>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px;">
+                            <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Create Basic Shapes</div>
+                            <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 8px;">Start with primitives like spheres, cubes, and cylinders</div>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <div style="padding: 3px 8px; background: rgba(0, 122, 204, 0.2); border: 1px solid #007acc; border-radius: 3px; font-size: 10px; color: #4a9eff;">Sphere</div>
+                                <div style="padding: 3px 8px; background: rgba(0, 122, 204, 0.2); border: 1px solid #007acc; border-radius: 3px; font-size: 10px; color: #4a9eff;">Cube</div>
+                                <div style="padding: 3px 8px; background: rgba(0, 122, 204, 0.2); border: 1px solid #007acc; border-radius: 3px; font-size: 10px; color: #4a9eff;">Grid</div>
+                            </div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px;">
+                            <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Move & Position Objects</div>
+                            <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 8px;">Transform geometry in 3D space</div>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <div style="padding: 3px 8px; background: rgba(197, 134, 192, 0.2); border: 1px solid #c586c0; border-radius: 3px; font-size: 10px; color: #d4a5d0;">Transform</div>
+                            </div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px;">
+                            <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Combine Shapes Together</div>
+                            <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 8px;">Merge, subtract, or intersect geometry</div>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <div style="padding: 3px 8px; background: rgba(78, 201, 176, 0.2); border: 1px solid #4ec9b0; border-radius: 3px; font-size: 10px; color: #6dd9c0;">Boolean Union</div>
+                                <div style="padding: 3px 8px; background: rgba(78, 201, 176, 0.2); border: 1px solid #4ec9b0; border-radius: 3px; font-size: 10px; color: #6dd9c0;">Boolean Subtract</div>
+                            </div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.15s;">
+                            <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Create Patterns & Arrays</div>
+                            <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 8px;">Duplicate geometry in organized patterns</div>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <div style="padding: 3px 8px; background: rgba(206, 145, 120, 0.2); border: 1px solid #ce9178; border-radius: 3px; font-size: 10px; color: #daa588;">Copy to Points</div>
+                                <div style="padding: 3px 8px; background: rgba(206, 145, 120, 0.2); border: 1px solid #ce9178; border-radius: 3px; font-size: 10px; color: #daa588;">Array</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">Task-oriented learning approach</div>
+            <div class="feature">"I want to..." workflow suggestions</div>
+            <div class="feature">Shows which nodes work together</div>
+            <div class="feature">Reduces cognitive load for beginners</div>
+            <div class="feature">Click workflow to see relevant nodes</div>
+            <div class="feature">Color-coded node badges by category</div>
+        </div>
+    </div>
+
+    <!-- CONCEPT 3: Category Browser with Examples -->
+    <div class="concept-section">
+        <div class="concept-header">
+            <h2 class="concept-title">Concept 3: Category Browser with Visual Examples</h2>
+            <p class="concept-description">
+                Shows mini thumbnails/icons of what each node produces. Helps beginners
+                understand nodes visually rather than by name alone.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <div class="library-panel" style="width: 300px;">
+                <div class="panel-header">
+                    <span class="panel-title">Browse Nodes</span>
+                    <span style="color: #808080; font-size: 11px;">🎨</span>
+                </div>
+                <div class="tab-bar">
+                    <div class="tab active">All</div>
+                    <div class="tab">Geometry</div>
+                    <div class="tab">Transform</div>
+                    <div class="tab">Modify</div>
+                </div>
+                <input type="text" class="search-box" placeholder="Filter..." />
+                <div style="overflow-y: auto; flex: 1; padding: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center;">
+                            <div style="width: 100%; aspect-ratio: 1; background: radial-gradient(circle, #007acc, #004d7a); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;">●</div>
+                            <div style="color: #e0e0e0; font-size: 12px; font-weight: 500; margin-bottom: 2px;">Sphere</div>
+                            <div style="color: #808080; font-size: 9px;">Geometry</div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center;">
+                            <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #007acc 0%, #005a9e 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;">■</div>
+                            <div style="color: #e0e0e0; font-size: 12px; font-weight: 500; margin-bottom: 2px;">Cube</div>
+                            <div style="color: #808080; font-size: 9px;">Geometry</div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center;">
+                            <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(to bottom, #007acc 0%, #004d7a 100%); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px;">▦</div>
+                            <div style="color: #e0e0e0; font-size: 12px; font-weight: 500; margin-bottom: 2px;">Grid</div>
+                            <div style="color: #808080; font-size: 9px;">Geometry</div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center;">
+                            <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #c586c0, #9d5a9a); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">↻</div>
+                            <div style="color: #e0e0e0; font-size: 12px; font-weight: 500; margin-bottom: 2px;">Transform</div>
+                            <div style="color: #808080; font-size: 9px;">Transform</div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center;">
+                            <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #4ec9b0, #3a9a84); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">∪</div>
+                            <div style="color: #e0e0e0; font-size: 12px; font-weight: 500; margin-bottom: 2px;">Union</div>
+                            <div style="color: #808080; font-size: 9px;">Boolean</div>
+                        </div>
+
+                        <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center;">
+                            <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #ce9178, #a8735e); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">::::</div>
+                            <div style="color: #e0e0e0; font-size: 12px; font-weight: 500; margin-bottom: 2px;">Array</div>
+                            <div style="color: #808080; font-size: 9px;">Transform</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">Visual thumbnails show output</div>
+            <div class="feature">Grid layout for quick scanning</div>
+            <div class="feature">Category tabs for filtering</div>
+            <div class="feature">Icon shapes hint at functionality</div>
+            <div class="feature">Category label under each node</div>
+            <div class="feature">Good for visual learners</div>
+        </div>
+    </div>
+
+    <!-- CONCEPT 4: Simple Grouped List -->
+    <div class="concept-section">
+        <div class="concept-header">
+            <h2 class="concept-title">Concept 4: Simple Grouped List (Minimal)</h2>
+            <p class="concept-description">
+                Just a clean, scrollable list grouped by category. No frills, no learning curve.
+                For beginners who want simple browsing without complexity.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <div class="library-panel" style="width: 260px;">
+                <div class="panel-header">
+                    <span class="panel-title">Nodes</span>
+                </div>
+                <input type="text" class="search-box" placeholder="Search..." />
+                <div style="overflow-y: auto; flex: 1;">
+                    <div style="padding: 12px 0 6px 16px; color: #a0a0a8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; background: rgba(0,0,0,0.2);">Geometry</div>
+                    <div class="node-item">
+                        <div class="node-icon">S</div>
+                        <span>Sphere</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon">C</div>
+                        <span>Cube</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon">G</div>
+                        <span>Grid</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon">L</div>
+                        <span>Line</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon">T</div>
+                        <span>Torus</span>
+                    </div>
+
+                    <div style="padding: 12px 0 6px 16px; color: #a0a0a8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; background: rgba(0,0,0,0.2);">Transform</div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #c586c0;">T</div>
+                        <span>Transform</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #c586c0;">C</div>
+                        <span>Copy to Points</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #c586c0;">A</div>
+                        <span>Array</span>
+                    </div>
+
+                    <div style="padding: 12px 0 6px 16px; color: #a0a0a8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; background: rgba(0,0,0,0.2);">Modify</div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #ce9178;">S</div>
+                        <span>Subdivide</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #ce9178;">E</div>
+                        <span>Extrude</span>
+                    </div>
+
+                    <div style="padding: 12px 0 6px 16px; color: #a0a0a8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; background: rgba(0,0,0,0.2);">Boolean</div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #4ec9b0;">U</div>
+                        <span>Boolean Union</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #4ec9b0;">S</div>
+                        <span>Boolean Subtract</span>
+                    </div>
+                    <div class="node-item">
+                        <div class="node-icon" style="background: #4ec9b0;">I</div>
+                        <span>Boolean Intersect</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">Ultra-simple browsing</div>
+            <div class="feature">No collapsing or expanding</div>
+            <div class="feature">Color-coded icons by category</div>
+            <div class="feature">Fast scrolling to find nodes</div>
+            <div class="feature">Easiest to implement (QListWidget)</div>
+            <div class="feature">Zero learning curve</div>
+        </div>
+    </div>
+
+    <!-- CONCEPT 5: Interactive Examples -->
+    <div class="concept-section">
+        <div class="concept-header">
+            <h2 class="concept-title">Concept 5: Pre-built Example Scenes</h2>
+            <p class="concept-description">
+                Shows pre-made node graphs that beginners can load instantly. Learn by example
+                and see how nodes connect together to create results.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <div class="library-panel" style="width: 320px; height: 550px;">
+                <div class="panel-header">
+                    <span class="panel-title">Example Scenes</span>
+                    <span style="color: #808080; font-size: 11px;">📋</span>
+                </div>
+                <input type="text" class="search-box" placeholder="Find example..." />
+                <div style="overflow-y: auto; flex: 1; padding: 12px;">
+                    <div style="background: rgba(74, 158, 255, 0.15); border-left: 3px solid #4a9eff; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+                        <div style="color: #4a9eff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600;">Learn by Example</div>
+                        <div style="color: #c0c0c8; font-size: 12px; line-height: 1.5;">Click any example to load it and see how nodes work together</div>
+                    </div>
+
+                    <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #007acc, #005a9e); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">●</div>
+                            <div style="flex: 1;">
+                                <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Simple Sphere</div>
+                                <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 6px;">Create your first 3D object</div>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <div style="padding: 2px 6px; background: rgba(0, 122, 204, 0.3); border-radius: 3px; font-size: 9px; color: #6db3e8;">1 node</div>
+                                    <div style="padding: 2px 6px; background: rgba(137, 209, 133, 0.3); border-radius: 3px; font-size: 9px; color: #89d185;">Beginner</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #c586c0, #9d5a9a); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">●→</div>
+                            <div style="flex: 1;">
+                                <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Sphere + Transform</div>
+                                <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 6px;">Move and rotate a sphere in 3D space</div>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <div style="padding: 2px 6px; background: rgba(0, 122, 204, 0.3); border-radius: 3px; font-size: 9px; color: #6db3e8;">2 nodes</div>
+                                    <div style="padding: 2px 6px; background: rgba(137, 209, 133, 0.3); border-radius: 3px; font-size: 9px; color: #89d185;">Beginner</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4ec9b0, #3a9a84); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px;">⊕</div>
+                            <div style="flex: 1;">
+                                <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Boolean Union</div>
+                                <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 6px;">Combine two spheres into one shape</div>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <div style="padding: 2px 6px; background: rgba(0, 122, 204, 0.3); border-radius: 3px; font-size: 9px; color: #6db3e8;">4 nodes</div>
+                                    <div style="padding: 2px 6px; background: rgba(255, 199, 119, 0.3); border-radius: 3px; font-size: 9px; color: #ffc777;">Intermediate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ce9178, #a8735e); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;">●●●</div>
+                            <div style="flex: 1;">
+                                <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Copy to Points</div>
+                                <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 6px;">Scatter cubes on a grid surface</div>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <div style="padding: 2px 6px; background: rgba(0, 122, 204, 0.3); border-radius: 3px; font-size: 9px; color: #6db3e8;">3 nodes</div>
+                                    <div style="padding: 2px 6px; background: rgba(255, 199, 119, 0.3); border-radius: 3px; font-size: 9px; color: #ffc777;">Intermediate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1e1e1e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; cursor: pointer; transition: all 0.15s;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #d16969, #a84444); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;">⊖</div>
+                            <div style="flex: 1;">
+                                <div style="color: #e0e0e0; font-size: 13px; font-weight: 500; margin-bottom: 4px;">Boolean Subtract</div>
+                                <div style="color: #a0a0a8; font-size: 11px; line-height: 1.4; margin-bottom: 6px;">Cut holes by subtracting shapes</div>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <div style="padding: 2px 6px; background: rgba(0, 122, 204, 0.3); border-radius: 3px; font-size: 9px; color: #6db3e8;">5 nodes</div>
+                                    <div style="padding: 2px 6px; background: rgba(255, 199, 119, 0.3); border-radius: 3px; font-size: 9px; color: #ffc777;">Intermediate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">Learn by loading working examples</div>
+            <div class="feature">See nodes already connected</div>
+            <div class="feature">Difficulty badges (Beginner/Intermediate)</div>
+            <div class="feature">Node count shown for each example</div>
+            <div class="feature">Load from templates/ directory</div>
+            <div class="feature">Best for absolute beginners</div>
+        </div>
+    </div>
+
+    <!-- Recommendation Section -->
+    <div class="concept-section" style="border: 2px solid #007acc;">
+        <div class="concept-header">
+            <h2 class="concept-title">💡 Recommendation</h2>
+            <p class="concept-description">
+                Choosing the right approach based on beginner needs.
+            </p>
+        </div>
+
+        <div style="padding: 0 16px;">
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px; margin-bottom: 16px;">
+                <h4 style="color: #4a9eff; margin-bottom: 12px; font-size: 15px;">Best for Absolute Beginners: Concept 2 (Tutorial Panel)</h4>
+                <p style="color: #c0c0c8; font-size: 13px; line-height: 1.8; margin-bottom: 12px;">
+                    <strong>Task-oriented learning:</strong> "I want to..." approach teaches beginners what nodes they need
+                    for specific goals. Reduces overwhelm by showing relevant nodes grouped by common tasks.
+                </p>
+                <ul style="color: #a0a0a8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>✓ Task-based workflows (create shapes, combine objects, etc.)</li>
+                    <li>✓ Shows which nodes work together</li>
+                    <li>✓ Reduces "where do I start?" paralysis</li>
+                    <li>✓ Guides learning without being intrusive</li>
+                    <li>✓ Click workflow → see relevant nodes</li>
+                </ul>
+                <p style="color: #89d185; font-size: 12px; margin-top: 12px;">
+                    ⏱️ Implementation: 6-8 hours • Medium effort • High beginner value
+                </p>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px; margin-bottom: 16px;">
+                <h4 style="color: #4a9eff; margin-bottom: 12px; font-size: 15px;">Simplest Option: Concept 4 (Simple Grouped List)</h4>
+                <p style="color: #c0c0c8; font-size: 13px; line-height: 1.8; margin-bottom: 12px;">
+                    <strong>Zero-complexity browsing:</strong> Just a clean scrollable list. No tutorials, no complexity.
+                    Perfect for users who want simple discovery without hand-holding.
+                </p>
+                <ul style="color: #a0a0a8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>✓ Ultra-simple implementation</li>
+                    <li>✓ No learning curve</li>
+                    <li>✓ Clean category organization</li>
+                    <li>✓ Color-coded by category</li>
+                    <li>✓ Fastest to build (QListWidget)</li>
+                </ul>
+                <p style="color: #89d185; font-size: 12px; margin-top: 12px;">
+                    ⏱️ Implementation: 3-4 hours • Very low risk • Quick win
+                </p>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px; margin-bottom: 16px;">
+                <h4 style="color: #4a9eff; margin-bottom: 12px; font-size: 15px;">Most Educational: Concept 5 (Example Scenes)</h4>
+                <p style="color: #c0c0c8; font-size: 13px; line-height: 1.8; margin-bottom: 12px;">
+                    <strong>Learn by example:</strong> Pre-built node graphs that load instantly. Best for absolute beginners
+                    who need to see working examples before building their own.
+                </p>
+                <ul style="color: #a0a0a8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>✓ Load working examples immediately</li>
+                    <li>✓ See how nodes connect together</li>
+                    <li>✓ Learn by modification/experimentation</li>
+                    <li>✓ Difficulty ratings (Beginner/Intermediate)</li>
+                    <li>✓ Uses existing templates/ directory</li>
+                </ul>
+                <p style="color: #89d185; font-size: 12px; margin-top: 12px;">
+                    ⏱️ Implementation: 4-5 hours • Low risk • Best for first-time users
+                </p>
+            </div>
+
+            <div style="margin-top: 24px; padding: 16px; background: rgba(74, 158, 255, 0.15); border-radius: 6px;">
+                <p style="font-size: 13px; color: #e0e0e0; line-height: 1.6;">
+                    <strong style="color: #4a9eff;">Recommended Approach:</strong> Start with <strong>Concept 4</strong> (simple list)
+                    as a quick MVP, then optionally add <strong>Concept 5</strong> (examples) as a separate "Examples" panel for first-time users.
+                    Power users can close/hide the panel and use TAB menu exclusively.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Implementation Notes -->
+    <div class="concept-section">
+        <div class="concept-header">
+            <h2 class="concept-title">🔧 Implementation Notes</h2>
+            <p class="concept-description">
+                Technical considerations for Qt6 implementation.
+            </p>
+        </div>
+
+        <div style="padding: 0 16px;">
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px; margin-bottom: 12px;">
+                <h4 style="color: #4a9eff; margin-bottom: 8px; font-size: 14px;">QDockWidget Integration</h4>
+                <ul style="color: #c0c0c8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>• Add NodeLibraryPanel as QDockWidget to main window</li>
+                    <li>• Default position: Qt::LeftDockWidgetArea</li>
+                    <li>• Allow floating and docking to all areas</li>
+                    <li>• Save dock state with QSettings</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px; margin-bottom: 12px;">
+                <h4 style="color: #4a9eff; margin-bottom: 8px; font-size: 14px;">Drag and Drop</h4>
+                <ul style="color: #c0c0c8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>• Implement QDrag with custom MIME type ("application/x-nodo-node")</li>
+                    <li>• Store node type_id in drag data</li>
+                    <li>• Accept drops on NodeGraphView canvas</li>
+                    <li>• Create node at drop position (scene coordinates)</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px; margin-bottom: 12px;">
+                <h4 style="color: #4a9eff; margin-bottom: 8px; font-size: 14px;">Search Integration</h4>
+                <ul style="color: #c0c0c8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>• Reuse fuzzy matching from NodeCreationMenu</li>
+                    <li>• Filter across all categories</li>
+                    <li>• Show matched categories expanded</li>
+                    <li>• Highlight search terms in results</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 6px;">
+                <h4 style="color: #4a9eff; margin-bottom: 8px; font-size: 14px;">Persistence (QSettings)</h4>
+                <ul style="color: #c0c0c8; font-size: 12px; line-height: 1.8; list-style: none; padding-left: 0;">
+                    <li>• Save expanded/collapsed category states</li>
+                    <li>• Store favorite nodes list</li>
+                    <li>• Track recent nodes (share with NodeCreationMenu)</li>
+                    <li>• Remember panel size and position</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
