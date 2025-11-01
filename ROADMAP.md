@@ -54,16 +54,16 @@
 - [x] Build verification (all widgets compile successfully) ✅
 - [x] Documentation (M1.2_WIDGET_LIBRARY_GUIDE.md created) ✅
 - [ ] Universal section styling (gray header, border separator) - DEFERRED to M1.3
-- [ ] PropertyPanel integration testing
+- [x] PropertyPanel integration testing
 
 **Deliverable:** Reusable widget library with consistent styling ✅ COMPLETE
 
 #### **M1.3: Auto-Generation System** (Weeks 7-9)
-- [ ] Implement `PropertyPanel::buildFromNode()` auto-generation
-- [ ] Create `ParameterWidgetFactory` for type-based widget creation
-- [ ] Mode-based visibility system (`visible_when` conditions)
-- [ ] Universal section rendering (always at top, before regular params)
-- [ ] Connect widgets to backend parameters (bidirectional updates)
+- [x] Implement `PropertyPanel::buildFromNode()` auto-generation
+- [x] Create `ParameterWidgetFactory` for type-based widget creation
+- [x] Mode-based visibility system (`visible_when` conditions)
+- [x] Universal section rendering (always at top, before regular params)
+- [x] Connect widgets to backend parameters (bidirectional updates)
 
 **Deliverable:** Property panels auto-generate from parameter definitions
 
