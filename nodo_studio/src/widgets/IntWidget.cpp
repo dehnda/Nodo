@@ -48,14 +48,8 @@ QWidget *IntWidget::createControlWidget() {
   connect(spinbox_, QOverload<int>::of(&QSpinBox::valueChanged), this,
           &IntWidget::onSpinBoxValueChanged);
 
-  layout->addWidget(spinbox_, 1);
-
-  // Optional slider (hidden by default)
-  slider_container_ = new QWidget(container);
-  auto *slider_layout = new QHBoxLayout(slider_container_);
-  slider_layout->setContentsMargins(0, 0, 0, 0);
-
-  slider_ = new QSlider(Qt::Horizontal, slider_container_);
+  // Slider (matches HTML design - slider LEFT, spinbox RIGHT)
+  slider_ = new QSlider(Qt::Horizontal, container);
   slider_->setRange(min_, max_);
   slider_->setValue(current_value_);
   slider_->setStyleSheet(QString("QSlider::groove:horizontal { "
@@ -80,10 +74,9 @@ QWidget *IntWidget::createControlWidget() {
   connect(slider_, &QSlider::valueChanged, this,
           &IntWidget::onSliderValueChanged);
 
-  slider_layout->addWidget(slider_);
-  slider_container_->setVisible(false); // Hidden by default
-
-  layout->addWidget(slider_container_, 2);
+  // Add slider first (left), then spinbox (right) - matches HTML design
+  layout->addWidget(slider_, 2);
+  layout->addWidget(spinbox_, 1);
 
   // Enable value scrubbing on label
   label_widget_->installEventFilter(this);
@@ -91,6 +84,9 @@ QWidget *IntWidget::createControlWidget() {
   label_widget_->setStyleSheet(
       label_widget_->styleSheet() +
       " QLabel:hover { color: " + QString(COLOR_ACCENT) + "; }");
+
+  // Enable drag indicator
+  enableDragIndicator(true);
 
   return container;
 }
@@ -124,9 +120,7 @@ void IntWidget::setRange(int min, int max) {
   setValue(std::clamp(current_value_, min, max));
 }
 
-void IntWidget::setSliderVisible(bool visible) {
-  slider_container_->setVisible(visible);
-}
+void IntWidget::setSliderVisible(bool visible) { slider_->setVisible(visible); }
 
 void IntWidget::setValueChangedCallback(std::function<void(int)> callback) {
   value_changed_callback_ = callback;

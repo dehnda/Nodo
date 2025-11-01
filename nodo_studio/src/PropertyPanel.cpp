@@ -1012,40 +1012,30 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
 
   // Render universal parameters section (if any)
   if (!universal_params.empty()) {
-    // Create styled container for universal parameters
-    auto *universal_container = new QWidget(content_widget_);
-    universal_container->setStyleSheet("QWidget { background-color: #2a2a2e; "
-                                       "border-radius: 4px; padding: 4px; }");
-    auto *universal_layout = new QVBoxLayout(universal_container);
-    universal_layout->setContentsMargins(8, 8, 8, 8);
-    universal_layout->setSpacing(6);
-
-    // Add styled header
-    auto *header_label =
-        new QLabel("Universal Parameters", universal_container);
+    // Add "UNIVERSAL" section header label (no background box)
+    auto *header_label = new QLabel("UNIVERSAL", content_widget_);
     header_label->setStyleSheet("QLabel {"
-                                "   color: #c0c0c8;"
-                                "   font-weight: 600;"
+                                "   color: #808080;"
                                 "   font-size: 10px;"
-                                "   letter-spacing: 0.8px;"
-                                "   text-transform: uppercase;"
-                                "   padding: 4px 0px 8px 0px;"
+                                "   font-weight: 600;"
+                                "   letter-spacing: 0.5px;"
+                                "   padding: 12px 12px 8px 12px;"
                                 "   background-color: transparent;"
                                 "}");
-    universal_layout->addWidget(header_label);
+    content_layout_->insertWidget(content_layout_->count() - 1, header_label);
 
-    // Add universal parameter widgets
+    // Add universal parameter widgets directly (no container)
     for (const auto *param : universal_params) {
       auto *widget = nodo_studio::ParameterWidgetFactory::createWidget(
-          *param, universal_container);
+          *param, content_widget_);
       if (widget != nullptr) {
+        widget->setMinimumHeight(36); // Ensure minimum height
         connectParameterWidget(widget, *param, node, graph);
-        universal_layout->addWidget(widget);
+        content_layout_->insertWidget(content_layout_->count() - 1, widget);
       }
     }
 
-    content_layout_->insertWidget(content_layout_->count() - 1,
-                                  universal_container);
+    // Add separator line after universal section
     addSeparator();
   }
 

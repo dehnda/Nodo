@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QEvent>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -39,6 +41,13 @@ public:
   // Enable/disable the widget
   void setEnabled(bool enabled);
 
+  // Enable drag indicator for value scrubbing
+  void enableDragIndicator(bool enable = true);
+
+protected:
+  // Event filter for hover effects
+  bool eventFilter(QObject *obj, QEvent *event) override;
+
 signals:
   // Emitted when the parameter value changes
   void valueChanged();
@@ -68,11 +77,17 @@ protected:
   // Main layout
   QVBoxLayout *main_layout_;
 
+  // Grid layout for label and control (horizontal)
+  QHBoxLayout *grid_layout_ = nullptr;
+
   // Label widget
   QLabel *label_widget_;
 
+  // Drag indicator (shown on hover for draggable labels)
+  QLabel *drag_indicator_ = nullptr;
+
   // Control widget (created by subclass)
-  QWidget *control_widget_;
+  QWidget *control_widget_ = nullptr;
 
 private:
   QString description_;

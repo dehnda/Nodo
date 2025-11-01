@@ -63,7 +63,6 @@ private:
   // UI components
   QSpinBox *spinbox_;
   QSlider *slider_;
-  QWidget *slider_container_;
 
   // Value scrubbing
   bool is_scrubbing_ = false;

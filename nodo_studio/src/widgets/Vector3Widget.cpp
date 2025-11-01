@@ -24,8 +24,9 @@ QWidget *Vector3Widget::createControlWidget() {
   layout->setSpacing(4);
 
   const char *component_names[] = {"X", "Y", "Z"};
-  const char *component_colors[] = {"#e06c75", "#98c379",
-                                    "#61afef"}; // Red, Green, Blue
+  const char *component_colors[] = {
+      "#f48771", "#89d185",
+      "#4a9eff"}; // Red, Green, Blue (matches HTML design)
 
   for (int i = 0; i < 3; ++i) {
     // Component label (e.g., "X:", "Y:", "Z:")
@@ -106,12 +107,15 @@ QWidget *Vector3Widget::createControlWidget() {
                                      .arg(COLOR_TEXT_PRIMARY)
                                      .arg(COLOR_ACCENT));
 
-  connect(uniform_button_, &QPushButton::toggled, this, [this](bool checked) {
+  connect(uniform_button_, &QPushButton::clicked, [this](bool checked) {
     uniform_enabled_ = checked;
     uniform_button_->setText(checked ? "🔒" : "🔓");
   });
 
   layout->addWidget(uniform_button_);
+
+  // Enable drag indicator (components have their own drag)
+  enableDragIndicator(true);
 
   return container;
 }
