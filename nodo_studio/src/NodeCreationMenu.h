@@ -1,12 +1,16 @@
 #pragma once
 
+#include <QGridLayout>
+#include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPushButton>
+#include <QSize>
 #include <QString>
 #include <QVBoxLayout>
 #include <QWidget>
-
 
 namespace nodo_studio {
 
@@ -56,6 +60,7 @@ private slots:
 
 private:
   // UI Components
+  QWidget *recent_chips_container_;
   QLineEdit *search_box_;
   QListWidget *results_list_;
   QVBoxLayout *layout_;
@@ -77,6 +82,7 @@ private:
   void populateAllNodes();
   void loadRecentNodes();
   void saveRecentNode(const QString &type_id);
+  void updateRecentChips();
   void filterResults(const QString &query);
   void createSelectedNode();
   bool fuzzyMatch(const QString &query, const QString &target) const;
