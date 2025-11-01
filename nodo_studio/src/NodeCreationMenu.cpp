@@ -297,6 +297,10 @@ void NodeCreationMenu::saveRecentNode(const QString &type_id) {
   }
 
   settings.setValue("recent_nodes", recent_types);
+  
+  // Reload recent nodes list to reflect changes
+  recent_nodes_.clear();
+  loadRecentNodes();
 }
 
 void NodeCreationMenu::updateRecentChips() {
