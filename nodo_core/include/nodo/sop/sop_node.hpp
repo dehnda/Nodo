@@ -390,6 +390,17 @@ protected:
   }
 
   /**
+   * @brief Define a vector3 parameter with fluent builder API
+   */
+  ParameterBuilder
+  define_vector3_parameter(const std::string &name,
+                           const Eigen::Vector3f &default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Vector3,
+                            default_value);
+    return ParameterBuilder(def);
+  }
+
+  /**
    * @brief Register a parameter definition and initialize its value
    */
   void register_parameter(const ParameterDefinition &def) {

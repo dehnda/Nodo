@@ -13,68 +13,26 @@ TransformSOP::TransformSOP(const std::string &name)
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
 
-  // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(define_float_parameter("translate_x", 0.0F)
-                         .label("Translate X")
+  // Use Vector3 parameters for XYZ values (matches HTML design)
+  register_parameter(define_vector3_parameter("translate", {0.0F, 0.0F, 0.0F})
+                         .label("Translate")
                          .range(-100.0, 100.0)
-                         .category("Translation")
-                         .description("Translation along X axis")
+                         .category("Transform")
+                         .description("Translation along X, Y, Z axes")
                          .build());
 
-  register_parameter(define_float_parameter("translate_y", 0.0F)
-                         .label("Translate Y")
-                         .range(-100.0, 100.0)
-                         .category("Translation")
-                         .description("Translation along Y axis")
-                         .build());
-
-  register_parameter(define_float_parameter("translate_z", 0.0F)
-                         .label("Translate Z")
-                         .range(-100.0, 100.0)
-                         .category("Translation")
-                         .description("Translation along Z axis")
-                         .build());
-
-  register_parameter(define_float_parameter("rotate_x", 0.0F)
-                         .label("Rotate X")
+  register_parameter(define_vector3_parameter("rotate", {0.0F, 0.0F, 0.0F})
+                         .label("Rotate")
                          .range(-360.0, 360.0)
-                         .category("Rotation")
-                         .description("Rotation around X axis in degrees")
+                         .category("Transform")
+                         .description("Rotation around X, Y, Z axes in degrees")
                          .build());
 
-  register_parameter(define_float_parameter("rotate_y", 0.0F)
-                         .label("Rotate Y")
-                         .range(-360.0, 360.0)
-                         .category("Rotation")
-                         .description("Rotation around Y axis in degrees")
-                         .build());
-
-  register_parameter(define_float_parameter("rotate_z", 0.0F)
-                         .label("Rotate Z")
-                         .range(-360.0, 360.0)
-                         .category("Rotation")
-                         .description("Rotation around Z axis in degrees")
-                         .build());
-
-  register_parameter(define_float_parameter("scale_x", 1.0F)
-                         .label("Scale X")
+  register_parameter(define_vector3_parameter("scale", {1.0F, 1.0F, 1.0F})
+                         .label("Scale")
                          .range(0.01, 10.0)
-                         .category("Scale")
-                         .description("Scale factor along X axis")
-                         .build());
-
-  register_parameter(define_float_parameter("scale_y", 1.0F)
-                         .label("Scale Y")
-                         .range(0.01, 10.0)
-                         .category("Scale")
-                         .description("Scale factor along Y axis")
-                         .build());
-
-  register_parameter(define_float_parameter("scale_z", 1.0F)
-                         .label("Scale Z")
-                         .range(0.01, 10.0)
-                         .category("Scale")
-                         .description("Scale factor along Z axis")
+                         .category("Transform")
+                         .description("Scale factor along X, Y, Z axes")
                          .build());
 }
 
@@ -103,16 +61,23 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
     return nullptr;
   }
 
-  // Read transform parameters
-  const double translate_x = get_parameter<float>("translate_x", 0.0F);
-  const double translate_y = get_parameter<float>("translate_y", 0.0F);
-  const double translate_z = get_parameter<float>("translate_z", 0.0F);
-  const double rotate_x = get_parameter<float>("rotate_x", 0.0F);
-  const double rotate_y = get_parameter<float>("rotate_y", 0.0F);
-  const double rotate_z = get_parameter<float>("rotate_z", 0.0F);
-  const double scale_x = get_parameter<float>("scale_x", 1.0F);
-  const double scale_y = get_parameter<float>("scale_y", 1.0F);
-  const double scale_z = get_parameter<float>("scale_z", 1.0F);
+  // Read transform parameters (as Vector3)
+  const auto translate = get_parameter<Eigen::Vector3f>(
+      "translate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto rotate = get_parameter<Eigen::Vector3f>(
+      "rotate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto scale_vec = get_parameter<Eigen::Vector3f>(
+      "scale", Eigen::Vector3f(1.0F, 1.0F, 1.0F));
+
+  const double translate_x = translate.x();
+  const double translate_y = translate.y();
+  const double translate_z = translate.z();
+  const double rotate_x = rotate.x();
+  const double rotate_y = rotate.y();
+  const double rotate_z = rotate.z();
+  const double scale_x = scale_vec.x();
+  const double scale_y = scale_vec.y();
+  const double scale_z = scale_vec.z();
 
   // Convert degrees to radians
   constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
@@ -171,16 +136,23 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
 }
 
 Eigen::Matrix4d TransformSOP::build_transform_matrix() const {
-  // Read parameters from parameter system
-  const double translate_x = get_parameter<float>("translate_x", 0.0F);
-  const double translate_y = get_parameter<float>("translate_y", 0.0F);
-  const double translate_z = get_parameter<float>("translate_z", 0.0F);
-  const double rotate_x = get_parameter<float>("rotate_x", 0.0F);
-  const double rotate_y = get_parameter<float>("rotate_y", 0.0F);
-  const double rotate_z = get_parameter<float>("rotate_z", 0.0F);
-  const double scale_x = get_parameter<float>("scale_x", 1.0F);
-  const double scale_y = get_parameter<float>("scale_y", 1.0F);
-  const double scale_z = get_parameter<float>("scale_z", 1.0F);
+  // Read parameters from parameter system (as Vector3)
+  const auto translate = get_parameter<Eigen::Vector3f>(
+      "translate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto rotate = get_parameter<Eigen::Vector3f>(
+      "rotate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto scale_vec = get_parameter<Eigen::Vector3f>(
+      "scale", Eigen::Vector3f(1.0F, 1.0F, 1.0F));
+
+  const double translate_x = translate.x();
+  const double translate_y = translate.y();
+  const double translate_z = translate.z();
+  const double rotate_x = rotate.x();
+  const double rotate_y = rotate.y();
+  const double rotate_z = rotate.z();
+  const double scale_x = scale_vec.x();
+  const double scale_y = scale_vec.y();
+  const double scale_z = scale_vec.z();
 
   // Convert degrees to radians
   constexpr double DEG_TO_RAD = std::numbers::pi_v<double> / 180.0;
