@@ -1,5 +1,7 @@
 #include "NodeCreationMenu.h"
 #include "IconManager.h"
+#include "nodo/graph/graph_serializer.hpp"
+#include "nodo/sop/sop_factory.hpp"
 #include <QApplication>
 #include <QGraphicsDropShadowEffect>
 #include <QSettings>
@@ -134,127 +136,35 @@ void NodeCreationMenu::setupUI() {
 }
 
 void NodeCreationMenu::populateAllNodes() {
-  // Register all 28 SOP nodes (including Wrangle)
-  // Using simple Unicode symbols for better font compatibility
+  // Query backend for all available nodes
+  // This is now the single source of truth - nodes are automatically
+  // discovered from the backend registry
+  auto available_nodes = nodo::sop::SOPFactory::get_all_available_nodes();
 
-  // Generators (6 nodes)
-  all_nodes_.append({"Sphere",
-                     "sphere_sop",
-                     "Generator",
-                     "●",
-                     {"primitive", "sphere", "uv"}});
-  all_nodes_.append(
-      {"Box", "box_sop", "Generator", "■", {"primitive", "cube", "box"}});
-  all_nodes_.append({"Cylinder",
-                     "cylinder_sop",
-                     "Generator",
-                     "▮",
-                     {"primitive", "cylinder"}});
-  all_nodes_.append(
-      {"Grid", "grid_sop", "Generator", "▭", {"primitive", "grid", "plane"}});
-  all_nodes_.append({"Torus",
-                     "torus_sop",
-                     "Generator",
-                     "◯",
-                     {"primitive", "torus", "donut"}});
-  all_nodes_.append(
-      {"Line", "line_sop", "Generator", "─", {"primitive", "line", "curve"}});
+  // Convert backend metadata to UI format
+  for (const auto &node_meta : available_nodes) {
+    // Store the NodeType directly as an integer for now
+    // We'll use the enum value directly when creating nodes
+    QString type_id = QString::number(static_cast<int>(node_meta.type));
 
-  // IO (2 nodes)
-  all_nodes_.append(
-      {"File", "file_sop", "IO", "📁", {"file", "import", "load", "obj"}});
-  all_nodes_.append(
-      {"Export", "export_sop", "IO", "💾", {"export", "save", "write", "obj"}});
+    // Build search keywords from name, category, and description
+    QStringList keywords;
+    keywords << QString::fromStdString(node_meta.name).toLower();
+    keywords << QString::fromStdString(node_meta.category).toLower();
 
-  // Modifiers (5 nodes)
-  all_nodes_.append({"Smooth (Laplacian)",
-                     "laplacian_sop",
-                     "Modifier",
-                     "⚙",
-                     {"smooth", "laplacian", "relax"}});
-  all_nodes_.append({"Subdivide",
-                     "subdivision_sop",
-                     "Modifier",
-                     "◇",
-                     {"subdivide", "catmull", "clark"}});
-  all_nodes_.append(
-      {"Resample", "resample_sop", "Modifier", "◈", {"resample", "refine"}});
-  all_nodes_.append(
-      {"Extrude", "extrude_sop", "Modifier", "↑", {"extrude", "offset"}});
-  all_nodes_.append({"PolyExtrude",
-                     "polyextrude_sop",
-                     "Modifier",
-                     "⇈",
-                     {"extrude", "polygon", "face"}});
+    // Add words from description as keywords
+    QStringList desc_words =
+        QString::fromStdString(node_meta.description).toLower().split(' ');
+    for (const QString &word : desc_words) {
+      if (word.length() > 3) { // Only meaningful words
+        keywords << word;
+      }
+    }
 
-  // Arrays & Copies (3 nodes)
-  all_nodes_.append(
-      {"Array", "array_sop", "Array", "⋮", {"array", "duplicate", "copy"}});
-  all_nodes_.append({"Scatter",
-                     "scatter_sop",
-                     "Array",
-                     "∴",
-                     {"scatter", "points", "random"}});
-  all_nodes_.append({"Copy to Points",
-                     "copy_to_points_sop",
-                     "Array",
-                     "⊕",
-                     {"copy", "instance", "points"}});
-
-  // Boolean & Transform (4 nodes)
-  all_nodes_.append({"Boolean",
-                     "boolean_sop",
-                     "Boolean",
-                     "∪",
-                     {"boolean", "union", "difference", "intersection"}});
-  all_nodes_.append({"Transform",
-                     "transform_sop",
-                     "Transform",
-                     "↔",
-                     {"transform", "move", "rotate", "scale"}});
-  all_nodes_.append({"Mirror",
-                     "mirror_sop",
-                     "Transform",
-                     "⇄",
-                     {"mirror", "reflect", "symmetry"}});
-  all_nodes_.append({"Noise Displacement",
-                     "noise_displacement_sop",
-                     "Deform",
-                     "≈",
-                     {"noise", "displace", "perlin"}});
-  all_nodes_.append({"Normal",
-                     "normal_sop",
-                     "Modifier",
-                     "⟂",
-                     {"normal", "vertex", "face", "shading"}});
-  all_nodes_.append(
-      {"Wrangle",
-       "wrangle_sop",
-       "Modifier",
-       "✎",
-       {"wrangle", "expression", "code", "script", "attributes"}});
-
-  // Utilities (2 nodes)
-  all_nodes_.append({"Merge",
-                     "merge_sop",
-                     "Utility",
-                     "⊞",
-                     {"merge", "combine", "join", "append"}});
-  all_nodes_.append({"Group",
-                     "group_sop",
-                     "Utility",
-                     "◉",
-                     {"group", "select", "pattern", "selection"}});
-  all_nodes_.append({"Delete",
-                     "delete_sop",
-                     "Utility",
-                     "⌫",
-                     {"delete", "remove", "filter", "group"}});
-  all_nodes_.append({"UV Unwrap",
-                     "uv_unwrap_sop",
-                     "Utility",
-                     "◰",
-                     {"uv", "unwrap", "texture", "atlas", "xatlas"}});
+    all_nodes_.append({QString::fromStdString(node_meta.name), type_id,
+                       QString::fromStdString(node_meta.category), "",
+                       keywords});
+  }
 }
 
 void NodeCreationMenu::loadRecentNodes() {
@@ -297,7 +207,7 @@ void NodeCreationMenu::saveRecentNode(const QString &type_id) {
   }
 
   settings.setValue("recent_nodes", recent_types);
-  
+
   // Reload recent nodes list to reflect changes
   recent_nodes_.clear();
   loadRecentNodes();

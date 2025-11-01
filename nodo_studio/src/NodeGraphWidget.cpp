@@ -1569,69 +1569,15 @@ nodo::graph::NodeType
 NodeGraphWidget::string_to_node_type(const QString &type_id) const {
   using nodo::graph::NodeType;
 
-  // Map from NodeCreationMenu type_id strings to NodeType enum
-  if (type_id == "sphere_sop")
-    return NodeType::Sphere;
-  if (type_id == "box_sop")
-    return NodeType::Box;
-  if (type_id == "cylinder_sop")
-    return NodeType::Cylinder;
-  if (type_id == "grid_sop")
-    return NodeType::Grid;
-  if (type_id == "torus_sop")
-    return NodeType::Torus;
-  if (type_id == "line_sop")
-    return NodeType::Line;
-  if (type_id == "file_sop")
-    return NodeType::File;
-  if (type_id == "export_sop")
-    return NodeType::Export;
-  if (type_id == "laplacian_sop")
-    return NodeType::Smooth;
-  if (type_id == "subdivision_sop")
-    return NodeType::Subdivide;
-  if (type_id == "resample_sop")
-    return NodeType::Resample;
-  if (type_id == "extrude_sop")
-    return NodeType::Extrude;
-  if (type_id == "polyextrude_sop")
-    return NodeType::PolyExtrude;
-  if (type_id == "array_sop")
-    return NodeType::Array;
-  if (type_id == "scatter_sop")
-    return NodeType::Scatter;
-  if (type_id == "copy_to_points_sop")
-    return NodeType::CopyToPoints;
-  if (type_id == "boolean_sop")
-    return NodeType::Boolean;
-  if (type_id == "transform_sop")
-    return NodeType::Transform;
-  if (type_id == "mirror_sop")
-    return NodeType::Mirror;
-  if (type_id == "noise_displacement_sop")
-    return NodeType::NoiseDisplacement;
-  if (type_id == "normal_sop")
-    return NodeType::Normal;
-  if (type_id == "wrangle_sop")
-    return NodeType::Wrangle;
-  if (type_id == "merge_sop")
-    return NodeType::Merge;
-  if (type_id == "group_sop")
-    return NodeType::Group;
-  if (type_id == "blast_sop")
-    return NodeType::Blast;
-  if (type_id == "sort_sop")
-    return NodeType::Sort;
-  if (type_id == "bend_sop")
-    return NodeType::Bend;
-  if (type_id == "twist_sop")
-    return NodeType::Twist;
-  if (type_id == "lattice_sop")
-    return NodeType::Lattice;
-  if (type_id == "uv_unwrap_sop")
-    return NodeType::UVUnwrap;
+  // Convert the integer string (from NodeType enum value) back to enum
+  bool conversion_ok = false;
+  int type_value = type_id.toInt(&conversion_ok);
+  if (conversion_ok) {
+    return static_cast<nodo::graph::NodeType>(type_value);
+  }
 
-  // Default fallback
+  // Fallback in case of invalid input
+  qWarning() << "Invalid node type_id:" << type_id;
   return NodeType::Sphere;
 }
 

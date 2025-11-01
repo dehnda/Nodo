@@ -186,4 +186,95 @@ bool SOPFactory::is_sop_supported(NodeType type) {
   return create(type, "test") != nullptr;
 }
 
+std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
+  // Static registry of all available nodes
+  // This is the single source of truth for node discovery
+  return {
+      // Generator
+      {NodeType::Sphere, "Sphere", "Generator", "Create a UV sphere primitive"},
+      {NodeType::Box, "Box", "Generator", "Create a box primitive"},
+      {NodeType::Cylinder, "Cylinder", "Generator",
+       "Create a cylinder primitive"},
+      {NodeType::Torus, "Torus", "Generator", "Create a torus primitive"},
+      {NodeType::Grid, "Grid", "Generator", "Create a planar grid of polygons"},
+      {NodeType::Line, "Line", "Generator", "Create a line or curve"},
+
+      // Modifier
+      {NodeType::Transform, "Transform", "Modifier",
+       "Transform geometry with translate, rotate, scale"},
+      {NodeType::Extrude, "Extrude", "Modifier",
+       "Extrude geometry along normals"},
+      {NodeType::PolyExtrude, "PolyExtrude", "Modifier",
+       "Extrude individual polygons"},
+      {NodeType::Smooth, "Smooth (Laplacian)", "Modifier",
+       "Smooth geometry using Laplacian method"},
+      {NodeType::Subdivide, "Subdivide", "Modifier",
+       "Subdivide polygons for smoother geometry"},
+      {NodeType::Mirror, "Mirror", "Modifier",
+       "Mirror geometry across a plane"},
+      {NodeType::Resample, "Resample", "Modifier",
+       "Resample curves with uniform spacing"},
+      {NodeType::NoiseDisplacement, "Noise Displacement", "Modifier",
+       "Displace geometry using noise"},
+      {NodeType::Normal, "Normal", "Modifier",
+       "Compute or modify vertex/face normals"},
+      {NodeType::Bend, "Bend", "Modifier", "Bend geometry along an axis"},
+      {NodeType::Twist, "Twist", "Modifier", "Twist geometry around an axis"},
+      {NodeType::Lattice, "Lattice", "Modifier",
+       "Deform geometry with a lattice cage"},
+
+      // Array
+      {NodeType::Array, "Array", "Array",
+       "Create linear or radial arrays of geometry"},
+      {NodeType::Scatter, "Scatter", "Array",
+       "Scatter points across geometry surface"},
+      {NodeType::CopyToPoints, "Copy to Points", "Array",
+       "Copy geometry to point positions"},
+
+      // Boolean
+      {NodeType::Boolean, "Boolean", "Boolean",
+       "Perform boolean operations (union, subtract, intersect)"},
+      {NodeType::Merge, "Merge", "Boolean",
+       "Merge multiple geometries into one"},
+
+      // IO
+      {NodeType::File, "File", "IO", "Import geometry from file"},
+      {NodeType::Export, "Export", "IO", "Export geometry to file"},
+
+      // Attribute
+      {NodeType::AttributeCreate, "Attribute Create", "Attribute",
+       "Create or modify attributes"},
+      {NodeType::AttributeDelete, "Attribute Delete", "Attribute",
+       "Delete attributes from geometry"},
+      {NodeType::Color, "Color", "Attribute", "Set vertex colors"},
+      {NodeType::Wrangle, "Wrangle", "Attribute",
+       "VEX-like scripting for attributes"},
+      {NodeType::UVUnwrap, "UV Unwrap", "Attribute", "Generate UV coordinates"},
+
+      // Group
+      {NodeType::Group, "Group", "Group", "Create geometry groups"},
+      {NodeType::GroupDelete, "Group Delete", "Group",
+       "Delete geometry groups"},
+      {NodeType::GroupPromote, "Group Promote", "Group",
+       "Convert groups between component types"},
+      {NodeType::GroupCombine, "Group Combine", "Group",
+       "Combine multiple groups"},
+      {NodeType::GroupExpand, "Group Expand", "Group",
+       "Expand group selection by connectivity"},
+      {NodeType::GroupTransfer, "Group Transfer", "Group",
+       "Transfer groups from one geometry to another"},
+
+      // Utility
+      {NodeType::Switch, "Switch", "Utility", "Choose between multiple inputs"},
+      {NodeType::Null, "Null", "Utility", "Pass-through node for organization"},
+      {NodeType::Cache, "Cache", "Utility",
+       "Cache geometry to avoid recompute"},
+      {NodeType::Time, "Time", "Utility", "Control time-dependent animations"},
+      {NodeType::Output, "Output", "Utility", "Mark geometry as final output"},
+      {NodeType::Blast, "Blast", "Utility",
+       "Delete geometry by group or selection"},
+      {NodeType::Sort, "Sort", "Utility", "Sort points or primitives"},
+  };
+}
+
 } // namespace nodo::sop

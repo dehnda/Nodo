@@ -4,8 +4,21 @@
 #include "nodo/sop/sop_node.hpp"
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace nodo::sop {
+
+/**
+ * @brief Metadata for a node type
+ *
+ * Contains display information for UI systems
+ */
+struct NodeMetadata {
+  graph::NodeType type;    // Backend node type enum
+  std::string name;        // Display name (e.g., "Sphere", "Boolean")
+  std::string category;    // Category (e.g., "Generator", "Modifier", "Array")
+  std::string description; // Short description for tooltips
+};
 
 /**
  * @brief Factory for creating SOP nodes by type
@@ -22,7 +35,7 @@ public:
    * @return Shared pointer to created SOP, or nullptr if type not supported
    */
   static std::shared_ptr<SOPNode> create(graph::NodeType type,
-                                          const std::string& name = "node");
+                                         const std::string &name = "node");
 
   /**
    * @brief Get parameter definitions for a node type without instantiating
@@ -38,6 +51,16 @@ public:
    * @return True if type has a corresponding SOP class
    */
   static bool is_sop_supported(graph::NodeType type);
+
+  /**
+   * @brief Get metadata for all available nodes
+   * @return Vector of node metadata for UI display
+   *
+   * Returns a complete list of all nodes that can be created,
+   * with their display names, categories, and descriptions.
+   * This is the single source of truth for node discovery.
+   */
+  static std::vector<NodeMetadata> get_all_available_nodes();
 };
 
 } // namespace nodo::sop
