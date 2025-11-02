@@ -268,7 +268,10 @@ bool copy_and_interpolate_all_attributes(
       success &= blend_attributes<int>(container, attr_name, element_class,
                                        source_indices, target_index, weights);
       break;
-    default:
+    case AttributeType::MATRIX3:
+    case AttributeType::MATRIX4:
+    case AttributeType::QUATERNION:
+    case AttributeType::STRING:
       // Skip unsupported types
       break;
     }
@@ -349,7 +352,11 @@ bool transfer_point_to_primitive_attributes(
           blend_attributes<int>(container, attr_name, ElementClass::POINT,
                                 source_indices, prim_index, weights);
       break;
-    default:
+    case AttributeType::MATRIX3:
+    case AttributeType::MATRIX4:
+    case AttributeType::QUATERNION:
+    case AttributeType::STRING:
+      // Skip unsupported types
       break;
     }
   }

@@ -162,7 +162,7 @@ const core::Error &MeshGenerator::last_error() { return last_error_; }
 
 core::GeometryContainer
 MeshGenerator::generate_icosphere(const Eigen::Vector3d &center, double radius,
-                                  int subdivisions) {
+                                  [[maybe_unused]] int subdivisions) {
   // Simple octahedron approximation projected to sphere
   // This is a simplified implementation - for real icosphere use
   // SphereGenerator

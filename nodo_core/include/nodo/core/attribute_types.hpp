@@ -53,9 +53,8 @@ enum class AttributeType : uint8_t {
  * subdivision, resampling, or attribute promotion/demotion.
  */
 enum class InterpolationMode : uint8_t {
-  LINEAR = 0, ///< Linear interpolation (default for most types)
-  DISCRETE =
-      1, ///< No interpolation, nearest-neighbor (IDs, material indices)
+  LINEAR = 0,   ///< Linear interpolation (default for most types)
+  DISCRETE = 1, ///< No interpolation, nearest-neighbor (IDs, material indices)
   QUATERNION_SLERP = 2, ///< Spherical linear interpolation (quaternions)
   SMOOTH = 3 ///< Smooth/cubic interpolation (future: for curves/surfaces)
 };
@@ -127,9 +126,15 @@ constexpr InterpolationMode default_interpolation(AttributeType type) {
   case AttributeType::INT:
   case AttributeType::STRING:
     return InterpolationMode::DISCRETE;
-  default:
+  case AttributeType::FLOAT:
+  case AttributeType::VEC2F:
+  case AttributeType::VEC3F:
+  case AttributeType::VEC4F:
+  case AttributeType::MATRIX3:
+  case AttributeType::MATRIX4:
     return InterpolationMode::LINEAR;
   }
+  return InterpolationMode::LINEAR; // Default case
 }
 
 /**

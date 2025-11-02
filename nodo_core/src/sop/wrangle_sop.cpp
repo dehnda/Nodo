@@ -218,13 +218,15 @@ void WrangleSOP::execute_primitives_mode(core::GeometryContainer *result) {
   fmt::print("Primitives mode not yet implemented\n");
 }
 
-void WrangleSOP::execute_vertices_mode(core::GeometryContainer *result) {
+void WrangleSOP::execute_vertices_mode(
+    [[maybe_unused]] core::GeometryContainer *result) {
   // TODO: Implement vertex iteration
   // For MVP, we'll skip this mode
   fmt::print("Vertices mode not yet implemented\n");
 }
 
-void WrangleSOP::execute_detail_mode(core::GeometryContainer *result) {
+void WrangleSOP::execute_detail_mode(
+    [[maybe_unused]] core::GeometryContainer *result) {
   // Run expression once for entire geometry
   context_->expression->value();
 }

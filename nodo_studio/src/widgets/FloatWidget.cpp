@@ -164,12 +164,13 @@ bool FloatWidget::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::MouseButtonPress) {
       auto *mouseEvent = static_cast<QMouseEvent *>(event);
       if (mouseEvent->button() == Qt::LeftButton) {
-        startScrubbing(mouseEvent->globalPos());
+        startScrubbing(mouseEvent->globalPosition().toPoint());
         return true;
       }
     } else if (event->type() == QEvent::MouseMove && is_scrubbing_) {
       auto *mouseEvent = static_cast<QMouseEvent *>(event);
-      updateScrubbing(mouseEvent->globalPos(), mouseEvent->modifiers());
+      updateScrubbing(mouseEvent->globalPosition().toPoint(),
+                      mouseEvent->modifiers());
       return true;
     } else if (event->type() == QEvent::MouseButtonRelease && is_scrubbing_) {
       endScrubbing();

@@ -78,6 +78,12 @@ public:
             .build());
   }
 
+  // Generator node - no inputs required
+  int get_min_inputs() const override { return 0; }
+  int get_max_inputs() const override { return 0; }
+
+  void set_dimensions(float radius, float height) {}
+
   void set_radius(float radius) { set_parameter("radius", radius); }
   void set_height(float height) { set_parameter("height", height); }
 

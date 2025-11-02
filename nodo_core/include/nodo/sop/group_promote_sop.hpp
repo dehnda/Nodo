@@ -87,12 +87,13 @@ protected:
       return nullptr;
     }
 
-    // Check if source group exists
-    core::ElementClass from_ec = (from_class == 0)
-                                     ? core::ElementClass::POINT
-                                     : core::ElementClass::PRIMITIVE;
-    core::ElementClass to_ec = (to_class == 0) ? core::ElementClass::POINT
-                                               : core::ElementClass::PRIMITIVE;
+    // // Check if source group exists
+    // core::ElementClass from_ec = (from_class == 0)
+    //                                  ? core::ElementClass::POINT
+    //                                  : core::ElementClass::PRIMITIVE;
+    // core::ElementClass to_ec = (to_class == 0) ? core::ElementClass::POINT
+    //                                            :
+    //                                            core::ElementClass::PRIMITIVE;
 
     // Get source group attribute
     auto *src_attr =
@@ -100,7 +101,7 @@ protected:
             ? result->get_point_attribute_typed<int>(group_name)
             : result->get_primitive_attribute_typed<int>(group_name);
 
-    if (!src_attr) {
+    if (src_attr == nullptr) {
       set_error("Source group '" + group_name + "' does not exist");
       return nullptr;
     }

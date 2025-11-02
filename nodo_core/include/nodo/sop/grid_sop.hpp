@@ -79,9 +79,13 @@ public:
                            .build());
   }
 
-  void set_size(float width, float height) {
-    set_parameter("size_x", width);
-    set_parameter("size_z", height);
+  // Generator node - no inputs required
+  int get_min_inputs() const override { return 0; }
+  int get_max_inputs() const override { return 0; }
+
+  void set_size(float size_x, float size_z) {
+    set_parameter("size_x", size_x);
+    set_parameter("size_z", size_z);
   }
 
   void set_resolution(int columns, int rows) {

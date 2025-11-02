@@ -186,7 +186,7 @@ AABB BVH::calculate_triangle_bounds(
 
 std::pair<std::vector<int>, std::vector<int>>
 BVH::split_triangles_sah(const std::vector<int> &triangle_indices,
-                         const AABB &node_bounds) const {
+                         [[maybe_unused]] const AABB &node_bounds) const {
   const int num_buckets = 12;
   double best_cost = std::numeric_limits<double>::infinity();
   int best_split_axis = 0;

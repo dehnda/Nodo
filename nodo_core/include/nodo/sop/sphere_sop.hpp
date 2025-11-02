@@ -57,6 +57,10 @@ public:
                            .build());
   }
 
+  // Generator node - no inputs required
+  int get_min_inputs() const override { return 0; }
+  int get_max_inputs() const override { return 0; }
+
   /**
    * @brief Set sphere radius
    */

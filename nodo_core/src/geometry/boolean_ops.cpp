@@ -114,7 +114,7 @@ static Manifold eigen_to_manifold(const core::Mesh &mesh) {
   // If genus is valid (0 for sphere), check if we need to flip
   if (result.Status() == Manifold::Error::NoError && result.Genus() >= 0) {
     // Manifold should handle this automatically, but let's verify
-    auto bounds = result.BoundingBox();
+    [[maybe_unused]] auto bounds = result.BoundingBox();
     std::cout << "    [eigen_to_manifold] Created manifold with status="
               << static_cast<int>(result.Status())
               << ", genus=" << result.Genus() << ", NumTri=" << result.NumTri()

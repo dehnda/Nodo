@@ -114,12 +114,6 @@ private:
 
   /// Create inset faces if inset > 0
   void apply_inset(core::Mesh &mesh, double inset_amount);
-
-  // Extrusion parameters
-  double distance_ = 1.0;                            ///< Extrusion distance
-  Eigen::Vector3d direction_{0.0, 0.0, 1.0};         ///< Uniform direction
-  ExtrusionMode mode_ = ExtrusionMode::FACE_NORMALS; ///< Extrusion algorithm
-  double inset_ = 0.0;                               ///< Inset amount
 };
 
 } // namespace nodo::sop

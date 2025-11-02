@@ -332,7 +332,8 @@ void NormalSOP::compute_face_normals(core::GeometryContainer &geo,
 }
 
 void NormalSOP::compute_point_normals(core::GeometryContainer &geo,
-                                      int weighting, float cusp_angle,
+                                      int weighting,
+                                      [[maybe_unused]] float cusp_angle,
                                       bool reverse) const {
   using namespace core;
   const auto &topo = geo.topology();

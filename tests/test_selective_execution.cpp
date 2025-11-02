@@ -93,7 +93,8 @@ TEST_F(SelectiveExecutionTest, UpstreamDependenciesComplexGraph) {
   int sphere1_id = graph->add_node(NodeType::Sphere, "Sphere1");
   int sphere2_id = graph->add_node(NodeType::Sphere, "Sphere2");
   int box_id = graph->add_node(NodeType::Box, "Box");
-  int cylinder_id = graph->add_node(NodeType::Cylinder, "Cylinder"); // Unconnected
+  int cylinder_id =
+      graph->add_node(NodeType::Cylinder, "Cylinder"); // Unconnected
 
   int transform1_id = graph->add_node(NodeType::Transform, "Transform1");
   int transform2_id = graph->add_node(NodeType::Transform, "Transform2");
@@ -166,7 +167,7 @@ TEST_F(SelectiveExecutionTest, UpstreamDependenciesGeneratorOnly) {
 
 TEST_F(SelectiveExecutionTest, UpstreamDependenciesInvalidNode) {
   // Create a node
-  int sphere_id = graph->add_node(NodeType::Sphere);
+  [[maybe_unused]] int sphere_id = graph->add_node(NodeType::Sphere);
 
   // Query dependencies of non-existent node
   auto deps = graph->get_upstream_dependencies(999);

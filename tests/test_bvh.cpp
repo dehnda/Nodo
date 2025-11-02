@@ -3,7 +3,6 @@
 #include <nodo/geometry/sphere_generator.hpp>
 #include <nodo/spatial/bvh.hpp>
 
-
 using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
@@ -62,7 +61,7 @@ TEST_F(BVHTest, AABBConstruction) {
   EXPECT_GT(aabb.surface_area(), 0.0);
 
   // Check that sphere is roughly contained
-  auto center = aabb.center();
+  [[maybe_unused]] auto center = aabb.center();
   auto size = aabb.size();
 
   // For a unit sphere, AABB should be approximately 2x2x2

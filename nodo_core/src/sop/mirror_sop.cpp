@@ -175,7 +175,8 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
   if (keep_original_) {
     // Combine original + mirrored
     const size_t total_points = input_pos_span.size() * 2;
-    const size_t total_prims = input_topology.primitive_count() * 2;
+    [[maybe_unused]] const size_t total_prims =
+        input_topology.primitive_count() * 2;
 
     output->set_point_count(total_points);
     output->set_vertex_count(total_points); // 1:1 mapping

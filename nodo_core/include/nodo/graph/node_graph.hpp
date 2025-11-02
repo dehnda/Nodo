@@ -42,6 +42,10 @@ enum class NodeType {
   Resample,
   NoiseDisplacement,
   Normal,
+  Bevel,
+  Remesh,
+  Align,
+  Split,
 
   // Attributes
   AttributeCreate,
@@ -265,6 +269,7 @@ public:
   void set_cook_time(double time_ms) { cook_time_ms_ = time_ms; }
 
 private:
+  void setup_pins_for_type();
   int id_;
   NodeType type_;
   std::string name_;
@@ -289,8 +294,6 @@ private:
 
   // Performance tracking
   double cook_time_ms_ = 0.0;
-
-  void setup_pins_for_type();
 };
 
 /**

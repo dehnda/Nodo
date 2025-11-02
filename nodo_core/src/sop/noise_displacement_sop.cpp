@@ -122,7 +122,8 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
 }
 
 float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z,
-                                          int seed, float base_frequency,
+                                          int seed,
+                                          [[maybe_unused]] float base_frequency,
                                           int octaves, float lacunarity,
                                           float persistence) const {
   float total = 0.0F;

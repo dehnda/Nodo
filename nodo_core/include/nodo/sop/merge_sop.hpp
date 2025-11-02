@@ -20,6 +20,10 @@ public:
 
   explicit MergeSOP(const std::string &node_name);
 
+  // Multi-input node - requires at least 1 input, accepts unlimited
+  int get_min_inputs() const override { return 1; }
+  int get_max_inputs() const override { return -1; } // -1 means unlimited
+
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override;
 };

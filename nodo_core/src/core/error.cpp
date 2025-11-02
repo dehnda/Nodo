@@ -16,15 +16,27 @@ std::string Error::description() const {
 bool Error::is_recoverable() const noexcept {
   switch (code) {
   case ErrorCode::OutOfMemory:
+  case ErrorCode::InitializationFailed:
     return false;
   case ErrorCode::InvalidMesh:
+  case ErrorCode::NonManifoldMesh:
   case ErrorCode::EmptyMesh:
+  case ErrorCode::BooleanOperationFailed:
   case ErrorCode::FileNotFound:
   case ErrorCode::InvalidFormat:
-    return true;
-  default:
+  case ErrorCode::ReadError:
+  case ErrorCode::WriteError:
+  case ErrorCode::DegenerateFaces:
+  case ErrorCode::DuplicateVertices:
+  case ErrorCode::UnreferencedVertices:
+  case ErrorCode::NonClosedMesh:
+  case ErrorCode::CompilationFailed:
+  case ErrorCode::UnsupportedOperation:
+  case ErrorCode::RuntimeError:
+  case ErrorCode::Unknown:
     return true;
   }
+  return true; // Default case
 }
 
 std::string ErrorUtils::category_to_string(ErrorCategory category) {
@@ -37,11 +49,14 @@ std::string ErrorUtils::category_to_string(ErrorCategory category) {
     return "Validation";
   case ErrorCategory::Memory:
     return "Memory";
+  case ErrorCategory::GPU:
+    return "GPU";
+  case ErrorCategory::System:
+    return "System";
   case ErrorCategory::Unknown:
     return "Unknown";
-  default:
-    return "Unknown";
   }
+  return "Unknown"; // Default case
 }
 
 std::string ErrorUtils::code_to_string(ErrorCode code) {
@@ -76,14 +91,23 @@ std::string ErrorUtils::code_to_string(ErrorCode code) {
   case ErrorCode::NonClosedMesh:
     return "Non-closed mesh";
 
+  // GPU/System errors
+  case ErrorCode::InitializationFailed:
+    return "Initialization failed";
+  case ErrorCode::CompilationFailed:
+    return "Compilation failed";
+  case ErrorCode::UnsupportedOperation:
+    return "Unsupported operation";
+  case ErrorCode::RuntimeError:
+    return "Runtime error";
+
   // General
   case ErrorCode::OutOfMemory:
     return "Out of memory";
   case ErrorCode::Unknown:
     return "Unknown error";
-  default:
-    return "Unknown error";
   }
+  return "Unknown error"; // Default case
 }
 
 Error ErrorUtils::make_error(ErrorCategory category, ErrorCode code,

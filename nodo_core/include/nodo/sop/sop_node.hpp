@@ -332,6 +332,20 @@ public:
     }
   }
 
+  /**
+   * @brief Get minimum number of required inputs
+   * Override in derived classes to specify input requirements
+   * @return Minimum inputs (0 for generators, 1 for modifiers, etc.)
+   */
+  virtual int get_min_inputs() const { return 1; } // Default: 1 input required
+
+  /**
+   * @brief Get maximum number of allowed inputs
+   * Override in derived classes to specify input limits
+   * @return Maximum inputs (-1 for unlimited)
+   */
+  virtual int get_max_inputs() const { return 1; } // Default: 1 input max
+
 protected:
   /**
    * @brief Pure virtual function for node-specific computation

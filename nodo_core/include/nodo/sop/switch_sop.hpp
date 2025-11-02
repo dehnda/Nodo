@@ -29,6 +29,10 @@ public:
                            .build());
   }
 
+  // Multi-input node - requires at least 1 input, accepts up to 10
+  int get_min_inputs() const override { return 1; }
+  int get_max_inputs() const override { return 10; }
+
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
     const int index = get_parameter<int>("index", 0);

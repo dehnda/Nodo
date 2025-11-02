@@ -243,7 +243,14 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
           }
           break;
         }
-        default:
+        case core::AttributeType::FLOAT:
+        case core::AttributeType::INT:
+        case core::AttributeType::VEC2F:
+        case core::AttributeType::VEC4F:
+        case core::AttributeType::MATRIX3:
+        case core::AttributeType::MATRIX4:
+        case core::AttributeType::QUATERNION:
+        case core::AttributeType::STRING:
           // Skip other types for now (can be extended)
           break;
         }

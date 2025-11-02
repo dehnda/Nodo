@@ -86,7 +86,6 @@ void initialize_node_parameters_from_sop(GraphNode &node) {
 
   if (!sop) {
     // Node type doesn't have a SOP implementation (e.g., Switch)
-    // Parameters will be set up by setup_pins_for_type() in the constructor
     return;
   }
 
@@ -94,8 +93,8 @@ void initialize_node_parameters_from_sop(GraphNode &node) {
   const auto &param_defs = sop->get_parameter_definitions();
 
   if (param_defs.empty()) {
-    // No registered parameters, will use hardcoded ones from
-    // setup_pins_for_type()
+    // warning if not parameters defined
+
     return;
   }
 
@@ -110,7 +109,43 @@ void initialize_node_parameters_from_sop(GraphNode &node) {
 
 GraphNode::GraphNode(int node_id, NodeType type, const std::string &name)
     : id_(node_id), type_(type), name_(name) {
+  // Setup pins based on node type
   setup_pins_for_type();
+}
+
+void GraphNode::setup_pins_for_type() {
+  input_pins_.clear();
+  output_pins_.clear();
+
+  // Query the SOP for its input requirements
+  int min_inputs = sop::SOPFactory::get_min_inputs(type_);
+  int max_inputs = sop::SOPFactory::get_max_inputs(type_);
+
+  // Create input pins based on requirements
+  if (min_inputs == 0) {
+    // Generator node - no inputs
+  } else if (min_inputs == 1 && max_inputs == 1) {
+    // Standard single input node
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+  } else if (min_inputs == 2 && max_inputs == 2) {
+    // Dual input node (e.g., Boolean, CopyToPoints)
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input A", 0});
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input B", 1});
+  } else if (max_inputs == -1 || max_inputs > 2) {
+    // Multi-input node (e.g., Merge, Switch)
+    // Start with 2 input pins, can be expanded dynamically in UI
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 1", 0});
+    input_pins_.push_back(
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 2", 1});
+  }
+
+  // All nodes have one output (for now)
+  output_pins_.push_back(
+      {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
 }
 
 void GraphNode::add_parameter(const NodeParameter &param) {
@@ -136,292 +171,29 @@ GraphNode::get_parameter(const std::string &name) const {
   return (it != parameters_.end()) ? std::make_optional(*it) : std::nullopt;
 }
 
-void GraphNode::set_parameter(const std::string &name,
+void GraphNode::set_parameter([[maybe_unused]] const std::string &name,
                               const NodeParameter &param) {
   add_parameter(param);
 }
 
-void GraphNode::setup_pins_for_type() {
-  input_pins_.clear();
-  output_pins_.clear();
-
-  // Setup default parameters and pins based on node type
-  switch (type_) {
-  case NodeType::Sphere:
-    parameters_.emplace_back("radius", 1.0F, "Radius", 0.01F, 100.0F);
-    parameters_.emplace_back("u_segments", 32, "U Segments", 3, 128);
-    parameters_.emplace_back("v_segments", 16, "V Segments", 2, 64);
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Box:
-    parameters_.emplace_back("width", 1.0F, "Width", 0.01F, 100.0F);
-    parameters_.emplace_back("height", 1.0F, "Height", 0.01F, 100.0F);
-    parameters_.emplace_back("depth", 1.0F, "Depth", 0.01F, 100.0F);
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::File:
-    parameters_.emplace_back("file_path", std::string(""), "File Path");
-    parameters_.emplace_back("reload", false, "Reload");
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Export:
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Mesh", 0});
-    parameters_.emplace_back("file_path", std::string(""), "Export Path");
-    parameters_.emplace_back("export_now", false, "Export");
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Cylinder:
-    parameters_.emplace_back("radius", 1.0F, "Radius", 0.01F, 100.0F);
-    parameters_.emplace_back("height", 2.0F, "Height", 0.01F, 100.0F);
-    parameters_.emplace_back("segments", 32, "Segments", 3, 128);
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Extrude: {
-    // Query parameter schema from SOP (single source of truth!)
-    auto param_defs = sop::SOPFactory::get_parameter_schema(NodeType::Extrude);
-    for (const auto &def : param_defs) {
-      parameters_.push_back(convert_parameter_definition(def));
-    }
-    // Setup pins
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-  }
-
-  case NodeType::PolyExtrude:
-    parameters_.emplace_back("distance", 1.0F, "Distance", 0.0F, 10.0F);
-    parameters_.emplace_back("inset", 0.0F, "Inset", 0.0F, 10.0F);
-    parameters_.emplace_back("individual_faces", true, "Individual Faces");
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Smooth: {
-    // Query parameter schema from SOP (single source of truth!)
-    auto param_defs = sop::SOPFactory::get_parameter_schema(NodeType::Smooth);
-    for (const auto &def : param_defs) {
-      parameters_.push_back(convert_parameter_definition(def));
-    }
-    // Setup pins
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-  }
-
-  case NodeType::Mirror: {
-    // Query parameter schema from SOP (single source of truth!)
-    auto param_defs = sop::SOPFactory::get_parameter_schema(NodeType::Mirror);
-    for (const auto &def : param_defs) {
-      parameters_.push_back(convert_parameter_definition(def));
-    }
-    // Setup pins
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-  }
-
-  case NodeType::Subdivide: {
-    // Query parameter schema from SOP (single source of truth!)
-    auto param_defs =
-        sop::SOPFactory::get_parameter_schema(NodeType::Subdivide);
-    for (const auto &def : param_defs) {
-      parameters_.push_back(convert_parameter_definition(def));
-    }
-    // Setup pins
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-  }
-
-  case NodeType::Boolean:
-    parameters_.emplace_back(
-        "operation", 0,
-        std::vector<std::string>{"Union", "Intersection", "Difference"},
-        "Operation");
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "A", 0});
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "B", 1});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Result", 0});
-    break;
-
-  case NodeType::Transform: {
-    // Query parameter schema from SOP (single source of truth!)
-    auto param_defs =
-        sop::SOPFactory::get_parameter_schema(NodeType::Transform);
-    for (const auto &def : param_defs) {
-      parameters_.push_back(convert_parameter_definition(def));
-    }
-    // Setup pins
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
-    break;
-  }
-
-  case NodeType::Grid:
-    parameters_.emplace_back("width", 2.0F);
-    parameters_.emplace_back("height", 2.0F);
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Torus:
-    parameters_.emplace_back("major_radius", 1.0F);
-    parameters_.emplace_back("minor_radius", 0.3F);
-    parameters_.emplace_back("major_segments", 48);
-    parameters_.emplace_back("minor_segments", 24);
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
-    break;
-
-  case NodeType::Line:
-    parameters_.emplace_back("start_x", 0.0F);
-    parameters_.emplace_back("start_y", 0.0F);
-    parameters_.emplace_back("start_z", 0.0F);
-    parameters_.emplace_back("end_x", 1.0F);
-    parameters_.emplace_back("end_y", 0.0F);
-    parameters_.emplace_back("end_z", 0.0F);
-    parameters_.emplace_back("segments", 10);
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Line", 0});
-    break;
-
-  case NodeType::Resample:
-    parameters_.emplace_back("mode", 0); // 0=BY_COUNT, 1=BY_LENGTH
-    parameters_.emplace_back("point_count", 20);
-    parameters_.emplace_back("segment_length", 0.1F);
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Resampled", 0});
-    break;
-
-  case NodeType::Merge:
-    // Merge node combines multiple meshes into one
-    // Start with 2 inputs, but can accept any number via multiple connections
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 1", 0});
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 2", 1});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Merged", 0});
-    break;
-
-  case NodeType::Array:
-    // Array node - parameters defined in ArraySOP, loaded via
-    // initialize_node_parameters_from_sop()
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Array", 0});
-    break;
-
-  case NodeType::Scatter:
-    // Scatter points on mesh surface
-    parameters_.emplace_back("point_count", 100);
-    parameters_.emplace_back("seed", 42);
-    parameters_.emplace_back("density", 1.0F);
-    parameters_.emplace_back("use_face_area", 1); // 1=true, 0=false
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Points", 0});
-    break;
-
-  case NodeType::NoiseDisplacement:
-    // Apply procedural noise displacement to mesh vertices
-    parameters_.emplace_back("amplitude", 0.1F, "Amplitude", 0.0F, 10.0F);
-    parameters_.emplace_back("frequency", 1.0F, "Frequency", 0.01F, 10.0F);
-    parameters_.emplace_back("octaves", 4, "Octaves", 1, 8);
-    parameters_.emplace_back("lacunarity", 2.0F, "Lacunarity", 1.0F, 4.0F);
-    parameters_.emplace_back("persistence", 0.5F, "Persistence", 0.0F, 1.0F);
-    parameters_.emplace_back("seed", 42, "Seed", 0, 10000);
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
-    break;
-
-  case NodeType::CopyToPoints:
-    // Copy template geometry to each point - parameters defined in
-    // CopyToPointsSOP
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Points", 0});
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Template", 1});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Copied", 0});
-    break;
-
-  default:
-    // Default: single input/output
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    output_pins_.push_back(
-        {NodePin::Type::Output, NodePin::DataType::Mesh, "Output", 0});
-    break;
-  }
-}
-
-// NodeGraph Implementation
-
 int NodeGraph::add_node(NodeType type, const std::string &name) {
-  const int node_id = next_node_id_++;
-  const std::string node_name = name.empty() ? generate_node_name(type) : name;
-
-  auto node = std::make_unique<GraphNode>(node_id, type, node_name);
-
-  // Initialize parameters from SOPNode for modern SOPs
-  initialize_node_parameters_from_sop(*node);
-
-  nodes_.push_back(std::move(node));
-
-  notify_node_changed(node_id);
-  return node_id;
+  int id = next_node_id_++;
+  return add_node_with_id(id, type, name);
 }
 
 int NodeGraph::add_node_with_id(int node_id, NodeType type,
                                 const std::string &name) {
-  // For undo/redo: add node with a specific ID
-  const std::string node_name = name.empty() ? generate_node_name(type) : name;
+  // Use provided name or generate one
+  std::string node_name = name.empty() ? generate_node_name(type) : name;
 
   auto node = std::make_unique<GraphNode>(node_id, type, node_name);
 
-  // Initialize parameters from SOPNode for modern SOPs
+  // Initialize parameters from the SOP definition
   initialize_node_parameters_from_sop(*node);
 
   nodes_.push_back(std::move(node));
-
-  // Update next_node_id if necessary to avoid ID conflicts
-  if (node_id >= next_node_id_) {
-    next_node_id_ = node_id + 1;
-  }
-
   notify_node_changed(node_id);
+
   return node_id;
 }
 
@@ -714,6 +486,14 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
     return "Normal";
   case NodeType::Wrangle:
     return "Wrangle";
+  case NodeType::Bevel:
+    return "Bevel";
+  case NodeType::Remesh:
+    return "Remesh";
+  case NodeType::Align:
+    return "Align";
+  case NodeType::Split:
+    return "Split";
 
   // Attributes
   case NodeType::AttributeCreate:

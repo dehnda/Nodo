@@ -59,7 +59,8 @@ public:
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
     const bool cache_enabled = get_parameter<int>("enable_cache", 0) != 0;
-    const bool cache_locked = get_parameter<int>("lock_cache", 0) != 0;
+    [[maybe_unused]] const bool cache_locked =
+        get_parameter<int>("lock_cache", 0) != 0;
     const bool should_clear = get_parameter<int>("clear_cache", 0) != 0;
 
     // Reset clear button

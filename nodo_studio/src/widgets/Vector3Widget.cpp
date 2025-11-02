@@ -219,12 +219,13 @@ bool Vector3Widget::eventFilter(QObject *obj, QEvent *event) {
       if (event->type() == QEvent::MouseButtonPress) {
         auto *mouseEvent = static_cast<QMouseEvent *>(event);
         if (mouseEvent->button() == Qt::LeftButton) {
-          startScrubbing(i, mouseEvent->globalPos());
+          startScrubbing(i, mouseEvent->globalPosition().toPoint());
           return true;
         }
       } else if (event->type() == QEvent::MouseMove && is_scrubbing_[i]) {
         auto *mouseEvent = static_cast<QMouseEvent *>(event);
-        updateScrubbing(i, mouseEvent->globalPos(), mouseEvent->modifiers());
+        updateScrubbing(i, mouseEvent->globalPosition().toPoint(),
+                        mouseEvent->modifiers());
         return true;
       } else if (event->type() == QEvent::MouseButtonRelease &&
                  is_scrubbing_[i]) {

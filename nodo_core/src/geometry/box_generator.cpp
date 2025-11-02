@@ -61,14 +61,14 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
     return (u_seg + 1) * (v_seg + 1);
   };
 
-  const int total_vertices =
+  [[maybe_unused]] const int total_vertices =
       2 * vertices_per_face(width_segments, height_segments) + // front + back
       2 * vertices_per_face(depth_segments, height_segments) + // left + right
       2 * vertices_per_face(width_segments, depth_segments);   // top + bottom
 
   auto faces_per_face = [](int u_seg, int v_seg) { return u_seg * v_seg * 2; };
 
-  const int total_faces =
+  [[maybe_unused]] const int total_faces =
       2 * faces_per_face(width_segments, height_segments) + // front + back
       2 * faces_per_face(depth_segments, height_segments) + // left + right
       2 * faces_per_face(width_segments, depth_segments);   // top + bottom

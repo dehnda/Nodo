@@ -61,6 +61,20 @@ public:
    * This is the single source of truth for node discovery.
    */
   static std::vector<NodeMetadata> get_all_available_nodes();
+
+  /**
+   * @brief Get the number of required inputs for a node type
+   * @param type The node type to query
+   * @return Number of required inputs (0 for generators)
+   */
+  static int get_min_inputs(graph::NodeType type);
+
+  /**
+   * @brief Get the maximum number of inputs for a node type
+   * @param type The node type to query
+   * @return Maximum number of inputs (-1 for unlimited)
+   */
+  static int get_max_inputs(graph::NodeType type);
 };
 
 } // namespace nodo::sop

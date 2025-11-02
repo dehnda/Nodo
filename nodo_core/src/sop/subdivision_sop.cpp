@@ -218,8 +218,9 @@ void SubdivisionSOP::apply_simple_subdivision(
   container = std::move(new_container);
 }
 
-void SubdivisionSOP::apply_catmull_clark(core::GeometryContainer &container,
-                                         bool preserve_boundaries) {
+void SubdivisionSOP::apply_catmull_clark(
+    core::GeometryContainer &container,
+    [[maybe_unused]] bool preserve_boundaries) {
   const auto &old_topology = container.topology();
   const size_t old_point_count = old_topology.point_count();
   const size_t old_prim_count = old_topology.primitive_count();
@@ -233,7 +234,7 @@ void SubdivisionSOP::apply_catmull_clark(core::GeometryContainer &container,
 
   // Check if mesh has triangles - if so, we'll convert them to quads during
   // subdivision
-  bool has_triangles = false;
+  [[maybe_unused]] bool has_triangles = false;
   for (size_t i = 0; i < old_prim_count; ++i) {
     const auto &verts = old_topology.get_primitive_vertices(i);
     if (verts.size() == 3) {

@@ -62,6 +62,7 @@ set(NODO_CORE_SOURCES
     src/sop/mirror_sop.cpp
     src/sop/noise_displacement_sop.cpp
     src/sop/normal_sop.cpp
+    src/sop/bevel_sop.cpp
     src/sop/polyextrude_sop.cpp
     src/sop/resample_sop.cpp
     src/sop/scatter_sop.cpp

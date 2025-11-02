@@ -219,9 +219,8 @@ EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh &mesh,
 
 const core::Error &EnhancedBooleanOps::last_error() { return last_error_; }
 
-std::unique_ptr<BVH>
-EnhancedBooleanOps::build_mesh_bvh(const core::Mesh &mesh,
-                                   const BooleanParams &params) {
+std::unique_ptr<BVH> EnhancedBooleanOps::build_mesh_bvh(
+    const core::Mesh &mesh, [[maybe_unused]] const BooleanParams &params) {
   auto bvh = std::make_unique<BVH>();
   BVH::BuildParams build_params;
 

@@ -54,53 +54,72 @@
 - [x] Build verification (all widgets compile successfully) ✅
 - [x] Documentation (M1.2_WIDGET_LIBRARY_GUIDE.md created) ✅
 - ~~[ ] Universal section styling (gray header, border separator) - DEFERRED to M1.3~~
-- [ ] Update implemention for left click node selector with concept from `docs/contex_menu_concept.html`
+- [x] Update implementation for TAB menu with hybrid search + recent nodes ✅
+- [x] Implement node auto-discovery system (NodeMetadata + SOPFactory) ✅
 - [ ] Implement node library panel with one of the concepts from `node_library_concept.html`
 - [x] PropertyPanel integration testing
 
 **Deliverable:** Reusable widget library with consistent styling ✅ COMPLETE
 
-#### **M1.3: Auto-Generation System** (Weeks 7-9)
-- [x] Implement `PropertyPanel::buildFromNode()` auto-generation
-- [x] Create `ParameterWidgetFactory` for type-based widget creation
-- [x] Mode-based visibility system (`visible_when` conditions)
-- [x] Universal section rendering (always at top, before regular params)
-- [x] Connect widgets to backend parameters (bidirectional updates)
+#### **M1.3: Auto-Generation System** (Weeks 7-9) ✅ COMPLETE
+- [x] Implement `PropertyPanel::buildFromNode()` auto-generation ✅
+- [x] Create `ParameterWidgetFactory` for type-based widget creation ✅
+- [x] Mode-based visibility system (`visible_when` conditions) ✅
+- [x] Universal section rendering (always at top, before regular params) ✅
+- [x] Connect widgets to backend parameters (bidirectional updates) ✅
+- [x] Node creation menu auto-discovery (backend → frontend) ✅
+- [x] NodeMetadata system for single source of truth ✅
 
-**Deliverable:** Property panels auto-generate from parameter definitions
+**Deliverable:** Property panels auto-generate from parameter definitions ✅ COMPLETE
 
-#### **M1.4: Complete All 44 Nodes** (Weeks 10-12)
+#### **M1.4: Complete All 40 Nodes** (Weeks 10-12)
+**Removed 4 duplicate nodes:** Join (=Merge), Displace (=Noise mode), Separate (=Blast), Group Delete node (redundant)
+
 **Implementation order by patch:**
 
 1. **Patch 1 - Geometry Generators (6 nodes)**
-   - Sphere, Cube, Cylinder, Torus, Grid, Plane
+   - Sphere, Box, Cylinder, Torus, Grid, Line
    - Universal: Group + Primitive Type
+   - **Action:** Implement Line SOP (currently header-only)
 
-2. **Patch 2 - Modify Operations (6 nodes)**
-   - Extrude, Subdivide, Noise, Smooth, Bevel, Displace
+2. **Patch 2 - Modify Operations (5 nodes)**
+   - Extrude, Subdivide, Noise Displacement, Smooth (Laplacian), Bevel
    - Universal: Group only
+   - ~~Displace~~ - Removed (duplicate of Noise Displacement)
+   - **Action:** Fix Extrude parameters (private→registered), verify Subdivide
 
 3. **Patch 3 - Transform Operations (6 nodes)**
    - Transform, Array, Copy to Points, Mirror, Scatter, Align
    - Universal: Group only
 
-4. **Patch 4 - Boolean & Combine (6 nodes)**
-   - Boolean, Merge, Join, Split, Remesh, Separate
+4. **Patch 4 - Boolean & Combine (5 nodes)**
+   - Boolean, Merge, Split, Remesh, PolyExtrude
    - Universal: Group only
+   - ~~Join~~ - Removed (duplicate of Merge)
+   - ~~Separate~~ - Removed (use Blast to delete groups)
 
 5. **Patch 5 - Attribute Operations (6 nodes)**
    - Wrangle, Attribute Create, Attribute Delete, Color, Normal, UV Unwrap
    - Universal: Group + Component
+   - **Action:** Verify/implement Attribute Delete, Color
 
-6. **Patch 6 - Group Operations (6 nodes)**
-   - Group Create, Group Delete, Group Promote, Group Combine, Group Expand, Group Transfer
+6. **Patch 6 - Group Operations (7 nodes)**
+   - Group Create, Blast (delete geo), Sort, Group Promote, Group Combine, Group Expand, Group Transfer
    - Universal: Group + Group Type
+   - ~~Group Delete~~ - Removed (deletes group metadata, not needed)
+   - **Action:** Verify Sort exists, implement advanced group ops
 
-7. **Patch 7 - Utility & Workflow (8 nodes)**
-   - Switch, Null, Output, File Import, File Export, Cache, Time, Subnetwork
+7. **Patch 7 - Utility & Workflow (5 nodes)**
+   - Switch, Null, Output, File (Import), Export
    - Universal: Group only
+   - **Deferred to Phase 2:** Cache, Time, Subnetwork (need infrastructure)
 
-**Deliverable:** All 44 nodes with complete UI and backend
+8. **Patch 8 - Deformers (3 nodes)**
+   - Bend, Twist, Lattice
+   - Universal: Group only
+   - **Action:** Simplify Lattice or defer deformation to Phase 2
+
+**Deliverable:** All 40 nodes with complete UI and backend
 
 #### **M1.5: File Format & Serialization** (Weeks 13-14)
 - [ ] Design JSON-based .nfg file format

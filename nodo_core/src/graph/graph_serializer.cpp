@@ -293,6 +293,56 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Merge";
   case NodeType::Switch:
     return "Switch";
+  case NodeType::Null:
+    return "Null";
+  case NodeType::Cache:
+    return "Cache";
+  case NodeType::Time:
+    return "Time";
+  case NodeType::Output:
+    return "Output";
+  case NodeType::UVUnwrap:
+    return "UVUnwrap";
+  case NodeType::Wrangle:
+    return "Wrangle";
+  case NodeType::AttributeCreate:
+    return "AttributeCreate";
+  case NodeType::AttributeDelete:
+    return "AttributeDelete";
+  case NodeType::Color:
+    return "Color";
+  case NodeType::Normal:
+    return "Normal";
+  case NodeType::Group:
+    return "Group";
+  case NodeType::GroupDelete:
+    return "GroupDelete";
+  case NodeType::GroupPromote:
+    return "GroupPromote";
+  case NodeType::GroupCombine:
+    return "GroupCombine";
+  case NodeType::GroupExpand:
+    return "GroupExpand";
+  case NodeType::GroupTransfer:
+    return "GroupTransfer";
+  case NodeType::Blast:
+    return "Blast";
+  case NodeType::Sort:
+    return "Sort";
+  case NodeType::Bend:
+    return "Bend";
+  case NodeType::Twist:
+    return "Twist";
+  case NodeType::Lattice:
+    return "Lattice";
+  case NodeType::Bevel:
+    return "Bevel";
+  case NodeType::Remesh:
+    return "Remesh";
+  case NodeType::Align:
+    return "Align";
+  case NodeType::Split:
+    return "Split";
   default:
     return "Unknown";
   }
@@ -344,6 +394,56 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
     return NodeType::Merge;
   if (type_str == "Switch")
     return NodeType::Switch;
+  if (type_str == "Null")
+    return NodeType::Null;
+  if (type_str == "Cache")
+    return NodeType::Cache;
+  if (type_str == "Time")
+    return NodeType::Time;
+  if (type_str == "Output")
+    return NodeType::Output;
+  if (type_str == "UVUnwrap")
+    return NodeType::UVUnwrap;
+  if (type_str == "Wrangle")
+    return NodeType::Wrangle;
+  if (type_str == "AttributeCreate")
+    return NodeType::AttributeCreate;
+  if (type_str == "AttributeDelete")
+    return NodeType::AttributeDelete;
+  if (type_str == "Color")
+    return NodeType::Color;
+  if (type_str == "Normal")
+    return NodeType::Normal;
+  if (type_str == "Group")
+    return NodeType::Group;
+  if (type_str == "GroupDelete")
+    return NodeType::GroupDelete;
+  if (type_str == "GroupPromote")
+    return NodeType::GroupPromote;
+  if (type_str == "GroupCombine")
+    return NodeType::GroupCombine;
+  if (type_str == "GroupExpand")
+    return NodeType::GroupExpand;
+  if (type_str == "GroupTransfer")
+    return NodeType::GroupTransfer;
+  if (type_str == "Blast")
+    return NodeType::Blast;
+  if (type_str == "Sort")
+    return NodeType::Sort;
+  if (type_str == "Bend")
+    return NodeType::Bend;
+  if (type_str == "Twist")
+    return NodeType::Twist;
+  if (type_str == "Lattice")
+    return NodeType::Lattice;
+  if (type_str == "Bevel")
+    return NodeType::Bevel;
+  if (type_str == "Remesh")
+    return NodeType::Remesh;
+  if (type_str == "Align")
+    return NodeType::Align;
+  if (type_str == "Split")
+    return NodeType::Split;
   return std::nullopt;
 }
 

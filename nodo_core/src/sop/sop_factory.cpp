@@ -1,10 +1,12 @@
 #include "nodo/sop/sop_factory.hpp"
 
 // Include all SOP node headers
+#include "nodo/sop/align_sop.hpp"
 #include "nodo/sop/array_sop.hpp"
 #include "nodo/sop/attribute_create_sop.hpp"
 #include "nodo/sop/attribute_delete_sop.hpp"
 #include "nodo/sop/bend_sop.hpp"
+#include "nodo/sop/bevel_sop.hpp"
 #include "nodo/sop/blast_sop.hpp"
 #include "nodo/sop/boolean_sop.hpp"
 #include "nodo/sop/box_sop.hpp"
@@ -32,10 +34,12 @@
 #include "nodo/sop/null_sop.hpp"
 #include "nodo/sop/output_sop.hpp"
 #include "nodo/sop/polyextrude_sop.hpp"
+#include "nodo/sop/remesh_sop.hpp"
 #include "nodo/sop/resample_sop.hpp"
 #include "nodo/sop/scatter_sop.hpp"
 #include "nodo/sop/sort_sop.hpp"
 #include "nodo/sop/sphere_sop.hpp"
+#include "nodo/sop/split_sop.hpp"
 #include "nodo/sop/subdivisions_sop.hpp"
 #include "nodo/sop/switch_sop.hpp"
 #include "nodo/sop/time_sop.hpp"
@@ -78,6 +82,14 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<NoiseDisplacementSOP>(name);
   case NodeType::Normal:
     return std::make_shared<NormalSOP>(name);
+  case NodeType::Bevel:
+    return std::make_shared<BevelSOP>(name);
+  case NodeType::Remesh:
+    return std::make_shared<RemeshSOP>(name);
+  case NodeType::Align:
+    return std::make_shared<AlignSOP>(name);
+  case NodeType::Split:
+    return std::make_shared<SplitSOP>(name);
 
   // Arrays & Duplication
   case NodeType::Array:
@@ -222,6 +234,14 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
       {NodeType::Twist, "Twist", "Modifier", "Twist geometry around an axis"},
       {NodeType::Lattice, "Lattice", "Modifier",
        "Deform geometry with a lattice cage"},
+      {NodeType::Bevel, "Bevel", "Modifier",
+       "Create beveled edges and corners (Phase 2 placeholder)"},
+      {NodeType::Remesh, "Remesh", "Modifier",
+       "Uniform mesh triangulation (Phase 2 placeholder)"},
+      {NodeType::Align, "Align", "Modifier",
+       "Align geometry bounding box to axes or origin"},
+      {NodeType::Split, "Split", "Modifier",
+       "Separate geometry by connectivity or attribute"},
 
       // Array
       {NodeType::Array, "Array", "Array",
@@ -275,6 +295,24 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
        "Delete geometry by group or selection"},
       {NodeType::Sort, "Sort", "Utility", "Sort points or primitives"},
   };
+}
+
+int SOPFactory::get_min_inputs(graph::NodeType type) {
+  // Create a temporary instance to query its input requirements
+  auto sop = create(type);
+  if (sop) {
+    return sop->get_min_inputs();
+  }
+  return 1; // Default fallback
+}
+
+int SOPFactory::get_max_inputs(graph::NodeType type) {
+  // Create a temporary instance to query its input requirements
+  auto sop = create(type);
+  if (sop) {
+    return sop->get_max_inputs();
+  }
+  return 1; // Default fallback
 }
 
 } // namespace nodo::sop

@@ -169,9 +169,9 @@ TEST_F(MeshRepairerTest, ToleranceSettings) {
   auto test_mesh1 = problematic_mesh_; // Copy for testing
   auto test_mesh2 = problematic_mesh_; // Copy for testing
 
-  auto result_strict =
+  [[maybe_unused]] auto result_strict =
       geometry::MeshRepairer::merge_duplicate_vertices(test_mesh1, 1e-12);
-  auto result_loose =
+  [[maybe_unused]] auto result_loose =
       geometry::MeshRepairer::merge_duplicate_vertices(test_mesh2, 1e-6);
 
   // Should get same results for exact duplicates regardless of tolerance
