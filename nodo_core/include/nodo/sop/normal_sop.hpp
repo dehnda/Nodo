@@ -18,7 +18,7 @@ class NormalSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit NormalSOP(const std::string &name);
+  explicit NormalSOP(const std::string &name = "normal");
 
   std::shared_ptr<core::GeometryContainer> execute() override;
 

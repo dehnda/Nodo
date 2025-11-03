@@ -65,117 +65,117 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
   switch (type) {
   // Transform & Modifiers
   case NodeType::Transform:
-    return std::make_shared<TransformSOP>(name);
+    return std::make_shared<TransformSOP>();
   case NodeType::Extrude:
-    return std::make_shared<ExtrudeSOP>(name);
+    return std::make_shared<ExtrudeSOP>();
   case NodeType::PolyExtrude:
-    return std::make_shared<PolyExtrudeSOP>(name);
+    return std::make_shared<PolyExtrudeSOP>();
   case NodeType::Smooth:
-    return std::make_shared<LaplacianSOP>(name);
+    return std::make_shared<LaplacianSOP>();
   case NodeType::Subdivide:
-    return std::make_shared<SubdivisionSOP>(name);
+    return std::make_shared<SubdivisionSOP>();
   case NodeType::Mirror:
-    return std::make_shared<MirrorSOP>(name);
+    return std::make_shared<MirrorSOP>();
   case NodeType::Resample:
-    return std::make_shared<ResampleSOP>(name);
+    return std::make_shared<ResampleSOP>();
   case NodeType::NoiseDisplacement:
-    return std::make_shared<NoiseDisplacementSOP>(name);
+    return std::make_shared<NoiseDisplacementSOP>();
   case NodeType::Normal:
-    return std::make_shared<NormalSOP>(name);
+    return std::make_shared<NormalSOP>();
   case NodeType::Bevel:
-    return std::make_shared<BevelSOP>(name);
+    return std::make_shared<BevelSOP>();
   case NodeType::Remesh:
-    return std::make_shared<RemeshSOP>(name);
+    return std::make_shared<RemeshSOP>();
   case NodeType::Align:
-    return std::make_shared<AlignSOP>(name);
+    return std::make_shared<AlignSOP>();
   case NodeType::Split:
-    return std::make_shared<SplitSOP>(name);
+    return std::make_shared<SplitSOP>();
 
   // Arrays & Duplication
   case NodeType::Array:
-    return std::make_shared<ArraySOP>(name);
+    return std::make_shared<ArraySOP>();
   case NodeType::Scatter:
-    return std::make_shared<ScatterSOP>(name);
+    return std::make_shared<ScatterSOP>();
   case NodeType::CopyToPoints:
-    return std::make_shared<CopyToPointsSOP>(name);
+    return std::make_shared<CopyToPointsSOP>();
 
   // Boolean
   case NodeType::Boolean:
-    return std::make_shared<BooleanSOP>(name);
+    return std::make_shared<BooleanSOP>();
 
   // Line generator (has SOP)
   case NodeType::Line:
-    return std::make_shared<LineSOP>(name);
+    return std::make_shared<LineSOP>();
 
   // IO
   case NodeType::File:
-    return std::make_shared<FileSOP>(name);
+    return std::make_shared<FileSOP>();
   case NodeType::Export:
-    return std::make_shared<ExportSOP>(name);
+    return std::make_shared<ExportSOP>();
 
   // Basic Primitives SOPs
   case NodeType::Sphere:
-    return std::make_shared<SphereSOP>(name);
+    return std::make_shared<SphereSOP>();
   case NodeType::Box:
-    return std::make_shared<BoxSOP>(name);
+    return std::make_shared<BoxSOP>();
   case NodeType::Cylinder:
-    return std::make_shared<CylinderSOP>(name);
+    return std::make_shared<CylinderSOP>();
   case NodeType::Grid:
-    return std::make_shared<GridSOP>(name);
+    return std::make_shared<GridSOP>();
   case NodeType::Torus:
-    return std::make_shared<TorusSOP>(name);
+    return std::make_shared<TorusSOP>();
   case NodeType::Merge:
-    return std::make_shared<MergeSOP>(name);
+    return std::make_shared<MergeSOP>();
   case NodeType::Group:
-    return std::make_shared<GroupSOP>(name);
+    return std::make_shared<GroupSOP>();
   case NodeType::Switch:
-    return std::make_shared<SwitchSOP>(name);
+    return std::make_shared<SwitchSOP>();
   case NodeType::Null:
-    return std::make_shared<NullSOP>(name);
+    return std::make_shared<NullSOP>();
   case NodeType::Cache:
-    return std::make_shared<CacheSOP>(name);
+    return std::make_shared<CacheSOP>();
   case NodeType::Time:
-    return std::make_shared<TimeSOP>(name);
+    return std::make_shared<TimeSOP>();
   case NodeType::Output:
-    return std::make_shared<OutputSOP>(name);
+    return std::make_shared<OutputSOP>();
   case NodeType::UVUnwrap:
-    return std::make_shared<UVUnwrapSOP>(name);
+    return std::make_shared<UVUnwrapSOP>();
   case NodeType::Wrangle:
-    return std::make_shared<WrangleSOP>(name);
+    return std::make_shared<WrangleSOP>();
 
   // Attributes
   case NodeType::AttributeCreate:
-    return std::make_shared<AttributeCreateSOP>(name);
+    return std::make_shared<AttributeCreateSOP>();
   case NodeType::AttributeDelete:
-    return std::make_shared<AttributeDeleteSOP>(name);
+    return std::make_shared<AttributeDeleteSOP>();
   case NodeType::Color:
-    return std::make_shared<ColorSOP>(name);
+    return std::make_shared<ColorSOP>();
 
   // Group Operations
   case NodeType::GroupDelete:
-    return std::make_shared<GroupDeleteSOP>(name);
+    return std::make_shared<GroupDeleteSOP>();
   case NodeType::GroupPromote:
-    return std::make_shared<GroupPromoteSOP>(name);
+    return std::make_shared<GroupPromoteSOP>();
   case NodeType::GroupCombine:
-    return std::make_shared<GroupCombineSOP>(name);
+    return std::make_shared<GroupCombineSOP>();
   case NodeType::GroupExpand:
-    return std::make_shared<GroupExpandSOP>(name);
+    return std::make_shared<GroupExpandSOP>();
   case NodeType::GroupTransfer:
-    return std::make_shared<GroupTransferSOP>(name);
+    return std::make_shared<GroupTransferSOP>();
 
   // Utility Operations
   case NodeType::Blast:
-    return std::make_shared<BlastSOP>(name);
+    return std::make_shared<BlastSOP>();
   case NodeType::Sort:
-    return std::make_shared<SortSOP>(name);
+    return std::make_shared<SortSOP>();
 
   // Deformation
   case NodeType::Bend:
-    return std::make_shared<BendSOP>(name);
+    return std::make_shared<BendSOP>();
   case NodeType::Twist:
-    return std::make_shared<TwistSOP>(name);
+    return std::make_shared<TwistSOP>();
   case NodeType::Lattice:
-    return std::make_shared<LatticeSOP>(name);
+    return std::make_shared<LatticeSOP>();
 
   default:
     return nullptr;
@@ -313,6 +313,28 @@ int SOPFactory::get_max_inputs(graph::NodeType type) {
     return sop->get_max_inputs();
   }
   return 1; // Default fallback
+}
+
+SOPNode::InputConfig SOPFactory::get_input_config(graph::NodeType type) {
+  // Create a temporary instance to query its input configuration
+  auto sop = create(type);
+  if (sop) {
+    return sop->get_input_config();
+  }
+  // Default fallback: single input modifier
+  return SOPNode::InputConfig(SOPNode::InputType::SINGLE, 1, 1, 1);
+}
+
+std::string SOPFactory::get_display_name(graph::NodeType type) {
+  // Create a temporary instance and get its type name
+  // This avoids duplicating the display name in multiple places
+  auto sop = create(type);
+  if (sop) {
+    return sop->get_name();
+  }
+
+  // Fallback for non-SOP nodes
+  return "Unknown";
 }
 
 } // namespace nodo::sop

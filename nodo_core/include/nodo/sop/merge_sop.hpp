@@ -18,11 +18,13 @@ class MergeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit MergeSOP(const std::string &node_name);
+  explicit MergeSOP(const std::string &node_name = "merge");
 
   // Multi-input node - requires at least 1 input, accepts unlimited
-  int get_min_inputs() const override { return 1; }
-  int get_max_inputs() const override { return -1; } // -1 means unlimited
+  // Single wide input pin that accepts multiple connections
+  InputConfig get_input_config() const override {
+    return InputConfig(InputType::MULTI_DYNAMIC, 1, -1, 1);
+  }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override;

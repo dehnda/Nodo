@@ -30,8 +30,9 @@ public:
   }
 
   // Multi-input node - requires at least 1 input, accepts up to 10
-  int get_min_inputs() const override { return 1; }
-  int get_max_inputs() const override { return 10; }
+  InputConfig get_input_config() const override {
+    return InputConfig(InputType::MULTI_FIXED, 1, 10, 2);
+  }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {

@@ -254,15 +254,34 @@ ExecutionEngine::gather_input_geometries(const NodeGraph &graph, int node_id) {
   // Get all connections that target this node
   const auto &connections = graph.get_connections();
 
+  // Collect connections to this node, grouped by target pin
+  std::unordered_map<int, std::vector<NodeConnection>> connections_by_pin;
   for (const auto &connection : connections) {
     if (connection.target_node_id == node_id) {
+      connections_by_pin[connection.target_pin_index].push_back(connection);
+    }
+  }
+
+  // Process each target pin
+  int input_index = 0;
+  for (auto &[pin_index, pin_connections] : connections_by_pin) {
+    // For pins with multiple connections (MULTI_DYNAMIC nodes),
+    // assign them to sequential input indices in order of connection ID
+    std::sort(pin_connections.begin(), pin_connections.end(),
+              [](const NodeConnection &a, const NodeConnection &b) {
+                return a.id < b.id;
+              });
+
+    for (const auto &connection : pin_connections) {
       // Find the geometry from the source node
       auto geometry_iterator = geometry_cache_.find(connection.source_node_id);
       if (geometry_iterator != geometry_cache_.end() &&
           geometry_iterator->second != nullptr) {
-        // Map the target pin index to the geometry
-        input_geometries[connection.target_pin_index] =
-            geometry_iterator->second;
+        // For single connection to pin: use pin index directly
+        // For multiple connections to same pin: use sequential indices
+        int mapped_index =
+            (pin_connections.size() > 1) ? input_index++ : pin_index;
+        input_geometries[mapped_index] = geometry_iterator->second;
       }
     }
   }

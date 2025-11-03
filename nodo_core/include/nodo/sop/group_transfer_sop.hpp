@@ -21,7 +21,7 @@ class GroupTransferSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupTransferSOP(const std::string &name)
+  explicit GroupTransferSOP(const std::string &name = "group_transfer")
       : SOPNode(name, "GroupTransfer") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

@@ -23,7 +23,7 @@ class WrangleSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit WrangleSOP(const std::string &node_name);
+  explicit WrangleSOP(const std::string &node_name = "wrangle");
   ~WrangleSOP() override;
 
 protected:

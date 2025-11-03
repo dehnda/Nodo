@@ -16,7 +16,7 @@ class GroupDeleteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupDeleteSOP(const std::string &name)
+  explicit GroupDeleteSOP(const std::string &name = "group_delete")
       : SOPNode(name, "GroupDelete") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

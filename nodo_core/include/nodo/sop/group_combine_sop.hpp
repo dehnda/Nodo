@@ -20,7 +20,7 @@ class GroupCombineSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupCombineSOP(const std::string &name)
+  explicit GroupCombineSOP(const std::string &name = "group_combine")
       : SOPNode(name, "GroupCombine") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

@@ -1,6 +1,7 @@
 #include "Command.h"
 #include "NodeGraphWidget.h"
 #include <nodo/graph/node_graph.hpp>
+#include <nodo/sop/sop_factory.hpp>
 
 namespace nodo::studio {
 
@@ -231,25 +232,36 @@ public:
         source_node_id_(source_id), source_pin_(source_pin),
         target_node_id_(target_id), target_pin_(target_pin), connection_id_(-1),
         replaced_connection_id_(-1) {
-    // Check if there's an existing connection to the target pin
-    for (const auto &conn : graph_->get_connections()) {
-      if (conn.target_node_id == target_id &&
-          conn.target_pin_index == target_pin) {
-        replaced_connection_id_ = conn.id;
-        replaced_connection_info_ = conn;
-        break;
+    // Check if target node allows multiple connections to the same pin
+    auto *target_node = graph_->get_node(target_id);
+    if (target_node) {
+      auto config =
+          nodo::sop::SOPFactory::get_input_config(target_node->get_type());
+      bool allows_multiple =
+          (config.type == nodo::sop::SOPNode::InputType::MULTI_DYNAMIC);
+
+      if (!allows_multiple) {
+        // Only check for replacement if node doesn't allow multiple connections
+        for (const auto &conn : graph_->get_connections()) {
+          if (conn.target_node_id == target_id &&
+              conn.target_pin_index == target_pin) {
+            replaced_connection_id_ = conn.id;
+            replaced_connection_info_ = conn;
+            break;
+          }
+        }
       }
     }
   }
 
   void execute() override {
     // Remove old connection's visual representation if it exists
+    // (only for non-MULTI_DYNAMIC nodes)
     if (replaced_connection_id_ != -1) {
       widget_->remove_connection_item_public(replaced_connection_id_);
     }
 
-    // Create connection in graph (this also removes the old connection from
-    // backend)
+    // Create connection in graph
     connection_id_ = graph_->add_connection(source_node_id_, source_pin_,
                                             target_node_id_, target_pin_);
 

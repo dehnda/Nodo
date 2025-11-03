@@ -13,6 +13,10 @@
 
 namespace nodo::graph {
 
+std::string get_node_type_name(NodeType type) {
+  return sop::SOPFactory::get_display_name(type);
+}
+
 namespace {
 
 /**
@@ -107,9 +111,10 @@ void initialize_node_parameters_from_sop(GraphNode &node) {
 
 } // anonymous namespace
 
-GraphNode::GraphNode(int node_id, NodeType type, const std::string &name)
-    : id_(node_id), type_(type), name_(name) {
+GraphNode::GraphNode(int node_id, NodeType type) : id_(node_id), type_(type) {
   // Setup pins based on node type
+  // can we cast to type and get the name
+
   setup_pins_for_type();
 }
 
@@ -117,30 +122,44 @@ void GraphNode::setup_pins_for_type() {
   input_pins_.clear();
   output_pins_.clear();
 
-  // Query the SOP for its input requirements
-  int min_inputs = sop::SOPFactory::get_min_inputs(type_);
-  int max_inputs = sop::SOPFactory::get_max_inputs(type_);
+  // Query the SOP for its input configuration
+  auto config = sop::SOPFactory::get_input_config(type_);
 
-  // Create input pins based on requirements
-  if (min_inputs == 0) {
+  // Create input pins based on configuration type
+  switch (config.type) {
+  case sop::SOPNode::InputType::NONE:
     // Generator node - no inputs
-  } else if (min_inputs == 1 && max_inputs == 1) {
-    // Standard single input node
+    break;
+
+  case sop::SOPNode::InputType::SINGLE:
+    // Standard single input node (Transform, Subdivide, etc.)
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-  } else if (min_inputs == 2 && max_inputs == 2) {
-    // Dual input node (e.g., Boolean, CopyToPoints)
+    break;
+
+  case sop::SOPNode::InputType::DUAL:
+    // Dual input node (Boolean, CopyToPoints, etc.)
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input A", 0});
     input_pins_.push_back(
         {NodePin::Type::Input, NodePin::DataType::Mesh, "Input B", 1});
-  } else if (max_inputs == -1 || max_inputs > 2) {
-    // Multi-input node (e.g., Merge, Switch)
-    // Start with 2 input pins, can be expanded dynamically in UI
+    break;
+
+  case sop::SOPNode::InputType::MULTI_DYNAMIC:
+    // Dynamic multi-input node (Merge, etc.)
+    // Single wide input pin that accepts multiple connections
     input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 1", 0});
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input 2", 1});
+        {NodePin::Type::Input, NodePin::DataType::Mesh, "Inputs", 0});
+    break;
+
+  case sop::SOPNode::InputType::MULTI_FIXED:
+    // Fixed multi-input node (Switch, etc.)
+    // Multiple separate pins, start with initial_pins
+    for (int i = 0; i < config.initial_pins; ++i) {
+      input_pins_.push_back({NodePin::Type::Input, NodePin::DataType::Mesh,
+                             "Input " + std::to_string(i + 1), i});
+    }
+    break;
   }
 
   // All nodes have one output (for now)
@@ -183,10 +202,11 @@ int NodeGraph::add_node(NodeType type, const std::string &name) {
 
 int NodeGraph::add_node_with_id(int node_id, NodeType type,
                                 const std::string &name) {
-  // Use provided name or generate one
-  std::string node_name = name.empty() ? generate_node_name(type) : name;
+  // Use provided name or generate one from the type
+  std::string node_name = name.empty() ? get_node_type_name(type) : name;
 
-  auto node = std::make_unique<GraphNode>(node_id, type, node_name);
+  auto node = std::make_unique<GraphNode>(node_id, type);
+  node->set_name(node_name);
 
   // Initialize parameters from the SOP definition
   initialize_node_parameters_from_sop(*node);
@@ -241,6 +261,14 @@ int NodeGraph::add_connection(int source_node_id, int source_pin,
     return -1;
   }
 
+  // Get target node's input configuration
+  auto *target_node = get_node(target_node_id);
+  if (!target_node) {
+    return -1;
+  }
+
+  auto config = sop::SOPFactory::get_input_config(target_node->get_type());
+
   // Check for existing connection to target pin
   auto existing =
       std::find_if(connections_.begin(), connections_.end(),
@@ -250,8 +278,17 @@ int NodeGraph::add_connection(int source_node_id, int source_pin,
                    });
 
   if (existing != connections_.end()) {
-    // Remove existing connection (only one input per pin)
-    remove_connection(existing->id);
+    // Behavior depends on input type:
+    // - NONE: Should never happen (no inputs)
+    // - SINGLE, DUAL, MULTI_FIXED: Replace existing connection (one per pin)
+    // - MULTI_DYNAMIC: Allow multiple connections to same pin (don't replace)
+    if (config.type != sop::SOPNode::InputType::MULTI_DYNAMIC) {
+      // For single/dual/fixed inputs, remove existing connection (only one per
+      // pin)
+      remove_connection(existing->id);
+    }
+    // For MULTI_DYNAMIC, we allow multiple connections to the same pin
+    // so we don't remove the existing connection
   }
 
   // Add new connection
@@ -260,7 +297,7 @@ int NodeGraph::add_connection(int source_node_id, int source_pin,
       {connection_id, source_node_id, source_pin, target_node_id, target_pin});
 
   // Mark target node for update
-  if (auto *target_node = get_node(target_node_id)) {
+  if (target_node) {
     target_node->mark_for_update();
   }
 
@@ -440,125 +477,8 @@ void NodeGraph::notify_connection_changed(int connection_id) {
 }
 
 std::string NodeGraph::generate_node_name(NodeType type) const {
-  // Use switch statement to keep names in sync with enum
-  // Compiler will warn if we miss a case with -Wswitch-enum
-  switch (type) {
-  // Generators
-  case NodeType::Sphere:
-    return "Sphere";
-  case NodeType::Box:
-    return "Box";
-  case NodeType::Cylinder:
-    return "Cylinder";
-  case NodeType::Grid:
-    return "Plane";
-  case NodeType::Torus:
-    return "Torus";
-  case NodeType::Line:
-    return "Line";
-
-  // IO
-  case NodeType::File:
-    return "File";
-  case NodeType::Export:
-    return "Export";
-
-  // Modifiers
-  case NodeType::Extrude:
-    return "Extrude";
-  case NodeType::PolyExtrude:
-    return "PolyExtrude";
-  case NodeType::Smooth:
-    return "Smooth";
-  case NodeType::Subdivide:
-    return "Subdivide";
-  case NodeType::Transform:
-    return "Transform";
-  case NodeType::Array:
-    return "Array";
-  case NodeType::Mirror:
-    return "Mirror";
-  case NodeType::Resample:
-    return "Resample";
-  case NodeType::NoiseDisplacement:
-    return "NoiseDisplacement";
-  case NodeType::Normal:
-    return "Normal";
-  case NodeType::Wrangle:
-    return "Wrangle";
-  case NodeType::Bevel:
-    return "Bevel";
-  case NodeType::Remesh:
-    return "Remesh";
-  case NodeType::Align:
-    return "Align";
-  case NodeType::Split:
-    return "Split";
-
-  // Attributes
-  case NodeType::AttributeCreate:
-    return "AttributeCreate";
-  case NodeType::AttributeDelete:
-    return "AttributeDelete";
-  case NodeType::Color:
-    return "Color";
-
-  // Group Operations
-  case NodeType::GroupDelete:
-    return "GroupDelete";
-  case NodeType::GroupPromote:
-    return "GroupPromote";
-  case NodeType::GroupCombine:
-    return "GroupCombine";
-  case NodeType::GroupExpand:
-    return "GroupExpand";
-  case NodeType::GroupTransfer:
-    return "GroupTransfer";
-
-  // Utility Operations
-  case NodeType::Blast:
-    return "Blast";
-  case NodeType::Sort:
-    return "Sort";
-
-  // Deformation
-  case NodeType::Bend:
-    return "Bend";
-  case NodeType::Twist:
-    return "Twist";
-  case NodeType::Lattice:
-    return "Lattice";
-
-  // Boolean Operations
-  case NodeType::Boolean:
-    return "Boolean";
-
-  // Point Operations
-  case NodeType::Scatter:
-    return "Scatter";
-  case NodeType::CopyToPoints:
-    return "CopyToPoints";
-
-  // Utilities
-  case NodeType::Merge:
-    return "Merge";
-  case NodeType::Group:
-    return "Group";
-  case NodeType::Switch:
-    return "Switch";
-  case NodeType::Null:
-    return "Null";
-  case NodeType::Cache:
-    return "Cache";
-  case NodeType::Time:
-    return "Time";
-  case NodeType::Output:
-    return "Output";
-  case NodeType::UVUnwrap:
-    return "UVUnwrap";
-  }
-
-  return "Unknown";
+  // Get display name from SOP metadata - single source of truth
+  return sop::SOPFactory::get_display_name(type);
 }
 
 void NodeGraph::set_display_node(int node_id) {

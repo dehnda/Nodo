@@ -66,8 +66,9 @@ public:
   }
 
   // Generator node - no inputs required
-  int get_min_inputs() const override { return 0; }
-  int get_max_inputs() const override { return 0; }
+  InputConfig get_input_config() const override {
+    return InputConfig(InputType::NONE, 0, 0, 0);
+  }
 
   void set_radii(float major_radius, float minor_radius) {
     set_parameter("major_radius", major_radius);

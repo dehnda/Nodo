@@ -18,7 +18,7 @@ class GroupPromoteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupPromoteSOP(const std::string &name)
+  explicit GroupPromoteSOP(const std::string &name = "group_promote")
       : SOPNode(name, "GroupPromote") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

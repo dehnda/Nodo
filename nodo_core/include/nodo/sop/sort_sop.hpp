@@ -21,7 +21,7 @@ class SortSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SortSOP(const std::string &name) : SOPNode(name, "Sort") {
+  explicit SortSOP(const std::string &name = "sort") : SOPNode(name, "Sort") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
 

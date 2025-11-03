@@ -22,7 +22,7 @@ class GroupSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupSOP(const std::string &name);
+  explicit GroupSOP(const std::string &name = "group");
   ~GroupSOP() override = default;
 
 protected:

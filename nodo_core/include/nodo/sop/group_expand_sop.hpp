@@ -21,7 +21,7 @@ class GroupExpandSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupExpandSOP(const std::string &name)
+  explicit GroupExpandSOP(const std::string &name = "group_expand")
       : SOPNode(name, "GroupExpand") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

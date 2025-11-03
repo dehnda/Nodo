@@ -66,6 +66,7 @@ public:
    * @brief Get the number of required inputs for a node type
    * @param type The node type to query
    * @return Number of required inputs (0 for generators)
+   * @deprecated Use get_input_config() instead
    */
   static int get_min_inputs(graph::NodeType type);
 
@@ -73,8 +74,23 @@ public:
    * @brief Get the maximum number of inputs for a node type
    * @param type The node type to query
    * @return Maximum number of inputs (-1 for unlimited)
+   * @deprecated Use get_input_config() instead
    */
   static int get_max_inputs(graph::NodeType type);
+
+  /**
+   * @brief Get input configuration for a node type
+   * @param type The node type to query
+   * @return InputConfig with input handling details
+   */
+  static SOPNode::InputConfig get_input_config(graph::NodeType type);
+
+  /**
+   * @brief Get display name for a node type
+   * @param type The node type to query
+   * @return Display name (e.g., "Sphere", "Copy to Points")
+   */
+  static std::string get_display_name(graph::NodeType type);
 };
 
 } // namespace nodo::sop

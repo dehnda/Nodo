@@ -18,7 +18,8 @@ class BlastSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit BlastSOP(const std::string &name) : SOPNode(name, "Blast") {
+  explicit BlastSOP(const std::string &name = "blast")
+      : SOPNode(name, "Blast") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
 

@@ -88,6 +88,13 @@ enum class NodeType {
 };
 
 /**
+ * @brief Get display name for a node type
+ * @param type The node type
+ * @return Display name from SOP metadata (e.g., "Sphere", "Copy to Points")
+ */
+std::string get_node_type_name(NodeType type);
+
+/**
  * @brief Parameter value that can hold different types
  */
 struct NodeParameter {
@@ -208,7 +215,7 @@ struct NodePin {
  */
 class GraphNode {
 public:
-  GraphNode(int id, NodeType type, const std::string &name);
+  GraphNode(int id, NodeType type);
 
   // Basic properties
   int get_id() const { return id_; }

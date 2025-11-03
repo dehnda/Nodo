@@ -15,7 +15,7 @@ class UVUnwrapSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit UVUnwrapSOP(const std::string &name);
+  explicit UVUnwrapSOP(const std::string &name = "uv_unwrap");
   ~UVUnwrapSOP() override = default;
 
   std::shared_ptr<core::GeometryContainer> execute() override;

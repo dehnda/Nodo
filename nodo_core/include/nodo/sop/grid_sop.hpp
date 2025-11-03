@@ -80,8 +80,9 @@ public:
   }
 
   // Generator node - no inputs required
-  int get_min_inputs() const override { return 0; }
-  int get_max_inputs() const override { return 0; }
+  InputConfig get_input_config() const override {
+    return InputConfig(InputType::NONE, 0, 0, 0);
+  }
 
   void set_size(float size_x, float size_z) {
     set_parameter("size_x", size_x);

@@ -74,6 +74,31 @@ public:
   };
 
   /**
+   * @brief Input configuration type - defines how a node handles inputs
+   */
+  enum class InputType : std::uint8_t {
+    NONE,          // Generator nodes (Box, Sphere) - no inputs
+    SINGLE,        // Standard modifiers (Transform, Subdivide) - 1 input
+    DUAL,          // Dual-input operations (Boolean) - exactly 2 inputs
+    MULTI_DYNAMIC, // Dynamic multi-input (Merge) - unlimited inputs
+    MULTI_FIXED    // Fixed multi-input (Switch) - up to N inputs
+  };
+
+  /**
+   * @brief Input configuration structure
+   */
+  struct InputConfig {
+    InputType type;   // Type of input handling
+    int min_count;    // Minimum required inputs
+    int max_count;    // Maximum allowed inputs (-1 = unlimited)
+    int initial_pins; // How many pins to show initially in UI
+
+    InputConfig(InputType input_type, int min, int max, int initial)
+        : type(input_type), min_count(min), max_count(max),
+          initial_pins(initial) {}
+  };
+
+  /**
    * @brief Fluent builder for parameter definitions
    */
   class ParameterBuilder {
@@ -336,15 +361,27 @@ public:
    * @brief Get minimum number of required inputs
    * Override in derived classes to specify input requirements
    * @return Minimum inputs (0 for generators, 1 for modifiers, etc.)
+   * @deprecated Use get_input_config() instead
    */
-  virtual int get_min_inputs() const { return 1; } // Default: 1 input required
+  virtual int get_min_inputs() const { return get_input_config().min_count; }
 
   /**
    * @brief Get maximum number of allowed inputs
    * Override in derived classes to specify input limits
    * @return Maximum inputs (-1 for unlimited)
+   * @deprecated Use get_input_config() instead
    */
-  virtual int get_max_inputs() const { return 1; } // Default: 1 input max
+  virtual int get_max_inputs() const { return get_input_config().max_count; }
+
+  /**
+   * @brief Get input configuration for this node type
+   * Override in derived classes to specify input handling behavior
+   * @return InputConfig with type, min/max counts, and initial pin count
+   */
+  virtual InputConfig get_input_config() const {
+    // Default: single input modifier (Transform, Subdivide, etc.)
+    return InputConfig(InputType::SINGLE, 1, 1, 1);
+  }
 
 protected:
   /**
