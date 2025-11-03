@@ -584,10 +584,15 @@ void ViewportWidget::addWireframeOverlay(
     int node_id, const nodo::core::GeometryContainer &geometry) {
   makeCurrent();
 
+  qDebug() << "ViewportWidget::addWireframeOverlay - node_id:" << node_id
+           << "points:" << geometry.point_count()
+           << "primitives:" << geometry.primitive_count();
+
   // Get positions from "P" attribute
   const auto *positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
       nodo::core::standard_attrs::P);
   if (positions == nullptr) {
+    qDebug() << "  ERROR: No position attribute found!";
     doneCurrent();
     return;
   }
@@ -606,11 +611,15 @@ void ViewportWidget::addWireframeOverlay(
     // For each edge in the polygon
     for (size_t i = 0; i < num_vertices; ++i) {
       const size_t next_i = (i + 1) % num_vertices;
-      const size_t v1_idx = vertex_indices[i];
-      const size_t v2_idx = vertex_indices[next_i];
+      const int v1_idx = vertex_indices[i];
+      const int v2_idx = vertex_indices[next_i];
 
-      const auto &p1 = pos_values[v1_idx];
-      const auto &p2 = pos_values[v2_idx];
+      // Convert vertex indices to point indices
+      const int p1_idx = topology.get_vertex_point(v1_idx);
+      const int p2_idx = topology.get_vertex_point(v2_idx);
+
+      const auto &p1 = pos_values[p1_idx];
+      const auto &p2 = pos_values[p2_idx];
 
       // Add edge as two vertices (line segment)
       edge_vertex_data.push_back(p1.x());
@@ -624,9 +633,13 @@ void ViewportWidget::addWireframeOverlay(
   }
 
   if (edge_vertex_data.empty()) {
+    qDebug() << "  ERROR: No edge vertex data generated!";
     doneCurrent();
     return;
   }
+
+  qDebug() << "  Generated" << (edge_vertex_data.size() / 6)
+           << "edge segments (" << edge_vertex_data.size() << "floats total)";
 
   // Create or update overlay
   auto overlay = std::make_unique<WireframeOverlay>();
@@ -1624,6 +1637,13 @@ void ViewportWidget::drawWireframeOverlays() {
     return;
   }
 
+  if (wireframe_overlays_.empty()) {
+    return;
+  }
+
+  qDebug() << "Drawing wireframe overlays, count:"
+           << wireframe_overlays_.size();
+
   simple_shader_program_->bind();
   simple_shader_program_->setUniformValue("model", model_matrix_);
   simple_shader_program_->setUniformValue("view", view_matrix_);
@@ -1633,10 +1653,12 @@ void ViewportWidget::drawWireframeOverlays() {
   simple_shader_program_->setUniformValue("color", QVector3D(1.0F, 0.8F, 0.0F));
 
   // Use standard line width for wireframe overlays
-  glLineWidth(1.0F);
+  glLineWidth(2.0F);
 
   // Draw each wireframe overlay
   for (const auto &[node_id, overlay] : wireframe_overlays_) {
+    qDebug() << "  Drawing overlay for node" << node_id
+             << "vertex_count:" << (overlay ? overlay->vertex_count : 0);
     if (overlay && overlay->vao && overlay->vertex_count > 0) {
       overlay->vao->bind();
       glDrawArrays(GL_LINES, 0, overlay->vertex_count);
