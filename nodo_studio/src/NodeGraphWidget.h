@@ -343,6 +343,12 @@ private:
   int connection_source_pin_ = -1;
   QGraphicsLineItem *temp_connection_line_ = nullptr;
 
+  // Pending connection for node creation (when dragging out a connection)
+  bool has_pending_connection_ = false;
+  int pending_connection_source_node_id_ = -1;
+  int pending_connection_source_pin_ = -1;
+  QPointF pending_connection_target_pos_;
+
   // Box selection state
   QPointF selection_start_pos_;
   QGraphicsRectItem *selection_rect_ = nullptr;

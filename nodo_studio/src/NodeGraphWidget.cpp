@@ -1162,6 +1162,8 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
     QGraphicsItem *item = scene_->itemAt(scene_pos, transform());
     auto *target_node_item = dynamic_cast<NodeGraphicsItem *>(item);
 
+    bool connection_made = false;
+
     if (target_node_item != nullptr &&
         target_node_item != connection_source_node_) {
       bool is_input = false;
@@ -1180,7 +1182,24 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
           // Signal is now emitted from the command's execute() method
           // so it works for both regular creation and undo/redo
         }
+        connection_made = true;
       }
+    }
+
+    // If no connection was made, show node selector for creating+connecting
+    if (!connection_made && connection_source_node_ != nullptr) {
+      // Store pending connection info
+      has_pending_connection_ = true;
+      pending_connection_source_node_id_ = connection_source_node_->get_node_id();
+      pending_connection_source_pin_ = connection_source_pin_;
+      pending_connection_target_pos_ = scene_pos;
+
+      // Store scene position for node creation
+      context_menu_scene_pos_ = scene_pos;
+
+      // Show node selector at mouse position
+      QPoint global_pos = event->globalPos();
+      node_creation_menu_->showAtPosition(global_pos);
     }
 
     // Clean up temporary line
@@ -1563,6 +1582,30 @@ void NodeGraphWidget::on_node_menu_selected(const QString &type_id) {
 
   // Create node at the last context menu position
   create_node_at_position(node_type, context_menu_scene_pos_);
+
+  // If we have a pending connection, auto-connect to the first input of new node
+  if (has_pending_connection_ && graph_ != nullptr && undo_stack_ != nullptr) {
+    // Get the newly created node (it's the last one added)
+    if (!graph_->get_nodes().empty()) {
+      int new_node_id = graph_->get_nodes().back()->get_id();
+      auto *new_node = graph_->get_node(new_node_id);
+      
+      // Check if the new node has at least one input pin
+      if (new_node != nullptr && !new_node->get_input_pins().empty()) {
+        // Connect to the first input pin (index 0)
+        auto cmd = nodo::studio::create_connect_command(
+            this, graph_, pending_connection_source_node_id_,
+            pending_connection_source_pin_, new_node_id, 0);
+        undo_stack_->push(std::move(cmd));
+      }
+    }
+
+    // Clear pending connection state
+    has_pending_connection_ = false;
+    pending_connection_source_node_id_ = -1;
+    pending_connection_source_pin_ = -1;
+    pending_connection_target_pos_ = QPointF();
+  }
 }
 
 nodo::graph::NodeType
