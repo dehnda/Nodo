@@ -21,6 +21,9 @@ private:
 
 public:
   explicit BendSOP(const std::string &name = "bend") : SOPNode(name, "Bend") {
+    // Create input port
+    input_ports_.add_port("0", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
 
     // Bend angle in degrees
     register_parameter(
@@ -60,7 +63,7 @@ public:
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
-    auto input_geo = get_input_data("geometry");
+    auto input_geo = get_input_data(0);
     if (!input_geo) {
       set_error("BendSOP requires input geometry");
       return nullptr;

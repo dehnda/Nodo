@@ -21,6 +21,9 @@ private:
 public:
   explicit TwistSOP(const std::string &name = "twist")
       : SOPNode(name, "Twist") {
+    // Create input port
+    input_ports_.add_port("0", NodePort::Type::INPUT,
+                          NodePort::DataType::GEOMETRY, this);
 
     // Twist angle in degrees per unit
     register_parameter(
@@ -62,7 +65,7 @@ public:
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
-    auto input_geo = get_input_data("geometry");
+    auto input_geo = get_input_data(0);
     if (!input_geo) {
       set_error("TwistSOP requires input geometry");
       return nullptr;
