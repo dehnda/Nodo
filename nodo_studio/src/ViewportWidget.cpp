@@ -32,7 +32,7 @@ void main() {
 }
 )";
 
-// Fragment shader source (GLSL 330) - simple Blinn-Phong shading
+// Fragment shader source (GLSL 330) - Blender-style 3-point lighting
 static const char *fragment_shader_source = R"(
 #version 330 core
 
@@ -41,32 +41,89 @@ in vec3 frag_normal;
 
 out vec4 frag_color;
 
-uniform vec3 light_position = vec3(10.0, 10.0, 10.0);
 uniform vec3 view_position;
 uniform vec3 object_color = vec3(0.7, 0.7, 0.7);
 
 void main() {
     // Normalize interpolated normal
     vec3 normal = normalize(frag_normal);
-
-    // Ambient lighting
-    float ambient_strength = 0.3;
-    vec3 ambient = ambient_strength * vec3(1.0);
-
-    // Diffuse lighting
-    vec3 light_dir = normalize(light_position - frag_position);
-    float diff = max(dot(normal, light_dir), 0.0);
-    vec3 diffuse = diff * vec3(1.0);
-
-    // Specular lighting (Blinn-Phong)
     vec3 view_dir = normalize(view_position - frag_position);
-    vec3 halfway_dir = normalize(light_dir + view_dir);
-    float spec = pow(max(dot(normal, halfway_dir), 0.0), 32.0);
-    vec3 specular = 0.5 * spec * vec3(1.0);
 
-    // Combine lighting
-    vec3 result = (ambient + diffuse + specular) * object_color;
+    // Base ambient (darker for more dramatic look)
+    vec3 ambient = vec3(0.25, 0.25, 0.28);
+
+    // KEY LIGHT (main light, warm, from top-front-right, like Blender)
+    vec3 key_light_dir = normalize(vec3(0.6, 0.8, 0.4));
+    float key_diff = max(dot(normal, key_light_dir), 0.0);
+    vec3 key_color = vec3(1.0, 0.98, 0.95) * 0.65; // Slightly warm, reduced intensity
+    vec3 key_light = key_diff * key_color;
+
+    // FILL LIGHT (softer, from opposite side, slightly blue)
+    vec3 fill_light_dir = normalize(vec3(-0.5, 0.3, 0.5));
+    float fill_diff = max(dot(normal, fill_light_dir), 0.0);
+    vec3 fill_color = vec3(0.95, 0.98, 1.0) * 0.3; // Slightly cool, reduced intensity
+    vec3 fill_light = fill_diff * fill_color;
+
+    // RIM LIGHT (backlight for edge definition, like Blender)
+    vec3 rim_light_dir = normalize(vec3(0.0, 0.5, -1.0));
+    float rim_diff = max(dot(normal, rim_light_dir), 0.0);
+    float rim_fresnel = pow(1.0 - max(dot(view_dir, normal), 0.0), 3.0);
+    vec3 rim_light = rim_diff * rim_fresnel * vec3(1.0) * 0.25;
+
+    // Specular highlight (Blinn-Phong from key light)
+    vec3 halfway_dir = normalize(key_light_dir + view_dir);
+    float spec = pow(max(dot(normal, halfway_dir), 0.0), 64.0);
+    vec3 specular = spec * vec3(1.0) * 0.25;
+
+    // Subtle subsurface scattering approximation (soften shadows)
+    float sss = max(0.0, dot(normal, key_light_dir) * 0.5 + 0.5);
+    vec3 sss_color = vec3(0.1, 0.1, 0.12) * sss;
+
+    // Combine all lighting
+    vec3 result = (ambient + key_light + fill_light + rim_light + sss_color + specular) * object_color;
+
+    // Slight gamma correction for better contrast
+    result = pow(result, vec3(0.95));
+
     frag_color = vec4(result, 1.0);
+}
+)";
+
+// Grid vertex shader with distance calculation
+static const char *grid_vertex_shader_source = R"(
+#version 330 core
+
+layout(location = 0) in vec3 position;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+uniform vec3 view_position;
+
+out float frag_distance;
+
+void main() {
+    vec4 world_pos = model * vec4(position, 1.0);
+    frag_distance = length(world_pos.xyz - view_position);
+    gl_Position = projection * view * world_pos;
+}
+)";
+
+// Grid fragment shader with distance-based fade
+static const char *grid_fragment_shader_source = R"(
+#version 330 core
+
+in float frag_distance;
+out vec4 frag_color;
+
+uniform vec3 grid_color = vec3(0.35, 0.35, 0.35);
+uniform float fade_start = 8.0;
+uniform float fade_end = 20.0;
+
+void main() {
+    // Distance-based alpha fade
+    float alpha = 1.0 - smoothstep(fade_start, fade_end, frag_distance);
+    frag_color = vec4(grid_color, alpha);
 }
 )";
 
@@ -766,6 +823,7 @@ void ViewportWidget::initializeGL() {
   // Setup shaders
   setupShaders();
   setupSimpleShader();
+  setupGridShader();
 
   // Setup buffers
   setupBuffers();
@@ -1034,6 +1092,33 @@ void ViewportWidget::setupSimpleShader() {
   }
 }
 
+void ViewportWidget::setupGridShader() {
+  grid_shader_program_ = std::make_unique<QOpenGLShaderProgram>();
+
+  // Compile vertex shader
+  if (!grid_shader_program_->addShaderFromSourceCode(
+          QOpenGLShader::Vertex, grid_vertex_shader_source)) {
+    qWarning() << "Grid vertex shader compilation failed:"
+               << grid_shader_program_->log();
+    return;
+  }
+
+  // Compile fragment shader
+  if (!grid_shader_program_->addShaderFromSourceCode(
+          QOpenGLShader::Fragment, grid_fragment_shader_source)) {
+    qWarning() << "Grid fragment shader compilation failed:"
+               << grid_shader_program_->log();
+    return;
+  }
+
+  // Link shader program
+  if (!grid_shader_program_->link()) {
+    qWarning() << "Grid shader program linking failed:"
+               << grid_shader_program_->log();
+    return;
+  }
+}
+
 void ViewportWidget::setupBuffers() {
   // Create VAO
   vao_ = std::make_unique<QOpenGLVertexArrayObject>();
@@ -1114,7 +1199,8 @@ void ViewportWidget::calculateMeshBounds(const nodo::core::Mesh &mesh) {
 
 void ViewportWidget::setupGrid() {
   // Create grid on XZ plane (Y=0)
-  constexpr int GRID_SIZE = 20;
+  // Make it large enough for typical modeling tasks (100x100 units)
+  constexpr int GRID_SIZE = 100;
   constexpr float GRID_SPACING = 1.0F;
   const float half_size = static_cast<float>(GRID_SIZE) * GRID_SPACING * 0.5F;
 
@@ -1213,23 +1299,42 @@ void ViewportWidget::setupAxes() {
 }
 
 void ViewportWidget::drawGrid() {
-  if (!show_grid_ || !grid_vao_) {
+  if (!show_grid_ || !grid_vao_ || !grid_shader_program_) {
     return;
   }
 
-  // Use a simple shader approach - we'll use the main shader but with a gray
-  // color
-  shader_program_->bind();
-  shader_program_->setUniformValue("model", model_matrix_);
-  shader_program_->setUniformValue("view", view_matrix_);
-  shader_program_->setUniformValue("projection", projection_matrix_);
-  shader_program_->setUniformValue("object_color", QVector3D(0.5F, 0.5F, 0.5F));
+  // Enable blending for alpha fade
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Use grid shader with distance-based fading
+  grid_shader_program_->bind();
+  grid_shader_program_->setUniformValue("model", model_matrix_);
+  grid_shader_program_->setUniformValue("view", view_matrix_);
+  grid_shader_program_->setUniformValue("projection", projection_matrix_);
+
+  // Calculate camera position for distance-based fade
+  QMatrix4x4 view_inverse = view_matrix_.inverted();
+  QVector3D camera_pos = view_inverse.map(QVector3D(0.0F, 0.0F, 0.0F));
+  grid_shader_program_->setUniformValue("view_position", camera_pos);
+
+  // Lighter gray color
+  grid_shader_program_->setUniformValue("grid_color",
+                                        QVector3D(0.35F, 0.35F, 0.35F));
+
+  // Fade distances - much farther for 100x100 grid, keep grid visible at
+  // typical camera distances
+  grid_shader_program_->setUniformValue("fade_start", 60.0F);
+  grid_shader_program_->setUniformValue("fade_end", 80.0F);
 
   grid_vao_->bind();
   glDrawArrays(GL_LINES, 0, grid_vertex_count_);
   grid_vao_->release();
 
-  shader_program_->release();
+  grid_shader_program_->release();
+
+  // Disable blending
+  glDisable(GL_BLEND);
 }
 
 void ViewportWidget::drawAxes() {

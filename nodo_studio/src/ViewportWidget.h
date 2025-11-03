@@ -94,6 +94,8 @@ private:
   std::unique_ptr<QOpenGLShaderProgram> shader_program_;
   std::unique_ptr<QOpenGLShaderProgram>
       simple_shader_program_; // For edges and vertices
+  std::unique_ptr<QOpenGLShaderProgram>
+      grid_shader_program_; // For grid with distance fade
   std::unique_ptr<QOpenGLVertexArrayObject> vao_;
   std::unique_ptr<QOpenGLBuffer> vertex_buffer_;
   std::unique_ptr<QOpenGLBuffer> normal_buffer_;
@@ -173,6 +175,7 @@ private:
   // Private helper methods
   void setupShaders();
   void setupSimpleShader();
+  void setupGridShader();
   void setupBuffers();
   void setupGrid();
   void setupAxes();
