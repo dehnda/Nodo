@@ -227,6 +227,8 @@ QString IconManager::getIconFileName(Icon icon) const {
     return "eye";
   case Icon::EyeClosed:
     return "eye-closed";
+  case Icon::PointNumbers:
+    return "numbered-list-left";
 
   // Node generators
   case Icon::Sphere:

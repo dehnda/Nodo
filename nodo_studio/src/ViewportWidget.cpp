@@ -871,7 +871,9 @@ void ViewportWidget::paintGL() {
 
   if (show_vertices_ || is_point_cloud) {
     drawVertices();
-    drawPointLabels(); // Draw point numbers over the vertices
+    if (show_point_numbers_) {
+      drawPointLabels(); // Draw point numbers over the vertices
+    }
   }
 
   // Draw wireframe overlays on top of everything
@@ -1936,6 +1938,11 @@ void ViewportWidget::setShowVertices(bool show) {
   update();
 }
 
+void ViewportWidget::setShowPointNumbers(bool show) {
+  show_point_numbers_ = show;
+  update();
+}
+
 // ============================================================================
 // Overlay Management
 // ============================================================================
@@ -1954,6 +1961,8 @@ void ViewportWidget::setupOverlays() {
           &ViewportWidget::setWireframeMode);
   connect(controls_overlay_, &ViewportControlsOverlay::shadingModeChanged, this,
           [this](const QString &mode) { setShadingEnabled(mode == "smooth"); });
+  connect(controls_overlay_, &ViewportControlsOverlay::pointNumbersToggled,
+          this, &ViewportWidget::setShowPointNumbers);
   connect(controls_overlay_, &ViewportControlsOverlay::cameraReset, this,
           &ViewportWidget::resetCamera);
   connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView, this,

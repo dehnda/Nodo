@@ -104,8 +104,8 @@ void ViewportControlsOverlay::setupUI() {
 
   // Wireframe toggle button
   wireframe_btn_ = new QPushButton(this);
-  wireframe_btn_->setIcon(nodo_studio::Icons::get(
-      nodo_studio::IconManager::Icon::Wireframe));
+  wireframe_btn_->setIcon(
+      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Wireframe));
   wireframe_btn_->setCheckable(true);
   wireframe_btn_->setToolTip("Toggle Wireframe");
   wireframe_btn_->setFixedSize(40, 40);
@@ -158,6 +158,34 @@ void ViewportControlsOverlay::setupUI() {
   });
   layout->addWidget(shaded_btn_);
 
+  // Point numbers toggle button
+  point_numbers_btn_ = new QPushButton(this);
+  point_numbers_btn_->setIcon(
+      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PointNumbers));
+  point_numbers_btn_->setCheckable(true);
+  point_numbers_btn_->setToolTip("Toggle Point Numbers");
+  point_numbers_btn_->setFixedSize(40, 40);
+  point_numbers_btn_->setStyleSheet(
+      "QPushButton {"
+      "   background: rgba(0, 0, 0, 0.6);"
+      "   border: 1px solid rgba(255, 255, 255, 0.1);"
+      "   border-radius: 8px;"
+      "   color: #e0e0e0;"
+      "   font-size: 18px;"
+      "}"
+      "QPushButton:hover {"
+      "   background: rgba(0, 0, 0, 0.8);"
+      "   border-color: rgba(255, 255, 255, 0.2);"
+      "}"
+      "QPushButton:checked {"
+      "   background: #4a9eff;"
+      "   border-color: #4a9eff;"
+      "   color: white;"
+      "}");
+  connect(point_numbers_btn_, &QPushButton::toggled, this,
+          &ViewportControlsOverlay::pointNumbersToggled);
+  layout->addWidget(point_numbers_btn_);
+
   // Separator (visual only)
   auto *separator = new QWidget(this);
   separator->setFixedHeight(1);
@@ -166,8 +194,8 @@ void ViewportControlsOverlay::setupUI() {
 
   // Reset camera button
   reset_camera_btn_ = new QPushButton(this);
-  reset_camera_btn_->setIcon(nodo_studio::Icons::get(
-      nodo_studio::IconManager::Icon::ResetCamera));
+  reset_camera_btn_->setIcon(
+      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::ResetCamera));
   reset_camera_btn_->setToolTip("Reset Camera");
   reset_camera_btn_->setFixedSize(40, 40);
   reset_camera_btn_->setStyleSheet(

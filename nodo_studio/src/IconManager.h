@@ -38,8 +38,7 @@ public:
     FitView,
     Eye,
     EyeClosed,
-
-    // Node generators
+    PointNumbers, // Node generators
     Sphere,
     Box,
     Cylinder,
