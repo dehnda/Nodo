@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nodo/core/attribute_types.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
 #include <memory>

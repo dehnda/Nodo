@@ -692,6 +692,8 @@ void MainWindow::onNodeSelectionChanged() {
         auto node_type = node->get_type();
         using nodo::graph::NodeType;
 
+        // todo we not need to add that manually but it should work
+        // automatically
         bool is_sop =
             (node_type == NodeType::Sphere || node_type == NodeType::Box ||
              node_type == NodeType::Cylinder || node_type == NodeType::Merge ||
@@ -702,7 +704,7 @@ void MainWindow::onNodeSelectionChanged() {
              node_type == NodeType::Scatter ||
              node_type == NodeType::CopyToPoints ||
              node_type == NodeType::Bend || node_type == NodeType::Twist ||
-             node_type == NodeType::Lattice);
+             node_type == NodeType::Lattice || node_type == NodeType::Bevel);
 
         if (is_sop) {
           // Get geometry from execution engine for spreadsheet

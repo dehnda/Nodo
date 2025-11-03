@@ -185,5 +185,6 @@ private:
   void drawAxes();
   void drawEdges();
   void drawVertices();
+  void drawPointLabels();
   void drawWireframeOverlays();
 };

@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QTimer>
 #include <QWheelEvent>
 #include <QtMath>
@@ -870,6 +871,7 @@ void ViewportWidget::paintGL() {
 
   if (show_vertices_ || is_point_cloud) {
     drawVertices();
+    drawPointLabels(); // Draw point numbers over the vertices
   }
 
   // Draw wireframe overlays on top of everything
@@ -1559,6 +1561,60 @@ void ViewportWidget::drawVertices() {
 #endif
   glDisable(GL_PROGRAM_POINT_SIZE);
   glDisable(GL_BLEND);
+}
+
+void ViewportWidget::drawPointLabels() {
+  if (!current_geometry_ || point_count_ == 0) {
+    return;
+  }
+
+  // Get point positions from geometry
+  const auto *positions =
+      current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>("P");
+  if (!positions) {
+    return;
+  }
+
+  // Begin QPainter overlay (this allows us to draw 2D text over OpenGL)
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setPen(QColor(255, 255, 255)); // White text
+  painter.setFont(QFont("Arial", 9, QFont::Bold));
+
+  // Combined transformation matrix
+  QMatrix4x4 mvp = projection_matrix_ * view_matrix_ * model_matrix_;
+
+  // Draw label for each point
+  for (size_t i = 0; i < static_cast<size_t>(point_count_); ++i) {
+    const auto &pos = (*positions)[i];
+
+    // Transform to clip space
+    QVector4D world_pos(pos.x(), pos.y(), pos.z(), 1.0F);
+    QVector4D clip_pos = mvp * world_pos;
+
+    // Perspective divide to get normalized device coordinates
+    if (std::abs(clip_pos.w()) < 0.0001F) {
+      continue; // Skip points at infinity
+    }
+
+    QVector3D ndc(clip_pos.x() / clip_pos.w(), clip_pos.y() / clip_pos.w(),
+                  clip_pos.z() / clip_pos.w());
+
+    // Skip points behind the camera or outside view frustum
+    if (ndc.z() < -1.0F || ndc.z() > 1.0F || ndc.x() < -1.0F ||
+        ndc.x() > 1.0F || ndc.y() < -1.0F || ndc.y() > 1.0F) {
+      continue;
+    }
+
+    // Convert to screen coordinates
+    float screen_x = (ndc.x() + 1.0F) * 0.5F * width();
+    float screen_y = (1.0F - ndc.y()) * 0.5F * height();
+
+    // Draw the point number slightly offset from the point
+    painter.drawText(QPointF(screen_x + 8, screen_y - 8), QString::number(i));
+  }
+
+  painter.end();
 }
 
 void ViewportWidget::drawWireframeOverlays() {
