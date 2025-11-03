@@ -214,9 +214,20 @@ std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
     return input;
   }
 
+  // Check bevel mode
+  const int bevel_mode = get_parameter<int>("bevel_type");
+  const BevelType bevel_type = static_cast<BevelType>(bevel_mode);
+
+  // Currently only Edge mode is implemented
+  if (bevel_type != BevelType::Edge) {
+    std::cout << "Bevel mode " << bevel_mode << " not yet implemented\n";
+    set_error("Only Edge bevel mode is currently implemented");
+    return input;
+  }
+
   const float bevel_width = get_parameter<float>("width");
 
-  std::cout << "\n=== Face-Based Bevel Implementation ===\n";
+  std::cout << "\n=== Edge Bevel Implementation ===\n";
 
   // ========================================================================
   // Step 1: Build set of beveled edges for quick lookup
