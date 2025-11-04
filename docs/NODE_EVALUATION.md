@@ -177,7 +177,14 @@ register_parameter(define_float_parameter("inset", 0.0F));
 **What it does:** Randomly scatter points on surface
 **Why keep:** Essential for vegetation, debris, particle systems.
 **Status:** ✅ Complete
+- Fixed face area weighting (use_face_area now works)
+- Metadata attributes (id, source_face)
+- Density multiplier support
 **Action:** None - ready to test
+
+**Note:** This is SURFACE scatter only. Volume scatter is a separate node:
+- **ScatterVolumeSOP** (M1.6) - Scatter within bounding box/sphere
+- Keep nodes separate for clarity and single responsibility
 
 ---
 

@@ -52,7 +52,7 @@ public:
     int point_count = get_parameter<int>("point_count");
     int seed = get_parameter<int>("seed");
     float density = get_parameter<float>("density");
-    bool use_face_area = get_parameter<int>("use_face_area") != 0;
+    bool use_face_area = get_parameter<bool>("use_face_area");
 
     // Create output GeometryContainer
     auto output_geo = std::make_shared<core::GeometryContainer>();

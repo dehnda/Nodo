@@ -91,6 +91,7 @@
 3. **Patch 3 - Transform Operations (6 nodes)**
    - Transform, Array, Copy to Points, Mirror, Scatter, Align
    - Universal: Group only
+   - **Note:** Scatter is surface-based. Volume scatter is separate node (see Phase 1.5)
 
 4. **Patch 4 - Boolean & Combine (5 nodes)**
    - Boolean, Merge, Split, Remesh, PolyExtrude
@@ -132,6 +133,28 @@
 
 ---
 
+#### **M1.6: Additional Scatter Nodes** (Week 15) 🆕
+**Purpose:** Complete scatter functionality with volume and point-based modes
+
+- [ ] **ScatterVolumeSOP** - Scatter points within bounding box/volume
+  - Bounding box scatter mode
+  - Sphere volume scatter
+  - Custom volume bounds
+  - Uniform vs random distribution
+  - Seed parameter for repeatability
+- [ ] **ScatterPointsSOP** - Scatter near existing points (Optional - Phase 2)
+  - Distance-based scattering
+  - Per-point density control
+
+**Rationale:** Keep scatter nodes separate for clarity:
+- `ScatterSOP` → Surface scattering (DONE ✅)
+- `ScatterVolumeSOP` → Volume scattering (NEW 🆕)
+- `ScatterPointsSOP` → Point-based scattering (Future)
+
+**Deliverable:** Complete scatter toolset for all use cases
+
+---
+
 ## Phase 2: Engine-Ready Architecture (Q1-Q2 2026)
 **Duration:** 4-6 weeks
 **Goal:** Prepare nodo_core for potential engine integration without blocking studio work
@@ -150,30 +173,7 @@
 **Deliverable:** Plugin-ready architecture with zero studio impact
 
 #### **M2.2: Headless Execution** (Weeks 2-3)
-- [ ] Command-line graph executor (load .nfg, cook, export)
-- [ ] Batch processing support
-- [ ] Unit tests for headless operation
-- [ ] Performance profiling tools
-
-**Deliverable:** nodo_core works without GUI
-
-#### **M2.3: API Documentation** (Weeks 3-4)
-- [ ] Document public nodo_core API
-- [ ] Parameter system usage guide
-- [ ] Node development guide
-- [ ] Graph execution model docs
-- [ ] Example code snippets
-
-**Deliverable:** Developer-ready API documentation
-
-#### **M2.4: API Stability** (Weeks 5-6)
-- [ ] Code review of nodo_core public interfaces
-- [ ] Remove/deprecate experimental APIs
-- [ ] Semantic versioning policy
-- [ ] API compatibility test suite
-- [ ] **Freeze nodo_core v1.0 API** 🎯
-
-**Deliverable:** Stable API contract for external integrations
+- [ ] Command
 
 ---
 

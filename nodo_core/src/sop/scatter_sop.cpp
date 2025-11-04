@@ -43,9 +43,8 @@ ScatterSOP::ScatterSOP(const std::string &node_name)
           .description("Density multiplier for point distribution")
           .build());
 
-  register_parameter(define_int_parameter("use_face_area", 1)
+  register_parameter(define_bool_parameter("use_face_area", true)
                          .label("Use Face Area")
-                         .range(0, 1)
                          .category("Scatter")
                          .description("Weight point distribution by face area")
                          .build());
@@ -79,6 +78,43 @@ void ScatterSOP::scatter_points_on_mesh(
   // Build face areas for weighted distribution
   std::vector<double> face_areas;
   std::vector<double> cumulative_areas;
+
+  if (use_face_area) {
+    face_areas.reserve(prim_count);
+    cumulative_areas.reserve(prim_count);
+    double total_area = 0.0;
+
+    for (size_t face_idx = 0; face_idx < prim_count; ++face_idx) {
+      auto prim_verts = input_topo.get_primitive_vertices(face_idx);
+      if (prim_verts.size() < 3) {
+        face_areas.push_back(0.0);
+        cumulative_areas.push_back(total_area);
+        continue;
+      }
+
+      // Get triangle vertices
+      int v0_idx = input_topo.get_vertex_point(prim_verts[0]);
+      int v1_idx = input_topo.get_vertex_point(prim_verts[1]);
+      int v2_idx = input_topo.get_vertex_point(prim_verts[2]);
+
+      const auto &p0 = (*input_positions)[v0_idx];
+      const auto &p1 = (*input_positions)[v1_idx];
+      const auto &p2 = (*input_positions)[v2_idx];
+
+      core::Vector3 vertex_0(p0.x(), p0.y(), p0.z());
+      core::Vector3 vertex_1(p1.x(), p1.y(), p1.z());
+      core::Vector3 vertex_2(p2.x(), p2.y(), p2.z());
+
+      // Calculate triangle area using cross product
+      core::Vector3 edge1 = vertex_1 - vertex_0;
+      core::Vector3 edge2 = vertex_2 - vertex_0;
+      double area = TRIANGLE_AREA_FACTOR * edge1.cross(edge2).norm();
+
+      face_areas.push_back(area);
+      total_area += area;
+      cumulative_areas.push_back(total_area);
+    }
+  }
 
   // Apply density scaling
   int actual_point_count = static_cast<int>(point_count * density);
