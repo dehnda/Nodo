@@ -185,7 +185,29 @@
 
 ### Milestones
 
-#### **M3.1: Performance Optimization** (Weeks 1-3)
+#### **M3.0: Critical UX - Undo/Redo for Property Panel** (Week 1) 🚨 PRIORITY
+**Blocker for first testers**
+
+Current state:
+- ✅ Undo/redo works for node graph operations (add/delete/move nodes, connections)
+- ❌ Property panel changes bypass undo stack (directly call `set_parameter()`)
+
+Implementation tasks:
+- [ ] Add UndoStack reference to PropertyPanel
+- [ ] Update PropertyPanel parameter callbacks to use `ChangeParameterCommand`
+- [ ] Store old parameter values before changes (for undo)
+- [ ] Support command merging for smooth slider/scrubbing interactions
+- [ ] Test undo/redo for all parameter widget types:
+  - [ ] Float/Int widgets (with scrubbing)
+  - [ ] Vector3 widgets
+  - [ ] Dropdown/Mode selectors
+  - [ ] Checkboxes
+  - [ ] Text fields
+- [ ] Verify Ctrl+Z/Ctrl+Shift+Z keyboard shortcuts work for parameter changes
+
+**Deliverable:** Complete undo/redo support for all parameter edits
+
+#### **M3.1: Performance Optimization** (Weeks 2-3)
 - [ ] Profile critical paths (geometry operations, UI updates)
 - [ ] Optimize execution engine (caching, lazy evaluation)
 - [ ] Improve viewport rendering performance
@@ -194,7 +216,7 @@
 
 **Deliverable:** Smooth performance on typical artist workloads
 
-#### **M3.2: User Experience Polish** (Weeks 3-5)
+#### **M3.2: User Experience Polish** (Weeks 4-6)
 - [ ] Keyboard shortcuts and workflow refinements
 - [ ] Undo/redo system completeness
 - [ ] Error messages and user feedback
@@ -203,7 +225,7 @@
 
 **Deliverable:** Intuitive, artist-friendly application
 
-#### **M3.3: Beta Testing** (Weeks 5-8)
+#### **M3.3: Beta Testing** (Weeks 7-9)
 - [ ] Recruit 10-20 beta testers (artists, technical artists)
 - [ ] Collect feedback via surveys and interviews
 - [ ] Bug fixing and stability improvements
