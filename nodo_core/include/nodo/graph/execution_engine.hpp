@@ -103,6 +103,13 @@ private:
    * Automatically converts parameter types and values
    */
   void transfer_parameters(const GraphNode &graph_node, sop::SOPNode &sop_node);
+
+  /**
+   * @brief Sync parameters from SOPNode back to GraphNode
+   * Handles dynamically added parameters (e.g., Wrangle ch() params)
+   */
+  void sync_parameters_from_sop(const sop::SOPNode &sop_node,
+                                GraphNode &graph_node);
 };
 
 } // namespace nodo::graph

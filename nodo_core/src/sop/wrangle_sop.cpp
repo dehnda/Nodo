@@ -2,12 +2,12 @@
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
-#include "nodo/core/types.hpp"
 #include <cmath>
 #include <exprtk.hpp>
 #include <fmt/core.h>
-#include <iostream>
 #include <random>
+#include <regex>
+#include <set>
 
 namespace nodo::sop {
 
@@ -35,42 +35,21 @@ WrangleSOP::WrangleSOP(const std::string &node_name)
           .build());
 
   // Expression code
+  const std::string default_expression =
+      "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;";
   register_parameter(
-      define_code_parameter("expression",
-                            "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;")
+      define_code_parameter("expression", default_expression)
           .label("Expression")
           .category("Wrangle")
-          .description("VEX-style expression to modify geometry attributes")
+          .description("VEX-style expression to modify geometry attributes. "
+                       "Use ch(\"name\") to create dynamic parameters.")
           .build());
 
-  // User parameters (like ch() in Houdini)
-  register_parameter(define_float_parameter("parm1", 1.0F)
-                         .label("Parameter 1")
-                         .range(-10.0F, 10.0F)
-                         .category("Parameters")
-                         .description("User parameter 1 (access with parm1)")
-                         .build());
-
-  register_parameter(define_float_parameter("parm2", 0.0F)
-                         .label("Parameter 2")
-                         .range(-10.0F, 10.0F)
-                         .category("Parameters")
-                         .description("User parameter 2 (access with parm2)")
-                         .build());
-
-  register_parameter(define_float_parameter("parm3", 0.0F)
-                         .label("Parameter 3")
-                         .range(-10.0F, 10.0F)
-                         .category("Parameters")
-                         .description("User parameter 3 (access with parm3)")
-                         .build());
-
-  register_parameter(define_float_parameter("parm4", 0.0F)
-                         .label("Parameter 4")
-                         .range(-10.0F, 10.0F)
-                         .category("Parameters")
-                         .description("User parameter 4 (access with parm4)")
-                         .build());
+  // Parse default expression to register any ch() parameters
+  // This ensures parameters are available when GraphNode initializes
+  std::vector<std::string> initial_channels =
+      parse_channel_references(default_expression);
+  update_channel_parameters(initial_channels);
 
   // Note: Group parameter is inherited from SOPNode base class
 }
@@ -87,9 +66,6 @@ std::shared_ptr<core::GeometryContainer> WrangleSOP::execute() {
   int run_over_mode = get_parameter<int>("run_over", 0);
   std::string expression_code =
       get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
-
-  std::cout << "🔧 WrangleSOP executing with expression: " << expression_code
-            << std::endl;
 
   // Compile expression
   if (!compile_expression(expression_code)) {
@@ -121,6 +97,10 @@ std::shared_ptr<core::GeometryContainer> WrangleSOP::execute() {
 }
 
 bool WrangleSOP::compile_expression(const std::string &expr_code) {
+  // Parse channel references and update parameters dynamically
+  std::vector<std::string> channels = parse_channel_references(expr_code);
+  update_channel_parameters(channels);
+
   // Initialize expression engine
   context_->symbols = std::make_unique<exprtk::symbol_table<double>>();
   context_->expression = std::make_unique<exprtk::expression<double>>();
@@ -167,16 +147,17 @@ void WrangleSOP::setup_symbol_table() {
   context_->symbols->add_variable("Cg", context_->Cg);
   context_->symbols->add_variable("Cb", context_->Cb);
 
-  // User parameters
-  context_->parm1 = static_cast<double>(get_parameter<float>("parm1", 1.0F));
-  context_->parm2 = static_cast<double>(get_parameter<float>("parm2", 0.0F));
-  context_->parm3 = static_cast<double>(get_parameter<float>("parm3", 0.0F));
-  context_->parm4 = static_cast<double>(get_parameter<float>("parm4", 0.0F));
+  // Dynamic channel parameters (ch("name") references)
+  // Load all registered channel parameters and add them to symbol table
+  for (const auto &channel_name : channel_params_) {
+    float channel_value = get_parameter<float>(channel_name, 0.0F);
+    context_->channels[channel_name] = static_cast<double>(channel_value);
 
-  context_->symbols->add_variable("parm1", context_->parm1);
-  context_->symbols->add_variable("parm2", context_->parm2);
-  context_->symbols->add_variable("parm3", context_->parm3);
-  context_->symbols->add_variable("parm4", context_->parm4);
+    // Add to symbol table with ch_ prefix (e.g., ch("amplitude") ->
+    // ch_amplitude)
+    std::string var_name = "ch_" + channel_name;
+    context_->symbols->add_variable(var_name, context_->channels[channel_name]);
+  }
 
   // Register built-in functions
   context_->symbols->add_function("rand", func_rand);
@@ -191,6 +172,7 @@ std::string WrangleSOP::preprocess_code(const std::string &code) {
   // @N.x -> Nx, @N.y -> Ny, @N.z -> Nz
   // @Cd.r -> Cr, @Cd.g -> Cg, @Cd.b -> Cb
   // @ptnum -> ptnum (already matches)
+  // ch("name") -> ch_name (variable reference)
 
   std::string result = code;
 
@@ -203,6 +185,12 @@ std::string WrangleSOP::preprocess_code(const std::string &code) {
       pos += to.length();
     }
   };
+
+  // Replace ch("name") with ch_name variable references
+  // This needs to be done before other replacements
+  std::regex ch_pattern(R"(ch\s*\(\s*[\"']([^\"']+)[\"']\s*\))");
+  std::string ch_replaced = std::regex_replace(result, ch_pattern, "ch_$1");
+  result = ch_replaced;
 
   // Position attribute
   replace_all(result, "@P.x", "Px");
@@ -356,5 +344,66 @@ double WrangleSOP::func_set_x(double x, double, double) { return x; }
 double WrangleSOP::func_set_y(double, double y, double) { return y; }
 
 double WrangleSOP::func_set_z(double, double, double z) { return z; }
+
+// Public method to update channels when expression changes
+void WrangleSOP::update_expression_channels(
+    const std::string &expression_code) {
+  std::vector<std::string> channels = parse_channel_references(expression_code);
+  update_channel_parameters(channels);
+}
+
+// Parse ch("name") references from expression code
+std::vector<std::string>
+WrangleSOP::parse_channel_references(const std::string &code) {
+  std::vector<std::string> channels;
+  std::set<std::string> unique_channels; // Use set to avoid duplicates
+
+  // Regex to match ch("parameter_name") or ch('parameter_name')
+  std::regex ch_pattern(R"(ch\s*\(\s*[\"']([^\"']+)[\"']\s*\))");
+
+  std::sregex_iterator iter(code.begin(), code.end(), ch_pattern);
+  std::sregex_iterator end;
+
+  while (iter != end) {
+    std::smatch match = *iter;
+    if (match.size() >= 2) {
+      std::string param_name = match[1].str();
+      unique_channels.insert(param_name);
+    }
+    ++iter;
+  }
+
+  // Convert set to vector
+  channels.assign(unique_channels.begin(), unique_channels.end());
+  return channels;
+}
+
+// Update dynamic channel parameters based on expression
+void WrangleSOP::update_channel_parameters(
+    const std::vector<std::string> &channels) {
+  // Update the active channel list - this will control which parameters appear
+  // Note: We don't actually remove parameter definitions, but the GraphNode
+  // sync will rebuild the parameter list based on current definitions
+  channel_params_ = channels;
+
+  // Add new channel parameters
+  for (const auto &channel_name : channels) {
+    // Check if parameter already exists (may have been set by
+    // transfer_parameters)
+    float existing_value = 0.0F;
+    if (has_parameter(channel_name)) {
+      existing_value = get_parameter<float>(channel_name, 0.0F);
+    }
+
+    // Register parameter definition (or update if exists)
+    register_parameter(define_float_parameter(channel_name, existing_value)
+                           .label(channel_name)
+                           .range(-10.0F, 10.0F)
+                           .category("Channels")
+                           .description(fmt::format(
+                               "Channel parameter: ch(\"{}\")", channel_name))
+                           .build());
+  }
+}
 
 } // namespace nodo::sop

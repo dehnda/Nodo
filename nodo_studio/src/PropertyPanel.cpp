@@ -1085,6 +1085,24 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
       emit parameterChanged();
     });
   }
+
+  // Add Parse Expression button for Wrangle nodes
+  if (node->get_type() == nodo::graph::NodeType::Wrangle) {
+    addSeparator();
+    addButtonParameter(
+        "Parse Expression for ch() Parameters", [this, node, graph]() {
+          // Trigger execution to parse expression and register ch() parameters
+          emit parameterChanged();
+
+          // Rebuild the property panel after a short delay to show new
+          // parameters
+          QTimer::singleShot(100, this, [this, node, graph]() {
+            if (current_graph_node_ == node && current_graph_ == graph) {
+              buildFromNode(node, graph);
+            }
+          });
+        });
+  }
 }
 
 void PropertyPanel::buildSphereParameters(nodo::graph::GraphNode *node) {

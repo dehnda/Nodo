@@ -189,6 +189,15 @@ void GraphNode::add_parameter(const NodeParameter &param) {
   needs_update_ = true;
 }
 
+void GraphNode::remove_parameter(const std::string &name) {
+  parameters_.erase(std::remove_if(parameters_.begin(), parameters_.end(),
+                                   [&name](const NodeParameter &p) {
+                                     return p.name == name;
+                                   }),
+                    parameters_.end());
+  needs_update_ = true;
+}
+
 std::optional<NodeParameter>
 GraphNode::get_parameter(const std::string &name) const {
   auto it =

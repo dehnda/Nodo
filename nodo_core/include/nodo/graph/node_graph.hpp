@@ -232,6 +232,7 @@ public:
 
   // Parameters
   void add_parameter(const NodeParameter &param);
+  void remove_parameter(const std::string &name);
   std::optional<NodeParameter> get_parameter(const std::string &name) const;
   void set_parameter(const std::string &name, const NodeParameter &param);
   const std::vector<NodeParameter> &get_parameters() const {

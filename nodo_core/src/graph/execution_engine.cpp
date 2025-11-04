@@ -23,7 +23,9 @@
 #include "nodo/sop/transform_sop.hpp"
 #include <chrono>
 #include <iostream>
+#include <map>
 #include <memory>
+#include <set>
 
 // For trigonometry and pi constant
 #include <cmath>
@@ -110,8 +112,6 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // Skip execution if already cached and doesn't need update
     if (has_valid_cache) {
-      std::cout << "⚡ Using cached result for node " << node_id << " ("
-                << node->get_name() << ")" << std::endl;
       continue;
     }
 
@@ -142,6 +142,11 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // Execute the SOP (cook)
     geometry_result = sop->cook();
+
+    // Sync parameters back from SOP to GraphNode
+    // This handles dynamic parameters added during execution (e.g., Wrangle
+    // ch() params)
+    sync_parameters_from_sop(*sop, *node);
 
     // End timing and calculate duration
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -206,12 +211,8 @@ void ExecutionEngine::invalidate_node(NodeGraph &graph, int node_id) {
         dependencies.end()) {
       // This node depends on the invalidated node, so invalidate it too
       geometry_cache_.erase(other_id);
-      std::cout << "⚠️ Invalidated cache for dependent node " << other_id << " ("
-                << node_ptr->get_name() << ")\n";
     }
   }
-
-  std::cout << "⚠️ Invalidated cache for node " << node_id << "\n";
 }
 
 void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
@@ -244,6 +245,63 @@ void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
       break;
     }
     }
+  }
+}
+
+void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode &sop_node,
+                                               GraphNode &graph_node) {
+  // Completely rebuild GraphNode parameters from SOP definitions
+  // This handles both adding new parameters and removing obsolete ones
+
+  const auto &sop_params = sop_node.get_parameter_definitions();
+
+  // Build a set of current SOP parameter names
+  std::set<std::string> sop_param_names;
+  for (const auto &sop_param : sop_params) {
+    sop_param_names.insert(sop_param.name);
+  }
+
+  // Get existing GraphNode parameters to preserve their values
+  const auto &existing_params = graph_node.get_parameters();
+
+  // Remove obsolete parameters (that exist in GraphNode but not in SOP)
+  for (const auto &existing : existing_params) {
+    if (sop_param_names.find(existing.name) == sop_param_names.end()) {
+      graph_node.remove_parameter(existing.name);
+    }
+  }
+
+  // Check which parameters are new
+  for (const auto &sop_param : sop_params) {
+    // Check if parameter already exists in GraphNode
+    bool param_exists = false;
+    for (const auto &existing : existing_params) {
+      if (existing.name == sop_param.name) {
+        param_exists = true;
+        break;
+      }
+    }
+
+    if (param_exists) {
+      // Parameter already exists in GraphNode - preserve its value
+      continue;
+    }
+
+    // New parameter - add it
+    NodeParameter new_param = NodeParameter(
+        sop_param.name, 0.0F, sop_param.label, sop_param.float_min,
+        sop_param.float_max, sop_param.category);
+
+    // Update with actual type and default value
+    if (std::holds_alternative<float>(sop_param.default_value)) {
+      new_param.float_value = std::get<float>(sop_param.default_value);
+    }
+
+    // Copy visibility control
+    new_param.category_control_param = sop_param.category_control_param;
+    new_param.category_control_value = sop_param.category_control_value;
+
+    graph_node.add_parameter(new_param);
   }
 }
 
