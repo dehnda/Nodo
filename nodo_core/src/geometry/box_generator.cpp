@@ -76,93 +76,109 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   // Create GeometryContainer
   core::GeometryContainer container;
 
-  // Build a 3D grid of points (shared at edges/corners)
+  // Build positions - we'll collect them as we build faces to avoid orphaned
+  // points Use a map to deduplicate shared vertices at edges and corners
   const int num_x = width_segments + 1;
   const int num_y = height_segments + 1;
   const int num_z = depth_segments + 1;
-  std::vector<core::Vec3f> positions(num_x * num_y * num_z);
+
   auto lerp = [](double start_val, double end_val, double t_val) {
     return start_val + (t_val * (end_val - start_val));
   };
-  for (int z_idx = 0; z_idx < num_z; ++z_idx) {
+
+  // Helper to get 3D grid index
+  auto grid_index = [num_x, num_y](int x_idx, int y_idx, int z_idx) {
+    return (z_idx * num_y * num_x) + (y_idx * num_x) + x_idx;
+  };
+
+  // Helper to compute position for grid coordinate
+  auto grid_pos = [&](int x_idx, int y_idx, int z_idx) -> core::Vec3f {
+    double x_pos =
+        lerp(min_corner.x(), max_corner.x(), double(x_idx) / double(num_x - 1));
+    double y_pos =
+        lerp(min_corner.y(), max_corner.y(), double(y_idx) / double(num_y - 1));
     double z_pos =
         lerp(min_corner.z(), max_corner.z(), double(z_idx) / double(num_z - 1));
-    for (int y_idx = 0; y_idx < num_y; ++y_idx) {
-      double y_pos = lerp(min_corner.y(), max_corner.y(),
-                          double(y_idx) / double(num_y - 1));
-      for (int x_idx = 0; x_idx < num_x; ++x_idx) {
-        double x_pos = lerp(min_corner.x(), max_corner.x(),
-                            double(x_idx) / double(num_x - 1));
-        positions[(z_idx * num_y * num_x) + (y_idx * num_x) + x_idx] =
-            core::Vec3f(float(x_pos), float(y_pos), float(z_pos));
-      }
+    return core::Vec3f(float(x_pos), float(y_pos), float(z_pos));
+  };
+
+  // Map from grid index to actual point index (only for surface points)
+  std::unordered_map<int, int> grid_to_point;
+  std::vector<core::Vec3f> positions;
+
+  // Helper to get or create point for a grid coordinate
+  auto get_point = [&](int x_idx, int y_idx, int z_idx) -> int {
+    int grid_idx = grid_index(x_idx, y_idx, z_idx);
+    auto iter = grid_to_point.find(grid_idx);
+    if (iter != grid_to_point.end()) {
+      return iter->second;
     }
-  }
+    // Create new point
+    int point_idx = static_cast<int>(positions.size());
+    positions.push_back(grid_pos(x_idx, y_idx, z_idx));
+    grid_to_point[grid_idx] = point_idx;
+    return point_idx;
+  };
 
   // Build quad faces for each of the 6 sides
   std::vector<std::vector<int>> primitive_vertices;
   // -Z face
   for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
     for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-      int v00 = (0 * num_y * num_x) + (y_idx * num_x) + x_idx; // bottom-left
-      int v10 =
-          (0 * num_y * num_x) + (y_idx * num_x) + (x_idx + 1); // bottom-right
-      int v11 = (0 * num_y * num_x) + ((y_idx + 1) * num_x) +
-                (x_idx + 1); // top-right
-      int v01 = (0 * num_y * num_x) + ((y_idx + 1) * num_x) + x_idx; // top-left
+      int v00 = get_point(x_idx, y_idx, 0);         // bottom-left
+      int v10 = get_point(x_idx + 1, y_idx, 0);     // bottom-right
+      int v11 = get_point(x_idx + 1, y_idx + 1, 0); // top-right
+      int v01 = get_point(x_idx, y_idx + 1, 0);     // top-left
       primitive_vertices.push_back({v00, v01, v11, v10});
     }
   }
   // +Z face
   for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
     for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-      int v00 = ((num_z - 1) * num_y * num_x) + (y_idx * num_x) + x_idx;
-      int v01 = ((num_z - 1) * num_y * num_x) + ((y_idx + 1) * num_x) + x_idx;
-      int v11 =
-          ((num_z - 1) * num_y * num_x) + ((y_idx + 1) * num_x) + (x_idx + 1);
-      int v10 = ((num_z - 1) * num_y * num_x) + (y_idx * num_x) + (x_idx + 1);
+      int v00 = get_point(x_idx, y_idx, num_z - 1);
+      int v01 = get_point(x_idx, y_idx + 1, num_z - 1);
+      int v11 = get_point(x_idx + 1, y_idx + 1, num_z - 1);
+      int v10 = get_point(x_idx + 1, y_idx, num_z - 1);
       primitive_vertices.push_back({v00, v10, v11, v01});
     }
   }
   // -Y face
   for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
     for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-      int v00 = (z_idx * num_y * num_x) + (0 * num_x) + x_idx;
-      int v10 = (z_idx * num_y * num_x) + (0 * num_x) + (x_idx + 1);
-      int v11 = ((z_idx + 1) * num_y * num_x) + (0 * num_x) + (x_idx + 1);
-      int v01 = ((z_idx + 1) * num_y * num_x) + (0 * num_x) + x_idx;
+      int v00 = get_point(x_idx, 0, z_idx);
+      int v10 = get_point(x_idx + 1, 0, z_idx);
+      int v11 = get_point(x_idx + 1, 0, z_idx + 1);
+      int v01 = get_point(x_idx, 0, z_idx + 1);
       primitive_vertices.push_back({v00, v10, v11, v01});
     }
   }
-  // +Y face (CORRECT - keep this winding)
+  // +Y face
   for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
     for (int x_idx = 0; x_idx < num_x - 1; ++x_idx) {
-      int v00 = (z_idx * num_y * num_x) + ((num_y - 1) * num_x) + x_idx;
-      int v10 = (z_idx * num_y * num_x) + ((num_y - 1) * num_x) + (x_idx + 1);
-      int v11 =
-          ((z_idx + 1) * num_y * num_x) + ((num_y - 1) * num_x) + (x_idx + 1);
-      int v01 = ((z_idx + 1) * num_y * num_x) + ((num_y - 1) * num_x) + x_idx;
+      int v00 = get_point(x_idx, num_y - 1, z_idx);
+      int v10 = get_point(x_idx + 1, num_y - 1, z_idx);
+      int v11 = get_point(x_idx + 1, num_y - 1, z_idx + 1);
+      int v01 = get_point(x_idx, num_y - 1, z_idx + 1);
       primitive_vertices.push_back({v00, v01, v11, v10});
     }
   }
   // -X face
   for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
     for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
-      int v00 = (z_idx * num_y * num_x) + (y_idx * num_x) + 0;
-      int v10 = (z_idx * num_y * num_x) + ((y_idx + 1) * num_x) + 0;
-      int v11 = ((z_idx + 1) * num_y * num_x) + ((y_idx + 1) * num_x) + 0;
-      int v01 = ((z_idx + 1) * num_y * num_x) + (y_idx * num_x) + 0;
+      int v00 = get_point(0, y_idx, z_idx);
+      int v10 = get_point(0, y_idx + 1, z_idx);
+      int v11 = get_point(0, y_idx + 1, z_idx + 1);
+      int v01 = get_point(0, y_idx, z_idx + 1);
       primitive_vertices.push_back({v00, v01, v11, v10});
     }
   }
   // +X face
   for (int z_idx = 0; z_idx < num_z - 1; ++z_idx) {
     for (int y_idx = 0; y_idx < num_y - 1; ++y_idx) {
-      int v00 = (z_idx * num_y * num_x) + (y_idx * num_x) + (num_x - 1);
-      int v01 = ((z_idx + 1) * num_y * num_x) + (y_idx * num_x) + (num_x - 1);
-      int v11 =
-          ((z_idx + 1) * num_y * num_x) + ((y_idx + 1) * num_x) + (num_x - 1);
-      int v10 = (z_idx * num_y * num_x) + ((y_idx + 1) * num_x) + (num_x - 1);
+      int v00 = get_point(num_x - 1, y_idx, z_idx);
+      int v01 = get_point(num_x - 1, y_idx, z_idx + 1);
+      int v11 = get_point(num_x - 1, y_idx + 1, z_idx + 1);
+      int v10 = get_point(num_x - 1, y_idx + 1, z_idx);
       primitive_vertices.push_back({v00, v10, v11, v01});
     }
   }

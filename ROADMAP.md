@@ -77,21 +77,21 @@
 
 **Implementation order by patch:**
 
-1. **Patch 1 - Geometry Generators (6 nodes)**
-   - Sphere, Box, Cylinder, Torus, Grid, Line
+1. **Patch 1 - Geometry Generators (6 nodes)** ✅ COMPLETE
+   - ✅ Sphere, Box, Cylinder, Torus, Grid, Line
    - Universal: Group + Primitive Type
-   - **Action:** Implement Line SOP (currently header-only)
 
 2. **Patch 2 - Modify Operations (5 nodes)**
-   - Extrude, Subdivide, Noise Displacement, Smooth (Laplacian), Bevel
+   - ✅ Extrude, ✅ Subdivide, ✅ Noise Displacement, ✅ Smooth (Laplacian), Bevel
    - Universal: Group only
    - ~~Displace~~ - Removed (duplicate of Noise Displacement)
-   - **Action:** Fix Extrude parameters (private→registered), verify Subdivide
+   - **Action:** Implement Bevel
+   - **Fixed:** BoxGenerator orphaned points bug (was creating interior points for subdivided boxes)
 
 3. **Patch 3 - Transform Operations (6 nodes)**
-   - Transform, Array, Copy to Points, Mirror, Scatter, Align
+   - Transform, Array, Copy to Points, Mirror, ✅ Scatter, Align
    - Universal: Group only
-   - **Note:** Scatter is surface-based. Volume scatter is separate node (see Phase 1.5)
+   - **Note:** Scatter is surface-based with face area calculation implemented. Volume scatter is separate node (see Phase 1.5)
 
 4. **Patch 4 - Boolean & Combine (5 nodes)**
    - Boolean, Merge, Split, Remesh, PolyExtrude
