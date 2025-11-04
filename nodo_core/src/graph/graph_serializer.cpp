@@ -53,6 +53,10 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
           param_json["type"] = "string";
           param_json["value"] = param.string_value;
           break;
+        case NodeParameter::Type::Code:
+          param_json["type"] = "code";
+          param_json["value"] = param.string_value;
+          break;
         case NodeParameter::Type::Vector3:
           param_json["type"] = "vector3";
           param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
@@ -162,6 +166,11 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
             } else if (param_type == "string") {
               std::string value = param_json["value"];
               node->add_parameter(NodeParameter(param_name, value));
+            } else if (param_type == "code") {
+              std::string value = param_json["value"];
+              NodeParameter code_param(param_name, value);
+              code_param.type = NodeParameter::Type::Code;
+              node->add_parameter(code_param);
             } else if (param_type == "vector3" &&
                        param_json["value"].is_array() &&
                        param_json["value"].size() >= 3) {
@@ -466,6 +475,10 @@ std::string GraphSerializer::parameter_to_json(const NodeParameter &param) {
     break;
   case NodeParameter::Type::String:
     param_json["type"] = "string";
+    param_json["value"] = param.string_value;
+    break;
+  case NodeParameter::Type::Code:
+    param_json["type"] = "code";
     param_json["value"] = param.string_value;
     break;
   case NodeParameter::Type::Vector3:

@@ -27,6 +27,7 @@ add_executable(nodo_tests
     test_execution_engine_bridge.cpp
     test_wrangle_sop.cpp
     test_sop_group_filtering.cpp
+    test_graph_serialization.cpp
 )
 
 target_link_libraries(nodo_tests
