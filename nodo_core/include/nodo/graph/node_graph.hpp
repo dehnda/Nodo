@@ -73,6 +73,7 @@ enum class NodeType {
 
   // Point Operations
   Scatter,
+  ScatterVolume,
   CopyToPoints,
 
   // Utilities

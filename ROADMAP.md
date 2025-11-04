@@ -133,25 +133,27 @@
 
 ---
 
-#### **M1.6: Additional Scatter Nodes** (Week 15) 🆕
+#### **M1.6: Additional Scatter Nodes** (Week 15) ✅ COMPLETE
 **Purpose:** Complete scatter functionality with volume and point-based modes
 
-- [ ] **ScatterVolumeSOP** - Scatter points within bounding box/volume
-  - Bounding box scatter mode
-  - Sphere volume scatter
-  - Custom volume bounds
-  - Uniform vs random distribution
-  - Seed parameter for repeatability
-- [ ] **ScatterPointsSOP** - Scatter near existing points (Optional - Phase 2)
+- ✅ **ScatterVolumeSOP** - Scatter points within bounding box/volume
+  - ✅ Bounding box scatter mode
+  - ✅ Sphere volume scatter
+  - ✅ Custom volume bounds
+  - ✅ Uniform vs random distribution
+  - ✅ Poisson disk sampling
+  - ✅ Seed parameter for repeatability
+  - ✅ Optional input geometry for bounds
+- [ ] **ScatterPointsSOP** - Scatter near existing points (Deferred to Phase 2)
   - Distance-based scattering
   - Per-point density control
 
 **Rationale:** Keep scatter nodes separate for clarity:
 - `ScatterSOP` → Surface scattering (DONE ✅)
-- `ScatterVolumeSOP` → Volume scattering (NEW 🆕)
-- `ScatterPointsSOP` → Point-based scattering (Future)
+- `ScatterVolumeSOP` → Volume scattering (DONE ✅)
+- `ScatterPointsSOP` → Point-based scattering (Phase 2)
 
-**Deliverable:** Complete scatter toolset for all use cases
+**Deliverable:** Complete scatter toolset for all use cases ✅ COMPLETE
 
 ---
 
@@ -380,13 +382,12 @@ Proceed with engine integration only if:
   - Patch 8: Deformers (3 nodes)
 
 ### 🔄 In Progress
-- **Phase 1, M1.6: Additional Scatter Nodes** (optional - volume scatter)
+- **Phase 1 FULLY COMPLETE!** 🎉 All 6 milestones done!
 
 ### 📋 Next Up
-- **Phase 1 Complete!** 🎉 All 5 milestones done!
-- Consider implementing ScatterVolumeSOP (optional)
 - Move to Phase 2: Engine-Ready Architecture
 - OR start Phase 3: Polish & User Testing
+- Recommended: **Phase 3 (Polish & User Testing)** to prepare for launch
 
 ---
 

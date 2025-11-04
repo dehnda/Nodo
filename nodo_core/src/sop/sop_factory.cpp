@@ -37,6 +37,7 @@
 #include "nodo/sop/remesh_sop.hpp"
 #include "nodo/sop/resample_sop.hpp"
 #include "nodo/sop/scatter_sop.hpp"
+#include "nodo/sop/scatter_volume_sop.hpp"
 #include "nodo/sop/sort_sop.hpp"
 #include "nodo/sop/sphere_sop.hpp"
 #include "nodo/sop/split_sop.hpp"
@@ -96,6 +97,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<ArraySOP>();
   case NodeType::Scatter:
     return std::make_shared<ScatterSOP>();
+  case NodeType::ScatterVolume:
+    return std::make_shared<ScatterVolumeSOP>();
   case NodeType::CopyToPoints:
     return std::make_shared<CopyToPointsSOP>();
 
@@ -248,6 +251,8 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
        "Create linear or radial arrays of geometry"},
       {NodeType::Scatter, "Scatter", "Array",
        "Scatter points across geometry surface"},
+      {NodeType::ScatterVolume, "Scatter Volume", "Array",
+       "Scatter points within input geometry's bounding box"},
       {NodeType::CopyToPoints, "Copy to Points", "Array",
        "Copy geometry to point positions"},
 

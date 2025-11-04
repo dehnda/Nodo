@@ -296,6 +296,8 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Boolean";
   case NodeType::Scatter:
     return "Scatter";
+  case NodeType::ScatterVolume:
+    return "ScatterVolume";
   case NodeType::CopyToPoints:
     return "CopyToPoints";
   case NodeType::Merge:
@@ -397,6 +399,8 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
     return NodeType::Boolean;
   if (type_str == "Scatter")
     return NodeType::Scatter;
+  if (type_str == "ScatterVolume")
+    return NodeType::ScatterVolume;
   if (type_str == "CopyToPoints")
     return NodeType::CopyToPoints;
   if (type_str == "Merge")
