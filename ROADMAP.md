@@ -217,8 +217,21 @@ Implementation tasks:
 **Deliverable:** Smooth performance on typical artist workloads
 
 #### **M3.2: User Experience Polish** (Weeks 4-6)
+- [ ] **Viewport toolbar improvements**
+  - [ ] Move viewport display toggles to toolbar (show vertices, edges, normals face/vertex)
+  - [ ] Remove viewport options from app menu (redundant)
+  - [ ] Add visual toolbar icons for quick access
+- [ ] **File menu enhancements**
+  - [ ] Add "Recent Projects" submenu
+  - [ ] Store and restore recent file list (max 10)
+  - [ ] Clear recent projects option
+- [ ] **Application polish**
+  - [ ] Add splash screen during app loading
+  - [ ] Show loading progress for heavy operations
+- [ ] **Node graph UX fixes**
+  - [ ] Fix connection selection (should work with single click, not just double click)
+  - [ ] Improve connection hit testing accuracy
 - [ ] Keyboard shortcuts and workflow refinements
-- [ ] Undo/redo system completeness
 - [ ] Error messages and user feedback
 - [ ] Onboarding/tutorial system
 - [ ] Example project library
