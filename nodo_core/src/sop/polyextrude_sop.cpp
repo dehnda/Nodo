@@ -11,11 +11,18 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string &name)
                         NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
+  register_parameter(define_int_parameter("extrusion_type", 0)
+                         .label("Extrusion Type")
+                         .options({"Faces", "Edges", "Points"})
+                         .category("Extrusion")
+                         .description("Type of geometry elements to extrude")
+                         .build());
+
   register_parameter(define_float_parameter("distance", 1.0F)
                          .label("Distance")
                          .range(0.0, 10.0)
                          .category("Extrusion")
-                         .description("Distance to extrude each face")
+                         .description("Distance to extrude")
                          .build());
 
   register_parameter(
@@ -23,19 +30,77 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string &name)
           .label("Inset")
           .range(0.0, 1.0)
           .category("Extrusion")
-          .description("Amount to inset face borders before extrusion")
+          .description("Amount to inset borders before extrusion")
           .build());
 
   register_parameter(
       define_int_parameter("individual_faces", 1)
-          .label("Individual Faces")
+          .label("Individual Elements")
           .range(0, 1)
           .category("Extrusion")
-          .description("Extrude each face separately (1) or as a group (0)")
+          .description("Extrude each element separately (1) or as a group (0)")
+          .build());
+
+  // Edge extrusion direction parameters
+  register_parameter(
+      define_int_parameter("edge_direction_mode", 0)
+          .label("Edge Direction")
+          .options({"Auto (Perpendicular)", "Custom Direction"})
+          .category("Edge Extrusion")
+          .visible_when("extrusion_type", 1)
+          .description("How to calculate edge extrusion direction")
+          .build());
+
+  register_parameter(
+      define_float_parameter("edge_direction_x", 0.0F)
+          .label("Direction X")
+          .range(-1.0, 1.0)
+          .category("Edge Extrusion")
+          .visible_when("edge_direction_mode", 1)
+          .description("X component of custom edge extrusion direction")
+          .build());
+
+  register_parameter(
+      define_float_parameter("edge_direction_y", 1.0F)
+          .label("Direction Y")
+          .range(-1.0, 1.0)
+          .category("Edge Extrusion")
+          .visible_when("edge_direction_mode", 1)
+          .description("Y component of custom edge extrusion direction")
+          .build());
+
+  register_parameter(
+      define_float_parameter("edge_direction_z", 0.0F)
+          .label("Direction Z")
+          .range(-1.0, 1.0)
+          .category("Edge Extrusion")
+          .visible_when("edge_direction_mode", 1)
+          .description("Z component of custom edge extrusion direction")
           .build());
 }
 
 std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::execute() {
+  auto input = get_input_data(0);
+  if (input == nullptr) {
+    set_error("No input geometry");
+    return nullptr;
+  }
+
+  // Get extrusion type
+  const int extrusion_type = get_parameter<int>("extrusion_type", 0);
+
+  if (extrusion_type == 0) {
+    return extrude_faces();
+  }
+  if (extrusion_type == 1) {
+    return extrude_edges();
+  }
+
+  set_error("Points extrusion not yet implemented");
+  return nullptr;
+}
+
+std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   auto input = get_input_data(0);
   if (input == nullptr) {
     set_error("No input geometry");
@@ -263,6 +328,215 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::execute() {
       quad_verts.push_back(static_cast<int>(vertex_offset++));
 
       result->topology().set_vertex_point(vertex_offset, top_pt_curr);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->add_primitive(quad_verts);
+    }
+  }
+
+  return result;
+}
+
+std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
+  auto input = get_input_data(0);
+  if (input == nullptr) {
+    set_error("No input geometry");
+    return nullptr;
+  }
+
+  // Get parameters
+  const float distance = get_parameter<float>("distance", 1.0F);
+  const bool individual = get_parameter<int>("individual_faces", 1) != 0;
+  const int direction_mode = get_parameter<int>("edge_direction_mode", 0);
+
+  // Custom direction vector (if mode = 1)
+  const float dir_x = get_parameter<float>("edge_direction_x", 0.0F);
+  const float dir_y = get_parameter<float>("edge_direction_y", 1.0F);
+  const float dir_z = get_parameter<float>("edge_direction_z", 0.0F);
+  core::Vec3f custom_direction(dir_x, dir_y, dir_z);
+  if (custom_direction.squaredNorm() > 0.0001F) {
+    custom_direction.normalize();
+  } else {
+    custom_direction = core::Vec3f(0.0F, 1.0F, 0.0F); // Fallback
+  }
+
+  // Get input positions
+  const auto *input_positions =
+      input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  if (input_positions == nullptr) {
+    set_error("Input geometry has no position attribute");
+    return nullptr;
+  }
+
+  const auto &input_topology = input->topology();
+  const size_t input_prim_count = input_topology.primitive_count();
+
+  if (input_prim_count == 0) {
+    set_error("Input geometry has no primitives to extrude");
+    return nullptr;
+  }
+
+  // Create result container
+  auto result = std::make_shared<core::GeometryContainer>();
+
+  // Count edge primitives (2 vertices)
+  size_t edge_count = 0;
+  for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    if (vert_indices.size() == 2) {
+      edge_count++;
+    }
+  }
+
+  if (edge_count == 0) {
+    set_error("No edge primitives (2 vertices) found in input geometry");
+    return nullptr;
+  }
+
+  // Calculate total points and vertices needed
+  size_t total_points = 0;
+  size_t total_vertices = 0;
+
+  if (individual) {
+    // Each edge gets its own 4 points (2 original + 2 extruded)
+    total_points = edge_count * 4;
+    total_vertices = edge_count * 4; // Each quad = 4 vertices
+  } else {
+    // Share points where possible
+    total_points = input_topology.point_count() * 2; // Original + extruded
+    total_vertices = edge_count * 4;
+  }
+
+  // Create result with pre-calculated sizes
+  result->set_point_count(total_points);
+  result->set_vertex_count(total_vertices);
+
+  // Add position attribute
+  result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+
+  auto *result_positions =
+      result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+
+  if (result_positions == nullptr) {
+    set_error("Failed to create position attribute in result");
+    return nullptr;
+  }
+
+  size_t next_point_idx = 0;
+  size_t vertex_offset = 0;
+
+  // Helper: Calculate edge extrusion direction
+  auto calculate_edge_normal = [&](const core::Vec3f &p0,
+                                   const core::Vec3f &p1) -> core::Vec3f {
+    // Mode 1: Custom Direction
+    if (direction_mode == 1) {
+      // Use custom direction directly (ignore edge orientation)
+      return custom_direction;
+    }
+
+    // Mode 0: Auto (Perpendicular)
+    // Calculate direction perpendicular to edge
+    core::Vec3f edge_dir = (p1 - p0).normalized();
+
+    // Default up vector for auto mode
+    core::Vec3f up(0.0F, 1.0F, 0.0F);
+
+    // If edge is nearly parallel to up vector, use a different reference
+    if (std::abs(edge_dir.dot(up)) > 0.99F) {
+      // Edge is vertical, use X-axis instead
+      up = core::Vec3f(1.0F, 0.0F, 0.0F);
+    }
+
+    // Extrusion direction perpendicular to both edge and up
+    core::Vec3f extrude_dir = edge_dir.cross(up);
+    if (extrude_dir.squaredNorm() > 0.0001F) {
+      extrude_dir.normalize();
+    } else {
+      // Fallback if cross product fails
+      extrude_dir = core::Vec3f(0.0F, 0.0F, 1.0F);
+    }
+
+    return extrude_dir;
+  };
+
+  // Process each edge primitive
+  for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+
+    // Skip non-edge primitives
+    if (vert_indices.size() != 2) {
+      continue;
+    }
+
+    // Get the two points of the edge
+    const int p0_idx = input_topology.get_vertex_point(vert_indices[0]);
+    const int p1_idx = input_topology.get_vertex_point(vert_indices[1]);
+
+    const core::Vec3f p0 = (*input_positions)[p0_idx];
+    const core::Vec3f p1 = (*input_positions)[p1_idx];
+
+    // Calculate extrusion direction
+    const core::Vec3f extrude_dir = calculate_edge_normal(p0, p1);
+
+    // Create extruded points
+    const core::Vec3f p2 = p1 + extrude_dir * distance;
+    const core::Vec3f p3 = p0 + extrude_dir * distance;
+
+    if (individual) {
+      // Create 4 new points for this edge
+      const int new_p0 = static_cast<int>(next_point_idx++);
+      const int new_p1 = static_cast<int>(next_point_idx++);
+      const int new_p2 = static_cast<int>(next_point_idx++);
+      const int new_p3 = static_cast<int>(next_point_idx++);
+
+      (*result_positions)[new_p0] = p0;
+      (*result_positions)[new_p1] = p1;
+      (*result_positions)[new_p2] = p2;
+      (*result_positions)[new_p3] = p3;
+
+      // Create quad face (p0 -> p1 -> p2 -> p3)
+      std::vector<int> quad_verts;
+      quad_verts.reserve(4);
+
+      result->topology().set_vertex_point(vertex_offset, new_p0);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->topology().set_vertex_point(vertex_offset, new_p1);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->topology().set_vertex_point(vertex_offset, new_p2);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->topology().set_vertex_point(vertex_offset, new_p3);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->add_primitive(quad_verts);
+    } else {
+      // TODO: Shared mode - need to build point mapping
+      // For now, use individual mode logic
+      const int new_p0 = static_cast<int>(next_point_idx++);
+      const int new_p1 = static_cast<int>(next_point_idx++);
+      const int new_p2 = static_cast<int>(next_point_idx++);
+      const int new_p3 = static_cast<int>(next_point_idx++);
+
+      (*result_positions)[new_p0] = p0;
+      (*result_positions)[new_p1] = p1;
+      (*result_positions)[new_p2] = p2;
+      (*result_positions)[new_p3] = p3;
+
+      std::vector<int> quad_verts;
+      quad_verts.reserve(4);
+
+      result->topology().set_vertex_point(vertex_offset, new_p0);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->topology().set_vertex_point(vertex_offset, new_p1);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->topology().set_vertex_point(vertex_offset, new_p2);
+      quad_verts.push_back(static_cast<int>(vertex_offset++));
+
+      result->topology().set_vertex_point(vertex_offset, new_p3);
       quad_verts.push_back(static_cast<int>(vertex_offset++));
 
       result->add_primitive(quad_verts);

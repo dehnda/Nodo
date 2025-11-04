@@ -87,6 +87,11 @@ std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
 
   auto &topology = container.topology();
 
+  // Set up 1:1 vertex-to-point mapping
+  for (int i = 0; i < num_points; ++i) {
+    topology.set_vertex_point(i, i);
+  }
+
   // Create line segment primitives (2 vertices per edge)
   for (int i = 0; i < segments; ++i) {
     topology.add_primitive({i, i + 1});

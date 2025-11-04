@@ -528,6 +528,7 @@ protected:
     return get_input_data(std::to_string(port_index));
   }
 
+public:
   /**
    * @brief Manually set input data (for testing/bridge purposes only)
    * @param port_index Port index (0-based)
@@ -541,6 +542,15 @@ protected:
     }
   }
 
+  /**
+   * @brief Public execute wrapper for testing
+   * Calls the protected execute() method
+   */
+  std::shared_ptr<core::GeometryContainer> execute_for_test() {
+    return execute();
+  }
+
+protected:
   /**
    * @brief Check if the node has an active group filter
    * @return True if a group name is specified

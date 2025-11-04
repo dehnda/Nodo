@@ -9,14 +9,22 @@
 namespace nodo::sop {
 
 /**
- * @brief PolyExtrude - Extrude individual polygon faces
+ * @brief PolyExtrude - Extrude polygon faces or edges
  *
- * Creates extrusions by duplicating face vertices and moving them along face
- * normals, generating side geometry. Supports inset for creating beveled edges.
+ * Creates extrusions by duplicating face/edge vertices and moving them along
+ * normals or specified directions, generating side geometry.
+ * Supports inset for creating beveled edges.
  */
 class PolyExtrudeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
+
+  /// Extrusion type modes
+  enum class ExtrusionType {
+    FACES = 0, ///< Extrude polygon faces (3+ vertex primitives)
+    EDGES = 1, ///< Extrude edges (2 vertex primitives)
+    POINTS = 2 ///< Extrude points (future feature)
+  };
 
   explicit PolyExtrudeSOP(const std::string &name = "polyextrude");
 
@@ -54,6 +62,16 @@ protected:
   std::shared_ptr<core::GeometryContainer> execute() override;
 
 private:
+  /**
+   * @brief Extrude polygon faces (3+ vertices)
+   */
+  std::shared_ptr<core::GeometryContainer> extrude_faces();
+
+  /**
+   * @brief Extrude edges (2 vertices)
+   */
+  std::shared_ptr<core::GeometryContainer> extrude_edges();
+
   float distance_ = 1.0F;
   float inset_ = 0.0F;
   bool individual_faces_ = true;
