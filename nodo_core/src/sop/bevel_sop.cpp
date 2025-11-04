@@ -1,5 +1,6 @@
 #include "nodo/sop/bevel_sop.hpp"
 #include "nodo/core/attribute_types.hpp"
+#include "nodo/core/math.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -153,8 +154,10 @@ std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
   }
 
   const float angle_threshold = get_parameter<float>("angle_limit");
-  constexpr float rad_to_deg = 180.0F / static_cast<float>(M_PI);
-  constexpr float deg_to_rad = static_cast<float>(M_PI) / 180.0F;
+  constexpr float rad_to_deg =
+      180.0F / static_cast<float>(nodo::core::math::PI);
+  constexpr float deg_to_rad =
+      static_cast<float>(nodo::core::math::PI) / 180.0F;
 
   std::vector<EdgeKey> edges_to_bevel;
 

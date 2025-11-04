@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/geometry_container.hpp"
+#include "../core/math.hpp"
 #include "sop_node.hpp"
 #include <cmath>
 
@@ -16,7 +17,6 @@ namespace nodo::sop {
 class TwistSOP : public SOPNode {
 private:
   static constexpr int NODE_VERSION = 1;
-  static constexpr float M_PI_VAL = 3.14159265358979323846F;
 
 public:
   explicit TwistSOP(const std::string &name = "twist")
@@ -78,7 +78,8 @@ protected:
     const int rate_mode = get_parameter<int>("rate", 0);
 
     // Convert to radians
-    const float angle_rad = angle_deg * M_PI_VAL / 180.0F;
+    const float angle_rad =
+        angle_deg * static_cast<float>(nodo::core::math::PI) / 180.0F;
 
     // Clone geometry
     auto result = std::make_shared<core::GeometryContainer>(input_geo->clone());

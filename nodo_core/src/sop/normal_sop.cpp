@@ -1,17 +1,10 @@
-#ifdef _MSC_VER
-#define _USE_MATH_DEFINES
-#endif
-
 #include "nodo/sop/normal_sop.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include <Eigen/Dense>
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 namespace nodo::sop {
 
@@ -110,7 +103,8 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
     return;
   }
 
-  float cusp_cos = std::cos(cusp_angle * M_PI / 180.0f);
+  float cusp_cos =
+      std::cos(cusp_angle * static_cast<float>(nodo::core::math::PI) / 180.0f);
 
   std::cerr << "NormalSOP: Cusp angle = " << cusp_angle
             << "°, cos = " << cusp_cos << "\n";

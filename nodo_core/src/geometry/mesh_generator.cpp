@@ -1,12 +1,9 @@
 #include "nodo/geometry/mesh_generator.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 #include <array>
-#define _USE_MATH_DEFINES
 #include <cmath>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 namespace attrs = nodo::core::standard_attrs;
 
@@ -261,8 +258,8 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
 
   // Bottom ring (indices 2 to 2+segments-1)
   for (int i = 0; i < segments; ++i) {
-    const double angle =
-        2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+    const double angle = nodo::core::math::TAU * static_cast<double>(i) /
+                         static_cast<double>(segments);
     const Eigen::Vector3d offset(radius * std::cos(angle),
                                  radius * std::sin(angle), 0);
     const Eigen::Vector3d pos = bottom_center + offset;
@@ -273,8 +270,8 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
 
   // Top ring (indices 2+segments to 2+segments*2-1)
   for (int i = 0; i < segments; ++i) {
-    const double angle =
-        2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+    const double angle = nodo::core::math::TAU * static_cast<double>(i) /
+                         static_cast<double>(segments);
     const Eigen::Vector3d offset(radius * std::cos(angle),
                                  radius * std::sin(angle), 0);
     const Eigen::Vector3d pos = top_center + offset;
@@ -335,8 +332,8 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
 
     // Bottom ring normals (radial outward)
     for (int i = 0; i < segments; ++i) {
-      const double angle =
-          2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+      const double angle = nodo::core::math::TAU * static_cast<double>(i) /
+                           static_cast<double>(segments);
       const float nx = static_cast<float>(std::cos(angle));
       const float ny = static_cast<float>(std::sin(angle));
       n_span[2 + i] = {nx, ny, 0.0F};
@@ -344,8 +341,8 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
 
     // Top ring normals (same radial pattern)
     for (int i = 0; i < segments; ++i) {
-      const double angle =
-          2.0 * M_PI * static_cast<double>(i) / static_cast<double>(segments);
+      const double angle = nodo::core::math::TAU * static_cast<double>(i) /
+                           static_cast<double>(segments);
       const float nx = static_cast<float>(std::cos(angle));
       const float ny = static_cast<float>(std::sin(angle));
       n_span[2 + segments + i] = {nx, ny, 0.0F};

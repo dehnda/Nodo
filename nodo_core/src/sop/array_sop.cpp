@@ -1,16 +1,8 @@
-#ifdef _MSC_VER
-#define _USE_MATH_DEFINES
-#endif
-
 #include "nodo/sop/array_sop.hpp"
 #include "nodo/core/math.hpp"
 #include "nodo/core/types.hpp"
 
 #include <cmath>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 namespace attrs = nodo::core::standard_attrs;
 
@@ -305,7 +297,8 @@ ArraySOP::create_radial_array(const core::GeometryContainer &input_geo,
 
   for (int i = 0; i < count; ++i) {
     const float angle_deg = angle_step * static_cast<float>(i);
-    const float angle_rad = angle_deg * static_cast<float>(M_PI) / 180.0F;
+    const float angle_rad =
+        angle_deg * static_cast<float>(nodo::core::math::PI) / 180.0F;
     const float cos_angle = std::cos(angle_rad);
     const float sin_angle = std::sin(angle_rad);
 
