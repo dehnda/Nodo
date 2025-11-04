@@ -12,6 +12,7 @@
 #include "widgets/FloatWidget.h"
 #include "widgets/IntWidget.h"
 #include "widgets/ModeSelectorWidget.h"
+#include "widgets/MultiLineTextWidget.h"
 #include "widgets/TextWidget.h"
 #include "widgets/Vector3Widget.h"
 
@@ -956,6 +957,20 @@ void PropertyPanel::connectParameterWidget(
                                          param.label, param.category);
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
+      node->set_parameter(param.name, updated_param);
+      emit parameterChanged();
+    });
+  } else if (auto *multiline_widget =
+                 dynamic_cast<nodo_studio::widgets::MultiLineTextWidget *>(
+                     widget)) {
+    multiline_widget->setTextChangedCallback([this, node,
+                                              param](const QString &new_value) {
+      auto updated_param = NodeParameter(param.name, new_value.toStdString(),
+                                         param.label, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+      // Override type to Code
+      updated_param.type = NodeParameter::Type::Code;
       node->set_parameter(param.name, updated_param);
       emit parameterChanged();
     });

@@ -98,7 +98,7 @@ std::string get_node_type_name(NodeType type);
  * @brief Parameter value that can hold different types
  */
 struct NodeParameter {
-  enum class Type { Float, Int, Bool, Vector3, String };
+  enum class Type { Float, Int, Bool, Vector3, String, Code };
 
   Type type;
   std::string name;

@@ -193,10 +193,18 @@ ViewportWidget::ViewportWidget(QWidget *parent) : QOpenGLWidget(parent) {
   fps_timer_->start(1000); // Update stats every second
 
   // Setup continuous render timer (for smooth FPS and animations)
+  // In Debug builds, use on-demand rendering to reduce CPU usage
+  // In Release builds, use continuous 60 FPS for smooth experience
+#ifndef NDEBUG
+  // Debug mode: on-demand rendering only
+  render_timer_ = nullptr;
+#else
+  // Release mode: continuous rendering for smooth animations
   render_timer_ = new QTimer(this);
   connect(render_timer_, &QTimer::timeout, this,
           QOverload<>::of(&ViewportWidget::update));
   render_timer_->start(16); // ~60 FPS (16ms per frame)
+#endif
 }
 
 ViewportWidget::~ViewportWidget() {

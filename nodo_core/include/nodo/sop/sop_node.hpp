@@ -45,7 +45,7 @@ public:
    * @brief Parameter definition with UI metadata (schema)
    */
   struct ParameterDefinition {
-    enum class Type { Float, Int, Bool, String, Vector3 };
+    enum class Type { Float, Int, Bool, String, Vector3, Code };
 
     std::string name;             // Internal identifier
     std::string label;            // UI display name
@@ -60,6 +60,7 @@ public:
     int int_min = 0;
     int int_max = 100;
     std::vector<std::string> options; // For combo boxes (int type)
+    std::string ui_hint; // UI widget hint (e.g., "multiline", "filepath")
 
     // Category visibility control (optional)
     // If set, this parameter's category is only visible when the control
@@ -143,6 +144,11 @@ public:
                                    int value) {
       def_.category_control_param = control_param;
       def_.category_control_value = value;
+      return *this;
+    }
+
+    ParameterBuilder &hint(const std::string &ui_hint) {
+      def_.ui_hint = ui_hint;
       return *this;
     }
 
@@ -436,6 +442,17 @@ protected:
   ParameterBuilder define_string_parameter(const std::string &name,
                                            const std::string &default_value) {
     ParameterDefinition def(name, ParameterDefinition::Type::String,
+                            default_value);
+    return ParameterBuilder(def);
+  }
+
+  /**
+   * @brief Define a code/expression parameter with fluent builder API
+   * Multi-line text editor for code, expressions, scripts
+   */
+  ParameterBuilder define_code_parameter(const std::string &name,
+                                         const std::string &default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Code,
                             default_value);
     return ParameterBuilder(def);
   }

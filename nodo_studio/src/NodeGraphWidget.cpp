@@ -1190,7 +1190,8 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
     if (!connection_made && connection_source_node_ != nullptr) {
       // Store pending connection info
       has_pending_connection_ = true;
-      pending_connection_source_node_id_ = connection_source_node_->get_node_id();
+      pending_connection_source_node_id_ =
+          connection_source_node_->get_node_id();
       pending_connection_source_pin_ = connection_source_pin_;
       pending_connection_target_pos_ = scene_pos;
 
@@ -1583,13 +1584,14 @@ void NodeGraphWidget::on_node_menu_selected(const QString &type_id) {
   // Create node at the last context menu position
   create_node_at_position(node_type, context_menu_scene_pos_);
 
-  // If we have a pending connection, auto-connect to the first input of new node
+  // If we have a pending connection, auto-connect to the first input of new
+  // node
   if (has_pending_connection_ && graph_ != nullptr && undo_stack_ != nullptr) {
     // Get the newly created node (it's the last one added)
     if (!graph_->get_nodes().empty()) {
       int new_node_id = graph_->get_nodes().back()->get_id();
       auto *new_node = graph_->get_node(new_node_id);
-      
+
       // Check if the new node has at least one input pin
       if (new_node != nullptr && !new_node->get_input_pins().empty()) {
         // Connect to the first input pin (index 0)

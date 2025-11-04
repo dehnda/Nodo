@@ -47,6 +47,12 @@ private:
     double Nx = 0.0, Ny = 0.0, Nz = 0.0;
     double Cr = 0.0, Cg = 0.0, Cb = 0.0;
 
+    // User parameters (like ch() in Houdini)
+    double parm1 = 0.0;
+    double parm2 = 0.0;
+    double parm3 = 0.0;
+    double parm4 = 0.0;
+
     // Expression engine (using pimpl to avoid exprtk in header)
     std::unique_ptr<exprtk::symbol_table<double>> symbols;
     std::unique_ptr<exprtk::expression<double>> expression;

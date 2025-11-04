@@ -5,6 +5,7 @@
 #include "widgets/FloatWidget.h"
 #include "widgets/IntWidget.h"
 #include "widgets/ModeSelectorWidget.h"
+#include "widgets/MultiLineTextWidget.h"
 #include "widgets/TextWidget.h"
 #include "widgets/Vector3Widget.h"
 
@@ -73,6 +74,12 @@ BaseParameterWidget *ParameterWidgetFactory::createWidget(
     return createStringWidget(label, qvalue, description, parent);
   }
 
+  case nodo::sop::SOPNode::ParameterDefinition::Type::Code: {
+    std::string value = std::get<std::string>(def.default_value);
+    QString qvalue = QString::fromStdString(value);
+    return createMultiLineTextWidget(label, qvalue, description, parent);
+  }
+
   case nodo::sop::SOPNode::ParameterDefinition::Type::Vector3: {
     auto vec = std::get<Eigen::Vector3f>(def.default_value);
     float min = static_cast<float>(def.float_min);
@@ -131,6 +138,11 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
     return createStringWidget(label, value, description, parent);
   }
 
+  case nodo::graph::NodeParameter::Type::Code: {
+    QString value = QString::fromStdString(param.string_value);
+    return createMultiLineTextWidget(label, value, description, parent);
+  }
+
   case nodo::graph::NodeParameter::Type::Vector3: {
     return createVector3Widget(label, param.vector3_value[0],
                                param.vector3_value[1], param.vector3_value[2],
@@ -170,6 +182,12 @@ BaseParameterWidget *ParameterWidgetFactory::createStringWidget(
     const QString &label, const QString &value, const QString &description,
     QWidget *parent) {
   return new TextWidget(label, value, "", description, parent);
+}
+
+BaseParameterWidget *ParameterWidgetFactory::createMultiLineTextWidget(
+    const QString &label, const QString &value, const QString &description,
+    QWidget *parent) {
+  return new MultiLineTextWidget(label, value, "", description, parent);
 }
 
 BaseParameterWidget *ParameterWidgetFactory::createVector3Widget(

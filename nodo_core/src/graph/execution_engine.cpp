@@ -232,6 +232,7 @@ void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
       break;
 
     case NodeParameter::Type::String:
+    case NodeParameter::Type::Code:
       sop_node.set_parameter(param.name, param.string_value);
       break;
 

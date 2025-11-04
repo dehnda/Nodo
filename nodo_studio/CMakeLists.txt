@@ -42,6 +42,7 @@ set(STUDIO_SOURCES
     src/widgets/CheckboxWidget.cpp
     src/widgets/DropdownWidget.cpp
     src/widgets/TextWidget.cpp
+    src/widgets/MultiLineTextWidget.cpp
     src/widgets/SliderWidget.cpp
     src/widgets/ColorWidget.cpp
     src/widgets/FilePathWidget.cpp

@@ -63,6 +63,14 @@ convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
     break;
   }
 
+  case ParamType::Code: {
+    std::string default_val = std::get<std::string>(def.default_value);
+    param = NodeParameter(def.name, default_val, def.label, def.category);
+    // Override type to Code after construction
+    param.type = nodo::graph::NodeParameter::Type::Code;
+    break;
+  }
+
   case ParamType::Vector3: {
     auto vec3_eigen = std::get<Eigen::Vector3f>(def.default_value);
     std::array<float, 3> vec3_array = {vec3_eigen.x(), vec3_eigen.y(),

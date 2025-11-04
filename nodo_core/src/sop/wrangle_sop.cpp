@@ -6,6 +6,7 @@
 #include <cmath>
 #include <exprtk.hpp>
 #include <fmt/core.h>
+#include <iostream>
 #include <random>
 
 namespace nodo::sop {
@@ -35,12 +36,41 @@ WrangleSOP::WrangleSOP(const std::string &node_name)
 
   // Expression code
   register_parameter(
-      define_string_parameter("expression",
-                              "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;")
+      define_code_parameter("expression",
+                            "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;")
           .label("Expression")
           .category("Wrangle")
           .description("VEX-style expression to modify geometry attributes")
           .build());
+
+  // User parameters (like ch() in Houdini)
+  register_parameter(define_float_parameter("parm1", 1.0F)
+                         .label("Parameter 1")
+                         .range(-10.0F, 10.0F)
+                         .category("Parameters")
+                         .description("User parameter 1 (access with parm1)")
+                         .build());
+
+  register_parameter(define_float_parameter("parm2", 0.0F)
+                         .label("Parameter 2")
+                         .range(-10.0F, 10.0F)
+                         .category("Parameters")
+                         .description("User parameter 2 (access with parm2)")
+                         .build());
+
+  register_parameter(define_float_parameter("parm3", 0.0F)
+                         .label("Parameter 3")
+                         .range(-10.0F, 10.0F)
+                         .category("Parameters")
+                         .description("User parameter 3 (access with parm3)")
+                         .build());
+
+  register_parameter(define_float_parameter("parm4", 0.0F)
+                         .label("Parameter 4")
+                         .range(-10.0F, 10.0F)
+                         .category("Parameters")
+                         .description("User parameter 4 (access with parm4)")
+                         .build());
 
   // Note: Group parameter is inherited from SOPNode base class
 }
@@ -57,6 +87,9 @@ std::shared_ptr<core::GeometryContainer> WrangleSOP::execute() {
   int run_over_mode = get_parameter<int>("run_over", 0);
   std::string expression_code =
       get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+
+  std::cout << "🔧 WrangleSOP executing with expression: " << expression_code
+            << std::endl;
 
   // Compile expression
   if (!compile_expression(expression_code)) {
@@ -133,6 +166,17 @@ void WrangleSOP::setup_symbol_table() {
   context_->symbols->add_variable("Cr", context_->Cr);
   context_->symbols->add_variable("Cg", context_->Cg);
   context_->symbols->add_variable("Cb", context_->Cb);
+
+  // User parameters
+  context_->parm1 = static_cast<double>(get_parameter<float>("parm1", 1.0F));
+  context_->parm2 = static_cast<double>(get_parameter<float>("parm2", 0.0F));
+  context_->parm3 = static_cast<double>(get_parameter<float>("parm3", 0.0F));
+  context_->parm4 = static_cast<double>(get_parameter<float>("parm4", 0.0F));
+
+  context_->symbols->add_variable("parm1", context_->parm1);
+  context_->symbols->add_variable("parm2", context_->parm2);
+  context_->symbols->add_variable("parm3", context_->parm3);
+  context_->symbols->add_variable("parm4", context_->parm4);
 
   // Register built-in functions
   context_->symbols->add_function("rand", func_rand);

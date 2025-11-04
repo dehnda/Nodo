@@ -66,6 +66,10 @@ private:
                      const QString &description, QWidget *parent);
 
   static widgets::BaseParameterWidget *
+  createMultiLineTextWidget(const QString &label, const QString &value,
+                            const QString &description, QWidget *parent);
+
+  static widgets::BaseParameterWidget *
   createVector3Widget(const QString &label, float x, float y, float z,
                       float min, float max, const QString &description,
                       QWidget *parent);
