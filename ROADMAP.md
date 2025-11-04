@@ -81,28 +81,29 @@
    - ✅ Sphere, Box, Cylinder, Torus, Grid, Line
    - Universal: Group + Primitive Type
 
-2. **Patch 2 - Modify Operations (5 nodes)**
-   - ✅ Extrude, ✅ Subdivide, ✅ Noise Displacement, ✅ Smooth (Laplacian), Bevel
+2. **Patch 2 - Modify Operations (5 nodes)** ✅ COMPLETE (Bevel deferred)
+   - ✅ Extrude, ✅ Subdivide, ✅ Noise Displacement, ✅ Smooth (Laplacian), 🔄 Bevel (basic edges only)
    - Universal: Group only
    - ~~Displace~~ - Removed (duplicate of Noise Displacement)
-   - **Action:** Implement Bevel
+   - **Note:** Bevel works for basic edge beveling (1 segment), full implementation deferred to Phase 2
    - **Fixed:** BoxGenerator orphaned points bug (was creating interior points for subdivided boxes)
 
-3. **Patch 3 - Transform Operations (6 nodes)**
-   - Transform, Array, Copy to Points, Mirror, ✅ Scatter, Align
+3. **Patch 3 - Transform Operations (6 nodes)** ✅ COMPLETE
+   - ✅ Transform, ✅ Array, ✅ Copy to Points, ✅ Mirror, ✅ Scatter, ✅ Align
    - Universal: Group only
    - **Note:** Scatter is surface-based with face area calculation implemented. Volume scatter is separate node (see Phase 1.5)
 
-4. **Patch 4 - Boolean & Combine (5 nodes)**
-   - Boolean, Merge, Split, Remesh, PolyExtrude
+4. **Patch 4 - Boolean & Combine (5 nodes)** ✅ COMPLETE (Remesh deferred)
+   - ✅ Boolean, ✅ Merge, ✅ Split, 🔄 Remesh (stub only), ✅ PolyExtrude
    - Universal: Group only
    - ~~Join~~ - Removed (duplicate of Merge)
    - ~~Separate~~ - Removed (use Blast to delete groups)
+   - **Note:** Remesh has parameters defined but algorithm not implemented - deferred to Phase 2
 
-5. **Patch 5 - Attribute Operations (6 nodes)**
+5. **Patch 5 - Attribute Operations (6 nodes)** - NEXT UP 🎯
    - Wrangle, Attribute Create, Attribute Delete, Color, Normal, UV Unwrap
    - Universal: Group + Component
-   - **Action:** Verify/implement Attribute Delete, Color
+   - **Action:** Verify/implement Attribute Delete, Color, Normal, UV Unwrap
 
 6. **Patch 6 - Group Operations (7 nodes)**
    - Group Create, Blast (delete geo), Sort, Group Promote, Group Combine, Group Expand, Group Transfer
