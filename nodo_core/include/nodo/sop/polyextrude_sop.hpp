@@ -72,6 +72,11 @@ private:
    */
   std::shared_ptr<core::GeometryContainer> extrude_edges();
 
+  /**
+   * @brief Extrude points (create line segments from points)
+   */
+  std::shared_ptr<core::GeometryContainer> extrude_points();
+
   float distance_ = 1.0F;
   float inset_ = 0.0F;
   bool individual_faces_ = true;
