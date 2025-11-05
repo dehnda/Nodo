@@ -272,12 +272,18 @@ void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
 
     case NodeParameter::Type::String:
     case NodeParameter::Type::Code: {
-      // Resolve any graph parameter references in the string
-      if (resolver.has_references(param.string_value)) {
-        std::string resolved = resolver.resolve(param.string_value);
-        sop_node.set_parameter(param.name, resolved);
-      } else {
+      // For Code type, pass through directly without resolution
+      // (@ symbols are VEX attribute syntax, not parameter references)
+      if (param.type == NodeParameter::Type::Code) {
         sop_node.set_parameter(param.name, param.string_value);
+      } else {
+        // For String type, resolve any graph parameter references
+        if (resolver.has_references(param.string_value)) {
+          std::string resolved = resolver.resolve(param.string_value);
+          sop_node.set_parameter(param.name, resolved);
+        } else {
+          sop_node.set_parameter(param.name, param.string_value);
+        }
       }
       break;
     }

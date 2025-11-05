@@ -115,6 +115,7 @@ void MultiLineTextWidget::onTextChanged() {
   QString new_text = text_edit_->toPlainText();
   if (text_ != new_text) {
     text_ = new_text;
+
     emit textChangedSignal(text_);
 
     if (text_changed_callback_) {

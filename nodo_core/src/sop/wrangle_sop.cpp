@@ -34,8 +34,7 @@ WrangleSOP::WrangleSOP(const std::string &node_name)
           .build());
 
   // Expression code
-  const std::string default_expression =
-      "@P.y = @P.y + sin(@ptnum * 0.1) * 0.5;";
+  const std::string default_expression = "";
   register_parameter(
       define_code_parameter("expression", default_expression)
           .label("Expression")
@@ -210,6 +209,12 @@ void WrangleSOP::execute_points_mode(core::GeometryContainer *result) {
   // Get the preprocessed expression
   std::string expression_code =
       get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+
+  // Skip execution if expression is empty
+  if (expression_code.empty()) {
+    return; // No modification needed
+  }
+
   std::string processed_code = preprocess_code(expression_code);
 
   // Use base class helper to iterate only over points in the active group

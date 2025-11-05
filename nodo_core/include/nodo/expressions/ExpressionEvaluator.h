@@ -88,6 +88,7 @@ public:
    *
    * @param expression Mathematical expression to evaluate
    * @param variables Map of variable names to values (will be modified)
+
    * @return Result containing either the computed value or error message
    */
   Result evaluate(const std::string &expression, VariableMap &variables);
