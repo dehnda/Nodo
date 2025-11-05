@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nodo - Professional node-based procedural 3D modeling tool. Real-time, GPU-accelerated, inspired by Houdini.">
+    <meta name="keywords" content="procedural modeling, 3D modeling, node-based, Houdini, geometry nodes, parametric design">
+    <title>Nodo - Node-Based Procedural 3D Modeling</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <svg class="logo" viewBox="0 0 410 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Icon on left -->
+                    <g transform="translate(60, 50)">
+                        <!-- Central node -->
+                        <circle cx="0" cy="0" r="12" class="logo-primary"/>
+
+                        <!-- Connections -->
+                        <path d="M 0 0 L 0 -35" class="logo-connection" stroke-width="3" stroke-linecap="round"/>
+                        <circle cx="0" cy="-35" r="7" class="logo-primary"/>
+
+                        <path d="M 0 0 L 25 -25" class="logo-connection" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="25" cy="-25" r="6" class="logo-secondary"/>
+
+                        <path d="M 0 0 L 35 0" class="logo-connection" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="35" cy="0" r="6" class="logo-tertiary"/>
+
+                        <path d="M 0 0 L 25 25" class="logo-connection" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="25" cy="25" r="6" class="logo-secondary"/>
+
+                        <path d="M 0 0 L 0 35" class="logo-connection" stroke-width="3" stroke-linecap="round"/>
+                        <circle cx="0" cy="35" r="7" class="logo-primary"/>
+
+                        <path d="M 0 0 L -25 25" class="logo-connection" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="-25" cy="25" r="6" class="logo-secondary"/>
+
+                        <path d="M 0 0 L -35 0" class="logo-connection" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="-35" cy="0" r="6" class="logo-tertiary"/>
+
+                        <path d="M 0 0 L -25 -25" class="logo-connection" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="-25" cy="-25" r="6" class="logo-secondary"/>
+
+                        <circle cx="0" cy="0" r="40" class="logo-glow" opacity="0.15"/>
+                    </g>
+
+                    <!-- Text: NODO -->
+                    <text x="140" y="65"
+                          font-family="Arial, Helvetica, sans-serif"
+                          font-size="60"
+                          font-weight="600"
+                          class="logo-text"
+                          letter-spacing="6">NODO</text>
+                </svg>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12H21M3 6H21M3 18H21"/>
+                </svg>
+            </button>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#workflows">Workflows</a></li>
+                <li><a href="#comparison">Why Procedural</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#docs">Docs</a></li>
+            </ul>
+            <div class="navbar-controls">
+                <button class="color-picker-btn" aria-label="Change color theme">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2a7 7 0 0 0 0 14 7 7 0 0 1 0-14Z"/>
+                    </svg>
+                </button>
+                <div class="color-picker-dropdown">
+                    <span class="color-picker-label">Choose Accent Color</span>
+                    <div class="color-options">
+                        <button class="color-option active" data-color="coral" aria-label="Coral"></button>
+                        <button class="color-option" data-color="blue" aria-label="Blue"></button>
+                        <button class="color-option" data-color="purple" aria-label="Purple"></button>
+                        <button class="color-option" data-color="green" aria-label="Green"></button>
+                        <button class="color-option" data-color="pink" aria-label="Pink"></button>
+                        <button class="color-option" data-color="amber" aria-label="Amber"></button>
+                    </div>
+                </div>
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-tagline">CONNECTED CREATION</div>
+                <h1 class="hero-title">
+                    Procedural 3D Modeling,<br>
+                    <span class="gradient-text">Reimagined</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Node-based workflow. Real-time performance. GPU-accelerated.<br>
+                    Create complex 3D geometry with parametric precision.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">Download Alpha</a>
+                    <a href="#workflows" class="btn btn-secondary">See Examples</a>
+                </div>
+                <div class="hero-tags">
+                    <span class="tag">40+ Nodes</span>
+                    <span class="tag">Real-Time Updates</span>
+                    <span class="tag">GPU Accelerated</span>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="Nodo_Studio_Screenshot.png" alt="Nodo Studio Interface" class="app-screenshot">
+            </div>
+        </div>
+    </section>
+
+    <!-- What is Nodo -->
+    <section class="what-is-nodo">
+        <div class="container">
+            <h2 class="section-title">What Makes Nodo Different?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/>
+                            <path d="M9 12L11 14L15.5 9.5"/>
+                        </svg>
+                    </div>
+                    <h3>Non-Destructive</h3>
+                    <p>Change any parameter at any time. Your entire model updates automatically. No history loss.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z"/>
+                        </svg>
+                    </div>
+                    <h3>Real-Time Performance</h3>
+                    <p>GPU-accelerated operations. See your changes instantly, even on complex geometry.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 7.353V16.647C21 16.8649 20.8819 17.0656 20.6914 17.1715L12.2914 21.8381C12.1102 21.9388 11.8898 21.9388 11.7086 21.8381L3.30861 17.1715C3.11814 17.0656 3 16.8649 3 16.647V7.353C3 7.13509 3.11814 6.93437 3.30861 6.82848L11.7086 2.16188C11.8898 2.06121 12.1102 2.06121 12.2914 2.16188L20.6914 6.82848C20.8819 6.93437 21 7.13509 21 7.353Z"/>
+                            <path d="M3.52844 7.29357L11.9998 11.6483L20.4712 7.29357"/>
+                            <path d="M12 21.5V12"/>
+                        </svg>
+                    </div>
+                    <h3>Node-Based Workflow</h3>
+                    <p>Visual programming for 3D. Connect nodes like Houdini or Blender Geometry Nodes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4Z"/>
+                            <path d="M15 3V21"/>
+                            <path d="M3 12H15"/>
+                            <path d="M15 21H21"/>
+                        </svg>
+                    </div>
+                    <h3>Production Ready</h3>
+                    <p>40+ nodes covering generators, modifiers, booleans, groups, attributes, and more.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Toolset</h2>
+
+            <div class="feature-category">
+                <h3 class="category-title">
+                    <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 7.353V16.647C21 16.8649 20.8819 17.0656 20.6914 17.1715L12.2914 21.8381C12.1102 21.9388 11.8898 21.9388 11.7086 21.8381L3.30861 17.1715C3.11814 17.0656 3 16.8649 3 16.647V7.353C3 7.13509 3.11814 6.93437 3.30861 6.82848L11.7086 2.16188C11.8898 2.06121 12.1102 2.06121 12.2914 2.16188L20.6914 6.82848C20.8819 6.93437 21 7.13509 21 7.353Z"/>
+                    </svg>
+                    Geometry Generators
+                </h3>
+                <div class="node-list">
+                    <span class="node-badge">Box</span>
+                    <span class="node-badge">Sphere</span>
+                    <span class="node-badge">Cylinder</span>
+                    <span class="node-badge">Torus</span>
+                    <span class="node-badge">Grid</span>
+                    <span class="node-badge">Line</span>
+                </div>
+                <p>Parametric primitives with full control over subdivisions, caps, and topology.</p>
+            </div>
+
+            <div class="feature-category">
+                <h3 class="category-title">
+                    <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/>
+                        <path d="M12 8V12L14.5 14.5"/>
+                    </svg>
+                    Modify Operations
+                </h3>
+                <div class="node-list">
+                    <span class="node-badge">Extrude</span>
+                    <span class="node-badge">Subdivide</span>
+                    <span class="node-badge">Smooth</span>
+                    <span class="node-badge">Noise</span>
+                    <span class="node-badge">Bevel</span>
+                </div>
+                <p>Transform topology with smoothing, displacement, and surface refinement.</p>
+            </div>
+
+            <div class="feature-category">
+                <h3 class="category-title">
+                    <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21.8883 10.5468L21.1883 9.84676C20.7926 9.4577 20.5947 9.26317 20.3786 9.25079C20.1895 9.24031 20.0041 9.31146 19.8714 9.44773C19.7177 9.60413 19.6785 9.88542 19.6 10.448L19.5195 10.9932C19.0654 13.8256 16.7027 16 13.8277 16H10M10 16L13 13M10 16L13 19"/>
+                        <path d="M3.1117 13.4532L3.8117 14.1532C4.20738 14.5423 4.40521 14.7368 4.62136 14.7492C4.81045 14.7597 4.99589 14.6885 5.12863 14.5523C5.28228 14.3959 5.32151 14.1146 5.4 13.552L5.48054 13.0068C5.93464 10.1744 8.29733 8 11.1723 8H14M14 8L11 5M14 8L11 11"/>
+                    </svg>
+                    Transform & Instance
+                </h3>
+                <div class="node-list">
+                    <span class="node-badge">Transform</span>
+                    <span class="node-badge">Array</span>
+                    <span class="node-badge">Copy to Points</span>
+                    <span class="node-badge">Scatter</span>
+                    <span class="node-badge">Mirror</span>
+                    <span class="node-badge">Align</span>
+                </div>
+                <p>Position, duplicate, and distribute geometry with precise control.</p>
+            </div>
+
+            <div class="feature-category">
+                <h3 class="category-title">
+                    <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z"/>
+                        <path d="M3 16L10 9L21 21"/>
+                        <path d="M16 10C14.8954 10 14 9.10457 14 8C14 6.89543 14.8954 6 16 6C17.1046 6 18 6.89543 18 8C18 9.10457 17.1046 10 16 10Z"/>
+                    </svg>
+                    Boolean Operations
+                </h3>
+                <div class="node-list">
+                    <span class="node-badge">Boolean</span>
+                    <span class="node-badge">Merge</span>
+                    <span class="node-badge">Split</span>
+                    <span class="node-badge">PolyExtrude</span>
+                </div>
+                <p>CSG operations for combining and cutting meshes. Union, subtract, intersect.</p>
+            </div>
+
+            <div class="feature-category">
+                <h3 class="category-title">
+                    <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 5L9 3"/>
+                        <path d="M3 9L5 9"/>
+                        <path d="M5.63672 5.63672L7.05093 7.05093"/>
+                        <path d="M9 21V19"/>
+                        <path d="M15 19V21"/>
+                        <path d="M18.3643 18.3643L16.9501 16.9501"/>
+                        <path d="M21 15H19"/>
+                        <path d="M19 9L21 9"/>
+                        <path d="M18.3643 5.63672L16.9501 7.05093"/>
+                        <path d="M14 5L14 3"/>
+                        <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z"/>
+                        <path d="M12 16C15.3137 16 18 13.3137 18 10C18 6.68629 15.3137 4 12 4C8.68629 4 6 6.68629 6 10C6 13.3137 8.68629 16 12 16Z"/>
+                    </svg>
+                    Attributes & Groups
+                </h3>
+                <div class="node-list">
+                    <span class="node-badge">Wrangle</span>
+                    <span class="node-badge">Attribute Create</span>
+                    <span class="node-badge">Group Create</span>
+                    <span class="node-badge">Color</span>
+                    <span class="node-badge">Normal</span>
+                    <span class="node-badge">UV Unwrap</span>
+                </div>
+                <p>Edit vertex data, create selection groups, manage attributes per-point or per-face.</p>
+            </div>
+
+            <div class="feature-category">
+                <h3 class="category-title">
+                    <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3.33789 17C5.06694 19.989 8.29866 22 12.0001 22C17.5229 22 22.0001 17.5228 22.0001 12C22.0001 6.47715 17.5229 2 12.0001 2C8.29866 2 5.06694 4.01099 3.33789 7"/>
+                        <path d="M3 4.5V7.4C3 7.73137 3.26863 8 3.6 8H6.5"/>
+                    </svg>
+                    Deformers
+                </h3>
+                <div class="node-list">
+                    <span class="node-badge">Bend</span>
+                    <span class="node-badge">Twist</span>
+                    <span class="node-badge">Lattice</span>
+                </div>
+                <p>Non-destructive warping and deformation for organic shapes.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflows -->
+    <section id="workflows" class="workflows">
+        <div class="container">
+            <h2 class="section-title">Example Workflows</h2>
+
+            <div class="workflow-grid">
+                <div class="workflow-card">
+                    <h3>Procedural Buildings</h3>
+                    <div class="workflow-graph">
+                        <code>Box → Array → Group → Boolean → PolyExtrude</code>
+                    </div>
+                    <p>Create parametric architecture. Change the floor count and the entire building updates.</p>
+                </div>
+
+                <div class="workflow-card">
+                    <h3>Terrain Generation</h3>
+                    <div class="workflow-graph">
+                        <code>Grid → Noise Displacement → Smooth → Color</code>
+                    </div>
+                    <p>Generate natural landscapes with fractal noise. Adjust parameters for mountains or hills.</p>
+                </div>
+
+                <div class="workflow-card">
+                    <h3>Instancing Patterns</h3>
+                    <div class="workflow-graph">
+                        <code>Grid → Scatter → Box → Copy to Points</code>
+                    </div>
+                    <p>Distribute objects across surfaces. Perfect for building facades or forest scattering.</p>
+                </div>
+
+                <div class="workflow-card">
+                    <h3>Boolean Modeling</h3>
+                    <div class="workflow-graph">
+                        <code>Sphere × 2 → Boolean (Subtract) → Smooth</code>
+                    </div>
+                    <p>CSG operations for mechanical parts. Cut holes, combine shapes, create complex forms.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Procedural -->
+    <section id="comparison" class="comparison">
+        <div class="container">
+            <h2 class="section-title">Why Procedural Modeling?</h2>
+            <p class="section-subtitle">Traditional modeling is destructive. Procedural modeling is the future.</p>
+
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12h18M3 6h18M3 18h18"/>
+                            <path d="M12 3v18"/>
+                        </svg>
+                    </div>
+                    <h3>Non-Destructive</h3>
+                    <p>Change any parameter at any time. Your entire workflow updates automatically. No need to start over.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </div>
+                    <h3>Parametric Control</h3>
+                    <p>Create once, iterate forever. Adjust parameters to explore infinite variations of your design.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h3>Real-Time Feedback</h3>
+                    <p>GPU-accelerated processing means instant updates. See your changes in real-time, no waiting.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 7v8a2 2 0 0 0 2 2h6M8 7V5a2 2 0 0 1 2-2h4.586a1 1 0 0 1 .707.293l4.414 4.414a1 1 0 0 1 .293.707V15a2 2 0 0 1-2 2h-2M8 7H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2"/>
+                        </svg>
+                    </div>
+                    <h3>Reusable Workflows</h3>
+                    <p>Save your node graphs as templates. Build a library of procedural tools for future projects.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download -->
+    <section id="download" class="download">
+        <div class="container">
+            <h2 class="section-title">Get Started</h2>
+            <p class="download-subtitle">Nodo is in <strong>alpha testing</strong>. Help shape the future of procedural modeling.</p>
+
+            <div class="download-grid">
+                <div class="download-card">
+                    <div class="download-icon">
+                        <!-- Windows logo - 4 panes -->
+                        <svg viewBox="0 0 64 64" fill="currentColor">
+                            <rect x="4" y="4" width="26" height="26" rx="2"/>
+                            <rect x="34" y="4" width="26" height="26" rx="2"/>
+                            <rect x="4" y="34" width="26" height="26" rx="2"/>
+                            <rect x="34" y="34" width="26" height="26" rx="2"/>
+                        </svg>
+                    </div>
+                    <h3>Windows</h3>
+                    <p>Windows 10/11 (x64)</p>
+                    <a href="#" class="btn btn-download">Download for Windows</a>
+                    <small>Requires: Visual C++ Redistributable</small>
+                </div>
+                <div class="download-card">
+                    <div class="download-icon">
+                        <!-- Ubuntu logo (official design, blue color) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-142.5 -142.5 285 285">
+                            <circle fill="currentColor" r="141.732"/>
+                            <g id="U" fill="white">
+                                <circle cx="-96.3772" r="18.9215"/>
+                                <path d="M-45.6059,68.395C-62.1655,57.3316-74.4844,40.4175-79.6011,20.6065-73.623,15.7354-69.8047,8.3164-69.8047,0-69.8047-8.3164-73.623-15.7354-79.6011-20.6065-74.4844-40.4175-62.1655-57.3316-45.6059-68.395L-31.7715-45.2212C-45.9824-35.2197-55.2754-18.7026-55.2754,0-55.2754,18.7026-45.9824,35.2197-31.7715,45.2212Z"/>
+                            </g>
+                            <use href="#U" transform="rotate(120)"/>
+                            <use href="#U" transform="rotate(240)"/>
+                        </svg>
+                    </div>
+                    <h3>Linux</h3>
+                    <p>Ubuntu 22.04+ / Arch / Fedora</p>
+                    <a href="#" class="btn btn-download">Download for Linux</a>
+                    <small>Requires: Qt6, OpenGL 4.5+</small>
+                </div>
+            </div>
+
+            <div class="system-requirements">
+                <h4>System Requirements</h4>
+                <ul>
+                    <li><strong>GPU:</strong> OpenGL 4.5+ compatible (NVIDIA/AMD/Intel)</li>
+                    <li><strong>RAM:</strong> 4GB minimum, 8GB recommended</li>
+                    <li><strong>Storage:</strong> 500MB for application</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation -->
+    <section id="docs" class="docs">
+        <div class="container">
+            <h2 class="section-title">Learn Nodo</h2>
+            <div class="docs-grid">
+                <a href="../FIRST_TESTER_GUIDE.md" class="doc-card">
+                    <h3>
+                        <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143"/>
+                            <path d="M6 17L20 17"/>
+                            <path d="M6 21L20 21"/>
+                            <path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17"/>
+                            <path d="M9 7L15 7"/>
+                        </svg>
+                        First Tester Guide
+                    </h3>
+                    <p>Complete walkthrough for alpha testers. Workflows, tips, and what to test.</p>
+                </a>
+                <a href="docs.html" class="doc-card">
+                    <h3>
+                        <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143"/>
+                            <path d="M8 3V11L10.5 9.4L13 11V3"/>
+                            <path d="M6 17L20 17"/>
+                            <path d="M6 21L20 21"/>
+                            <path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17"/>
+                        </svg>
+                        Documentation
+                    </h3>
+                    <p>Complete node reference, tutorials, and workflow guides.</p>
+                </a>
+                <a href="../ROADMAP.md" class="doc-card">
+                    <h3>
+                        <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 6.6C9 6.26863 9.26863 6 9.6 6H14.4C14.7314 6 15 6.26863 15 6.6V9H9V6.6Z"/>
+                            <path d="M15 9H20.4C20.7314 9 21 9.26863 21 9.6V14.4C21 14.7314 20.7314 15 20.4 15H15V9Z"/>
+                            <path d="M15 15H20.4C20.7314 15 21 15.2686 21 15.6V20.4C21 20.7314 20.7314 21 20.4 21H15V15Z"/>
+                            <path d="M9 15V9H3.6C3.26863 9 3 9.26863 3 9.6V14.4C3 14.7314 3.26863 15 3.6 15H9Z"/>
+                            <path d="M9 15H3.6C3.26863 15 3 15.2686 3 15.6V20.4C3 20.7314 3.26863 21 3.6 21H9V15Z"/>
+                        </svg>
+                        Roadmap
+                    </h3>
+                    <p>Development timeline, completed features, and upcoming milestones.</p>
+                </a>
+                <a href="support.html" class="doc-card">
+                    <h3>
+                        <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z"/>
+                            <path d="M11.5 12.5C11.5 11.6716 12.1716 11 13 11C13.8284 11 14.5 11.6716 14.5 12.5C14.5 12.8621 14.3723 13.1936 14.1582 13.4542C13.7926 13.9006 13 14.5 13 15.5V16"/>
+                            <path d="M13 18.01L13.01 17.9989"/>
+                        </svg>
+                        Support
+                    </h3>
+                    <p>Get help, report bugs, and connect with the community.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Nodo</h4>
+                    <p>Professional procedural 3D modeling tool</p>
+                    <p class="footer-license">Proprietary Software - All Rights Reserved</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="../FIRST_TESTER_GUIDE.md">Getting Started</a></li>
+                        <li><a href="docs.html">Documentation</a></li>
+                        <li><a href="support.html">Report Bug</a></li>
+                        <li><a href="support.html">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#comparison">Why Procedural</a></li>
+                        <li><a href="#">Roadmap</a></li>
+                        <li><a href="#">License</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="support.html">Discord</a></li>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nodo. Built with ❤️ for procedural artists.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

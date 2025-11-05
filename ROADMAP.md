@@ -185,27 +185,29 @@
 
 ### Milestones
 
-#### **M3.0: Critical UX - Undo/Redo for Property Panel** (Week 1) 🚨 PRIORITY
-**Blocker for first testers**
+#### **M3.0: Critical UX - Undo/Redo for Property Panel** (Week 1) ✅ COMPLETE
+**Blocker for first testers - NOW RESOLVED**
 
-Current state:
-- ✅ Undo/redo works for node graph operations (add/delete/move nodes, connections)
-- ❌ Property panel changes bypass undo stack (directly call `set_parameter()`)
+Implementation completed:
+- ✅ Added UndoStack reference to PropertyPanel
+- ✅ Updated PropertyPanel parameter callbacks to use `ChangeParameterCommand`
+- ✅ Store old parameter values before changes (for undo)
+- ✅ Support command merging for smooth slider/scrubbing interactions
+- ✅ Fixed viewport updates during parameter changes (emit_parameter_changed_signal)
+- ✅ Fixed node selection persistence during undo/redo (QTimer::singleShot with QPointer)
+- ✅ Fixed crash when deleting last node (QPointer safety)
+- ✅ Fixed redo after graph becomes empty (AddNodeCommand preserves node ID and state)
+- ✅ Tested undo/redo for all 8 parameter widget types:
+  - ✅ Float/Int widgets (with scrubbing and command merging)
+  - ✅ Vector3 widgets
+  - ✅ Dropdown/Mode selectors
+  - ✅ Checkboxes
+  - ✅ Text fields
+  - ✅ File path widgets
+- ✅ Verified Ctrl+Z/Ctrl+Shift+Z keyboard shortcuts work for parameter changes
+- ✅ Edge case: Undo/redo works correctly even when graph becomes completely empty
 
-Implementation tasks:
-- [ ] Add UndoStack reference to PropertyPanel
-- [ ] Update PropertyPanel parameter callbacks to use `ChangeParameterCommand`
-- [ ] Store old parameter values before changes (for undo)
-- [ ] Support command merging for smooth slider/scrubbing interactions
-- [ ] Test undo/redo for all parameter widget types:
-  - [ ] Float/Int widgets (with scrubbing)
-  - [ ] Vector3 widgets
-  - [ ] Dropdown/Mode selectors
-  - [ ] Checkboxes
-  - [ ] Text fields
-- [ ] Verify Ctrl+Z/Ctrl+Shift+Z keyboard shortcuts work for parameter changes
-
-**Deliverable:** Complete undo/redo support for all parameter edits
+**Deliverable:** Complete undo/redo support for all parameter edits ✅ COMPLETE
 
 #### **M3.1: Performance Optimization** (Weeks 2-3)
 - [ ] Profile critical paths (geometry operations, UI updates)
