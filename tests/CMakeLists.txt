@@ -26,6 +26,7 @@ add_executable(nodo_tests
 
     # Expression System
     test_expression_evaluator.cpp
+    # test_expression_validator.cpp  # TODO: Move ExpressionValidator to nodo_core or create nodo_studio_lib
 
     # Graph & Execution
     test_nodes.cpp

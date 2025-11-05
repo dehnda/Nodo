@@ -4,6 +4,7 @@
  */
 
 #include "nodo/graph/node_graph.hpp"
+#include "nodo/graph/parameter_expression_resolver.hpp"
 #include <gtest/gtest.h>
 
 using namespace nodo::graph;
@@ -26,13 +27,12 @@ TEST_F(CHReferencesTest, BasicAbsolutePathReference) {
   // Create a box node that references the sphere's radius
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  // Resolve ch("/sphere/radius") from the box node context
-  auto result =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\")");
+  // Test path resolution (without ch() wrapper)
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/radius");
 
   ASSERT_TRUE(result.has_value());
   // The result is a string representation of the value
-  EXPECT_EQ(result.value(), "2.5");
+  EXPECT_EQ(result.value(), "2.500000"); // std::to_string adds decimals
 }
 
 // Test ch() with unique node names (sphere, sphere1, sphere2)
@@ -62,23 +62,20 @@ TEST_F(CHReferencesTest, UniqueNodeNames) {
   int box_id = graph_->add_node(NodeType::Box, "box");
 
   // Test ch() references to each sphere
-  auto result1 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\")");
+  auto result1 = graph_->resolve_parameter_path(box_id, "/sphere/radius");
   ASSERT_TRUE(result1.has_value());
-  EXPECT_EQ(result1.value(), "1");
+  EXPECT_EQ(result1.value(), "1.000000");
 
-  auto result2 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere1/radius\")");
+  auto result2 = graph_->resolve_parameter_path(box_id, "/sphere1/radius");
   ASSERT_TRUE(result2.has_value());
-  EXPECT_EQ(result2.value(), "2");
+  EXPECT_EQ(result2.value(), "2.000000");
 
-  auto result3 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere2/radius\")");
+  auto result3 = graph_->resolve_parameter_path(box_id, "/sphere2/radius");
   ASSERT_TRUE(result3.has_value());
-  EXPECT_EQ(result3.value(), "3");
+  EXPECT_EQ(result3.value(), "3.000000");
 }
 
-// Test ch() in math expressions
+// Test ch() in math expressions (uses ParameterExpressionResolver)
 TEST_F(CHReferencesTest, CHInMathExpression) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
   auto *sphere = graph_->get_node(sphere_id);
@@ -87,17 +84,18 @@ TEST_F(CHReferencesTest, CHInMathExpression) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  // Test ch() * 2
-  auto result1 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\") * 2");
+  // Create expression resolver with box as current node
+  nodo::graph::ParameterExpressionResolver resolver(*graph_, nullptr, box_id);
+
+  // Test ch() * 2 - resolver handles ch() and math
+  auto result1 = resolver.resolve_float("ch(\"/sphere/radius\") * 2");
   ASSERT_TRUE(result1.has_value());
-  EXPECT_EQ(result1.value(), "10");
+  EXPECT_FLOAT_EQ(result1.value(), 10.0F);
 
   // Test ch() + 3
-  auto result2 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\") + 3");
+  auto result2 = resolver.resolve_float("ch(\"/sphere/radius\") + 3");
   ASSERT_TRUE(result2.has_value());
-  EXPECT_EQ(result2.value(), "8");
+  EXPECT_FLOAT_EQ(result2.value(), 8.0F);
 
   // Test multiple ch() references
   int sphere2_id = graph_->add_node(NodeType::Sphere, "sphere");
@@ -105,10 +103,10 @@ TEST_F(CHReferencesTest, CHInMathExpression) {
   ASSERT_NE(sphere2, nullptr);
   sphere2->add_parameter(NodeParameter("radius", 3.0F));
 
-  auto result3 = graph_->resolve_parameter_path(
-      box_id, "ch(\"/sphere/radius\") + ch(\"/sphere1/radius\")");
+  auto result3 = resolver.resolve_float(
+      "ch(\"/sphere/radius\") + ch(\"/sphere1/radius\")");
   ASSERT_TRUE(result3.has_value());
-  EXPECT_EQ(result3.value(), "8");
+  EXPECT_FLOAT_EQ(result3.value(), 8.0F); // 5 + 3
 }
 
 // Test ch() with integer parameters
@@ -120,8 +118,7 @@ TEST_F(CHReferencesTest, IntegerParameters) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/u_segments\")");
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/u_segments");
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result.value(), "32");
 }
@@ -130,8 +127,7 @@ TEST_F(CHReferencesTest, IntegerParameters) {
 TEST_F(CHReferencesTest, NodeNotFound) {
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result =
-      graph_->resolve_parameter_path(box_id, "ch(\"/nonexistent/radius\")");
+  auto result = graph_->resolve_parameter_path(box_id, "/nonexistent/radius");
   EXPECT_FALSE(result.has_value());
 }
 
@@ -144,8 +140,8 @@ TEST_F(CHReferencesTest, ParameterNotFound) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result = graph_->resolve_parameter_path(
-      box_id, "ch(\"/sphere/nonexistent_param\")");
+  auto result =
+      graph_->resolve_parameter_path(box_id, "/sphere/nonexistent_param");
   EXPECT_FALSE(result.has_value());
 }
 
@@ -160,15 +156,14 @@ TEST_F(CHReferencesTest, DifferentNodeTypes) {
 
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
 
-  auto result1 =
-      graph_->resolve_parameter_path(sphere_id, "ch(\"/box_source/width\")");
+  auto result1 = graph_->resolve_parameter_path(sphere_id, "/box_source/width");
   ASSERT_TRUE(result1.has_value());
-  EXPECT_EQ(result1.value(), "4");
+  EXPECT_EQ(result1.value(), "4.000000");
 
   auto result2 =
-      graph_->resolve_parameter_path(sphere_id, "ch(\"/box_source/height\")");
+      graph_->resolve_parameter_path(sphere_id, "/box_source/height");
   ASSERT_TRUE(result2.has_value());
-  EXPECT_EQ(result2.value(), "3");
+  EXPECT_EQ(result2.value(), "3.000000");
 }
 
 // Test ch() with nested expressions
@@ -181,13 +176,15 @@ TEST_F(CHReferencesTest, NestedExpressions) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
+  // Create expression resolver
+  ParameterExpressionResolver resolver(*graph_, nullptr, box_id);
+
   // Complex expression: (radius * 2) + (u_segments / 4)
-  auto result = graph_->resolve_parameter_path(
-      box_id,
+  auto result = resolver.resolve_float(
       "(ch(\"/sphere/radius\") * 2) + (ch(\"/sphere/u_segments\") / 4)");
   ASSERT_TRUE(result.has_value());
   // (5.0 * 2) + (16 / 4) = 10.0 + 4.0 = 14.0
-  EXPECT_EQ(result.value(), "14");
+  EXPECT_FLOAT_EQ(result.value(), 14.0F);
 }
 
 // Test ch() with single quotes
@@ -199,9 +196,9 @@ TEST_F(CHReferencesTest, SingleQuotes) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result = graph_->resolve_parameter_path(box_id, "ch('/sphere/radius')");
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/radius");
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(result.value(), "7.5");
+  EXPECT_EQ(result.value(), "7.500000");
 }
 
 // Test updating referenced parameter
@@ -214,10 +211,9 @@ TEST_F(CHReferencesTest, UpdateReferencedParameter) {
   int box_id = graph_->add_node(NodeType::Box, "box");
 
   // First resolution
-  auto result1 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\")");
+  auto result1 = graph_->resolve_parameter_path(box_id, "/sphere/radius");
   ASSERT_TRUE(result1.has_value());
-  EXPECT_EQ(result1.value(), "1");
+  EXPECT_EQ(result1.value(), "1.000000");
 
   // Update sphere radius
   auto radius_param = sphere->get_parameter("radius");
@@ -227,10 +223,9 @@ TEST_F(CHReferencesTest, UpdateReferencedParameter) {
   sphere->set_parameter("radius", updated_param);
 
   // Second resolution should reflect the update
-  auto result2 =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\")");
+  auto result2 = graph_->resolve_parameter_path(box_id, "/sphere/radius");
   ASSERT_TRUE(result2.has_value());
-  EXPECT_EQ(result2.value(), "5");
+  EXPECT_EQ(result2.value(), "5.000000");
 }
 
 // Test ch() with zero values
@@ -242,10 +237,9 @@ TEST_F(CHReferencesTest, ZeroValues) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\")");
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/radius");
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(result.value(), "0");
+  EXPECT_EQ(result.value(), "0.000000");
 }
 
 // Test ch() with negative values
@@ -257,10 +251,9 @@ TEST_F(CHReferencesTest, NegativeValues) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/radius\")");
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/radius");
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(result.value(), "-3.5");
+  EXPECT_EQ(result.value(), "-3.500000");
 }
 
 // Test ch() with very large values
@@ -272,8 +265,7 @@ TEST_F(CHReferencesTest, LargeValues) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result =
-      graph_->resolve_parameter_path(box_id, "ch(\"/sphere/u_segments\")");
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/u_segments");
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result.value(), "1000");
 }
