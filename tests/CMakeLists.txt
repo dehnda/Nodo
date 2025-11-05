@@ -33,6 +33,7 @@ add_executable(nodo_tests
     test_graph_serialization.cpp
     test_selective_execution.cpp
     test_host_interface.cpp
+    test_ch_references.cpp
 
     # SOP Nodes - Generators
     # (none yet - sphere, box, etc. are tested in test_nodes.cpp)
