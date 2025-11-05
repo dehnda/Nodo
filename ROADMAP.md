@@ -486,27 +486,53 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 ---
 
-#### **M3.4: User Experience Polish** (Weeks 6-7)
-- [ ] **Viewport toolbar improvements**
-  - [ ] Move viewport display toggles to toolbar (show vertices, edges, normals face/vertex)
-  - [ ] Remove viewport options from app menu (redundant)
-  - [ ] Add visual toolbar icons for quick access
-- [ ] **File menu enhancements**
-  - [ ] Add "Recent Projects" submenu
-  - [ ] Store and restore recent file list (max 10)
-  - [ ] Clear recent projects option
-- [ ] **Application polish**
+#### **M3.4: User Experience Polish** (Weeks 6-7) 🔄 IN PROGRESS
+**Status:** 3/4 tasks complete - Viewport toolbar, Recent Projects, Parameter serialization fix complete
+
+**Implementation Details:**
+- ✅ **Viewport toolbar improvements** (Phase 1 - COMPLETE)
+  - ✅ Moved viewport display toggles to compact top toolbar (vertices, edges, normals face/vertex, grid, axes)
+  - ✅ Integrated ViewportControlsOverlay buttons (wireframe, shading, point numbers, camera reset, fit view)
+  - ✅ ViewportToolbar widget with VS Code dark theme (#2d2d30, #007acc)
+  - ✅ Left-aligned display toggles (text icons: ●,─,↑V,↑F,#,⊕)
+  - ✅ Right-aligned viewport controls (icons from IconManager)
+  - ✅ Hidden ViewportControlsOverlay (functionality moved to toolbar)
+  - ✅ Bi-directional sync with View menu actions
+  - ✅ Signal connections to ViewportWidget methods (setShowGrid, setShowAxes added)
+- ✅ **File menu enhancements** (Phase 2 - COMPLETE)
+  - ✅ Added "Recent Projects" submenu to File menu
+  - ✅ Tracks last 10 opened .nfg files using QSettings ("Nodo/NodoStudio")
+  - ✅ Display: "&1 filename.nfg" with full path tooltip
+  - ✅ Auto-updates on File → Open Scene and Recent Projects selection
+  - ✅ File validation: checks existence before loading, removes missing files with warning
+  - ✅ Menu disabled when list is empty
+  - ✅ Connected to graph loading via GraphSerializer::load_from_file()
+- ✅ **Parameter Serialization Fix** (Bonus - COMPLETE)
+  - ✅ Fixed mode widget (combo box) losing widget metadata on save/load
+  - ✅ Serializer now saves: label, category, value_mode, expression, ui_range, **string_options**
+  - ✅ Deserializer detects combo box from string_options presence
+  - ✅ Creates proper combo widget (not plain int) on graph load
+  - ✅ Expression mode (M3.3) preserved across save/load
+  - ✅ All parameter metadata fully restored
+- [ ] **Node graph UX fixes** (Phase 3 - TODO)
+  - [ ] Fix connection selection (should work with single click, not just double click)
+  - [ ] Improve connection hit testing accuracy (wider target area)
+  - [ ] Add visual feedback for hover state
+  - [ ] Update context menu to show on connection right-click
+- [ ] **Application polish** (Phase 4 - OPTIONAL/DEFERRED)
   - [ ] Add splash screen during app loading
   - [ ] Show loading progress for heavy operations
-- [ ] **Node graph UX fixes**
-  - [ ] Fix connection selection (should work with single click, not just double click)
-  - [ ] Improve connection hit testing accuracy
-- [ ] Keyboard shortcuts and workflow refinements
-- [ ] Error messages and user feedback
-- [ ] Onboarding/tutorial system
-- [ ] Example project library
 
-**Deliverable:** Intuitive, artist-friendly application
+**Technical Changes:**
+- Created `ViewportToolbar.h/.cpp` - Compact toolbar widget with 11 buttons (6 display + 5 controls)
+- Updated `MainWindow.cpp` - Container widget with QVBoxLayout [toolbar, viewport]
+- Updated `ViewportWidget.cpp` - Added setShowGrid(), setShowAxes() methods, hide controls overlay
+- Updated `MainWindow.h/.cpp` - Recent files: QMenu, QList<QAction*>, QSettings integration
+- Updated `graph_serializer.cpp` - Complete parameter metadata serialization/deserialization
+
+**Next:** Connection Selection Fix (Phase 3) - Better hit testing, single-click selection, hover feedback
+
+**Deliverable:** Intuitive, artist-friendly application ⏳ 75% COMPLETE
 
 #### **M3.5: Beta Testing** (Weeks 8-10)
 - [ ] Recruit 10-20 beta testers (artists, technical artists)
