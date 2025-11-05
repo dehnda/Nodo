@@ -10,6 +10,7 @@
 #include "widgets/Vector3Widget.h"
 
 #include <nodo/graph/node_graph.hpp>
+#include <nodo/graph/parameter_expression_resolver.hpp>
 #include <nodo/sop/sop_node.hpp>
 
 namespace nodo_studio {
@@ -112,8 +113,27 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
       auto *float_widget = dynamic_cast<FloatWidget *>(widget);
       if (float_widget) {
         float_widget->setExpressionMode(true);
-        float_widget->setExpression(
-            QString::fromStdString(param.get_expression()));
+        QString expr = QString::fromStdString(param.get_expression());
+        float_widget->setExpression(expr);
+
+        // M3.3 Phase 4: Check if expression has parameter references
+        bool has_references = expr.contains('$') || expr.contains("ch(");
+
+        if (has_references) {
+          // Has references - show as valid, use cached value
+          float_widget->setResolvedValue(param.float_value);
+        } else {
+          // Pure math - try to evaluate
+          nodo::graph::NodeGraph empty_graph;
+          nodo::graph::ParameterExpressionResolver resolver(empty_graph);
+          auto result = resolver.resolve_float(param.get_expression());
+
+          if (result.has_value()) {
+            float_widget->setResolvedValue(result.value());
+          } else {
+            float_widget->setExpressionError("Invalid expression");
+          }
+        }
       }
     }
     return widget;
@@ -144,8 +164,27 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
       auto *int_widget = dynamic_cast<IntWidget *>(widget);
       if (int_widget) {
         int_widget->setExpressionMode(true);
-        int_widget->setExpression(
-            QString::fromStdString(param.get_expression()));
+        QString expr = QString::fromStdString(param.get_expression());
+        int_widget->setExpression(expr);
+
+        // M3.3 Phase 4: Check if expression has parameter references
+        bool has_references = expr.contains('$') || expr.contains("ch(");
+
+        if (has_references) {
+          // Has references - show as valid, use cached value
+          int_widget->setResolvedValue(param.int_value);
+        } else {
+          // Pure math - try to evaluate
+          nodo::graph::NodeGraph empty_graph;
+          nodo::graph::ParameterExpressionResolver resolver(empty_graph);
+          auto result = resolver.resolve_float(param.get_expression());
+
+          if (result.has_value()) {
+            int_widget->setResolvedValue(static_cast<int>(result.value()));
+          } else {
+            int_widget->setExpressionError("Invalid expression");
+          }
+        }
       }
     }
     return widget;
@@ -175,8 +214,33 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
       auto *vec3_widget = dynamic_cast<Vector3Widget *>(widget);
       if (vec3_widget) {
         vec3_widget->setExpressionMode(true);
-        vec3_widget->setExpression(
-            QString::fromStdString(param.get_expression()));
+        QString expr = QString::fromStdString(param.get_expression());
+        vec3_widget->setExpression(expr);
+
+        // M3.3 Phase 4: Check if expression has parameter references
+        bool has_references = expr.contains('$') || expr.contains("ch(");
+
+        if (has_references) {
+          // Has references - show as valid, use cached value
+          vec3_widget->setResolvedValue(param.vector3_value[0],
+                                        param.vector3_value[1],
+                                        param.vector3_value[2]);
+        } else {
+          // Pure math - try to evaluate
+          nodo::graph::NodeGraph empty_graph;
+          nodo::graph::ParameterExpressionResolver resolver(empty_graph);
+          auto result = resolver.resolve_float(param.get_expression());
+
+          if (result.has_value()) {
+            // For vector3, we use the cached values (proper vector parsing
+            // comes later)
+            vec3_widget->setResolvedValue(param.vector3_value[0],
+                                          param.vector3_value[1],
+                                          param.vector3_value[2]);
+          } else {
+            vec3_widget->setExpressionError("Invalid expression");
+          }
+        }
       }
     }
     return widget;

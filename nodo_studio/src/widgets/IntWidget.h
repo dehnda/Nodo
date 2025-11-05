@@ -52,6 +52,10 @@ public:
   QString getExpression() const { return expression_text_; }
   void setExpression(const QString &expr);
 
+  // Visual indicators (M3.3 Phase 4)
+  void setResolvedValue(int resolved);
+  void setExpressionError(const QString &error);
+
 signals:
   void valueChangedSignal(int value);
 
@@ -98,6 +102,9 @@ private:
   void startScrubbing(const QPoint &pos);
   void updateScrubbing(const QPoint &pos, Qt::KeyboardModifiers modifiers);
   void endScrubbing();
+
+  // Visual indicators helper (M3.3 Phase 4)
+  void updateExpressionVisuals();
 };
 
 } // namespace widgets

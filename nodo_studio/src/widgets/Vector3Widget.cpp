@@ -3,7 +3,10 @@
 #include <QCursor>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <algorithm>
+#include <nodo/graph/node_graph.hpp>
+#include <nodo/graph/parameter_expression_resolver.hpp>
 
 namespace nodo_studio {
 namespace widgets {
@@ -419,8 +422,37 @@ void Vector3Widget::setExpression(const QString &expr) {
 void Vector3Widget::onExpressionEditingFinished() {
   expression_text_ = expression_edit_->text();
 
-  // For now, just emit that the value changed
-  // In Phase 2, we'll add actual expression evaluation
+  // M3.3 Phase 4: Validate expression when user finishes editing
+  if (!expression_text_.isEmpty()) {
+    // Check if expression contains parameter references or ch() functions
+    bool has_references =
+        expression_text_.contains('$') || expression_text_.contains("ch(");
+
+    if (has_references) {
+      // Expression has references - show as valid (blue) even if we can't
+      // resolve yet Actual resolution will happen during node execution
+      updateExpressionVisuals();
+    } else {
+      // No references - try to evaluate as pure math expression
+      nodo::graph::NodeGraph empty_graph;
+      nodo::graph::ParameterExpressionResolver resolver(empty_graph);
+      auto result = resolver.resolve_float(expression_text_.toStdString());
+
+      if (result.has_value()) {
+        // Valid expression - for now just update visuals
+        // (Proper vector expression parsing will come later)
+        updateExpressionVisuals();
+      } else {
+        // Invalid expression - show error
+        setExpressionError("Invalid expression");
+        return; // Don't emit value changed for invalid expressions
+      }
+    }
+  } else {
+    updateExpressionVisuals();
+  }
+
+  // Emit that the value changed
   emit valueChangedSignal(values_[0], values_[1], values_[2]);
   if (value_changed_callback_) {
     value_changed_callback_(values_[0], values_[1], values_[2]);
@@ -429,6 +461,104 @@ void Vector3Widget::onExpressionEditingFinished() {
 
 void Vector3Widget::onModeToggleClicked() {
   setExpressionMode(!is_expression_mode_);
+}
+
+// M3.3 Phase 4: Visual Indicators
+void Vector3Widget::updateExpressionVisuals() {
+  if (!is_expression_mode_ || expression_text_.isEmpty()) {
+    // Reset to default styling
+    expression_edit_->setStyleSheet(
+        QString("QLineEdit { "
+                "  background: %1; "
+                "  border: 1px solid %2; "
+                "  border-radius: 3px; "
+                "  padding: 4px 8px; "
+                "  color: %3; "
+                "  font-size: 11px; "
+                "  font-family: 'Consolas', 'Monaco', monospace; "
+                "}")
+            .arg(COLOR_INPUT_BG)
+            .arg(COLOR_INPUT_BORDER)
+            .arg(COLOR_TEXT_PRIMARY));
+    expression_edit_->setToolTip("");
+    return;
+  }
+
+  // Check if expression contains $ or ch(
+  bool has_expression =
+      expression_text_.contains('$') || expression_text_.contains("ch(");
+
+  if (has_expression) {
+    // Valid expression - subtle blue tint
+    expression_edit_->setStyleSheet(
+        QString("QLineEdit { "
+                "  background: #1a1d23; "
+                "  border: 1px solid #1a8cd8; "
+                "  border-radius: 3px; "
+                "  padding: 4px 8px; "
+                "  color: %1; "
+                "  font-size: 11px; "
+                "  font-family: 'Consolas', 'Monaco', monospace; "
+                "}")
+            .arg(COLOR_TEXT_PRIMARY));
+
+    // Set tooltip showing the expression
+    QString tooltip =
+        QString("<b>Expression:</b> %1<br><b>Resolved value:</b> (%2, %3, %4)")
+            .arg(expression_text_)
+            .arg(values_[0], 0, 'g', 6)
+            .arg(values_[1], 0, 'g', 6)
+            .arg(values_[2], 0, 'g', 6);
+    expression_edit_->setToolTip(tooltip);
+  } else {
+    // Numeric value in expression field - default styling
+    expression_edit_->setStyleSheet(
+        QString("QLineEdit { "
+                "  background: %1; "
+                "  border: 1px solid %2; "
+                "  border-radius: 3px; "
+                "  padding: 4px 8px; "
+                "  color: %3; "
+                "  font-size: 11px; "
+                "  font-family: 'Consolas', 'Monaco', monospace; "
+                "}")
+            .arg(COLOR_INPUT_BG)
+            .arg(COLOR_INPUT_BORDER)
+            .arg(COLOR_TEXT_PRIMARY));
+    expression_edit_->setToolTip("");
+  }
+}
+
+void Vector3Widget::setResolvedValue(float x, float y, float z) {
+  values_[0] = x;
+  values_[1] = y;
+  values_[2] = z;
+  updateExpressionVisuals();
+}
+
+void Vector3Widget::setExpressionError(const QString &error) {
+  if (!is_expression_mode_) {
+    return;
+  }
+
+  // Show error with red border
+  expression_edit_->setStyleSheet(
+      QString("QLineEdit { "
+              "  background: %1; "
+              "  border: 2px solid #e74c3c; "
+              "  border-radius: 3px; "
+              "  padding: 4px 8px; "
+              "  color: %2; "
+              "  font-size: 11px; "
+              "  font-family: 'Consolas', 'Monaco', monospace; "
+              "}")
+          .arg(COLOR_INPUT_BG)
+          .arg(COLOR_TEXT_PRIMARY));
+
+  // Set error tooltip
+  expression_edit_->setToolTip(
+      QString("<span style='color: #e74c3c;'><b>Error:</b> %1</span>")
+          .arg(error));
 }
 
 } // namespace widgets

@@ -53,6 +53,10 @@ public:
   QString getExpression() const { return expression_text_; }
   void setExpression(const QString &expr);
 
+  // Visual indicators (M3.3 Phase 4)
+  void setResolvedValue(float resolved);
+  void setExpressionError(const QString &error);
+
 signals:
   void valueChangedSignal(float value);
 
@@ -103,6 +107,9 @@ private:
   // Helper to convert slider value to float
   float sliderToFloat(int slider_value) const;
   int floatToSlider(float value) const;
+
+  // Visual indicators helper (M3.3 Phase 4)
+  void updateExpressionVisuals();
 };
 
 } // namespace widgets

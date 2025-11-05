@@ -1,7 +1,10 @@
 #include "FloatWidget.h"
 #include <QApplication>
 #include <QCursor>
+#include <QRegularExpression>
 #include <cmath>
+#include <nodo/graph/node_graph.hpp>
+#include <nodo/graph/parameter_expression_resolver.hpp>
 
 namespace nodo_studio {
 namespace widgets {
@@ -375,12 +378,166 @@ void FloatWidget::setExpression(const QString &expr) {
 void FloatWidget::onExpressionEditingFinished() {
   expression_text_ = expression_edit_->text();
 
-  // For now, just emit that the value changed
-  // In Phase 2, we'll add actual expression evaluation
+  // M3.3 Phase 4: Validate expression when user finishes editing
+  if (!expression_text_.isEmpty()) {
+    // Check if expression contains parameter references or ch() functions
+    bool has_references =
+        expression_text_.contains('$') || expression_text_.contains("ch(");
+
+    if (has_references) {
+      // Expression has references - show as valid (blue) even if we can't
+      // resolve yet Actual resolution will happen during node execution
+      updateExpressionVisuals();
+    } else {
+      // No references - try to evaluate as pure math expression
+      nodo::graph::NodeGraph empty_graph;
+      nodo::graph::ParameterExpressionResolver resolver(empty_graph);
+      auto result = resolver.resolve_float(expression_text_.toStdString());
+
+      if (result.has_value()) {
+        // Valid math expression - update with resolved value
+        current_value_ = result.value();
+        updateExpressionVisuals();
+      } else {
+        // Invalid math expression - show error
+        setExpressionError("Invalid expression");
+        return; // Don't emit value changed for invalid expressions
+      }
+    }
+  } else {
+    updateExpressionVisuals();
+  }
+
+  // Emit that the value changed
   emit valueChangedSignal(current_value_);
   if (value_changed_callback_) {
     value_changed_callback_(current_value_);
   }
+}
+
+// M3.3 Phase 4: Visual Indicators
+void FloatWidget::updateExpressionVisuals() {
+  if (!is_expression_mode_ || expression_text_.isEmpty()) {
+    // Reset to default styling
+    expression_edit_->setStyleSheet(
+        QString("QLineEdit { "
+                "  background: %1; "
+                "  border: 1px solid %2; "
+                "  border-radius: 3px; "
+                "  padding: 4px 8px; "
+                "  color: %3; "
+                "  font-size: 11px; "
+                "  font-family: 'Consolas', 'Monaco', monospace; "
+                "}"
+                "QLineEdit:hover { "
+                "  border-color: %4; "
+                "}"
+                "QLineEdit:focus { "
+                "  border-color: %4; "
+                "  background: %5; "
+                "}")
+            .arg(COLOR_INPUT_BG)
+            .arg(COLOR_INPUT_BORDER)
+            .arg(COLOR_TEXT_PRIMARY)
+            .arg(COLOR_ACCENT)
+            .arg(COLOR_PANEL));
+    expression_edit_->setToolTip("");
+    return;
+  }
+
+  // Check if expression contains $ or ch(
+  bool has_expression =
+      expression_text_.contains('$') || expression_text_.contains("ch(");
+
+  if (has_expression) {
+    // Valid expression - subtle blue tint
+    expression_edit_->setStyleSheet(
+        QString("QLineEdit { "
+                "  background: %1; "
+                "  border: 1px solid %2; "
+                "  border-radius: 3px; "
+                "  padding: 4px 8px; "
+                "  color: %3; "
+                "  font-size: 11px; "
+                "  font-family: 'Consolas', 'Monaco', monospace; "
+                "}"
+                "QLineEdit:hover { "
+                "  border-color: %4; "
+                "}"
+                "QLineEdit:focus { "
+                "  border-color: %4; "
+                "  background: %5; "
+                "}")
+            .arg("#1a1d23") // Slightly different bg to indicate expression
+            .arg("#1a8cd8") // Blue border to indicate active expression
+            .arg(COLOR_TEXT_PRIMARY)
+            .arg(COLOR_ACCENT)
+            .arg(COLOR_PANEL));
+
+    // Set tooltip showing the expression
+    QString tooltip =
+        QString("<b>Expression:</b> %1<br><b>Resolved value:</b> %2")
+            .arg(expression_text_)
+            .arg(current_value_, 0, 'g', 6);
+    expression_edit_->setToolTip(tooltip);
+  } else {
+    // Numeric value in expression field - default styling
+    expression_edit_->setStyleSheet(
+        QString("QLineEdit { "
+                "  background: %1; "
+                "  border: 1px solid %2; "
+                "  border-radius: 3px; "
+                "  padding: 4px 8px; "
+                "  color: %3; "
+                "  font-size: 11px; "
+                "  font-family: 'Consolas', 'Monaco', monospace; "
+                "}")
+            .arg(COLOR_INPUT_BG)
+            .arg(COLOR_INPUT_BORDER)
+            .arg(COLOR_TEXT_PRIMARY));
+    expression_edit_->setToolTip("");
+  }
+}
+
+void FloatWidget::setResolvedValue(float resolved) {
+  // Store the resolved value (for display in tooltip)
+  current_value_ = resolved;
+
+  // Update visuals to show the resolved value
+  updateExpressionVisuals();
+}
+
+void FloatWidget::setExpressionError(const QString &error) {
+  if (!is_expression_mode_) {
+    return;
+  }
+
+  // Show error with red border
+  expression_edit_->setStyleSheet(
+      QString("QLineEdit { "
+              "  background: %1; "
+              "  border: 2px solid #e74c3c; " // Red border for errors
+              "  border-radius: 3px; "
+              "  padding: 4px 8px; "
+              "  color: %2; "
+              "  font-size: 11px; "
+              "  font-family: 'Consolas', 'Monaco', monospace; "
+              "}"
+              "QLineEdit:hover { "
+              "  border-color: #c0392b; "
+              "}"
+              "QLineEdit:focus { "
+              "  border-color: #c0392b; "
+              "  background: %3; "
+              "}")
+          .arg(COLOR_INPUT_BG)
+          .arg(COLOR_TEXT_PRIMARY)
+          .arg(COLOR_PANEL));
+
+  // Set error tooltip
+  expression_edit_->setToolTip(
+      QString("<span style='color: #e74c3c;'><b>Error:</b> %1</span>")
+          .arg(error));
 }
 
 void FloatWidget::onModeToggleClicked() {

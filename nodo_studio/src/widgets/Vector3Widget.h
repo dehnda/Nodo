@@ -71,6 +71,10 @@ public:
   QString getExpression() const { return expression_text_; }
   void setExpression(const QString &expr);
 
+  // Visual indicators (M3.3 Phase 4)
+  void setResolvedValue(float x, float y, float z);
+  void setExpressionError(const QString &error);
+
 signals:
   void valueChangedSignal(double x, double y, double z);
 
@@ -116,6 +120,9 @@ private:
   std::array<double, 3> scrub_start_value_{0.0, 0.0, 0.0};
 
   std::function<void(double, double, double)> value_changed_callback_;
+
+  // Visual indicators helper (M3.3 Phase 4)
+  void updateExpressionVisuals();
 };
 
 } // namespace widgets

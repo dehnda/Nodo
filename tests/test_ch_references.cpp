@@ -222,7 +222,9 @@ TEST_F(CHReferencesTest, UpdateReferencedParameter) {
   // Update sphere radius
   auto radius_param = sphere->get_parameter("radius");
   ASSERT_TRUE(radius_param.has_value());
-  sphere->set_parameter_value("radius", 5.0F);
+  auto updated_param = radius_param.value();
+  updated_param.float_value = 5.0F;
+  sphere->set_parameter("radius", updated_param);
 
   // Second resolution should reflect the update
   auto result2 =
