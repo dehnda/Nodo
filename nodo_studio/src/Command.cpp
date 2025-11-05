@@ -1,5 +1,7 @@
 #include "Command.h"
 #include "NodeGraphWidget.h"
+#include <QPointer>
+#include <QTimer>
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/sop/sop_factory.hpp>
 
@@ -24,8 +26,22 @@ public:
         position_(position), node_id_(-1) {}
 
   void execute() override {
-    // Add node to graph (generates new ID)
-    node_id_ = graph_->add_node(node_type_);
+    // First time: add node to graph (generates new ID)
+    // Subsequent times (redo): restore node with same ID
+    if (node_id_ == -1) {
+      node_id_ = graph_->add_node(node_type_);
+    } else {
+      // Restore with same ID and name
+      graph_->add_node_with_id(node_id_, node_type_, node_name_.toStdString());
+
+      // Restore parameters
+      auto *node = graph_->get_node(node_id_);
+      if (node != nullptr) {
+        for (const auto &param : parameters_) {
+          node->set_parameter(param.name, param);
+        }
+      }
+    }
 
     // Set position
     auto *node = graph_->get_node(node_id_);
@@ -35,9 +51,33 @@ public:
 
     // Create visual representation
     widget_->create_node_item_public(node_id_);
+
+    // Select the new node so property panel shows its parameters
+    if (widget_ != nullptr) {
+      QPointer<NodeGraphWidget> widget_ptr(widget_);
+      int node_id = node_id_;
+      nodo::graph::NodeGraph *graph = graph_;
+      QTimer::singleShot(0, [widget_ptr, node_id, graph]() {
+        if (widget_ptr && graph && graph->get_node(node_id) != nullptr) {
+          widget_ptr->select_node_public(node_id);
+        }
+      });
+    }
   }
 
   void undo() override {
+    // Before removing, store node state so we can restore it exactly
+    auto *node = graph_->get_node(node_id_);
+    if (node != nullptr) {
+      node_name_ = QString::fromStdString(node->get_name());
+
+      // Store parameters
+      parameters_.clear();
+      for (const auto &param : node->get_parameters()) {
+        parameters_.push_back(param);
+      }
+    }
+
     // Remove visual item first
     widget_->remove_node_item_public(node_id_);
 
@@ -53,6 +93,8 @@ private:
   nodo::graph::NodeType node_type_;
   QPointF position_;
   int node_id_;
+  QString node_name_;
+  std::vector<nodo::graph::NodeParameter> parameters_;
 };
 
 /**
@@ -118,6 +160,18 @@ public:
                              conn.target_node_id, conn.target_pin_index);
       widget_->create_connection_item_public(conn.id);
     }
+
+    // Select the restored node so property panel shows its parameters
+    if (widget_ != nullptr) {
+      QPointer<NodeGraphWidget> widget_ptr(widget_);
+      int node_id = node_id_;
+      nodo::graph::NodeGraph *graph = graph_;
+      QTimer::singleShot(0, [widget_ptr, node_id, graph]() {
+        if (widget_ptr && graph && graph->get_node(node_id) != nullptr) {
+          widget_ptr->select_node_public(node_id);
+        }
+      });
+    }
   }
 
 private:
@@ -179,17 +233,35 @@ private:
  */
 class ChangeParameterCommand : public Command {
 public:
-  ChangeParameterCommand(nodo::graph::NodeGraph *graph, int node_id,
-                         const std::string &param_name,
+  ChangeParameterCommand(NodeGraphWidget *widget, nodo::graph::NodeGraph *graph,
+                         int node_id, const std::string &param_name,
                          const nodo::graph::NodeParameter &old_value,
                          const nodo::graph::NodeParameter &new_value)
-      : Command("Change Parameter"), graph_(graph), node_id_(node_id),
-        param_name_(param_name), old_value_(old_value), new_value_(new_value) {}
+      : Command("Change Parameter"), widget_(widget), graph_(graph),
+        node_id_(node_id), param_name_(param_name), old_value_(old_value),
+        new_value_(new_value) {}
 
   void execute() override {
     auto *node = graph_->get_node(node_id_);
     if (node != nullptr) {
       node->set_parameter(param_name_, new_value_);
+      if (widget_ != nullptr) {
+        // Use QPointer to safely track the widget
+        QPointer<NodeGraphWidget> widget_ptr(widget_);
+        int node_id = node_id_;
+        nodo::graph::NodeGraph *graph = graph_;
+
+        // Delay both selection and viewport update to ensure proper state after
+        // graph was empty
+        QTimer::singleShot(0, [widget_ptr, node_id, graph]() {
+          if (widget_ptr && graph && graph->get_node(node_id) != nullptr) {
+            // Select node first to update property panel
+            widget_ptr->select_node_public(node_id);
+            // Then trigger viewport update
+            widget_ptr->emit_parameter_changed_signal();
+          }
+        });
+      }
     }
   }
 
@@ -197,6 +269,23 @@ public:
     auto *node = graph_->get_node(node_id_);
     if (node != nullptr) {
       node->set_parameter(param_name_, old_value_);
+      if (widget_ != nullptr) {
+        // Trigger parameter changed signal to update viewport
+        widget_->emit_parameter_changed_signal();
+
+        // Reselect the node after a 0ms delay to ensure it happens AFTER
+        // all Qt event processing that might be clearing selection
+        // Use QPointer to safely track the widget in case it's deleted before
+        // timer fires
+        QPointer<NodeGraphWidget> widget_ptr(widget_);
+        int node_id = node_id_;
+        nodo::graph::NodeGraph *graph = graph_;
+        QTimer::singleShot(0, [widget_ptr, node_id, graph]() {
+          if (widget_ptr && graph && graph->get_node(node_id) != nullptr) {
+            widget_ptr->select_node_public(node_id);
+          }
+        });
+      }
     }
   }
 
@@ -210,10 +299,24 @@ public:
     auto *other_param = dynamic_cast<const ChangeParameterCommand *>(other);
     if (other_param != nullptr) {
       new_value_ = other_param->new_value_;
+
+      // CRITICAL: When commands merge, execute() is not called on the new
+      // command. We must apply the parameter change here so the viewport
+      // updates during dragging.
+      auto *node = graph_->get_node(node_id_);
+      if (node != nullptr) {
+        node->set_parameter(param_name_, new_value_);
+        // Emit signal to update viewport during continuous changes (e.g.,
+        // slider drag)
+        if (widget_ != nullptr) {
+          widget_->emit_parameter_changed_signal();
+        }
+      }
     }
   }
 
 private:
+  NodeGraphWidget *widget_;
   nodo::graph::NodeGraph *graph_;
   int node_id_;
   std::string param_name_;
@@ -381,13 +484,12 @@ std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph *graph,
   return std::make_unique<MoveNodeCommand>(graph, node_id, old_pos, new_pos);
 }
 
-std::unique_ptr<Command>
-create_change_parameter_command(nodo::graph::NodeGraph *graph, int node_id,
-                                const std::string &param_name,
-                                const nodo::graph::NodeParameter &old_value,
-                                const nodo::graph::NodeParameter &new_value) {
-  return std::make_unique<ChangeParameterCommand>(graph, node_id, param_name,
-                                                  old_value, new_value);
+std::unique_ptr<Command> create_change_parameter_command(
+    NodeGraphWidget *widget, nodo::graph::NodeGraph *graph, int node_id,
+    const std::string &param_name, const nodo::graph::NodeParameter &old_value,
+    const nodo::graph::NodeParameter &new_value) {
+  return std::make_unique<ChangeParameterCommand>(
+      widget, graph, node_id, param_name, old_value, new_value);
 }
 
 std::unique_ptr<Command> create_connect_command(NodeGraphWidget *widget,

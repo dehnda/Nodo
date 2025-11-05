@@ -15,9 +15,15 @@ class NodeGraph;
 struct NodeParameter;
 } // namespace nodo::graph
 
+namespace nodo::studio {
+class UndoStack;
+} // namespace nodo::studio
+
 namespace nodo_studio::widgets {
 class BaseParameterWidget;
 } // namespace nodo_studio::widgets
+
+class NodeGraphWidget;
 
 /**
  * @brief Property panel for editing node parameters
@@ -45,6 +51,19 @@ public:
   // Get the currently displayed node
   nodo::graph::GraphNode *getCurrentNode() const { return current_graph_node_; }
 
+  // Refresh the property panel to reflect current parameter values
+  void refreshFromCurrentNode();
+
+  // Set undo stack for parameter change commands
+  void setUndoStack(nodo::studio::UndoStack *undo_stack) {
+    undo_stack_ = undo_stack;
+  }
+
+  // Set node graph widget for node selection during undo/redo
+  void setNodeGraphWidget(NodeGraphWidget *widget) {
+    node_graph_widget_ = widget;
+  }
+
 signals:
   // Emitted when a parameter changes
   void parameterChanged();
@@ -63,6 +82,10 @@ private:
   // Current graph node (new system)
   nodo::graph::GraphNode *current_graph_node_ = nullptr;
   nodo::graph::NodeGraph *current_graph_ = nullptr;
+
+  // Undo/redo support
+  nodo::studio::UndoStack *undo_stack_ = nullptr;
+  NodeGraphWidget *node_graph_widget_ = nullptr;
 
   // Throttle mechanism for slider updates
   QTimer *slider_update_timer_ = nullptr;

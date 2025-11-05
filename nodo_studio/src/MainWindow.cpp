@@ -272,6 +272,8 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onConnectionCreated);
   connect(node_graph_widget_, &NodeGraphWidget::connections_deleted, this,
           &MainWindow::onConnectionsDeleted);
+  connect(node_graph_widget_, &NodeGraphWidget::parameter_changed, this,
+          &MainWindow::onParameterChanged);
   connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted, this,
           &MainWindow::onNodesDeleted);
   connect(node_graph_widget_, &NodeGraphWidget::selection_changed, this,
@@ -280,6 +282,14 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onNodeDisplayFlagChanged);
   connect(node_graph_widget_, &NodeGraphWidget::node_wireframe_flag_changed,
           this, &MainWindow::onNodeWireframeFlagChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::property_panel_refresh_needed,
+          this, [this]() {
+            // Refresh property panel to show updated parameter values after
+            // undo/redo
+            if (property_panel_) {
+              property_panel_->refreshFromCurrentNode();
+            }
+          });
 
   // Add node graph to the right of viewport
   splitDockWidget(viewport_dock_, node_graph_dock_, Qt::Horizontal);
@@ -290,6 +300,8 @@ auto MainWindow::setupDockWidgets() -> void {
 
   // Create property panel
   property_panel_ = new PropertyPanel(this);
+  property_panel_->setUndoStack(undo_stack_.get());
+  property_panel_->setNodeGraphWidget(node_graph_widget_);
   property_dock_->setWidget(property_panel_);
 
   // Add properties to the right of node graph

@@ -1633,3 +1633,36 @@ NodeGraphicsItem *NodeGraphWidget::get_node_item_public(int node_id) {
   }
   return nullptr;
 }
+
+void NodeGraphWidget::select_node_public(int node_id) {
+  // Get the node item first
+  auto *node_item = get_node_item_public(node_id);
+  if (node_item == nullptr) {
+    return;
+  }
+
+  // Block signals temporarily to avoid triggering selection changed multiple
+  // times
+  scene_->blockSignals(true);
+
+  // Clear current selection
+  for (auto *item : scene()->selectedItems()) {
+    item->setSelected(false);
+  }
+
+  // Select the specified node
+  node_item->setSelected(true);
+  node_item->update(); // Force visual update
+  selected_nodes_.clear();
+  selected_nodes_.insert(node_id);
+
+  // Re-enable signals
+  scene_->blockSignals(false);
+
+  // Emit signals to update property panel
+  emit node_selected(node_id);
+  emit selection_changed(); // Needed for MainWindow::onNodeSelectionChanged()
+
+  // Don't center view - it causes viewport to jump during undo/redo
+  // centerOn(node_item);
+}

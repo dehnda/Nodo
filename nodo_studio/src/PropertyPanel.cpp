@@ -1,6 +1,9 @@
 #include "PropertyPanel.h"
+#include "Command.h"
 #include "IconManager.h"
+#include "NodeGraphWidget.h"
 #include "ParameterWidgetFactory.h"
+#include "UndoStack.h"
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/sop/sop_node.hpp>
 
@@ -828,6 +831,13 @@ void PropertyPanel::setGraphNode(nodo::graph::GraphNode *node,
   buildFromNode(node, graph);
 }
 
+void PropertyPanel::refreshFromCurrentNode() {
+  // Refresh the property panel using the currently displayed node
+  if (current_graph_node_ != nullptr && current_graph_ != nullptr) {
+    buildFromNode(current_graph_node_, current_graph_);
+  }
+}
+
 void PropertyPanel::connectParameterWidget(
     nodo_studio::widgets::BaseParameterWidget *widget,
     const nodo::graph::NodeParameter &param, nodo::graph::GraphNode *node,
@@ -841,31 +851,74 @@ void PropertyPanel::connectParameterWidget(
 
   if (auto *float_widget =
           dynamic_cast<nodo_studio::widgets::FloatWidget *>(widget)) {
-    float_widget->setValueChangedCallback([this, node,
+    float_widget->setValueChangedCallback([this, node, graph,
                                            param](double new_value) {
+      // Get old parameter value
+      auto old_param_opt = node->get_parameter(param.name);
+      if (!old_param_opt.has_value()) {
+        return; // Parameter doesn't exist, shouldn't happen
+      }
+
+      // Create new parameter with updated value
       auto updated_param = NodeParameter(
           param.name, static_cast<float>(new_value), param.label,
           param.ui_range.float_min, param.ui_range.float_max, param.category);
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
-      node->set_parameter(param.name, updated_param);
+
+      // Push command to undo stack
+      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+          graph != nullptr) {
+        auto cmd = nodo::studio::create_change_parameter_command(
+            node_graph_widget_, graph, node->get_id(), param.name,
+            old_param_opt.value(), updated_param);
+        undo_stack_->push(std::move(cmd));
+      } else {
+        // Fallback to direct parameter change (shouldn't happen)
+        node->set_parameter(param.name, updated_param);
+      }
+
       emit parameterChanged();
     });
   } else if (auto *int_widget =
                  dynamic_cast<nodo_studio::widgets::IntWidget *>(widget)) {
-    int_widget->setValueChangedCallback([this, node, param](int new_value) {
-      auto updated_param = NodeParameter(
-          param.name, new_value, param.label, param.ui_range.int_min,
-          param.ui_range.int_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-      node->set_parameter(param.name, updated_param);
-      emit parameterChanged();
-    });
+    int_widget->setValueChangedCallback(
+        [this, node, graph, param](int new_value) {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
+          auto updated_param = NodeParameter(
+              param.name, new_value, param.label, param.ui_range.int_min,
+              param.ui_range.int_max, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
+
+          emit parameterChanged();
+        });
   } else if (auto *vec3_widget =
                  dynamic_cast<nodo_studio::widgets::Vector3Widget *>(widget)) {
-    vec3_widget->setValueChangedCallback([this, node, param](double x, double y,
-                                                             double z) {
+    vec3_widget->setValueChangedCallback([this, node, graph,
+                                          param](double x, double y, double z) {
+      // Get old parameter value
+      auto old_param_opt = node->get_parameter(param.name);
+      if (!old_param_opt.has_value()) {
+        return;
+      }
+
       std::array<float, 3> new_value = {
           static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
       auto updated_param = NodeParameter(
@@ -873,7 +926,18 @@ void PropertyPanel::connectParameterWidget(
           param.ui_range.float_max, param.category);
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
-      node->set_parameter(param.name, updated_param);
+
+      // Push command to undo stack
+      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+          graph != nullptr) {
+        auto cmd = nodo::studio::create_change_parameter_command(
+            node_graph_widget_, graph, node->get_id(), param.name,
+            old_param_opt.value(), updated_param);
+        undo_stack_->push(std::move(cmd));
+      } else {
+        node->set_parameter(param.name, updated_param);
+      }
+
       emit parameterChanged();
     });
   } else if (auto *mode_widget =
@@ -881,12 +945,28 @@ void PropertyPanel::connectParameterWidget(
                      widget)) {
     mode_widget->setSelectionChangedCallback(
         [this, node, param, graph](int new_value, const QString &) {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
           auto updated_param =
               NodeParameter(param.name, new_value, param.string_options,
                             param.label, param.category);
           updated_param.category_control_param = param.category_control_param;
           updated_param.category_control_value = param.category_control_value;
-          node->set_parameter(param.name, updated_param);
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
 
           // Check if this parameter controls visibility of others
           bool controls_visibility = false;
@@ -906,12 +986,28 @@ void PropertyPanel::connectParameterWidget(
                  dynamic_cast<nodo_studio::widgets::DropdownWidget *>(widget)) {
     dropdown_widget->setSelectionChangedCallback(
         [this, node, param, graph](int new_value, const QString &) {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
           auto updated_param =
               NodeParameter(param.name, new_value, param.string_options,
                             param.label, param.category);
           updated_param.category_control_param = param.category_control_param;
           updated_param.category_control_value = param.category_control_value;
-          node->set_parameter(param.name, updated_param);
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
 
           // Check if this parameter controls visibility
           bool controls_visibility = false;
@@ -930,34 +1026,85 @@ void PropertyPanel::connectParameterWidget(
   } else if (auto *checkbox_widget =
                  dynamic_cast<nodo_studio::widgets::CheckboxWidget *>(widget)) {
     checkbox_widget->setValueChangedCallback(
-        [this, node, param](bool new_value) {
+        [this, node, graph, param](bool new_value) {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
           auto updated_param =
               NodeParameter(param.name, new_value, param.label, param.category);
           updated_param.category_control_param = param.category_control_param;
           updated_param.category_control_value = param.category_control_value;
-          node->set_parameter(param.name, updated_param);
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
+
           emit parameterChanged();
         });
   } else if (auto *text_widget =
                  dynamic_cast<nodo_studio::widgets::TextWidget *>(widget)) {
     text_widget->setTextEditingFinishedCallback(
-        [this, node, param](const QString &new_value) {
+        [this, node, graph, param](const QString &new_value) {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
           auto updated_param = NodeParameter(
               param.name, new_value.toStdString(), param.label, param.category);
           updated_param.category_control_param = param.category_control_param;
           updated_param.category_control_value = param.category_control_value;
-          node->set_parameter(param.name, updated_param);
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
+
           emit parameterChanged();
         });
   } else if (auto *file_widget =
                  dynamic_cast<nodo_studio::widgets::FilePathWidget *>(widget)) {
-    file_widget->setPathChangedCallback([this, node,
+    file_widget->setPathChangedCallback([this, node, graph,
                                          param](const QString &new_value) {
+      // Get old parameter value
+      auto old_param_opt = node->get_parameter(param.name);
+      if (!old_param_opt.has_value()) {
+        return;
+      }
+
       auto updated_param = NodeParameter(param.name, new_value.toStdString(),
                                          param.label, param.category);
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
-      node->set_parameter(param.name, updated_param);
+
+      // Push command to undo stack
+      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+          graph != nullptr) {
+        auto cmd = nodo::studio::create_change_parameter_command(
+            node_graph_widget_, graph, node->get_id(), param.name,
+            old_param_opt.value(), updated_param);
+        undo_stack_->push(std::move(cmd));
+      } else {
+        node->set_parameter(param.name, updated_param);
+      }
+
       emit parameterChanged();
     });
   } else if (auto *multiline_widget =

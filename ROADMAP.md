@@ -216,7 +216,43 @@ Implementation tasks:
 
 **Deliverable:** Smooth performance on typical artist workloads
 
-#### **M3.2: User Experience Polish** (Weeks 4-6)
+#### **M3.2: Graph Parameters System** (Weeks 4-5) 🎯 HIGH PRIORITY
+**Purpose:** Enable per-graph parameters that can be referenced in node parameters (like Houdini)
+
+Implementation tasks:
+- [ ] **Backend: Graph-level parameter storage**
+  - [ ] Add parameter map to NodeGraph class
+  - [ ] Support all parameter types (int, float, string, vector3, etc.)
+  - [ ] Parameter evaluation/resolution system
+- [ ] **Expression/Reference System**
+  - [ ] Add `$parameter_name` or `@parameter_name` syntax for referencing
+  - [ ] Parse parameter references in node parameters
+  - [ ] Resolve references at evaluation time
+  - [ ] Handle circular dependency detection
+- [ ] **UI: Graph Parameters Panel**
+  - [ ] New panel for managing graph-level parameters
+  - [ ] Add/edit/delete graph parameters
+  - [ ] Set default values and ranges
+  - [ ] Parameter descriptions/tooltips
+- [ ] **Node Parameter Integration**
+  - [ ] Text fields support parameter expressions
+  - [ ] Auto-complete suggestions for available graph parameters
+  - [ ] Visual indicator when parameter contains reference
+  - [ ] Quick "Promote to Graph Parameter" button
+- [ ] **Serialization**
+  - [ ] Save graph parameters in .nfg file format
+  - [ ] Version handling for parameter changes
+  - [ ] Migration support
+
+**Use Cases:**
+- Global seed value: `$global_seed` referenced in all Scatter/Noise nodes
+- Animation time: `$frame` or `$time` for animated procedurals
+- Project scale: `$unit_scale` to uniformly scale all dimensions
+- Design iteration: `$complexity` to control subdivision levels across graph
+
+**Deliverable:** Working graph parameter system with UI and expression support
+
+#### **M3.3: User Experience Polish** (Weeks 6-7)
 - [ ] **Viewport toolbar improvements**
   - [ ] Move viewport display toggles to toolbar (show vertices, edges, normals face/vertex)
   - [ ] Remove viewport options from app menu (redundant)
@@ -238,7 +274,7 @@ Implementation tasks:
 
 **Deliverable:** Intuitive, artist-friendly application
 
-#### **M3.3: Beta Testing** (Weeks 7-9)
+#### **M3.4: Beta Testing** (Weeks 8-10)
 - [ ] Recruit 10-20 beta testers (artists, technical artists)
 - [ ] Collect feedback via surveys and interviews
 - [ ] Bug fixing and stability improvements

@@ -275,10 +275,19 @@ public:
   }
   NodeGraphicsItem *get_node_item_public(int node_id);
 
+  // Select a node programmatically (for undo/redo of parameter changes)
+  void select_node_public(int node_id);
+
   // Called by commands to emit signals for graph updates
   void emit_connection_created_signal(int source_node, int source_pin,
                                       int target_node, int target_pin) {
     emit connection_created(source_node, source_pin, target_node, target_pin);
+  }
+
+  void emit_parameter_changed_signal() { emit parameter_changed(); }
+
+  void emit_property_panel_refresh_signal() {
+    emit property_panel_refresh_needed();
   }
 
   // Called by NodeGraphicsItem when display button is clicked
@@ -298,6 +307,8 @@ signals:
   void node_created(int node_id);
   void node_display_flag_changed(int node_id, bool display_flag);
   void node_wireframe_flag_changed(int node_id, bool wireframe_flag);
+  void parameter_changed();
+  void property_panel_refresh_needed();
 
 protected:
   bool event(QEvent *event) override;
