@@ -14,30 +14,29 @@ void generate_transform_chain(NodeGraph &graph, int chain_length) {
   int prev_node_id = -1;
 
   for (int i = 0; i < chain_length; ++i) {
-    int node_id = graph.get_next_node_id();
-
     if (i == 0) {
       // First node: Sphere generator
-      auto sphere = graph.create_node(NodeType::Sphere, "Sphere");
-      sphere->set_parameter("radius", 1.0f);
-      sphere->set_parameter("rows", 32);
-      sphere->set_parameter("columns", 64);
-      prev_node_id = sphere->get_id();
+      int sphere_id = graph.add_node(NodeType::Sphere);
+      auto *sphere = graph.get_node(sphere_id);
+      sphere->set_parameter("radius", 1.0F);
+      sphere->set_parameter("u_segments", 32);
+      sphere->set_parameter("v_segments", 64);
+      prev_node_id = sphere_id;
     } else {
       // Transform nodes
-      auto transform = graph.create_node(NodeType::Transform,
-                                         "Transform_" + std::to_string(i));
-      transform->set_parameter("translate_x", 0.01f * i);
-      transform->set_parameter("translate_y", 0.0f);
-      transform->set_parameter("translate_z", 0.0f);
-      transform->set_parameter("rotate_x", 0.0f);
-      transform->set_parameter("rotate_y", 1.0f * i);
-      transform->set_parameter("rotate_z", 0.0f);
-      transform->set_parameter("scale", 1.0f);
+      int transform_id = graph.add_node(NodeType::Transform);
+      auto *transform = graph.get_node(transform_id);
+      transform->set_parameter("translate_x", 0.01F * static_cast<float>(i));
+      transform->set_parameter("translate_y", 0.0F);
+      transform->set_parameter("translate_z", 0.0F);
+      transform->set_parameter("rotate_x", 0.0F);
+      transform->set_parameter("rotate_y", 1.0F * static_cast<float>(i));
+      transform->set_parameter("rotate_z", 0.0F);
+      transform->set_parameter("scale", 1.0F);
 
       // Connect to previous node
-      graph.create_connection(prev_node_id, 0, transform->get_id(), 0);
-      prev_node_id = transform->get_id();
+      graph.add_connection(prev_node_id, 0, transform_id, 0);
+      prev_node_id = transform_id;
     }
   }
 
@@ -48,36 +47,36 @@ void generate_transform_chain(NodeGraph &graph, int chain_length) {
 // Generate a scatter + copy pattern
 void generate_scatter_grid(NodeGraph &graph, int grid_size) {
   // Create base geometry (box)
-  auto box = graph.create_node(NodeType::Box, "Box");
-  box->set_parameter("size_x", 0.1f);
-  box->set_parameter("size_y", 0.1f);
-  box->set_parameter("size_z", 0.1f);
+  int box_id = graph.add_node(NodeType::Box);
+  auto *box = graph.get_node(box_id);
+  box->set_parameter("size_x", NodeParameter::from_float(0.1F));
+  box->set_parameter("size_y", NodeParameter::from_float(0.1F));
+  box->set_parameter("size_z", NodeParameter::from_float(0.1F));
 
-  int prev_display = box->get_id();
+  int prev_display = box_id;
 
   // Create grid pattern with scatter + copy
   for (int i = 0; i < grid_size; ++i) {
     // Create points to scatter on
-    auto sphere =
-        graph.create_node(NodeType::Sphere, "Sphere_" + std::to_string(i));
-    sphere->set_parameter("radius", 2.0f);
-    sphere->set_parameter("rows", 8);
-    sphere->set_parameter("columns", 16);
+    int sphere_id = graph.add_node(NodeType::Sphere);
+    auto *sphere = graph.get_node(sphere_id);
+    sphere->set_parameter("radius", NodeParameter::from_float(2.0F));
+    sphere->set_parameter("u_segments", NodeParameter::from_int(8));
+    sphere->set_parameter("v_segments", NodeParameter::from_int(16));
 
     // Scatter points
-    auto scatter =
-        graph.create_node(NodeType::Scatter, "Scatter_" + std::to_string(i));
-    scatter->set_parameter("count", 20);
-    scatter->set_parameter("seed", i);
-    graph.create_connection(sphere->get_id(), 0, scatter->get_id(), 0);
+    int scatter_id = graph.add_node(NodeType::Scatter);
+    auto *scatter = graph.get_node(scatter_id);
+    scatter->set_parameter("count", NodeParameter::from_int(20));
+    scatter->set_parameter("seed", NodeParameter::from_int(i));
+    graph.add_connection(sphere_id, 0, scatter_id, 0);
 
     // Copy to points
-    auto copy =
-        graph.create_node(NodeType::CopyToPoints, "Copy_" + std::to_string(i));
-    graph.create_connection(box->get_id(), 0, copy->get_id(), 0);
-    graph.create_connection(scatter->get_id(), 0, copy->get_id(), 1);
+    int copy_id = graph.add_node(NodeType::CopyToPoints);
+    graph.add_connection(box_id, 0, copy_id, 0);
+    graph.add_connection(scatter_id, 0, copy_id, 1);
 
-    prev_display = copy->get_id();
+    prev_display = copy_id;
   }
 
   graph.set_display_node(prev_display);

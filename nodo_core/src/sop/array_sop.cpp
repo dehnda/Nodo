@@ -324,8 +324,6 @@ ArraySOP::create_radial_array(const core::GeometryContainer &input_geo,
   // Copy topology for each array element
   for (int i = 0; i < count; ++i) {
     const int point_offset = i * static_cast<int>(input_point_count);
-    int vertex_offset =
-        i * static_cast<int>(input_geo.topology().vertex_count());
 
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
       const auto &prim_verts =
@@ -334,10 +332,15 @@ ArraySOP::create_radial_array(const core::GeometryContainer &input_geo,
       new_prim_verts.reserve(prim_verts.size());
 
       for (int vertex_idx : prim_verts) {
+        // Get the point that this vertex references
         int input_point_idx = input_geo.topology().get_vertex_point(vertex_idx);
+        // Add offset to get new point index
         int new_point_idx = input_point_idx + point_offset;
-        int new_vertex_idx = vertex_offset++;
 
+        // Create new vertex for this point
+        int new_vertex_idx =
+            (i * static_cast<int>(input_geo.topology().vertex_count())) +
+            vertex_idx;
         result->topology().set_vertex_point(new_vertex_idx, new_point_idx);
         new_prim_verts.push_back(new_vertex_idx);
       }
@@ -404,8 +407,6 @@ ArraySOP::create_grid_array(const core::GeometryContainer &input_geo,
   // Copy topology for each grid cell
   for (int i = 0; i < total_copies; ++i) {
     const int point_offset = i * static_cast<int>(input_point_count);
-    int vertex_offset =
-        i * static_cast<int>(input_geo.topology().vertex_count());
 
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
       const auto &prim_verts =
@@ -414,10 +415,15 @@ ArraySOP::create_grid_array(const core::GeometryContainer &input_geo,
       new_prim_verts.reserve(prim_verts.size());
 
       for (int vertex_idx : prim_verts) {
+        // Get the point that this vertex references
         int input_point_idx = input_geo.topology().get_vertex_point(vertex_idx);
+        // Add offset to get new point index
         int new_point_idx = input_point_idx + point_offset;
-        int new_vertex_idx = vertex_offset++;
 
+        // Create new vertex for this point
+        int new_vertex_idx =
+            (i * static_cast<int>(input_geo.topology().vertex_count())) +
+            vertex_idx;
         result->topology().set_vertex_point(new_vertex_idx, new_point_idx);
         new_prim_verts.push_back(new_vertex_idx);
       }

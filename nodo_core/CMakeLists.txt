@@ -187,19 +187,20 @@ endif()
 # ============================================================================
 
 # Large graph generator for performance testing
-add_executable(large_graph_generator
-    src/tools/large_graph_generator.cpp
-)
-
-target_link_libraries(large_graph_generator
-    PRIVATE
-        nodo_core
-)
-
-target_compile_features(large_graph_generator PRIVATE cxx_std_20)
-
-if(MSVC)
-    target_compile_options(large_graph_generator PRIVATE /W4)
-else()
-    target_compile_options(large_graph_generator PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+# TODO: Update to new NodeGraph API (add_node, set_parameter with NodeParameter)
+# add_executable(large_graph_generator
+#     src/tools/large_graph_generator.cpp
+# )
+#
+# target_link_libraries(large_graph_generator
+#     PRIVATE
+#         nodo_core
+# )
+#
+# target_compile_features(large_graph_generator PRIVATE cxx_std_20)
+#
+# if(MSVC)
+#     target_compile_options(large_graph_generator PRIVATE /W4)
+# else()
+#     target_compile_options(large_graph_generator PRIVATE -Wall -Wextra -Wpedantic)
+# endif()

@@ -1,15 +1,10 @@
 #pragma once
 
+#include "nodo/expressions/ExpressionEvaluator.h"
 #include "sop_node.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
-
-namespace exprtk {
-template <typename T> class expression;
-template <typename T> class symbol_table;
-template <typename T> class parser;
-} // namespace exprtk
 
 namespace nodo::sop {
 
@@ -52,14 +47,12 @@ private:
 
     // Dynamic channel parameters (ch("name") references)
     std::unordered_map<std::string, double> channels;
-
-    // Expression engine (using pimpl to avoid exprtk in header)
-    std::unique_ptr<exprtk::symbol_table<double>> symbols;
-    std::unique_ptr<exprtk::expression<double>> expression;
-    std::unique_ptr<exprtk::parser<double>> parser;
   };
 
   std::unique_ptr<ExpressionContext> context_;
+
+  // Unified expression evaluator with geometry functions
+  ExpressionEvaluator evaluator_;
 
   // Track currently registered channel parameters
   std::vector<std::string> channel_params_;
@@ -72,19 +65,15 @@ private:
 
   bool compile_expression(const std::string &expr_code);
   std::string preprocess_code(const std::string &code);
-  void setup_symbol_table();
   void load_point_attributes(core::GeometryContainer *geo, size_t ptnum);
   void save_point_attributes(core::GeometryContainer *geo, size_t ptnum);
+
+  // Build variable map from current context state
+  ExpressionEvaluator::VariableMap build_variable_map() const;
 
   // Dynamic channel parameter management
   std::vector<std::string> parse_channel_references(const std::string &code);
   void update_channel_parameters(const std::vector<std::string> &channels);
-
-  // Custom functions for expression operations
-  static double func_rand(double seed);
-  static double func_set_x(double x, double y, double z);
-  static double func_set_y(double x, double y, double z);
-  static double func_set_z(double x, double y, double z);
 };
 
 } // namespace nodo::sop

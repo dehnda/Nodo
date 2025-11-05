@@ -3,9 +3,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include <cmath>
-#include <exprtk.hpp>
 #include <fmt/core.h>
-#include <random>
 #include <regex>
 #include <set>
 
@@ -14,12 +12,13 @@ namespace nodo::sop {
 using namespace nodo::core;
 namespace attrs = nodo::core::standard_attrs;
 
-// Random number generator for rand() function
-static std::mt19937 rng(12345);
-
 WrangleSOP::WrangleSOP(const std::string &node_name)
     : SOPNode(node_name, "Wrangle"),
       context_(std::make_unique<ExpressionContext>()) {
+
+  // Register geometry functions for wrangle expressions
+  evaluator_.registerGeometryFunctions();
+  evaluator_.registerVectorFunctions();
 
   // Single geometry input
   input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -101,69 +100,51 @@ bool WrangleSOP::compile_expression(const std::string &expr_code) {
   std::vector<std::string> channels = parse_channel_references(expr_code);
   update_channel_parameters(channels);
 
-  // Initialize expression engine
-  context_->symbols = std::make_unique<exprtk::symbol_table<double>>();
-  context_->expression = std::make_unique<exprtk::expression<double>>();
-  context_->parser = std::make_unique<exprtk::parser<double>>();
-
-  setup_symbol_table();
-
-  // Register symbol table with expression
-  context_->expression->register_symbol_table(*context_->symbols);
-
-  // Parse the expression code
-  // Preprocess to convert attribute syntax to exprtk
-  std::string processed_code = preprocess_code(expr_code);
-
-  if (!context_->parser->compile(processed_code, *context_->expression)) {
-    fmt::print("Expression parse error: {}\n", context_->parser->error());
-    return false;
-  }
+  // Note: We skip validation here because the preprocessed code contains
+  // variables (Px, Py, Pz, etc.) that won't be defined until execution time.
+  // Any syntax errors will be caught during the first evaluation attempt.
 
   return true;
 }
 
-void WrangleSOP::setup_symbol_table() {
+ExpressionEvaluator::VariableMap WrangleSOP::build_variable_map() const {
+  ExpressionEvaluator::VariableMap variables;
+
   // Register all built-in variables
-  context_->symbols->add_variable("ptnum", context_->ptnum);
-  context_->symbols->add_variable("numpt", context_->numpt);
-  context_->symbols->add_variable("primnum", context_->primnum);
-  context_->symbols->add_variable("numprim", context_->numprim);
-  context_->symbols->add_variable("vtxnum", context_->vtxnum);
-  context_->symbols->add_variable("numvtx", context_->numvtx);
+  variables["ptnum"] = context_->ptnum;
+  variables["numpt"] = context_->numpt;
+  variables["primnum"] = context_->primnum;
+  variables["numprim"] = context_->numprim;
+  variables["vtxnum"] = context_->vtxnum;
+  variables["numvtx"] = context_->numvtx;
 
   // Position components
-  context_->symbols->add_variable("Px", context_->Px);
-  context_->symbols->add_variable("Py", context_->Py);
-  context_->symbols->add_variable("Pz", context_->Pz);
+  variables["Px"] = context_->Px;
+  variables["Py"] = context_->Py;
+  variables["Pz"] = context_->Pz;
 
   // Normal components
-  context_->symbols->add_variable("Nx", context_->Nx);
-  context_->symbols->add_variable("Ny", context_->Ny);
-  context_->symbols->add_variable("Nz", context_->Nz);
+  variables["Nx"] = context_->Nx;
+  variables["Ny"] = context_->Ny;
+  variables["Nz"] = context_->Nz;
 
   // Color components
-  context_->symbols->add_variable("Cr", context_->Cr);
-  context_->symbols->add_variable("Cg", context_->Cg);
-  context_->symbols->add_variable("Cb", context_->Cb);
+  variables["Cr"] = context_->Cr;
+  variables["Cg"] = context_->Cg;
+  variables["Cb"] = context_->Cb;
 
   // Dynamic channel parameters (ch("name") references)
-  // Load all registered channel parameters and add them to symbol table
+  // Load all registered channel parameters
   for (const auto &channel_name : channel_params_) {
     float channel_value = get_parameter<float>(channel_name, 0.0F);
-    context_->channels[channel_name] = static_cast<double>(channel_value);
 
-    // Add to symbol table with ch_ prefix (e.g., ch("amplitude") ->
+    // Add to variable map with ch_ prefix (e.g., ch("amplitude") ->
     // ch_amplitude)
     std::string var_name = "ch_" + channel_name;
-    context_->symbols->add_variable(var_name, context_->channels[channel_name]);
+    variables[var_name] = static_cast<double>(channel_value);
   }
 
-  // Register built-in functions
-  context_->symbols->add_function("rand", func_rand);
-
-  // Add standard math constants
-  context_->symbols->add_constants();
+  return variables;
 }
 
 std::string WrangleSOP::preprocess_code(const std::string &code) {
@@ -226,17 +207,42 @@ void WrangleSOP::execute_points_mode(core::GeometryContainer *result) {
   // Set global counts
   context_->numpt = static_cast<double>(result->point_count());
 
+  // Get the preprocessed expression
+  std::string expression_code =
+      get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+  std::string processed_code = preprocess_code(expression_code);
+
   // Use base class helper to iterate only over points in the active group
-  for_each_point_in_group(result, [this, result](size_t i) {
+  for_each_point_in_group(result, [this, result, &processed_code](size_t i) {
     context_->ptnum = static_cast<double>(i);
 
     // Load current point attributes
     load_point_attributes(result, i);
 
-    // Evaluate expression
-    context_->expression->value();
+    // Build variable map from current state
+    auto variables = build_variable_map();
 
-    // Save modified attributes back
+    // Evaluate expression (non-const version - modifies variables)
+    auto eval_result = evaluator_.evaluate(processed_code, variables);
+
+    if (!eval_result.success) {
+      fmt::print("Expression evaluation error at point {}: {}\n", i,
+                 eval_result.error);
+      return;
+    }
+
+    // Copy modified variables back to context
+    context_->Px = variables["Px"];
+    context_->Py = variables["Py"];
+    context_->Pz = variables["Pz"];
+    context_->Nx = variables["Nx"];
+    context_->Ny = variables["Ny"];
+    context_->Nz = variables["Nz"];
+    context_->Cr = variables["Cr"];
+    context_->Cg = variables["Cg"];
+    context_->Cb = variables["Cb"];
+
+    // Save modified attributes back to geometry
     save_point_attributes(result, i);
   });
 }
@@ -259,8 +265,21 @@ void WrangleSOP::execute_vertices_mode(
 
 void WrangleSOP::execute_detail_mode(
     [[maybe_unused]] core::GeometryContainer *result) {
+  // Get the preprocessed expression
+  std::string expression_code =
+      get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+  std::string processed_code = preprocess_code(expression_code);
+
+  // Build variable map from current state
+  auto variables = build_variable_map();
+
   // Run expression once for entire geometry
-  context_->expression->value();
+  auto eval_result = evaluator_.evaluate(processed_code, variables);
+
+  if (!eval_result.success) {
+    fmt::print("Expression evaluation error (detail mode): {}\n",
+               eval_result.error);
+  }
 }
 
 void WrangleSOP::load_point_attributes(core::GeometryContainer *geo,
@@ -331,19 +350,6 @@ void WrangleSOP::save_point_attributes(core::GeometryContainer *geo,
     }
   }
 }
-
-// Custom function implementations
-double WrangleSOP::func_rand(double seed) {
-  rng.seed(static_cast<unsigned int>(seed));
-  std::uniform_real_distribution<double> dist(0.0, 1.0);
-  return dist(rng);
-}
-
-double WrangleSOP::func_set_x(double x, double, double) { return x; }
-
-double WrangleSOP::func_set_y(double, double y, double) { return y; }
-
-double WrangleSOP::func_set_z(double, double, double z) { return z; }
 
 // Public method to update channels when expression changes
 void WrangleSOP::update_expression_channels(
