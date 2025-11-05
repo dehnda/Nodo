@@ -29,6 +29,7 @@ add_executable(nodo_tests
     test_sop_group_filtering.cpp
     test_graph_serialization.cpp
     test_polyextrude_edges.cpp
+    test_host_interface.cpp
 )
 
 target_link_libraries(nodo_tests

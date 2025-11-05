@@ -349,14 +349,33 @@ ExecutionEngine::gather_input_geometries(const NodeGraph &graph, int node_id) {
 }
 
 void ExecutionEngine::notify_progress(int completed, int total) {
+  // Call legacy progress callback
   if (progress_callback_) {
     progress_callback_(completed, total);
+  }
+
+  // Call host interface progress reporting (M2.1)
+  if (host_interface_ != nullptr) {
+    std::string message = "Executing node " + std::to_string(completed) +
+                          " of " + std::to_string(total);
+    bool continue_execution =
+        host_interface_->report_progress(completed, total, message);
+    // Note: cancellation check would need to propagate up to execute_graph
+    // For now, just report progress without cancellation support
+    (void)continue_execution; // Suppress unused variable warning
   }
 }
 
 void ExecutionEngine::notify_error(const std::string &error, int node_id) {
+  // Call legacy error callback
   if (error_callback_) {
     error_callback_(error, node_id);
+  }
+
+  // Log error to host interface (M2.1)
+  if (host_interface_ != nullptr) {
+    std::string error_msg = "Node " + std::to_string(node_id) + ": " + error;
+    host_interface_->log("error", error_msg);
   }
 }
 

@@ -29,6 +29,9 @@ set(NODO_CORE_SOURCES
     src/core/math.cpp
     src/core/mesh.cpp
 
+    # Host Interface (M2.1)
+    src/IHostInterface.cpp
+
     # Geometry generators
     src/geometry/boolean_ops.cpp
     src/geometry/box_generator.cpp

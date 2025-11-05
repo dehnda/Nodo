@@ -7,6 +7,7 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/graph/node_graph.hpp"
+#include "nodo_core/IHostInterface.h"
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -83,6 +84,26 @@ public:
     error_callback_ = std::move(callback);
   }
 
+  /**
+   * @brief Set host interface for engine integration
+   * @param host_interface Host interface implementation (can be nullptr for
+   * standalone)
+   *
+   * Allows host applications to receive progress updates, provide cancellation,
+   * logging, and path resolution. Pass nullptr to disable host integration.
+   *
+   * @since M2.1
+   */
+  void set_host_interface(IHostInterface *host_interface) {
+    host_interface_ = host_interface;
+  }
+
+  /**
+   * @brief Get current host interface
+   * @return Host interface or nullptr if not set
+   */
+  IHostInterface *get_host_interface() const { return host_interface_; }
+
 private:
   // Result cache: node_id -> geometry_container (new system)
   std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
@@ -91,6 +112,9 @@ private:
   // Callbacks
   ProgressCallback progress_callback_;
   ErrorCallback error_callback_;
+
+  // Host interface (optional, nullptr if not set)
+  IHostInterface *host_interface_ = nullptr;
 
   // Helper methods
   std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>

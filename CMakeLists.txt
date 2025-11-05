@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(NODO_BUILD_EXAMPLES "Build example applications" OFF)
 option(NODO_BUILD_TESTS "Build unit tests" ON)
 option(NODO_BUILD_STUDIO "Build Qt Studio application" ON)
+option(NODO_BUILD_CLI "Build CLI headless tool" ON)
 
 # External dependencies
 # xatlas - UV unwrapping library
@@ -60,6 +61,11 @@ endif()
 # Qt Studio Application
 if(NODO_BUILD_STUDIO)
     add_subdirectory(nodo_studio)
+endif()
+
+# CLI Tool (headless execution)
+if(NODO_BUILD_CLI)
+    add_subdirectory(nodo_cli)
 endif()
 
 # Installation
