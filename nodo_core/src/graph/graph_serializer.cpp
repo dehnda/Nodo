@@ -35,15 +35,31 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
       for (const auto &param : parameters) {
         json param_json;
         param_json["name"] = param.name;
+        param_json["label"] = param.label;
+        param_json["category"] = param.category;
+
+        // Save value mode and expression (M3.3)
+        param_json["value_mode"] = static_cast<int>(param.value_mode);
+        if (!param.expression_string.empty()) {
+          param_json["expression"] = param.expression_string;
+        }
 
         switch (param.type) {
         case NodeParameter::Type::Float:
           param_json["type"] = "float";
           param_json["value"] = param.float_value;
+          param_json["float_min"] = param.ui_range.float_min;
+          param_json["float_max"] = param.ui_range.float_max;
           break;
         case NodeParameter::Type::Int:
           param_json["type"] = "int";
           param_json["value"] = param.int_value;
+          param_json["int_min"] = param.ui_range.int_min;
+          param_json["int_max"] = param.ui_range.int_max;
+          // Save string_options for combo box / mode widget
+          if (!param.string_options.empty()) {
+            param_json["string_options"] = param.string_options;
+          }
           break;
         case NodeParameter::Type::Bool:
           param_json["type"] = "bool";
@@ -61,6 +77,8 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
           param_json["type"] = "vector3";
           param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
                                  param.vector3_value[2]};
+          param_json["float_min"] = param.ui_range.float_min;
+          param_json["float_max"] = param.ui_range.float_max;
           break;
         }
 
@@ -186,23 +204,107 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
             std::string param_name = param_json["name"];
             std::string param_type = param_json["type"];
+            std::string label = param_json.value("label", param_name);
+            std::string category = param_json.value("category", "");
 
             if (param_type == "float") {
               float value = param_json["value"];
-              node->add_parameter(NodeParameter(param_name, value));
+              float min = param_json.value("float_min", 0.01F);
+              float max = param_json.value("float_max", 100.0F);
+              NodeParameter param(param_name, value, label, min, max, category);
+
+              // Restore expression mode (M3.3)
+              if (param_json.contains("value_mode")) {
+                param.value_mode = static_cast<ParameterValueMode>(
+                    param_json["value_mode"].get<int>());
+              }
+              if (param_json.contains("expression")) {
+                param.expression_string = param_json["expression"];
+              }
+
+              node->add_parameter(param);
             } else if (param_type == "int") {
               int value = param_json["value"];
-              node->add_parameter(NodeParameter(param_name, value));
+
+              // Check if this is a combo box (has string_options)
+              if (param_json.contains("string_options") &&
+                  param_json["string_options"].is_array()) {
+                std::vector<std::string> options =
+                    param_json["string_options"]
+                        .get<std::vector<std::string>>();
+                NodeParameter param(param_name, value, options, label,
+                                    category);
+
+                // Restore expression mode (M3.3)
+                if (param_json.contains("value_mode")) {
+                  param.value_mode = static_cast<ParameterValueMode>(
+                      param_json["value_mode"].get<int>());
+                }
+                if (param_json.contains("expression")) {
+                  param.expression_string = param_json["expression"];
+                }
+
+                node->add_parameter(param);
+              } else {
+                // Regular int parameter
+                int min = param_json.value("int_min", 0);
+                int max = param_json.value("int_max", 100);
+                NodeParameter param(param_name, value, label, min, max,
+                                    category);
+
+                // Restore expression mode (M3.3)
+                if (param_json.contains("value_mode")) {
+                  param.value_mode = static_cast<ParameterValueMode>(
+                      param_json["value_mode"].get<int>());
+                }
+                if (param_json.contains("expression")) {
+                  param.expression_string = param_json["expression"];
+                }
+
+                node->add_parameter(param);
+              }
             } else if (param_type == "bool") {
               bool value = param_json["value"];
-              node->add_parameter(NodeParameter(param_name, value));
+              NodeParameter param(param_name, value, label, category);
+
+              // Restore expression mode (M3.3)
+              if (param_json.contains("value_mode")) {
+                param.value_mode = static_cast<ParameterValueMode>(
+                    param_json["value_mode"].get<int>());
+              }
+              if (param_json.contains("expression")) {
+                param.expression_string = param_json["expression"];
+              }
+
+              node->add_parameter(param);
             } else if (param_type == "string") {
               std::string value = param_json["value"];
-              node->add_parameter(NodeParameter(param_name, value));
+              NodeParameter param(param_name, value, label, category);
+
+              // Restore expression mode (M3.3)
+              if (param_json.contains("value_mode")) {
+                param.value_mode = static_cast<ParameterValueMode>(
+                    param_json["value_mode"].get<int>());
+              }
+              if (param_json.contains("expression")) {
+                param.expression_string = param_json["expression"];
+              }
+
+              node->add_parameter(param);
             } else if (param_type == "code") {
               std::string value = param_json["value"];
-              NodeParameter code_param(param_name, value);
+              NodeParameter code_param(param_name, value, label, category);
               code_param.type = NodeParameter::Type::Code;
+
+              // Restore expression mode (M3.3)
+              if (param_json.contains("value_mode")) {
+                code_param.value_mode = static_cast<ParameterValueMode>(
+                    param_json["value_mode"].get<int>());
+              }
+              if (param_json.contains("expression")) {
+                code_param.expression_string = param_json["expression"];
+              }
+
               node->add_parameter(code_param);
             } else if (param_type == "vector3" &&
                        param_json["value"].is_array() &&
@@ -210,7 +312,20 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
               std::array<float, 3> value = {param_json["value"][0],
                                             param_json["value"][1],
                                             param_json["value"][2]};
-              node->add_parameter(NodeParameter(param_name, value));
+              float min = param_json.value("float_min", -100.0F);
+              float max = param_json.value("float_max", 100.0F);
+              NodeParameter param(param_name, value, label, min, max, category);
+
+              // Restore expression mode (M3.3)
+              if (param_json.contains("value_mode")) {
+                param.value_mode = static_cast<ParameterValueMode>(
+                    param_json["value_mode"].get<int>());
+              }
+              if (param_json.contains("expression")) {
+                param.expression_string = param_json["expression"];
+              }
+
+              node->add_parameter(param);
             }
           }
         }

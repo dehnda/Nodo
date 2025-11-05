@@ -1,5 +1,20 @@
 {
-  "connections": [],
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    }
+  ],
   "graph_parameters": [],
   "nodes": [
     {
@@ -7,51 +22,211 @@
       "name": "box",
       "parameters": [
         {
+          "category": "Group",
+          "label": "Group",
           "name": "group",
           "type": "string",
-          "value": ""
+          "value": "",
+          "value_mode": 0
         },
         {
+          "category": "Universal",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Primitive Type",
           "name": "primitive_type",
+          "string_options": [
+            "Polygon",
+            "Points"
+          ],
           "type": "int",
-          "value": 0
+          "value": 0,
+          "value_mode": 0
         },
         {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Width",
           "name": "width",
           "type": "float",
-          "value": 2.0
+          "value": 2.0,
+          "value_mode": 0
         },
         {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Height",
           "name": "height",
           "type": "float",
-          "value": 2.0
+          "value": 2.0,
+          "value_mode": 0
         },
         {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Depth",
           "name": "depth",
           "type": "float",
-          "value": 2.0
+          "value": 2.0,
+          "value_mode": 0
         },
         {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Width Segments",
           "name": "width_segments",
           "type": "int",
-          "value": 1
+          "value": 1,
+          "value_mode": 0
         },
         {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Height Segments",
           "name": "height_segments",
           "type": "int",
-          "value": 1
+          "value": 1,
+          "value_mode": 0
         },
         {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Depth Segments",
           "name": "depth_segments",
           "type": "int",
-          "value": 1
+          "value": 1,
+          "value_mode": 0
         }
       ],
       "position": [
-        -142.0,
-        -190.0
+        -91.0,
+        -222.0
       ],
       "type": "Box"
+    },
+    {
+      "id": 2,
+      "name": "transform",
+      "parameters": [
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Translate",
+          "name": "translate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 360.0,
+          "float_min": -360.0,
+          "label": "Rotate",
+          "name": "rotate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 10.0,
+          "float_min": 0.009999999776482582,
+          "label": "Scale",
+          "name": "scale",
+          "type": "vector3",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -86.0,
+        -53.0
+      ],
+      "type": "Transform"
+    },
+    {
+      "id": 3,
+      "name": "scatter",
+      "parameters": [
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Scatter",
+          "int_max": 10000,
+          "int_min": 1,
+          "label": "Point Count",
+          "name": "point_count",
+          "type": "int",
+          "value": 100,
+          "value_mode": 0
+        },
+        {
+          "category": "Scatter",
+          "int_max": 99999,
+          "int_min": 0,
+          "label": "Seed",
+          "name": "seed",
+          "type": "int",
+          "value": 42,
+          "value_mode": 0
+        },
+        {
+          "category": "Scatter",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Density",
+          "name": "density",
+          "type": "float",
+          "value": 1.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Scatter",
+          "label": "Use Face Area",
+          "name": "use_face_area",
+          "type": "bool",
+          "value": true,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -66.0,
+        117.0
+      ],
+      "type": "Scatter"
     }
   ],
   "version": "1.0"
