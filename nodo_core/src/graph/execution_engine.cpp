@@ -219,22 +219,50 @@ void ExecutionEngine::invalidate_node(NodeGraph &graph, int node_id) {
 void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
                                           sop::SOPNode &sop_node,
                                           const NodeGraph &graph) {
-  // Create expression resolver with access to graph parameters
-  ParameterExpressionResolver resolver(graph);
+  // M3.3 Phase 3: Create expression resolver with access to:
+  // - Global graph parameters
+  // - Same-node parameters
+  // - Cross-node parameters via ch() function
+  const auto &node_params = graph_node.get_parameters();
+  ParameterExpressionResolver resolver(graph, &node_params,
+                                       graph_node.get_id());
 
   // Iterate over all parameters in GraphNode and transfer to SOPNode
-  for (const auto &param : graph_node.get_parameters()) {
+  for (const auto &param : node_params) {
     switch (param.type) {
     case NodeParameter::Type::Float: {
-      // Check if the float value was stored as a string expression
-      // For now, we'll just use the numeric value directly
-      // TODO: Support string expressions for numeric parameters in the UI
-      sop_node.set_parameter(param.name, param.float_value);
+      // M3.3 Phase 2: Check if parameter uses an expression
+      if (param.has_expression()) {
+        // Evaluate expression
+        auto result = resolver.resolve_float(param.get_expression());
+        if (result.has_value()) {
+          sop_node.set_parameter(param.name, result.value());
+        } else {
+          // Fallback to literal value if expression evaluation fails
+          sop_node.set_parameter(param.name, param.float_value);
+        }
+      } else {
+        // Use literal value
+        sop_node.set_parameter(param.name, param.float_value);
+      }
       break;
     }
 
     case NodeParameter::Type::Int: {
-      sop_node.set_parameter(param.name, param.int_value);
+      // M3.3 Phase 2: Check if parameter uses an expression
+      if (param.has_expression()) {
+        // Evaluate expression
+        auto result = resolver.resolve_int(param.get_expression());
+        if (result.has_value()) {
+          sop_node.set_parameter(param.name, result.value());
+        } else {
+          // Fallback to literal value if expression evaluation fails
+          sop_node.set_parameter(param.name, param.int_value);
+        }
+      } else {
+        // Use literal value
+        sop_node.set_parameter(param.name, param.int_value);
+      }
       break;
     }
 
@@ -255,9 +283,62 @@ void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
     }
 
     case NodeParameter::Type::Vector3: {
-      // Convert std::array<float, 3> to Eigen::Vector3f
-      Eigen::Vector3f vec3(param.vector3_value[0], param.vector3_value[1],
-                           param.vector3_value[2]);
+      // M3.3 Phase 2: Check if parameter uses an expression
+      Eigen::Vector3f vec3;
+
+      if (param.has_expression()) {
+        // For Vector3, expression could be:
+        // 1. Three comma-separated expressions: "1.0, 2.0, 3.0"
+        // 2. Single expression for all components: "$offset"
+        // 3. Math per component: "$x + 1, $y * 2, $z"
+
+        const std::string &expr = param.get_expression();
+
+        // Try to parse as comma-separated values
+        size_t comma1 = expr.find(',');
+        if (comma1 != std::string::npos) {
+          size_t comma2 = expr.find(',', comma1 + 1);
+          if (comma2 != std::string::npos) {
+            // Three components
+            std::string x_expr = expr.substr(0, comma1);
+            std::string y_expr = expr.substr(comma1 + 1, comma2 - comma1 - 1);
+            std::string z_expr = expr.substr(comma2 + 1);
+
+            // Trim whitespace
+            auto trim = [](std::string &s) {
+              s.erase(0, s.find_first_not_of(" \t"));
+              s.erase(s.find_last_not_of(" \t") + 1);
+            };
+            trim(x_expr);
+            trim(y_expr);
+            trim(z_expr);
+
+            // Evaluate each component
+            auto x_val = resolver.resolve_float(x_expr);
+            auto y_val = resolver.resolve_float(y_expr);
+            auto z_val = resolver.resolve_float(z_expr);
+
+            vec3[0] = x_val.value_or(param.vector3_value[0]);
+            vec3[1] = y_val.value_or(param.vector3_value[1]);
+            vec3[2] = z_val.value_or(param.vector3_value[2]);
+          } else {
+            // Fallback to literal
+            vec3 =
+                Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1],
+                                param.vector3_value[2]);
+          }
+        } else {
+          // Single expression - use for all components
+          auto result = resolver.resolve_float(expr);
+          float val = result.value_or(0.0f);
+          vec3 = Eigen::Vector3f(val, val, val);
+        }
+      } else {
+        // Use literal value
+        vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1],
+                               param.vector3_value[2]);
+      }
+
       sop_node.set_parameter(param.name, vec3);
       break;
     }

@@ -14,13 +14,19 @@ IntWidget::IntWidget(const QString &label, int value, int min, int max,
 }
 
 QWidget *IntWidget::createControlWidget() {
-  auto *container = new QWidget(this);
-  auto *layout = new QHBoxLayout(container);
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(8);
+  auto *main_container = new QWidget(this);
+  auto *main_layout = new QHBoxLayout(main_container);
+  main_layout->setContentsMargins(0, 0, 0, 0);
+  main_layout->setSpacing(8);
+
+  // === Numeric mode container (spinbox + slider) ===
+  numeric_container_ = new QWidget(main_container);
+  auto *numeric_layout = new QHBoxLayout(numeric_container_);
+  numeric_layout->setContentsMargins(0, 0, 0, 0);
+  numeric_layout->setSpacing(8);
 
   // Spinbox
-  spinbox_ = new QSpinBox(container);
+  spinbox_ = new QSpinBox(numeric_container_);
   spinbox_->setRange(min_, max_);
   spinbox_->setValue(current_value_);
   spinbox_->setStyleSheet(QString("QSpinBox { "
@@ -49,7 +55,7 @@ QWidget *IntWidget::createControlWidget() {
           &IntWidget::onSpinBoxValueChanged);
 
   // Slider (matches HTML design - slider LEFT, spinbox RIGHT)
-  slider_ = new QSlider(Qt::Horizontal, container);
+  slider_ = new QSlider(Qt::Horizontal, numeric_container_);
   slider_->setRange(min_, max_);
   slider_->setValue(current_value_);
   slider_->setStyleSheet(QString("QSlider::groove:horizontal { "
@@ -75,8 +81,82 @@ QWidget *IntWidget::createControlWidget() {
           &IntWidget::onSliderValueChanged);
 
   // Add slider first (left), then spinbox (right) - matches HTML design
-  layout->addWidget(slider_, 2);
-  layout->addWidget(spinbox_, 1);
+  numeric_layout->addWidget(slider_, 2);
+  numeric_layout->addWidget(spinbox_, 1);
+
+  // === Expression mode container (text input) ===
+  expression_container_ = new QWidget(main_container);
+  auto *expr_layout = new QHBoxLayout(expression_container_);
+  expr_layout->setContentsMargins(0, 0, 0, 0);
+  expr_layout->setSpacing(8);
+
+  expression_edit_ = new QLineEdit(expression_container_);
+  expression_edit_->setPlaceholderText("Enter expression (e.g. $param * 2)");
+  expression_edit_->setStyleSheet(
+      QString("QLineEdit { "
+              "  background: %1; "
+              "  border: 1px solid %2; "
+              "  border-radius: 3px; "
+              "  padding: 4px 8px; "
+              "  color: %3; "
+              "  font-size: 11px; "
+              "  font-family: 'Consolas', 'Monaco', monospace; "
+              "}"
+              "QLineEdit:hover { "
+              "  border-color: %4; "
+              "}"
+              "QLineEdit:focus { "
+              "  border-color: %4; "
+              "  background: %5; "
+              "}")
+          .arg(COLOR_INPUT_BG)
+          .arg(COLOR_INPUT_BORDER)
+          .arg(COLOR_TEXT_PRIMARY)
+          .arg(COLOR_ACCENT)
+          .arg(COLOR_PANEL));
+
+  connect(expression_edit_, &QLineEdit::editingFinished, this,
+          &IntWidget::onExpressionEditingFinished);
+
+  expr_layout->addWidget(expression_edit_);
+
+  // === Mode toggle button ===
+  mode_toggle_button_ = new QPushButton("≡", main_container);
+  mode_toggle_button_->setToolTip(
+      "Toggle between numeric and expression mode\n"
+      "Numeric mode: Use spinbox/slider\n"
+      "Expression mode: Enter expressions like $param * 2");
+  mode_toggle_button_->setFixedSize(24, 24);
+  mode_toggle_button_->setStyleSheet(QString("QPushButton { "
+                                             "  background: %1; "
+                                             "  border: 1px solid %2; "
+                                             "  border-radius: 3px; "
+                                             "  color: %3; "
+                                             "  font-size: 14px; "
+                                             "  font-weight: bold; "
+                                             "}"
+                                             "QPushButton:hover { "
+                                             "  background: %4; "
+                                             "  border-color: %4; "
+                                             "}"
+                                             "QPushButton:pressed { "
+                                             "  background: %2; "
+                                             "}")
+                                         .arg(COLOR_INPUT_BG)
+                                         .arg(COLOR_INPUT_BORDER)
+                                         .arg(COLOR_TEXT_PRIMARY)
+                                         .arg(COLOR_ACCENT));
+
+  connect(mode_toggle_button_, &QPushButton::clicked, this,
+          &IntWidget::onModeToggleClicked);
+
+  // Add to main layout: mode toggle button + active container
+  main_layout->addWidget(mode_toggle_button_);
+  main_layout->addWidget(numeric_container_, 1);
+  main_layout->addWidget(expression_container_, 1);
+
+  // Start in numeric mode
+  expression_container_->hide();
 
   // Enable value scrubbing on label
   label_widget_->installEventFilter(this);
@@ -88,7 +168,7 @@ QWidget *IntWidget::createControlWidget() {
   // Enable drag indicator
   enableDragIndicator(true);
 
-  return container;
+  return main_container;
 }
 
 int IntWidget::getValue() const { return current_value_; }
@@ -229,6 +309,66 @@ void IntWidget::endScrubbing() {
 
   is_scrubbing_ = false;
   QApplication::restoreOverrideCursor();
+}
+
+// === Expression Mode Methods (M3.3 Phase 1) ===
+
+void IntWidget::setExpressionMode(bool enabled) {
+  if (is_expression_mode_ == enabled) {
+    return;
+  }
+
+  is_expression_mode_ = enabled;
+
+  if (enabled) {
+    // Switch to expression mode
+    numeric_container_->hide();
+    expression_container_->show();
+    mode_toggle_button_->setText("#");
+    mode_toggle_button_->setToolTip("Switch to numeric mode");
+
+    // If we have a stored expression, restore it
+    if (!expression_text_.isEmpty()) {
+      expression_edit_->setText(expression_text_);
+    } else {
+      // Convert current numeric value to string
+      expression_edit_->setText(QString::number(current_value_));
+    }
+
+    // Disable value scrubbing in expression mode
+    label_widget_->setCursor(Qt::ArrowCursor);
+  } else {
+    // Switch to numeric mode
+    expression_container_->hide();
+    numeric_container_->show();
+    mode_toggle_button_->setText("≡");
+    mode_toggle_button_->setToolTip("Switch to expression mode");
+
+    // Re-enable value scrubbing
+    label_widget_->setCursor(Qt::SizeHorCursor);
+  }
+}
+
+void IntWidget::setExpression(const QString &expr) {
+  expression_text_ = expr;
+  if (is_expression_mode_) {
+    expression_edit_->setText(expr);
+  }
+}
+
+void IntWidget::onExpressionEditingFinished() {
+  expression_text_ = expression_edit_->text();
+
+  // For now, just emit that the value changed
+  // In Phase 2, we'll add actual expression evaluation
+  emit valueChangedSignal(current_value_);
+  if (value_changed_callback_) {
+    value_changed_callback_(current_value_);
+  }
+}
+
+void IntWidget::onModeToggleClicked() {
+  setExpressionMode(!is_expression_mode_);
 }
 
 } // namespace widgets

@@ -18,10 +18,16 @@ Vector3Widget::Vector3Widget(const QString &label, double x, double y, double z,
 }
 
 QWidget *Vector3Widget::createControlWidget() {
-  auto *container = new QWidget(this);
-  auto *layout = new QHBoxLayout(container);
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(4);
+  auto *main_container = new QWidget(this);
+  auto *main_layout = new QHBoxLayout(main_container);
+  main_layout->setContentsMargins(0, 0, 0, 0);
+  main_layout->setSpacing(4);
+
+  // === Numeric mode container (3 spinboxes + uniform button) ===
+  numeric_container_ = new QWidget(main_container);
+  auto *numeric_layout = new QHBoxLayout(numeric_container_);
+  numeric_layout->setContentsMargins(0, 0, 0, 0);
+  numeric_layout->setSpacing(4);
 
   const char *component_names[] = {"X", "Y", "Z"};
   const char *component_colors[] = {
@@ -30,7 +36,7 @@ QWidget *Vector3Widget::createControlWidget() {
 
   for (int i = 0; i < 3; ++i) {
     // Component label (e.g., "X:", "Y:", "Z:")
-    component_labels_[i] = new QLabel(component_names[i], container);
+    component_labels_[i] = new QLabel(component_names[i], numeric_container_);
     component_labels_[i]->setStyleSheet(QString("QLabel { "
                                                 "  color: %1; "
                                                 "  font-size: 11px; "
@@ -46,10 +52,10 @@ QWidget *Vector3Widget::createControlWidget() {
     component_labels_[i]->installEventFilter(this);
     component_labels_[i]->setProperty("component_index", i); // Store index
 
-    layout->addWidget(component_labels_[i]);
+    numeric_layout->addWidget(component_labels_[i]);
 
     // Spinbox for this component
-    spinboxes_[i] = new QDoubleSpinBox(container);
+    spinboxes_[i] = new QDoubleSpinBox(numeric_container_);
     spinboxes_[i]->setRange(min_values_[i], max_values_[i]);
     spinboxes_[i]->setValue(values_[i]);
     spinboxes_[i]->setDecimals(3);
@@ -79,11 +85,11 @@ QWidget *Vector3Widget::createControlWidget() {
     connect(spinboxes_[i], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, [this, i](double value) { onSpinBoxValueChanged(i, value); });
 
-    layout->addWidget(spinboxes_[i]);
+    numeric_layout->addWidget(spinboxes_[i]);
   }
 
   // Uniform lock button
-  uniform_button_ = new QPushButton("🔓", container);
+  uniform_button_ = new QPushButton("🔓", numeric_container_);
   uniform_button_->setCheckable(true);
   uniform_button_->setFixedSize(24, 24);
   uniform_button_->setToolTip("Lock all components to uniform values");
@@ -112,12 +118,86 @@ QWidget *Vector3Widget::createControlWidget() {
     uniform_button_->setText(checked ? "🔒" : "🔓");
   });
 
-  layout->addWidget(uniform_button_);
+  numeric_layout->addWidget(uniform_button_);
+
+  // === Expression mode container (single text input for all 3 components) ===
+  expression_container_ = new QWidget(main_container);
+  auto *expr_layout = new QHBoxLayout(expression_container_);
+  expr_layout->setContentsMargins(0, 0, 0, 0);
+  expr_layout->setSpacing(8);
+
+  expression_edit_ = new QLineEdit(expression_container_);
+  expression_edit_->setPlaceholderText("Enter expression (e.g. $x, $y, $z or "
+                                       "$offset or ch(\"/node/param\"), 0, 0)");
+  expression_edit_->setStyleSheet(
+      QString("QLineEdit { "
+              "  background: %1; "
+              "  border: 1px solid %2; "
+              "  border-radius: 3px; "
+              "  padding: 4px 8px; "
+              "  color: %3; "
+              "  font-size: 11px; "
+              "  font-family: 'Consolas', 'Monaco', monospace; "
+              "}"
+              "QLineEdit:hover { "
+              "  border-color: %4; "
+              "}"
+              "QLineEdit:focus { "
+              "  border-color: %4; "
+              "  background: %5; "
+              "}")
+          .arg(COLOR_INPUT_BG)
+          .arg(COLOR_INPUT_BORDER)
+          .arg(COLOR_TEXT_PRIMARY)
+          .arg(COLOR_ACCENT)
+          .arg(COLOR_PANEL));
+
+  connect(expression_edit_, &QLineEdit::editingFinished, this,
+          &Vector3Widget::onExpressionEditingFinished);
+
+  expr_layout->addWidget(expression_edit_);
+
+  // === Mode toggle button ===
+  mode_toggle_button_ = new QPushButton("≡", main_container);
+  mode_toggle_button_->setToolTip("Toggle between numeric and expression mode\n"
+                                  "Numeric mode: Use spinboxes for X,Y,Z\n"
+                                  "Expression mode: Enter vector expression");
+  mode_toggle_button_->setFixedSize(24, 24);
+  mode_toggle_button_->setStyleSheet(QString("QPushButton { "
+                                             "  background: %1; "
+                                             "  border: 1px solid %2; "
+                                             "  border-radius: 3px; "
+                                             "  color: %3; "
+                                             "  font-size: 14px; "
+                                             "  font-weight: bold; "
+                                             "}"
+                                             "QPushButton:hover { "
+                                             "  background: %4; "
+                                             "  border-color: %4; "
+                                             "}"
+                                             "QPushButton:pressed { "
+                                             "  background: %2; "
+                                             "}")
+                                         .arg(COLOR_INPUT_BG)
+                                         .arg(COLOR_INPUT_BORDER)
+                                         .arg(COLOR_TEXT_PRIMARY)
+                                         .arg(COLOR_ACCENT));
+
+  connect(mode_toggle_button_, &QPushButton::clicked, this,
+          &Vector3Widget::onModeToggleClicked);
+
+  // Add to main layout: mode toggle button + active container
+  main_layout->addWidget(mode_toggle_button_);
+  main_layout->addWidget(numeric_container_, 1);
+  main_layout->addWidget(expression_container_, 1);
+
+  // Start in numeric mode
+  expression_container_->hide();
 
   // Enable drag indicator (components have their own drag)
   enableDragIndicator(true);
 
-  return container;
+  return main_container;
 }
 
 void Vector3Widget::setX(double x) { updateComponent(0, x); }
@@ -281,6 +361,74 @@ void Vector3Widget::endScrubbing(int component) {
 
   is_scrubbing_[component] = false;
   QApplication::restoreOverrideCursor();
+}
+
+// === Expression Mode Methods (M3.3 Phase 1) ===
+
+void Vector3Widget::setExpressionMode(bool enabled) {
+  if (is_expression_mode_ == enabled) {
+    return;
+  }
+
+  is_expression_mode_ = enabled;
+
+  if (enabled) {
+    // Switch to expression mode
+    numeric_container_->hide();
+    expression_container_->show();
+    mode_toggle_button_->setText("#");
+    mode_toggle_button_->setToolTip("Switch to numeric mode");
+
+    // If we have a stored expression, restore it
+    if (!expression_text_.isEmpty()) {
+      expression_edit_->setText(expression_text_);
+    } else {
+      // Convert current numeric values to comma-separated string (no
+      // parentheses)
+      expression_edit_->setText(QString("%1, %2, %3")
+                                    .arg(values_[0], 0, 'g', 6)
+                                    .arg(values_[1], 0, 'g', 6)
+                                    .arg(values_[2], 0, 'g', 6));
+    }
+
+    // Disable value scrubbing in expression mode
+    for (int i = 0; i < 3; ++i) {
+      component_labels_[i]->setCursor(Qt::ArrowCursor);
+    }
+  } else {
+    // Switch to numeric mode
+    expression_container_->hide();
+    numeric_container_->show();
+    mode_toggle_button_->setText("≡");
+    mode_toggle_button_->setToolTip("Switch to expression mode");
+
+    // Re-enable value scrubbing
+    for (int i = 0; i < 3; ++i) {
+      component_labels_[i]->setCursor(Qt::SizeHorCursor);
+    }
+  }
+}
+
+void Vector3Widget::setExpression(const QString &expr) {
+  expression_text_ = expr;
+  if (is_expression_mode_) {
+    expression_edit_->setText(expr);
+  }
+}
+
+void Vector3Widget::onExpressionEditingFinished() {
+  expression_text_ = expression_edit_->text();
+
+  // For now, just emit that the value changed
+  // In Phase 2, we'll add actual expression evaluation
+  emit valueChangedSignal(values_[0], values_[1], values_[2]);
+  if (value_changed_callback_) {
+    value_changed_callback_(values_[0], values_[1], values_[2]);
+  }
+}
+
+void Vector3Widget::onModeToggleClicked() {
+  setExpressionMode(!is_expression_mode_);
 }
 
 } // namespace widgets

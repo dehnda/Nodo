@@ -104,8 +104,19 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
 
   switch (param.type) {
   case nodo::graph::NodeParameter::Type::Float: {
-    return createFloatWidget(label, param.float_value, param.ui_range.float_min,
-                             param.ui_range.float_max, description, parent);
+    auto *widget =
+        createFloatWidget(label, param.float_value, param.ui_range.float_min,
+                          param.ui_range.float_max, description, parent);
+    // M3.3 Phase 2: Restore expression mode if parameter has an expression
+    if (param.has_expression()) {
+      auto *float_widget = dynamic_cast<FloatWidget *>(widget);
+      if (float_widget) {
+        float_widget->setExpressionMode(true);
+        float_widget->setExpression(
+            QString::fromStdString(param.get_expression()));
+      }
+    }
+    return widget;
   }
 
   case nodo::graph::NodeParameter::Type::Int: {
@@ -125,8 +136,19 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
       }
     }
 
-    return createIntWidget(label, param.int_value, param.ui_range.int_min,
-                           param.ui_range.int_max, description, parent);
+    auto *widget =
+        createIntWidget(label, param.int_value, param.ui_range.int_min,
+                        param.ui_range.int_max, description, parent);
+    // M3.3 Phase 2: Restore expression mode if parameter has an expression
+    if (param.has_expression()) {
+      auto *int_widget = dynamic_cast<IntWidget *>(widget);
+      if (int_widget) {
+        int_widget->setExpressionMode(true);
+        int_widget->setExpression(
+            QString::fromStdString(param.get_expression()));
+      }
+    }
+    return widget;
   }
 
   case nodo::graph::NodeParameter::Type::Bool: {
@@ -144,10 +166,20 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
   }
 
   case nodo::graph::NodeParameter::Type::Vector3: {
-    return createVector3Widget(label, param.vector3_value[0],
-                               param.vector3_value[1], param.vector3_value[2],
-                               param.ui_range.float_min,
-                               param.ui_range.float_max, description, parent);
+    auto *widget = createVector3Widget(
+        label, param.vector3_value[0], param.vector3_value[1],
+        param.vector3_value[2], param.ui_range.float_min,
+        param.ui_range.float_max, description, parent);
+    // M3.3 Phase 2: Restore expression mode if parameter has an expression
+    if (param.has_expression()) {
+      auto *vec3_widget = dynamic_cast<Vector3Widget *>(widget);
+      if (vec3_widget) {
+        vec3_widget->setExpressionMode(true);
+        vec3_widget->setExpression(
+            QString::fromStdString(param.get_expression()));
+      }
+    }
+    return widget;
   }
 
   default:

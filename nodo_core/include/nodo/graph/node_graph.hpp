@@ -97,7 +97,23 @@ enum class NodeType {
 std::string get_node_type_name(NodeType type);
 
 /**
+ * @brief Parameter value storage mode
+ *
+ * M3.3 Phase 2: Solid expression system
+ * Parameters can be either literal values or expressions to be evaluated
+ */
+enum class ParameterValueMode {
+  LITERAL,   // Direct value (e.g., 5.0, 10, "hello")
+  EXPRESSION // Expression to evaluate (e.g., "$radius * 2", "sin(pi/4)")
+};
+
+/**
  * @brief Parameter value that can hold different types
+ *
+ * M3.3 Phase 2: Redesigned for proper expression support
+ * Each parameter stores both a literal value (for fallback/cache) and an
+ * optional expression. When mode is EXPRESSION, the expression is evaluated at
+ * execution time.
  */
 struct NodeParameter {
   enum class Type { Float, Int, Bool, Vector3, String, Code };
@@ -107,7 +123,15 @@ struct NodeParameter {
   std::string label;    // Display name for UI
   std::string category; // UI grouping/filtering (optional)
 
-  // Storage for different types
+  // M3.3 Phase 2: Value storage mode
+  ParameterValueMode value_mode = ParameterValueMode::LITERAL;
+
+  // Expression string (used when value_mode == EXPRESSION)
+  // For Float/Int/Vector3: math expressions like "$radius * 2", "sin($angle)"
+  // For String/Code: parameter references like "$project_name.obj"
+  std::string expression_string;
+
+  // Literal values (used when value_mode == LITERAL, or as fallback/cache)
   union {
     float float_value;
     int int_value;
@@ -183,6 +207,38 @@ struct NodeParameter {
     ui_range.int_min = 0;
     ui_range.int_max = static_cast<int>(options.size()) - 1;
   }
+
+  // M3.3 Phase 2: Expression mode helpers
+
+  /**
+   * @brief Set this parameter to use an expression instead of literal value
+   * @param expr The expression string (e.g., "$radius * 2", "sin(pi/4)")
+   */
+  void set_expression(const std::string &expr) {
+    expression_string = expr;
+    value_mode = ParameterValueMode::EXPRESSION;
+  }
+
+  /**
+   * @brief Check if this parameter uses an expression
+   */
+  bool has_expression() const {
+    return value_mode == ParameterValueMode::EXPRESSION &&
+           !expression_string.empty();
+  }
+
+  /**
+   * @brief Clear expression and return to literal value mode
+   */
+  void clear_expression() {
+    expression_string.clear();
+    value_mode = ParameterValueMode::LITERAL;
+  }
+
+  /**
+   * @brief Get the expression string (empty if in literal mode)
+   */
+  const std::string &get_expression() const { return expression_string; }
 };
 
 /**
@@ -415,6 +471,26 @@ public:
   bool has_graph_parameter(const std::string &name) const;
 
   /**
+   * @brief Resolve a parameter path and get its value (M3.3 Phase 3)
+   * @param current_node_id The node evaluating the expression (for relative
+   * paths)
+   * @param path Parameter path: "/NodeName/param", "../NodeName/param", or
+   * "param"
+   * @return Optional string value of the parameter, or nullopt if not found
+   *
+   * Supported path formats:
+   * - "/NodeName/param" - Absolute path (from graph root)
+   * - "../NodeName/param" - Relative path (sibling nodes)
+   * - "param" - Same node parameter (handled elsewhere)
+   *
+   * Examples:
+   * - ch("/Sphere1/radius") → "5.0"
+   * - ch("../Box1/width") → "2.0"
+   */
+  std::optional<std::string>
+  resolve_parameter_path(int current_node_id, const std::string &path) const;
+
+  /**
    * @brief Validate parameter name (for future subgraph compatibility)
    * @param name Parameter name to validate
    * @return True if name is valid (no dots, no reserved words)
@@ -442,6 +518,15 @@ private:
   void notify_node_changed(int node_id);
   void notify_connection_changed(int connection_id);
   std::string generate_node_name(NodeType type) const;
+
+  /**
+   * @brief Generate unique node name (M3.3 Phase 3)
+   * @param base_name Base name (e.g., "sphere")
+   * @return Unique name (e.g., "sphere", "sphere1", "sphere2")
+   *
+   * Ensures no naming conflicts for ch() function references
+   */
+  std::string generate_unique_node_name(const std::string &base_name) const;
 };
 
 } // namespace nodo::graph

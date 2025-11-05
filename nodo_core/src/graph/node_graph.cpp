@@ -220,7 +220,10 @@ int NodeGraph::add_node(NodeType type, const std::string &name) {
 int NodeGraph::add_node_with_id(int node_id, NodeType type,
                                 const std::string &name) {
   // Use provided name or generate one from the type
-  std::string node_name = name.empty() ? get_node_type_name(type) : name;
+  std::string base_name = name.empty() ? get_node_type_name(type) : name;
+
+  // M3.3 Phase 3: Ensure unique node names (sphere, sphere1, sphere2, etc.)
+  std::string node_name = generate_unique_node_name(base_name);
 
   auto node = std::make_unique<GraphNode>(node_id, type);
   node->set_name(node_name);
@@ -498,6 +501,44 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
   return sop::SOPFactory::get_display_name(type);
 }
 
+// M3.3 Phase 3: Generate unique node names for ch() function
+std::string
+NodeGraph::generate_unique_node_name(const std::string &base_name) const {
+  // Check if base name is already unique
+  bool name_exists = false;
+  for (const auto &node : nodes_) {
+    if (node->get_name() == base_name) {
+      name_exists = true;
+      break;
+    }
+  }
+
+  if (!name_exists) {
+    return base_name;
+  }
+
+  // Find the next available number suffix
+  // Try: base_name1, base_name2, base_name3, etc.
+  int suffix = 1;
+  while (true) {
+    std::string candidate = base_name + std::to_string(suffix);
+
+    bool exists = false;
+    for (const auto &node : nodes_) {
+      if (node->get_name() == candidate) {
+        exists = true;
+        break;
+      }
+    }
+
+    if (!exists) {
+      return candidate;
+    }
+
+    suffix++;
+  }
+}
+
 void NodeGraph::set_display_node(int node_id) {
   // Clear display flag from all nodes
   for (auto &node : nodes_) {
@@ -621,6 +662,90 @@ bool NodeGraph::is_valid_parameter_name(const std::string &name) {
   }
 
   return true;
+}
+
+// M3.3 Phase 3: Cross-node parameter path resolution
+std::optional<std::string>
+NodeGraph::resolve_parameter_path(int current_node_id,
+                                  const std::string &path) const {
+  // Parse the path into node name and parameter name
+  // Supported formats:
+  // - "/NodeName/param" (absolute)
+  // - "../NodeName/param" (relative - sibling)
+  // - "NodeName/param" (relative - sibling, same as ../)
+
+  std::string node_name;
+  std::string param_name;
+
+  // Find the last slash to split node/param
+  size_t last_slash = path.rfind('/');
+  if (last_slash == std::string::npos) {
+    // No slash - invalid path for ch()
+    return std::nullopt;
+  }
+
+  param_name = path.substr(last_slash + 1);
+  std::string node_path = path.substr(0, last_slash);
+
+  // Handle absolute vs relative paths
+  if (!node_path.empty() && node_path[0] == '/') {
+    // Absolute path: "/NodeName"
+    node_name = node_path.substr(1); // Remove leading slash
+  } else {
+    // Relative path: "../NodeName" or "NodeName"
+    // Remove "../" prefix if present
+    if (node_path.size() >= 3 && node_path.substr(0, 3) == "../") {
+      node_name = node_path.substr(3);
+    } else {
+      node_name = node_path;
+    }
+  }
+
+  // Find the target node by name
+  const GraphNode *target_node = nullptr;
+  for (const auto &node : nodes_) {
+    if (node->get_name() == node_name) {
+      target_node = node.get();
+      break;
+    }
+  }
+
+  if (target_node == nullptr) {
+    // Node not found
+    return std::nullopt;
+  }
+
+  // Get the parameter from the target node
+  auto param_opt = target_node->get_parameter(param_name);
+  if (!param_opt.has_value()) {
+    // Parameter not found
+    return std::nullopt;
+  }
+
+  const NodeParameter &param = param_opt.value();
+
+  // Convert parameter value to string based on type
+  switch (param.type) {
+  case NodeParameter::Type::Float:
+    return std::to_string(param.float_value);
+
+  case NodeParameter::Type::Int:
+    return std::to_string(param.int_value);
+
+  case NodeParameter::Type::Bool:
+    return param.bool_value ? "1" : "0";
+
+  case NodeParameter::Type::String:
+  case NodeParameter::Type::Code:
+    return param.string_value;
+
+  case NodeParameter::Type::Vector3:
+    return std::to_string(param.vector3_value[0]) + "," +
+           std::to_string(param.vector3_value[1]) + "," +
+           std::to_string(param.vector3_value[2]);
+  }
+
+  return std::nullopt;
 }
 
 } // namespace nodo::graph

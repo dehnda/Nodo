@@ -66,6 +66,7 @@
 
         <!-- UI Elements -->
         <file alias="icons/iconoir/plus.svg">../external/iconoir/icons/regular/plus.svg</file>
+        <file alias="icons/iconoir/edit-pencil.svg">../external/iconoir/icons/regular/edit-pencil.svg</file>
         <file alias="icons/iconoir/minus.svg">../external/iconoir/icons/regular/minus.svg</file>
         <file alias="icons/iconoir/search.svg">../external/iconoir/icons/regular/search.svg</file>
         <file alias="icons/iconoir/info-circle.svg">../external/iconoir/icons/regular/info-circle.svg</file>

@@ -3,6 +3,7 @@
  */
 
 #include "GraphParametersPanel.h"
+#include "IconManager.h"
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QLabel>
@@ -45,24 +46,25 @@ void GraphParametersPanel::setup_ui() {
 
 void GraphParametersPanel::create_actions() {
   // Add parameter action
-  add_action_ =
-      new QAction(QIcon::fromTheme("list-add"), "Add Parameter", this);
+  add_action_ = new QAction(
+      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Add), "", this);
   add_action_->setToolTip("Add new graph parameter");
   connect(add_action_, &QAction::triggered, this,
           &GraphParametersPanel::on_add_parameter_clicked);
   toolbar_->addAction(add_action_);
 
   // Edit parameter action
-  edit_action_ =
-      new QAction(QIcon::fromTheme("document-edit"), "Edit Parameter", this);
+  edit_action_ = new QAction(
+      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Edit), "", this);
   edit_action_->setToolTip("Edit selected parameter");
   connect(edit_action_, &QAction::triggered, this,
           &GraphParametersPanel::on_edit_parameter_clicked);
   toolbar_->addAction(edit_action_);
 
   // Delete parameter action
-  delete_action_ =
-      new QAction(QIcon::fromTheme("list-remove"), "Delete Parameter", this);
+  delete_action_ = new QAction(
+      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Delete), "",
+      this);
   delete_action_->setToolTip("Delete selected parameter");
   connect(delete_action_, &QAction::triggered, this,
           &GraphParametersPanel::on_delete_parameter_clicked);

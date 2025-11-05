@@ -4,6 +4,7 @@
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <array>
 #include <functional>
@@ -64,6 +65,12 @@ public:
   void
   setValueChangedCallback(std::function<void(double, double, double)> callback);
 
+  // Expression mode support (M3.3 Phase 1)
+  void setExpressionMode(bool enabled);
+  bool isExpressionMode() const { return is_expression_mode_; }
+  QString getExpression() const { return expression_text_; }
+  void setExpression(const QString &expr);
+
 signals:
   void valueChangedSignal(double x, double y, double z);
 
@@ -73,6 +80,8 @@ protected:
 
 private slots:
   void onSpinBoxValueChanged(int component, double value);
+  void onExpressionEditingFinished();
+  void onModeToggleClicked();
 
 private:
   void updateComponent(int component, double value, bool emit_signal = true);
@@ -85,10 +94,21 @@ private:
   std::array<double, 3> min_values_{-1000.0, -1000.0, -1000.0};
   std::array<double, 3> max_values_{1000.0, 1000.0, 1000.0};
 
+  // UI components (numeric mode)
   std::array<QDoubleSpinBox *, 3> spinboxes_{nullptr, nullptr, nullptr};
   std::array<QLabel *, 3> component_labels_{nullptr, nullptr, nullptr};
   QPushButton *uniform_button_{nullptr};
   bool uniform_enabled_{false};
+
+  // UI components (expression mode)
+  QLineEdit *expression_edit_{nullptr};
+  QPushButton *mode_toggle_button_{nullptr};
+  QWidget *numeric_container_{nullptr};
+  QWidget *expression_container_{nullptr};
+
+  // Expression mode state
+  bool is_expression_mode_{false};
+  QString expression_text_;
 
   // Scrubbing state per component
   std::array<bool, 3> is_scrubbing_{false, false, false};

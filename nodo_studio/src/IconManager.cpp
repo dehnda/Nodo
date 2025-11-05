@@ -160,6 +160,8 @@ QString IconManager::getUnicodeFallback(Icon icon) const {
   // UI elements
   case Icon::Add:
     return "➕";
+  case Icon::Edit:
+    return "✏";
   case Icon::Remove:
     return "➖";
   case Icon::Search:
@@ -289,6 +291,8 @@ QString IconManager::getIconFileName(Icon icon) const {
   // UI elements
   case Icon::Add:
     return "plus";
+  case Icon::Edit:
+    return "edit-pencil";
   case Icon::Remove:
     return "minus";
   case Icon::Search:

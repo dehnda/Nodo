@@ -30,6 +30,7 @@ add_executable(nodo_tests
     test_graph_serialization.cpp
     test_polyextrude_edges.cpp
     test_host_interface.cpp
+    test_expression_evaluator.cpp
 )
 
 target_link_libraries(nodo_tests

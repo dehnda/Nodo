@@ -851,8 +851,8 @@ void PropertyPanel::connectParameterWidget(
 
   if (auto *float_widget =
           dynamic_cast<nodo_studio::widgets::FloatWidget *>(widget)) {
-    float_widget->setValueChangedCallback([this, node, graph,
-                                           param](double new_value) {
+    float_widget->setValueChangedCallback([this, node, graph, param,
+                                           float_widget](double new_value) {
       // Get old parameter value
       auto old_param_opt = node->get_parameter(param.name);
       if (!old_param_opt.has_value()) {
@@ -865,6 +865,16 @@ void PropertyPanel::connectParameterWidget(
           param.ui_range.float_min, param.ui_range.float_max, param.category);
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
+
+      // M3.3 Phase 2: Check if widget is in expression mode
+      if (float_widget->isExpressionMode()) {
+        // Store the expression string instead of evaluating it here
+        updated_param.set_expression(
+            float_widget->getExpression().toStdString());
+      } else {
+        // Literal mode - expression is cleared automatically in constructor
+        updated_param.clear_expression();
+      }
 
       // Push command to undo stack
       if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
@@ -882,50 +892,26 @@ void PropertyPanel::connectParameterWidget(
     });
   } else if (auto *int_widget =
                  dynamic_cast<nodo_studio::widgets::IntWidget *>(widget)) {
-    int_widget->setValueChangedCallback(
-        [this, node, graph, param](int new_value) {
-          // Get old parameter value
-          auto old_param_opt = node->get_parameter(param.name);
-          if (!old_param_opt.has_value()) {
-            return;
-          }
-
-          auto updated_param = NodeParameter(
-              param.name, new_value, param.label, param.ui_range.int_min,
-              param.ui_range.int_max, param.category);
-          updated_param.category_control_param = param.category_control_param;
-          updated_param.category_control_value = param.category_control_value;
-
-          // Push command to undo stack
-          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
-              graph != nullptr) {
-            auto cmd = nodo::studio::create_change_parameter_command(
-                node_graph_widget_, graph, node->get_id(), param.name,
-                old_param_opt.value(), updated_param);
-            undo_stack_->push(std::move(cmd));
-          } else {
-            node->set_parameter(param.name, updated_param);
-          }
-
-          emit parameterChanged();
-        });
-  } else if (auto *vec3_widget =
-                 dynamic_cast<nodo_studio::widgets::Vector3Widget *>(widget)) {
-    vec3_widget->setValueChangedCallback([this, node, graph,
-                                          param](double x, double y, double z) {
+    int_widget->setValueChangedCallback([this, node, graph, param,
+                                         int_widget](int new_value) {
       // Get old parameter value
       auto old_param_opt = node->get_parameter(param.name);
       if (!old_param_opt.has_value()) {
         return;
       }
 
-      std::array<float, 3> new_value = {
-          static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
       auto updated_param = NodeParameter(
-          param.name, new_value, param.label, param.ui_range.float_min,
-          param.ui_range.float_max, param.category);
+          param.name, new_value, param.label, param.ui_range.int_min,
+          param.ui_range.int_max, param.category);
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
+
+      // M3.3 Phase 2: Check if widget is in expression mode
+      if (int_widget->isExpressionMode()) {
+        updated_param.set_expression(int_widget->getExpression().toStdString());
+      } else {
+        updated_param.clear_expression();
+      }
 
       // Push command to undo stack
       if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
@@ -940,6 +926,46 @@ void PropertyPanel::connectParameterWidget(
 
       emit parameterChanged();
     });
+  } else if (auto *vec3_widget =
+                 dynamic_cast<nodo_studio::widgets::Vector3Widget *>(widget)) {
+    vec3_widget->setValueChangedCallback(
+        [this, node, graph, param, vec3_widget](double x, double y, double z) {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
+          std::array<float, 3> new_value = {static_cast<float>(x),
+                                            static_cast<float>(y),
+                                            static_cast<float>(z)};
+          auto updated_param = NodeParameter(
+              param.name, new_value, param.label, param.ui_range.float_min,
+              param.ui_range.float_max, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+
+          // M3.3 Phase 2: Check if widget is in expression mode
+          if (vec3_widget->isExpressionMode()) {
+            updated_param.set_expression(
+                vec3_widget->getExpression().toStdString());
+          } else {
+            updated_param.clear_expression();
+          }
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
+
+          emit parameterChanged();
+        });
   } else if (auto *mode_widget =
                  dynamic_cast<nodo_studio::widgets::ModeSelectorWidget *>(
                      widget)) {

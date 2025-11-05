@@ -304,6 +304,8 @@ auto MainWindow::setupDockWidgets() -> void {
   // Create dock widget for properties (FAR RIGHT)
   property_dock_ = new QDockWidget("Properties", this);
   property_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+  property_dock_->setTitleBarWidget(
+      new QWidget()); // Remove redundant title bar
 
   // Create property panel
   property_panel_ = new PropertyPanel(this);
@@ -329,6 +331,8 @@ auto MainWindow::setupDockWidgets() -> void {
   // Create dock widget for graph parameters (tabbed with properties)
   graph_parameters_dock_ = new QDockWidget("Graph Parameters", this);
   graph_parameters_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+  graph_parameters_dock_->setTitleBarWidget(
+      new QWidget()); // Remove redundant title bar
 
   // Create graph parameters panel
   graph_parameters_panel_ = new GraphParametersPanel(this);
@@ -338,6 +342,9 @@ auto MainWindow::setupDockWidgets() -> void {
   // Tab it with the property panel on the right
   addDockWidget(Qt::RightDockWidgetArea, graph_parameters_dock_);
   tabifyDockWidget(property_dock_, graph_parameters_dock_);
+
+  // Make Properties the default selected tab
+  property_dock_->raise();
 
   // Connect graph parameter changes to trigger re-execution
   connect(graph_parameters_panel_, &GraphParametersPanel::parameters_changed,

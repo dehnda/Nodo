@@ -73,6 +73,7 @@ public:
 
     // UI elements
     Add,
+    Edit,
     Remove,
     Search,
     Settings,

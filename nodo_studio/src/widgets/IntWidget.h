@@ -2,7 +2,9 @@
 
 #include "BaseParameterWidget.h"
 #include <QHBoxLayout>
+#include <QLineEdit>
 #include <QMouseEvent>
+#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 
@@ -44,6 +46,12 @@ public:
   // Set value change callback
   void setValueChangedCallback(std::function<void(int)> callback);
 
+  // Expression mode support (M3.3 Phase 1)
+  void setExpressionMode(bool enabled);
+  bool isExpressionMode() const { return is_expression_mode_; }
+  QString getExpression() const { return expression_text_; }
+  void setExpression(const QString &expr);
+
 signals:
   void valueChangedSignal(int value);
 
@@ -53,6 +61,8 @@ protected:
 private slots:
   void onSpinBoxValueChanged(int value);
   void onSliderValueChanged(int value);
+  void onExpressionEditingFinished();
+  void onModeToggleClicked();
 
 private:
   // Value range
@@ -60,9 +70,19 @@ private:
   int max_;
   int current_value_;
 
-  // UI components
+  // UI components (numeric mode)
   QSpinBox *spinbox_;
   QSlider *slider_;
+
+  // UI components (expression mode)
+  QLineEdit *expression_edit_;
+  QPushButton *mode_toggle_button_;
+  QWidget *numeric_container_;
+  QWidget *expression_container_;
+
+  // Expression mode state
+  bool is_expression_mode_ = false;
+  QString expression_text_;
 
   // Value scrubbing
   bool is_scrubbing_ = false;

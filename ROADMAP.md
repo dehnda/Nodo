@@ -271,43 +271,149 @@ Implementation completed:
 
 **Deliverable:** Smooth performance on typical artist workloads
 
-#### **M3.2: Graph Parameters System** (Weeks 4-5) 🎯 HIGH PRIORITY
-**Purpose:** Enable per-graph parameters that can be referenced in node parameters (like Houdini)
+#### **M3.2: Graph Parameters System** (Weeks 4-5) ✅ COMPLETE
+**Purpose:** Enable per-graph parameters that can be referenced in node parameters
 
-Implementation tasks:
-- [ ] **Backend: Graph-level parameter storage**
-  - [ ] Add parameter map to NodeGraph class
-  - [ ] Support all parameter types (int, float, string, vector3, etc.)
-  - [ ] Parameter evaluation/resolution system
-- [ ] **Expression/Reference System**
-  - [ ] Add `$parameter_name` or `@parameter_name` syntax for referencing
-  - [ ] Parse parameter references in node parameters
-  - [ ] Resolve references at evaluation time
-  - [ ] Handle circular dependency detection
-- [ ] **UI: Graph Parameters Panel**
-  - [ ] New panel for managing graph-level parameters
-  - [ ] Add/edit/delete graph parameters
-  - [ ] Set default values and ranges
-  - [ ] Parameter descriptions/tooltips
-- [ ] **Node Parameter Integration**
-  - [ ] Text fields support parameter expressions
-  - [ ] Auto-complete suggestions for available graph parameters
-  - [ ] Visual indicator when parameter contains reference
-  - [ ] Quick "Promote to Graph Parameter" button
-- [ ] **Serialization**
-  - [ ] Save graph parameters in .nfg file format
-  - [ ] Version handling for parameter changes
-  - [ ] Migration support
+**Deliverable:** Basic graph parameter system with string/code expression support ✅ COMPLETE
+
+Implementation completed:
+- ✅ **Backend: Graph-level parameter storage**
+  - ✅ GraphParameter class with Int, Float, String, Bool, Vector3 types
+  - ✅ NodeGraph parameter storage with add/remove/get methods
+  - ✅ ParameterExpressionResolver for `$param` syntax
+  - ✅ Forward-compatible parameter name validation (rejects dots for future subgraph scoping)
+- ✅ **Expression/Reference System**
+  - ✅ Support `$parameter_name`, `@parameter_name`, `${parameter_name}` syntax
+  - ✅ ExecutionEngine resolves expressions at execution time
+  - ✅ Type-safe resolution with automatic type conversion
+  - ✅ Works in String and Code parameter types (Wrangle VEX expressions)
+- ✅ **UI: Graph Parameters Panel**
+  - ✅ GraphParametersPanel as dockable widget (tabbed with Properties)
+  - ✅ Add/edit/delete graph parameters via toolbar actions
+  - ✅ Parameter list with formatted display: "name (type) = value"
+  - ✅ View menu toggle for panel visibility
+  - ✅ Triggers re-execution on parameter changes
+- ✅ **Serialization**
+  - ✅ Save/load graph parameters in .nfg JSON format
+  - ✅ Preserves parameter name, type, description, value
+  - ✅ Backward compatible with existing graphs
+- ✅ **Bug Fixes**
+  - ✅ Fixed Wrangle node UI freeze (debounced text updates - 500ms delay)
+  - ✅ Fixed node creation menu not closing properly
+
+**Current Limitations** (deferred to M3.3):
+- Numeric widgets (Float, Int, Vector3) don't support expression mode yet
+- No parameter-to-parameter references (`ch()` function, relative paths)
+- No mathematical expression evaluation (`$radius * 2`)
+- No visual indicators showing which fields contain expressions
+- No auto-complete for parameter names
+- No expression validation/error reporting
+
+**See:** `docs/M3.3_EXPRESSION_SYSTEM_PLAN.md` for complete expression system implementation plan
 
 **Use Cases:**
-- Global seed value: `$global_seed` referenced in all Scatter/Noise nodes
-- Animation time: `$frame` or `$time` for animated procedurals
-- Project scale: `$unit_scale` to uniformly scale all dimensions
-- Design iteration: `$complexity` to control subdivision levels across graph
+- Global seed value: `$global_seed` referenced in all Scatter/Noise nodes (works in Code/String fields)
+- Export filename: `"output_$iteration.obj"` for iterative exports (works now)
+- Design iteration: `$complexity` in Wrangle VEX code (works now)
 
-**Deliverable:** Working graph parameter system with UI and expression support
+**Deliverable:** Working graph parameter system with UI and basic expression support in string/code fields ✅
 
-#### **M3.3: User Experience Polish** (Weeks 6-7)
+---
+
+#### **M3.3: Full Expression System** (9-11 days) 🎯 NEXT PRIORITY
+**Purpose:** Complete expression system with numeric parameter support, math evaluation, and parameter-to-parameter references (Houdini-style)
+
+**Motivation:** M3.2 provides graph parameters but only string/code fields support expressions. Numeric widgets (Float, Int, Vector3) use spinboxes and cannot accept expressions. Artists need to use expressions in all parameter types and reference other node parameters.
+
+**Implementation (7 Phases):**
+
+**Phase 1: Numeric Expression Mode** (1-2 days)
+- [ ] Add dual-mode toggle to FloatWidget, IntWidget, Vector3Widget
+- [ ] Toggle button [≡]↔[#] switches between text input and numeric spinbox
+- [ ] Text mode: QLineEdit for expression entry
+- [ ] Numeric mode: existing QDoubleSpinBox/QSpinBox
+- [ ] Store mode state per parameter instance
+- [ ] Auto-switch to text mode when expression detected
+- [ ] getValue() returns expression string or numeric value
+
+**Phase 2: Math Expression Evaluator** (2-3 days)
+- [ ] Create ExpressionEvaluator class using exprtk library (already in dependencies)
+- [ ] Support: arithmetic (+,-,*,/,%), functions (sin,cos,sqrt,abs,etc), constants (pi,e)
+- [ ] Parse and evaluate expressions like: `$base_radius * 2 + 0.5`
+- [ ] Integrate with ParameterExpressionResolver (resolve $params first, then eval math)
+- [ ] Type-safe evaluation: float expressions for float params, int for int params
+- [ ] Error handling: catch parse errors, division by zero, undefined variables
+
+**Phase 3: Parameter-to-Parameter References** (2-3 days)
+- [ ] Support `ch("path/to/parameter")` function (Houdini-style)
+- [ ] Support relative paths: `../node_name/param_name`, `../../param_name`
+- [ ] Add NodeGraph::resolveParameterPath() to traverse node hierarchy
+- [ ] Handle missing nodes/parameters gracefully (return default value + warning)
+- [ ] Update ExecutionEngine::transfer_parameters() to resolve ch() expressions
+- [ ] Support copying relative parameter paths (right-click → Copy Parameter Reference)
+- [ ] Cycle detection to prevent infinite loops
+
+**Phase 4: Visual Indicators** (1 day)
+- [ ] Icon/color coding for expression-enabled parameters
+- [ ] Tooltip shows resolved value: "expr: $radius * 2 → 4.5"
+- [ ] Highlighting for invalid expressions (red border)
+- [ ] Status bar message when expression updates value
+
+**Phase 5: Auto-complete** (1-2 days)
+- [ ] ExpressionCompleter class for QLineEdit in expression mode
+- [ ] Trigger on: `$` (graph params), `../` (node path), `ch(` (param ref)
+- [ ] Popup menu with available parameters, functions, constants
+- [ ] Filter list as user types
+- [ ] Insert selection at cursor position
+
+**Phase 6: Validation** (1 day)
+- [ ] ExpressionValidator class checks syntax before evaluation
+- [ ] Real-time validation in QLineEdit (red text on error)
+- [ ] Error tooltips: "Unknown parameter: $missing_param"
+- [ ] Detect circular references: A→B→C→A
+- [ ] Warning indicators for unresolved references
+
+**Phase 7: Testing & Documentation** (1 day)
+- [ ] Unit tests for ExpressionEvaluator, parameter path resolution, cycle detection
+- [ ] Example graphs: math expressions, parameter references, complex hierarchies
+- [ ] User documentation: expression syntax, available functions, examples
+- [ ] Migration guide for existing graphs (automatic, backward compatible)
+
+**Examples:**
+```
+Float parameter: $base_radius * 2                    // Graph param with math
+Int parameter:   ($subdivisions + 1) * 2            // Math on graph param
+Vector3:         ($offset_x, $offset_y * sin($time), 0)  // Per-component
+Parameter ref:   ch("../Sphere/radius")             // Reference other node
+Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + graph param
+```
+
+**Technical Architecture:**
+- `ExpressionEvaluator` - wraps exprtk, evaluates math expressions
+- `ExpressionValidator` - syntax checking, reference validation
+- `ExpressionCompleter` - QCompleter subclass for auto-complete
+- `ParameterPathResolver` - resolves relative node/param paths
+- Enhanced `ParameterExpressionResolver` - orchestrates all resolvers
+
+**Success Criteria:**
+- All numeric widgets support expression mode toggle
+- Mathematical expressions evaluate correctly in all parameter types
+- Parameter-to-parameter references work with relative paths
+- Auto-complete suggests parameters, functions, constants
+- Invalid expressions show clear error messages
+- No circular reference crashes
+
+**Comparison to Other Tools:**
+- **Houdini:** ch() function, relative paths, full expression language → **Match this**
+- **Blender:** Python expressions in any field, driver system → **Similar capability**
+- **Grasshopper:** Expression editor component, parameter references → **Similar UX**
+
+**Time Estimate:** 9-11 days total
+**Deliverable:** Professional-grade expression system matching Houdini capabilities
+
+---
+
+#### **M3.4: User Experience Polish** (Weeks 6-7)
 - [ ] **Viewport toolbar improvements**
   - [ ] Move viewport display toggles to toolbar (show vertices, edges, normals face/vertex)
   - [ ] Remove viewport options from app menu (redundant)
@@ -329,7 +435,7 @@ Implementation tasks:
 
 **Deliverable:** Intuitive, artist-friendly application
 
-#### **M3.4: Beta Testing** (Weeks 8-10)
+#### **M3.5: Beta Testing** (Weeks 8-10)
 - [ ] Recruit 10-20 beta testers (artists, technical artists)
 - [ ] Collect feedback via surveys and interviews
 - [ ] Bug fixing and stability improvements
