@@ -1,0 +1,58 @@
+{
+  "connections": [],
+  "graph_parameters": [],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "box",
+      "parameters": [
+        {
+          "name": "group",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "name": "primitive_type",
+          "type": "int",
+          "value": 0
+        },
+        {
+          "name": "width",
+          "type": "float",
+          "value": 2.0
+        },
+        {
+          "name": "height",
+          "type": "float",
+          "value": 2.0
+        },
+        {
+          "name": "depth",
+          "type": "float",
+          "value": 2.0
+        },
+        {
+          "name": "width_segments",
+          "type": "int",
+          "value": 1
+        },
+        {
+          "name": "height_segments",
+          "type": "int",
+          "value": 1
+        },
+        {
+          "name": "depth_segments",
+          "type": "int",
+          "value": 1
+        }
+      ],
+      "position": [
+        -142.0,
+        -190.0
+      ],
+      "type": "Box"
+    }
+  ],
+  "version": "1.0"
+}

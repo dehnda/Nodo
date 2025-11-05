@@ -29,6 +29,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPixmap>
+#include <QSettings>
 #include <QStatusBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -78,6 +79,19 @@ auto MainWindow::setupMenuBar() -> void {
   QAction *newAction = fileMenu->addAction("&New Scene");
   QAction *openAction = fileMenu->addAction("&Open Scene");
   QAction *saveAction = fileMenu->addAction("&Save Scene");
+  fileMenu->addSeparator(); // Visual separator line
+
+  // Add Recent Projects submenu
+  recent_projects_menu_ = fileMenu->addMenu("Recent Projects");
+  for (int i = 0; i < MaxRecentFiles; ++i) {
+    QAction *action = new QAction(this);
+    action->setVisible(false);
+    connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
+    recent_file_actions_.append(action);
+    recent_projects_menu_->addAction(action);
+  }
+  updateRecentFileActions();
+
   fileMenu->addSeparator(); // Visual separator line
   QAction *exportAction = fileMenu->addAction("&Export Mesh...");
   fileMenu->addSeparator(); // Visual separator line
@@ -514,6 +528,9 @@ void MainWindow::onOpenScene() {
     // Clear viewport
     viewport_widget_->clearMesh();
     property_panel_->clearProperties();
+
+    // Add to recent files
+    addToRecentFiles(file_path);
 
     statusBar()->showMessage("Graph loaded successfully", 3000);
   } else {
@@ -1019,6 +1036,107 @@ void MainWindow::updateUndoRedoActions() {
       redo_action_->setText(QString("Redo %1").arg(undo_stack_->redo_text()));
     } else {
       redo_action_->setText("Redo");
+    }
+  }
+}
+
+// ============================================================================
+// Recent Files Management
+// ============================================================================
+
+QStringList MainWindow::getRecentFiles() const {
+  QSettings settings("Nodo", "NodoStudio");
+  return settings.value("recentFiles").toStringList();
+}
+
+void MainWindow::setRecentFiles(const QStringList &files) {
+  QSettings settings("Nodo", "NodoStudio");
+  settings.setValue("recentFiles", files);
+}
+
+void MainWindow::addToRecentFiles(const QString &filename) {
+  QStringList files = getRecentFiles();
+  files.removeAll(filename); // Remove if already exists
+  files.prepend(filename);   // Add to front
+  while (files.size() > MaxRecentFiles) {
+    files.removeLast();
+  }
+  setRecentFiles(files);
+  updateRecentFileActions();
+}
+
+void MainWindow::updateRecentFileActions() {
+  QStringList files = getRecentFiles();
+
+  int num_recent_files = qMin(files.size(), MaxRecentFiles);
+
+  for (int i = 0; i < num_recent_files; ++i) {
+    QString filename = files[i];
+    QFileInfo file_info(filename);
+
+    // Set text to just the filename
+    QString text = QString("&%1 %2").arg(i + 1).arg(file_info.fileName());
+    recent_file_actions_[i]->setText(text);
+    recent_file_actions_[i]->setData(filename);
+    recent_file_actions_[i]->setToolTip(filename); // Full path in tooltip
+    recent_file_actions_[i]->setVisible(true);
+  }
+
+  // Hide unused actions
+  for (int i = num_recent_files; i < MaxRecentFiles; ++i) {
+    recent_file_actions_[i]->setVisible(false);
+  }
+
+  // Enable/disable the menu based on whether there are recent files
+  recent_projects_menu_->setEnabled(num_recent_files > 0);
+}
+
+void MainWindow::openRecentFile() {
+  QAction *action = qobject_cast<QAction *>(sender());
+  if (action) {
+    QString filename = action->data().toString();
+
+    // Check if file still exists
+    if (!QFile::exists(filename)) {
+      QMessageBox::warning(
+          this, "File Not Found",
+          QString("The file '%1' no longer exists.").arg(filename));
+      // Remove from recent files
+      QStringList files = getRecentFiles();
+      files.removeAll(filename);
+      setRecentFiles(files);
+      updateRecentFileActions();
+      return;
+    }
+
+    // Load the graph
+    auto loaded_graph =
+        nodo::graph::GraphSerializer::load_from_file(filename.toStdString());
+
+    if (loaded_graph.has_value()) {
+      // Replace current graph with loaded graph
+      node_graph_ = std::make_unique<nodo::graph::NodeGraph>(
+          std::move(loaded_graph.value()));
+
+      // Reconnect the node graph widget to the new graph
+      node_graph_widget_->set_graph(node_graph_.get());
+
+      // Reconnect and refresh graph parameters panel
+      graph_parameters_panel_->set_graph(node_graph_.get());
+      graph_parameters_panel_->refresh();
+
+      // Clear viewport
+      viewport_widget_->clearMesh();
+      property_panel_->clearProperties();
+
+      // Add to recent files
+      addToRecentFiles(filename);
+
+      statusBar()->showMessage("Graph loaded successfully", 3000);
+    } else {
+      QMessageBox::warning(this, "Load Error",
+                           "Failed to load the graph file.");
+      statusBar()->showMessage("Failed to load graph", 3000);
     }
   }
 }

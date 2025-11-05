@@ -42,6 +42,11 @@ private:
   void setupDockWidgets();
   void setupStatusBar();
   void setupUndoRedo();
+  void setupRecentFilesMenu();
+
+  // Recent files helpers
+  QStringList getRecentFiles() const;
+  void setRecentFiles(const QStringList &files);
 
   // Execution helper
   void executeAndDisplayNode(int node_id);
@@ -78,6 +83,11 @@ private:
   QAction *undo_action_;
   QAction *redo_action_;
 
+  // Recent projects menu
+  QMenu *recent_projects_menu_;
+  QList<QAction *> recent_file_actions_;
+  static constexpr int MaxRecentFiles = 10;
+
 private slots:
   // File menu actions
   void onNewScene();
@@ -111,4 +121,9 @@ private slots:
 
   // Property panel callback
   void onParameterChanged();
+
+  // Recent files
+  void openRecentFile();
+  void updateRecentFileActions();
+  void addToRecentFiles(const QString &filename);
 };
