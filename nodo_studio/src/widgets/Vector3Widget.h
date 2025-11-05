@@ -11,6 +11,7 @@
 
 namespace nodo_studio {
 namespace widgets {
+class ExpressionCompleter; // Forward declaration
 
 /**
  * @brief Widget for editing 3D vector parameters (X, Y, Z)
@@ -109,6 +110,7 @@ private:
   QPushButton *mode_toggle_button_{nullptr};
   QWidget *numeric_container_{nullptr};
   QWidget *expression_container_{nullptr};
+  ExpressionCompleter *expression_completer_{nullptr}; // M3.3 Phase 5
 
   // Expression mode state
   bool is_expression_mode_{false};

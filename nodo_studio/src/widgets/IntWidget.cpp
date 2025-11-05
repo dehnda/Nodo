@@ -1,4 +1,5 @@
 #include "IntWidget.h"
+#include "ExpressionCompleter.h"
 #include <QApplication>
 #include <QCursor>
 #include <QRegularExpression>
@@ -117,6 +118,9 @@ QWidget *IntWidget::createControlWidget() {
           .arg(COLOR_TEXT_PRIMARY)
           .arg(COLOR_ACCENT)
           .arg(COLOR_PANEL));
+
+  // M3.3 Phase 5: Create auto-completer for expressions
+  expression_completer_ = new ExpressionCompleter(expression_edit_, this);
 
   connect(expression_edit_, &QLineEdit::editingFinished, this,
           &IntWidget::onExpressionEditingFinished);
@@ -338,6 +342,9 @@ void IntWidget::setExpressionMode(bool enabled) {
       expression_edit_->setText(QString::number(current_value_));
     }
 
+    // M3.3 Phase 5: Enable auto-completer
+    expression_completer_->setEnabled(true);
+
     // Disable value scrubbing in expression mode
     label_widget_->setCursor(Qt::ArrowCursor);
   } else {
@@ -346,6 +353,9 @@ void IntWidget::setExpressionMode(bool enabled) {
     numeric_container_->show();
     mode_toggle_button_->setText("≡");
     mode_toggle_button_->setToolTip("Switch to expression mode");
+
+    // M3.3 Phase 5: Disable auto-completer
+    expression_completer_->setEnabled(false);
 
     // Re-enable value scrubbing
     label_widget_->setCursor(Qt::SizeHorCursor);

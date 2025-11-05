@@ -10,6 +10,12 @@
 
 namespace nodo_studio {
 namespace widgets {
+class ExpressionCompleter; // Forward declaration
+}
+} // namespace nodo_studio
+
+namespace nodo_studio {
+namespace widgets {
 
 /**
  * @brief Float parameter widget with value scrubbing support
@@ -84,6 +90,7 @@ private:
   QPushButton *mode_toggle_button_;
   QWidget *numeric_container_;
   QWidget *expression_container_;
+  ExpressionCompleter *expression_completer_; // M3.3 Phase 5
 
   // Expression mode state
   bool is_expression_mode_ = false;

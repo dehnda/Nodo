@@ -1,4 +1,5 @@
 #include "Vector3Widget.h"
+#include "ExpressionCompleter.h"
 #include <QApplication>
 #include <QCursor>
 #include <QMouseEvent>
@@ -154,6 +155,9 @@ QWidget *Vector3Widget::createControlWidget() {
           .arg(COLOR_TEXT_PRIMARY)
           .arg(COLOR_ACCENT)
           .arg(COLOR_PANEL));
+
+  // M3.3 Phase 5: Create auto-completer for expressions
+  expression_completer_ = new ExpressionCompleter(expression_edit_, this);
 
   connect(expression_edit_, &QLineEdit::editingFinished, this,
           &Vector3Widget::onExpressionEditingFinished);
@@ -394,6 +398,9 @@ void Vector3Widget::setExpressionMode(bool enabled) {
                                     .arg(values_[2], 0, 'g', 6));
     }
 
+    // M3.3 Phase 5: Enable auto-completer
+    expression_completer_->setEnabled(true);
+
     // Disable value scrubbing in expression mode
     for (int i = 0; i < 3; ++i) {
       component_labels_[i]->setCursor(Qt::ArrowCursor);
@@ -404,6 +411,9 @@ void Vector3Widget::setExpressionMode(bool enabled) {
     numeric_container_->show();
     mode_toggle_button_->setText("≡");
     mode_toggle_button_->setToolTip("Switch to expression mode");
+
+    // M3.3 Phase 5: Disable auto-completer
+    expression_completer_->setEnabled(false);
 
     // Re-enable value scrubbing
     for (int i = 0; i < 3; ++i) {
