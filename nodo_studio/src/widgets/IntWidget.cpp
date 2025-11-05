@@ -1,8 +1,10 @@
 #include "IntWidget.h"
 #include "ExpressionCompleter.h"
+#include "ExpressionValidator.h"
 #include <QApplication>
 #include <QCursor>
 #include <QRegularExpression>
+#include <QTimer>
 #include <algorithm>
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/graph/parameter_expression_resolver.hpp>
@@ -121,6 +123,18 @@ QWidget *IntWidget::createControlWidget() {
 
   // M3.3 Phase 5: Create auto-completer for expressions
   expression_completer_ = new ExpressionCompleter(expression_edit_, this);
+
+  // M3.3 Phase 6: Create debounced validation timer
+  validation_timer_ = new QTimer(this);
+  validation_timer_->setSingleShot(true);
+  validation_timer_->setInterval(500); // 500ms debounce
+  connect(validation_timer_, &QTimer::timeout, this,
+          &IntWidget::onValidationTimerTimeout);
+
+  // Connect text changed to restart validation timer
+  connect(expression_edit_, &QLineEdit::textChanged, this, [this]() {
+    validation_timer_->start(); // Restart timer on each keystroke
+  });
 
   connect(expression_edit_, &QLineEdit::editingFinished, this,
           &IntWidget::onExpressionEditingFinished);
@@ -372,31 +386,32 @@ void IntWidget::setExpression(const QString &expr) {
 void IntWidget::onExpressionEditingFinished() {
   expression_text_ = expression_edit_->text();
 
-  // M3.3 Phase 4: Validate expression when user finishes editing
+  // M3.3 Phase 6: Validate expression using ExpressionValidator
   if (!expression_text_.isEmpty()) {
-    // Check if expression contains parameter references or ch() functions
-    bool has_references =
-        expression_text_.contains('$') || expression_text_.contains("ch(");
+    Nodo::ExpressionValidator validator;
+    auto result = validator.validate(expression_text_);
 
-    if (has_references) {
-      // Expression has references - show as valid (blue) even if we can't
-      // resolve yet Actual resolution will happen during node execution
+    if (result.is_valid) {
+      // Try to evaluate if it's pure math (no references)
+      bool has_references =
+          expression_text_.contains('$') || expression_text_.contains("ch(");
+
+      if (!has_references) {
+        // Pure math - try to get the value
+        nodo::graph::NodeGraph empty_graph;
+        nodo::graph::ParameterExpressionResolver resolver(empty_graph);
+        auto eval_result =
+            resolver.resolve_float(expression_text_.toStdString());
+        if (eval_result.has_value()) {
+          current_value_ = static_cast<int>(eval_result.value());
+        }
+      }
+
       updateExpressionVisuals();
     } else {
-      // No references - try to evaluate as pure math expression
-      nodo::graph::NodeGraph empty_graph;
-      nodo::graph::ParameterExpressionResolver resolver(empty_graph);
-      auto result = resolver.resolve_float(expression_text_.toStdString());
-
-      if (result.has_value()) {
-        // Valid math expression - update with resolved value
-        current_value_ = static_cast<int>(result.value());
-        updateExpressionVisuals();
-      } else {
-        // Invalid math expression - show error
-        setExpressionError("Invalid expression");
-        return; // Don't emit value changed for invalid expressions
-      }
+      // Invalid expression - show detailed error
+      setExpressionError(result.error_message);
+      return; // Don't emit value changed for invalid expressions
     }
   } else {
     updateExpressionVisuals();
@@ -505,6 +520,25 @@ void IntWidget::setExpressionError(const QString &error) {
   expression_edit_->setToolTip(
       QString("<span style='color: #e74c3c;'><b>Error:</b> %1</span>")
           .arg(error));
+}
+
+// M3.3 Phase 6: Real-time validation (debounced)
+void IntWidget::onValidationTimerTimeout() {
+  if (!is_expression_mode_ || expression_edit_->text().isEmpty()) {
+    return;
+  }
+
+  QString current_text = expression_edit_->text();
+  Nodo::ExpressionValidator validator;
+  auto result = validator.validate(current_text);
+
+  if (result.is_valid) {
+    // Valid - show blue border
+    updateExpressionVisuals();
+  } else {
+    // Invalid - show red border with error message
+    setExpressionError(result.error_message);
+  }
 }
 
 } // namespace widgets

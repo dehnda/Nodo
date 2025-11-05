@@ -40,6 +40,7 @@ set(STUDIO_SOURCES
     src/widgets/IntWidget.cpp
     src/widgets/Vector3Widget.cpp
     src/widgets/ExpressionCompleter.cpp
+    src/widgets/ExpressionValidator.cpp
     src/widgets/ModeSelectorWidget.cpp
     src/widgets/CheckboxWidget.cpp
     src/widgets/DropdownWidget.cpp

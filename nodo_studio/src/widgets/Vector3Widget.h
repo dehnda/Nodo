@@ -87,6 +87,7 @@ private slots:
   void onSpinBoxValueChanged(int component, double value);
   void onExpressionEditingFinished();
   void onModeToggleClicked();
+  void onValidationTimerTimeout(); // M3.3 Phase 6: Real-time validation
 
 private:
   void updateComponent(int component, double value, bool emit_signal = true);
@@ -111,6 +112,7 @@ private:
   QWidget *numeric_container_{nullptr};
   QWidget *expression_container_{nullptr};
   ExpressionCompleter *expression_completer_{nullptr}; // M3.3 Phase 5
+  QTimer *validation_timer_{nullptr}; // M3.3 Phase 6: Debounced validation
 
   // Expression mode state
   bool is_expression_mode_{false};
