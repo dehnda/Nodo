@@ -59,6 +59,8 @@ public:
   void setShowEdges(bool show);
   void setShowVertices(bool show);
   void setShowPointNumbers(bool show);
+  void setShowGrid(bool show);
+  void setShowAxes(bool show);
 
 signals:
   void gpuInfoDetected(const QString &gpu_info);

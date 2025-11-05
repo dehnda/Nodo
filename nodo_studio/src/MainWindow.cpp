@@ -6,6 +6,7 @@
 #include "PropertyPanel.h"
 #include "StatusBarWidget.h"
 #include "UndoStack.h"
+#include "ViewportToolbar.h"
 #include "ViewportWidget.h"
 
 #include <nodo/core/geometry_container.hpp>
@@ -30,6 +31,8 @@
 #include <QPixmap>
 #include <QStatusBar>
 #include <QToolButton>
+#include <QVBoxLayout>
+#include <QWidget>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
@@ -228,20 +231,61 @@ auto MainWindow::setupDockWidgets() -> void {
   // We'll make it a dock widget so we can control its size
   viewport_dock_ = new QDockWidget("Viewport", this);
   viewport_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-  viewport_widget_ = new ViewportWidget(this);
-  viewport_dock_->setWidget(viewport_widget_);
+
+  // Create container widget for toolbar + viewport
+  QWidget *viewport_container = new QWidget(this);
+  QVBoxLayout *viewport_layout = new QVBoxLayout(viewport_container);
+  viewport_layout->setContentsMargins(0, 0, 0, 0);
+  viewport_layout->setSpacing(0);
+
+  // Create and add toolbar
+  viewport_toolbar_ = new ViewportToolbar(viewport_container);
+  viewport_layout->addWidget(viewport_toolbar_);
+
+  // Create and add viewport widget
+  viewport_widget_ = new ViewportWidget(viewport_container);
+  viewport_layout->addWidget(viewport_widget_);
+
+  viewport_dock_->setWidget(viewport_container);
   addDockWidget(Qt::LeftDockWidgetArea, viewport_dock_);
 
-  // Now connect viewport visualization actions (after viewport widget is
-  // created)
-  connect(edges_action_, &QAction::toggled, viewport_widget_,
+  // Connect toolbar signals to viewport slots
+  connect(viewport_toolbar_, &ViewportToolbar::edgesToggled, viewport_widget_,
           &ViewportWidget::setShowEdges);
-  connect(vertices_action_, &QAction::toggled, viewport_widget_,
-          &ViewportWidget::setShowVertices);
-  connect(vertex_normals_action_, &QAction::toggled, viewport_widget_,
-          &ViewportWidget::setShowVertexNormals);
-  connect(face_normals_action_, &QAction::toggled, viewport_widget_,
-          &ViewportWidget::setShowFaceNormals);
+  connect(viewport_toolbar_, &ViewportToolbar::verticesToggled,
+          viewport_widget_, &ViewportWidget::setShowVertices);
+  connect(viewport_toolbar_, &ViewportToolbar::vertexNormalsToggled,
+          viewport_widget_, &ViewportWidget::setShowVertexNormals);
+  connect(viewport_toolbar_, &ViewportToolbar::faceNormalsToggled,
+          viewport_widget_, &ViewportWidget::setShowFaceNormals);
+  connect(viewport_toolbar_, &ViewportToolbar::gridToggled, viewport_widget_,
+          &ViewportWidget::setShowGrid);
+  connect(viewport_toolbar_, &ViewportToolbar::axesToggled, viewport_widget_,
+          &ViewportWidget::setShowAxes);
+
+  // Connect viewport control signals (from old ViewportControlsOverlay)
+  connect(viewport_toolbar_, &ViewportToolbar::wireframeToggled,
+          viewport_widget_, &ViewportWidget::setWireframeMode);
+  connect(viewport_toolbar_, &ViewportToolbar::shadingModeChanged,
+          viewport_widget_, [this](const QString &mode) {
+            viewport_widget_->setShadingEnabled(mode == "smooth");
+          });
+  connect(viewport_toolbar_, &ViewportToolbar::pointNumbersToggled,
+          viewport_widget_, &ViewportWidget::setShowPointNumbers);
+  connect(viewport_toolbar_, &ViewportToolbar::cameraReset, viewport_widget_,
+          &ViewportWidget::resetCamera);
+  connect(viewport_toolbar_, &ViewportToolbar::cameraFitToView,
+          viewport_widget_, &ViewportWidget::fitToView);
+
+  // Also connect menu actions to toolbar (keep menu actions synced)
+  connect(edges_action_, &QAction::toggled, viewport_toolbar_,
+          &ViewportToolbar::setEdgesEnabled);
+  connect(vertices_action_, &QAction::toggled, viewport_toolbar_,
+          &ViewportToolbar::setVerticesEnabled);
+  connect(vertex_normals_action_, &QAction::toggled, viewport_toolbar_,
+          &ViewportToolbar::setVertexNormalsEnabled);
+  connect(face_normals_action_, &QAction::toggled, viewport_toolbar_,
+          &ViewportToolbar::setFaceNormalsEnabled);
 
   // Create custom status bar widget
   status_bar_widget_ = new StatusBarWidget(this);

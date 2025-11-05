@@ -6,6 +6,7 @@
 
 // Forward declarations
 class ViewportWidget;
+class ViewportToolbar;
 class PropertyPanel;
 class NodeGraphWidget;
 class StatusBarWidget;
@@ -48,6 +49,7 @@ private:
 
   // UI components (these will be pointers to our widgets)
   ViewportWidget *viewport_widget_;
+  ViewportToolbar *viewport_toolbar_;
   PropertyPanel *property_panel_;
   NodeGraphWidget *node_graph_widget_;
   StatusBarWidget *status_bar_widget_;

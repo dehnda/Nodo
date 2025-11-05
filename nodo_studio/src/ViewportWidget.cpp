@@ -2078,6 +2078,16 @@ void ViewportWidget::setShowPointNumbers(bool show) {
   update();
 }
 
+void ViewportWidget::setShowGrid(bool show) {
+  show_grid_ = show;
+  update();
+}
+
+void ViewportWidget::setShowAxes(bool show) {
+  show_axes_ = show;
+  update();
+}
+
 // ============================================================================
 // Overlay Management
 // ============================================================================
@@ -2087,21 +2097,12 @@ void ViewportWidget::setupOverlays() {
   stats_overlay_ = new ViewportStatsOverlay(this);
   stats_overlay_->raise();
 
-  // Create controls overlay (top-right)
+  // Create controls overlay (top-right) - HIDDEN, controls moved to
+  // ViewportToolbar
   controls_overlay_ = new ViewportControlsOverlay(this);
-  controls_overlay_->raise();
+  controls_overlay_->hide(); // Hide since controls are now in the toolbar
 
-  // Connect controls signals
-  connect(controls_overlay_, &ViewportControlsOverlay::wireframeToggled, this,
-          &ViewportWidget::setWireframeMode);
-  connect(controls_overlay_, &ViewportControlsOverlay::shadingModeChanged, this,
-          [this](const QString &mode) { setShadingEnabled(mode == "smooth"); });
-  connect(controls_overlay_, &ViewportControlsOverlay::pointNumbersToggled,
-          this, &ViewportWidget::setShowPointNumbers);
-  connect(controls_overlay_, &ViewportControlsOverlay::cameraReset, this,
-          &ViewportWidget::resetCamera);
-  connect(controls_overlay_, &ViewportControlsOverlay::cameraFitToView, this,
-          &ViewportWidget::fitToView);
+  // Note: Connections are now made in MainWindow to the ViewportToolbar instead
 
   // Create axis gizmo (bottom-left)
   axis_gizmo_ = new ViewportAxisGizmo(this);
