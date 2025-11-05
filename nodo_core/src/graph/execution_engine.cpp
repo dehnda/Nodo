@@ -8,6 +8,7 @@
 #include "nodo/geometry/plane_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/geometry/torus_generator.hpp"
+#include "nodo/graph/parameter_expression_resolver.hpp"
 #include "nodo/sop/boolean_sop.hpp"
 #include "nodo/sop/copy_to_points_sop.hpp"
 #include "nodo/sop/extrude_sop.hpp"
@@ -131,8 +132,8 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       continue;
     }
 
-    // Transfer parameters from GraphNode to SOP
-    transfer_parameters(*node, *sop);
+    // Transfer parameters from GraphNode to SOP (with expression resolution)
+    transfer_parameters(*node, *sop, graph);
 
     // Gather input geometries and set them on the SOP
     auto input_geometries = gather_input_geometries(graph, node_id);
@@ -216,26 +217,42 @@ void ExecutionEngine::invalidate_node(NodeGraph &graph, int node_id) {
 }
 
 void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
-                                          sop::SOPNode &sop_node) {
+                                          sop::SOPNode &sop_node,
+                                          const NodeGraph &graph) {
+  // Create expression resolver with access to graph parameters
+  ParameterExpressionResolver resolver(graph);
+
   // Iterate over all parameters in GraphNode and transfer to SOPNode
   for (const auto &param : graph_node.get_parameters()) {
     switch (param.type) {
-    case NodeParameter::Type::Float:
+    case NodeParameter::Type::Float: {
+      // Check if the float value was stored as a string expression
+      // For now, we'll just use the numeric value directly
+      // TODO: Support string expressions for numeric parameters in the UI
       sop_node.set_parameter(param.name, param.float_value);
       break;
+    }
 
-    case NodeParameter::Type::Int:
+    case NodeParameter::Type::Int: {
       sop_node.set_parameter(param.name, param.int_value);
       break;
+    }
 
     case NodeParameter::Type::Bool:
       sop_node.set_parameter(param.name, param.bool_value);
       break;
 
     case NodeParameter::Type::String:
-    case NodeParameter::Type::Code:
-      sop_node.set_parameter(param.name, param.string_value);
+    case NodeParameter::Type::Code: {
+      // Resolve any graph parameter references in the string
+      if (resolver.has_references(param.string_value)) {
+        std::string resolved = resolver.resolve(param.string_value);
+        sop_node.set_parameter(param.name, resolved);
+      } else {
+        sop_node.set_parameter(param.name, param.string_value);
+      }
       break;
+    }
 
     case NodeParameter::Type::Vector3: {
       // Convert std::array<float, 3> to Eigen::Vector3f

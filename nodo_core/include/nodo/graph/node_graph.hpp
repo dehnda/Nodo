@@ -6,6 +6,7 @@
 #pragma once
 
 #include "nodo/core/mesh.hpp"
+#include "nodo/graph/graph_parameter.hpp"
 #include <array>
 #include <functional>
 #include <memory>
@@ -376,11 +377,62 @@ public:
     connection_changed_callback_ = callback;
   }
 
+  // Graph parameters (M3.2)
+  /**
+   * @brief Add or update a graph-level parameter
+   * @param parameter The graph parameter to add/update
+   * @return True if added/updated successfully
+   */
+  bool add_graph_parameter(const class GraphParameter &parameter);
+
+  /**
+   * @brief Remove a graph parameter by name
+   * @param name Parameter name
+   * @return True if removed successfully
+   */
+  bool remove_graph_parameter(const std::string &name);
+
+  /**
+   * @brief Get a graph parameter by name
+   * @param name Parameter name
+   * @return Pointer to parameter, or nullptr if not found
+   */
+  const class GraphParameter *
+  get_graph_parameter(const std::string &name) const;
+  class GraphParameter *get_graph_parameter(const std::string &name);
+
+  /**
+   * @brief Get all graph parameters
+   * @return Vector of all graph parameters
+   */
+  const std::vector<class GraphParameter> &get_graph_parameters() const {
+    return graph_parameters_;
+  }
+
+  /**
+   * @brief Check if a parameter name exists
+   */
+  bool has_graph_parameter(const std::string &name) const;
+
+  /**
+   * @brief Validate parameter name (for future subgraph compatibility)
+   * @param name Parameter name to validate
+   * @return True if name is valid (no dots, no reserved words)
+   *
+   * Reserved characters:
+   * - '.' for future hierarchical scoping ($parent.param)
+   * - Special prefixes: "parent", "root" (reserved for scoping)
+   */
+  static bool is_valid_parameter_name(const std::string &name);
+
 private:
   std::vector<std::unique_ptr<GraphNode>> nodes_;
   std::vector<NodeConnection> connections_;
   int next_node_id_ = 1;
   int next_connection_id_ = 1;
+
+  // Graph-level parameters (M3.2)
+  std::vector<class GraphParameter> graph_parameters_;
 
   // Event callbacks
   NodeChangedCallback node_changed_callback_;

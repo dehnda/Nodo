@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "GeometrySpreadsheet.h"
+#include "GraphParametersPanel.h"
 #include "IconManager.h"
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
@@ -147,6 +148,12 @@ auto MainWindow::setupMenuBar() -> void {
           &MainWindow::onToggleBackfaceCulling);
   // Note: viewport widget connections are made in setupDockWidgets() after
   // widget creation
+
+  // Add separator and panel visibility toggles
+  viewMenu->addSeparator();
+
+  // Panel visibility will be added in setupDockWidgets() after panels are
+  // created
 
   // Create a Graph menu for node graph operations
   QMenu *graphMenu = menuBar->addMenu("&Graph");
@@ -318,6 +325,34 @@ auto MainWindow::setupDockWidgets() -> void {
   // Connect property changes to viewport updates
   connect(property_panel_, &PropertyPanel::parameterChanged, this,
           &MainWindow::onParameterChanged);
+
+  // Create dock widget for graph parameters (tabbed with properties)
+  graph_parameters_dock_ = new QDockWidget("Graph Parameters", this);
+  graph_parameters_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+
+  // Create graph parameters panel
+  graph_parameters_panel_ = new GraphParametersPanel(this);
+  graph_parameters_panel_->set_graph(node_graph_.get());
+  graph_parameters_dock_->setWidget(graph_parameters_panel_);
+
+  // Tab it with the property panel on the right
+  addDockWidget(Qt::RightDockWidgetArea, graph_parameters_dock_);
+  tabifyDockWidget(property_dock_, graph_parameters_dock_);
+
+  // Connect graph parameter changes to trigger re-execution
+  connect(graph_parameters_panel_, &GraphParametersPanel::parameters_changed,
+          this, &MainWindow::onParameterChanged);
+
+  // Add panel visibility toggles to View menu
+  QMenu *viewMenu = menuBar()->findChild<QMenu *>();
+  if (viewMenu) {
+    // Add toggle actions for each dock widget
+    viewMenu->addAction(viewport_dock_->toggleViewAction());
+    viewMenu->addAction(geometry_spreadsheet_dock_->toggleViewAction());
+    viewMenu->addAction(node_graph_dock_->toggleViewAction());
+    viewMenu->addAction(property_dock_->toggleViewAction());
+    viewMenu->addAction(graph_parameters_dock_->toggleViewAction());
+  }
 }
 
 void MainWindow::showEvent(QShowEvent *event) {
@@ -389,6 +424,10 @@ void MainWindow::onNewScene() {
   // Reconnect the node graph widget to the new graph
   node_graph_widget_->set_graph(node_graph_.get());
 
+  // Reconnect graph parameters panel to the new graph
+  graph_parameters_panel_->set_graph(node_graph_.get());
+  graph_parameters_panel_->refresh();
+
   // Clear viewport and property panel
   viewport_widget_->clearMesh();
   property_panel_->clearProperties();
@@ -416,6 +455,10 @@ void MainWindow::onOpenScene() {
 
     // Reconnect the node graph widget to the new graph
     node_graph_widget_->set_graph(node_graph_.get());
+
+    // Reconnect and refresh graph parameters panel
+    graph_parameters_panel_->set_graph(node_graph_.get());
+    graph_parameters_panel_->refresh();
 
     // Clear viewport
     viewport_widget_->clearMesh();

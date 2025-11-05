@@ -1,0 +1,58 @@
+{
+  "graph_parameters": [
+    {
+      "name": "global_seed",
+      "type": "Int",
+      "description": "Global random seed for all scatter operations",
+      "value": 42
+    },
+    {
+      "name": "base_radius",
+      "type": "Float",
+      "description": "Base radius for sphere",
+      "value": 1.5
+    },
+    {
+      "name": "object_name",
+      "type": "String",
+      "description": "Name for the generated object",
+      "value": "MySphere"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Sphere",
+      "name": "sphere1",
+      "position": [100, 100],
+      "parameters": [
+        {
+          "name": "radius",
+          "type": "Float",
+          "value": 1.5,
+          "label": "Radius",
+          "min": 0.1,
+          "max": 10.0
+        },
+        {
+          "name": "rows",
+          "type": "Int",
+          "value": 16,
+          "label": "Rows",
+          "min": 3,
+          "max": 128
+        },
+        {
+          "name": "columns",
+          "type": "Int",
+          "value": 32,
+          "label": "Columns",
+          "min": 3,
+          "max": 128
+        }
+      ],
+      "display_flag": true
+    }
+  ],
+  "connections": []
+}

@@ -9,6 +9,7 @@ class ViewportWidget;
 class PropertyPanel;
 class NodeGraphWidget;
 class StatusBarWidget;
+class GraphParametersPanel;
 class QDockWidget;
 
 // Undo/Redo system
@@ -51,10 +52,12 @@ private:
   NodeGraphWidget *node_graph_widget_;
   StatusBarWidget *status_bar_widget_;
   nodo::studio::GeometrySpreadsheet *geometry_spreadsheet_;
+  GraphParametersPanel *graph_parameters_panel_;
   QDockWidget *viewport_dock_;
   QDockWidget *property_dock_;
   QDockWidget *node_graph_dock_;
   QDockWidget *geometry_spreadsheet_dock_;
+  QDockWidget *graph_parameters_dock_;
 
   // Backend graph system
   std::unique_ptr<nodo::graph::NodeGraph> node_graph_;

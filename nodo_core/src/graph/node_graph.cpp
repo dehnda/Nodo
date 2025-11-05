@@ -521,4 +521,106 @@ int NodeGraph::get_display_node() const {
   return -1; // No display node set
 }
 
+// Graph Parameters (M3.2)
+
+bool NodeGraph::add_graph_parameter(const GraphParameter &parameter) {
+  const std::string &name = parameter.get_name();
+
+  // Validate parameter name (future-proof for subgraphs)
+  if (!is_valid_parameter_name(name)) {
+    std::cerr << "Invalid parameter name: '" << name
+              << "' (dots and reserved words not allowed)\n";
+    return false;
+  }
+
+  // Check if parameter with this name already exists
+  auto it = std::find_if(
+      graph_parameters_.begin(), graph_parameters_.end(),
+      [&name](const GraphParameter &p) { return p.get_name() == name; });
+
+  if (it != graph_parameters_.end()) {
+    // Update existing parameter
+    *it = parameter;
+  } else {
+    // Add new parameter
+    graph_parameters_.push_back(parameter);
+  }
+
+  return true;
+}
+
+bool NodeGraph::remove_graph_parameter(const std::string &name) {
+  auto it = std::find_if(
+      graph_parameters_.begin(), graph_parameters_.end(),
+      [&name](const GraphParameter &p) { return p.get_name() == name; });
+
+  if (it != graph_parameters_.end()) {
+    graph_parameters_.erase(it);
+    return true;
+  }
+
+  return false;
+}
+
+const GraphParameter *
+NodeGraph::get_graph_parameter(const std::string &name) const {
+  auto it = std::find_if(
+      graph_parameters_.begin(), graph_parameters_.end(),
+      [&name](const GraphParameter &p) { return p.get_name() == name; });
+
+  if (it != graph_parameters_.end()) {
+    return &(*it);
+  }
+
+  return nullptr;
+}
+
+GraphParameter *NodeGraph::get_graph_parameter(const std::string &name) {
+  auto it = std::find_if(
+      graph_parameters_.begin(), graph_parameters_.end(),
+      [&name](const GraphParameter &p) { return p.get_name() == name; });
+
+  if (it != graph_parameters_.end()) {
+    return &(*it);
+  }
+
+  return nullptr;
+}
+
+bool NodeGraph::has_graph_parameter(const std::string &name) const {
+  return get_graph_parameter(name) != nullptr;
+}
+
+bool NodeGraph::is_valid_parameter_name(const std::string &name) {
+  // Empty names not allowed
+  if (name.empty()) {
+    return false;
+  }
+
+  // Check for reserved characters (dot reserved for future scoping:
+  // $parent.param)
+  if (name.find('.') != std::string::npos) {
+    return false;
+  }
+
+  // Reserved words (for future subgraph scoping)
+  if (name == "parent" || name == "root" || name == "this") {
+    return false;
+  }
+
+  // Must start with letter or underscore
+  if (!std::isalpha(name[0]) && name[0] != '_') {
+    return false;
+  }
+
+  // Rest can be alphanumeric or underscore
+  for (char character : name) {
+    if (!std::isalnum(character) && character != '_') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 } // namespace nodo::graph

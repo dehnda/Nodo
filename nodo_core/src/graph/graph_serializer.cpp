@@ -84,6 +84,39 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
       j["connections"].push_back(conn_json);
     }
 
+    // Serialize graph parameters (M3.2)
+    j["graph_parameters"] = json::array();
+    const auto &graph_params = graph.get_graph_parameters();
+    for (const auto &param : graph_params) {
+      json param_json;
+      param_json["name"] = param.get_name();
+      param_json["type"] = GraphParameter::type_to_string(param.get_type());
+      param_json["description"] = param.get_description();
+
+      // Serialize value based on type
+      switch (param.get_type()) {
+      case GraphParameter::Type::Int:
+        param_json["value"] = param.get_int_value();
+        break;
+      case GraphParameter::Type::Float:
+        param_json["value"] = param.get_float_value();
+        break;
+      case GraphParameter::Type::String:
+        param_json["value"] = param.get_string_value();
+        break;
+      case GraphParameter::Type::Bool:
+        param_json["value"] = param.get_bool_value();
+        break;
+      case GraphParameter::Type::Vector3: {
+        const auto &vec = param.get_vector3_value();
+        param_json["value"] = {vec[0], vec[1], vec[2]};
+        break;
+      }
+      }
+
+      j["graph_parameters"].push_back(param_json);
+    }
+
     return j.dump(2); // Pretty print with 2-space indentation
 
   } catch (const std::exception &error) {
@@ -200,6 +233,58 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
         int target_pin = conn_json["target_pin"];
 
         graph.add_connection(source_node, source_pin, target_node, target_pin);
+      }
+    }
+
+    // Deserialize graph parameters (M3.2)
+    if (j.contains("graph_parameters") && j["graph_parameters"].is_array()) {
+      for (const auto &param_json : j["graph_parameters"]) {
+        if (!param_json.contains("name") || !param_json.contains("type") ||
+            !param_json.contains("value")) {
+          continue;
+        }
+
+        std::string name = param_json["name"];
+        std::string type_str = param_json["type"];
+        std::string description = param_json.value("description", "");
+
+        GraphParameter::Type type = GraphParameter::string_to_type(type_str);
+        GraphParameter param(name, type, description);
+
+        // Set value based on type
+        switch (type) {
+        case GraphParameter::Type::Int:
+          if (param_json["value"].is_number_integer()) {
+            param.set_value(param_json["value"].get<int>());
+          }
+          break;
+        case GraphParameter::Type::Float:
+          if (param_json["value"].is_number()) {
+            param.set_value(param_json["value"].get<float>());
+          }
+          break;
+        case GraphParameter::Type::String:
+          if (param_json["value"].is_string()) {
+            param.set_value(param_json["value"].get<std::string>());
+          }
+          break;
+        case GraphParameter::Type::Bool:
+          if (param_json["value"].is_boolean()) {
+            param.set_value(param_json["value"].get<bool>());
+          }
+          break;
+        case GraphParameter::Type::Vector3:
+          if (param_json["value"].is_array() &&
+              param_json["value"].size() >= 3) {
+            std::array<float, 3> vec = {param_json["value"][0].get<float>(),
+                                        param_json["value"][1].get<float>(),
+                                        param_json["value"][2].get<float>()};
+            param.set_value(vec);
+          }
+          break;
+        }
+
+        graph.add_graph_parameter(param);
       }
     }
 
