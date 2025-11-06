@@ -1,0 +1,22 @@
+/* Nodo Documentation Custom Styles */
+
+:root {
+  --nodo-primary: #2196f3;
+  --nodo-accent: #ff9800;
+}
+
+/* Improve code block styling */
+.highlight pre {
+  border-radius: 4px;
+}
+
+/* Better table styling */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Enhance admonitions */
+.admonition {
+  border-radius: 4px;
+}
