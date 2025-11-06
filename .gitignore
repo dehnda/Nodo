@@ -1171,3 +1171,4 @@ coverage_filtered.info
 venv/
 *.pyc
 __pycache__/
+.vercel
