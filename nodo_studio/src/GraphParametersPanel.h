@@ -8,11 +8,17 @@
 #include "nodo/graph/graph_parameter.hpp"
 #include "nodo/graph/node_graph.hpp"
 #include <QDockWidget>
-#include <QListWidget>
+#include <QLabel>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QToolBar>
 #include <QVBoxLayout>
-#include <memory>
+
+namespace nodo_studio {
+namespace widgets {
+class BaseParameterWidget;
+}
+} // namespace nodo_studio
 
 class GraphParametersPanel : public QDockWidget {
   Q_OBJECT
@@ -32,6 +38,10 @@ public:
    */
   void refresh();
 
+protected:
+  // Event filter for widget clicks
+  bool eventFilter(QObject *obj, QEvent *event) override;
+
 signals:
   /**
    * @brief Emitted when a parameter is added, modified, or deleted
@@ -42,15 +52,15 @@ private slots:
   void on_add_parameter_clicked();
   void on_edit_parameter_clicked();
   void on_delete_parameter_clicked();
-  void on_parameter_double_clicked(QListWidgetItem *item);
-  void on_selection_changed();
 
 private:
   // UI components
-  QWidget *content_widget_;
+  QWidget *main_widget_;
   QVBoxLayout *main_layout_;
   QToolBar *toolbar_;
-  QListWidget *parameter_list_;
+  QScrollArea *scroll_area_;
+  QWidget *content_widget_;
+  QVBoxLayout *content_layout_;
 
   // Actions
   QAction *add_action_;
@@ -59,13 +69,18 @@ private:
 
   // Data
   nodo::graph::NodeGraph *graph_ = nullptr;
+  std::string selected_parameter_name_;
 
   // Helper methods
   void setup_ui();
   void create_actions();
   void update_action_states();
-  QString
-  get_parameter_display_text(const nodo::graph::GraphParameter &param) const;
+  void clear_parameters();
+  void show_empty_state();
+  void select_parameter(const std::string &param_name);
+  void deselect_all_parameters();
+  void show_context_menu(const QPoint &global_pos);
   void
   show_parameter_dialog(nodo::graph::GraphParameter *existing_param = nullptr);
+  void on_parameter_value_changed(const std::string &param_name);
 };
