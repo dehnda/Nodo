@@ -499,6 +499,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
   - ✅ Hidden ViewportControlsOverlay (functionality moved to toolbar)
   - ✅ Bi-directional sync with View menu actions
   - ✅ Signal connections to ViewportWidget methods (setShowGrid, setShowAxes added)
+  - ✅ Bi-directional sync with View menu actions
 - ✅ **File menu enhancements** (Phase 2 - COMPLETE)
   - ✅ Added "Recent Projects" submenu to File menu
   - ✅ Tracks last 10 opened .nfg files using QSettings ("Nodo/NodoStudio")
@@ -514,14 +515,18 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
   - ✅ Creates proper combo widget (not plain int) on graph load
   - ✅ Expression mode (M3.3) preserved across save/load
   - ✅ All parameter metadata fully restored
-- [ ] **Node graph UX fixes** (Phase 3 - TODO)
-  - [ ] Fix connection selection (should work with single click, not just double click)
-  - [ ] Improve connection hit testing accuracy (wider target area)
-  - [ ] Add visual feedback for hover state
-  - [ ] Update context menu to show on connection right-click
-- [ ] **Application polish** (Phase 4 - OPTIONAL/DEFERRED)
-  - [ ] Add splash screen during app loading
-  - [ ] Show loading progress for heavy operations
+- ✅ **Node graph UX fixes** (Phase 3 - COMPLETE)
+  - ✅ Fix connection selection (works with single click via mousePressEvent)
+  - ✅ Improve connection hit testing accuracy (12px wide hit area via shape() method)
+  - ✅ Add visual feedback for hover state (blue color + pointing hand cursor)
+  - ✅ Update context menu to show on connection right-click (Delete Connection action)
+- ✅ **Parameter Serialization Fix** (Bonus - COMPLETE)
+  - ✅ Fixed mode widget (combo box) losing widget metadata on save/load
+  - ✅ Serializer now saves: label, category, value_mode, expression, ui_range, **string_options**
+  - ✅ Deserializer detects combo box from string_options presence
+  - ✅ Creates proper combo widget (not plain int) on graph load
+  - ✅ Expression mode (M3.3) preserved across save/load
+  - ✅ All parameter metadata fully restored
 
 **Technical Changes:**
 - Created `ViewportToolbar.h/.cpp` - Compact toolbar widget with 11 buttons (6 display + 5 controls)
@@ -529,12 +534,127 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 - Updated `ViewportWidget.cpp` - Added setShowGrid(), setShowAxes() methods, hide controls overlay
 - Updated `MainWindow.h/.cpp` - Recent files: QMenu, QList<QAction*>, QSettings integration
 - Updated `graph_serializer.cpp` - Complete parameter metadata serialization/deserialization
+- Updated `NodeGraphWidget.cpp` - ConnectionGraphicsItem with:
+  - 12px wide hit area via shape() method (QPainterPathStroker)
+  - Hover state tracking (is_hovered_) with visual feedback (blue highlight)
+  - Single-click selection (ItemIsSelectable flag)
+  - Context menu support (Delete Connection action)
+  - Color states: gray (default), blue (hover), orange (selected)
 
-**Next:** Connection Selection Fix (Phase 3) - Better hit testing, single-click selection, hover feedback
+**Status:** ✅ M3.4 COMPLETE - All 4 phases done!
 
-**Deliverable:** Intuitive, artist-friendly application ⏳ 75% COMPLETE
+**Deliverable:** Intuitive, artist-friendly application ✅ COMPLETE
 
-#### **M3.5: Beta Testing** (Weeks 8-10)
+#### **M3.6: Keyboard Shortcuts** (Week 8 - 1-2 weeks) 🔄 NEXT
+**Purpose:** Essential UX feature for professional workflows - users expect keyboard-driven interaction
+
+**Critical Shortcuts (Phase 1 - Core Operations):**
+- [ ] **Node Graph Operations:**
+  - [ ] `Tab` - Open node creation menu at mouse position (already working, verify)
+  - [ ] `Delete` / `Backspace` - Delete selected nodes/connections
+  - [ ] `Ctrl+D` - Duplicate selected nodes with connections
+  - [ ] `Ctrl+C` / `Ctrl+V` - Copy/paste nodes (with offset positioning)
+  - [ ] `A` - Select all nodes
+  - [ ] `Shift+A` - Deselect all
+  - [ ] `F` - Frame selected nodes in viewport (or all if none selected)
+  - [ ] `Home` - Frame all nodes in graph view
+
+- [ ] **Navigation & View:**
+  - [ ] `Spacebar` - Pan mode (hold + drag, or toggle sticky pan)
+  - [ ] `Alt+Scroll` - Zoom in graph view
+  - [ ] `Ctrl+0` - Reset graph zoom to 100%
+  - [ ] `1-9` - Quick viewport camera angles (1=front, 3=right, 7=top, 0=camera)
+
+- [ ] **File Operations:**
+  - [ ] `Ctrl+S` - Save scene
+  - [ ] `Ctrl+Shift+S` - Save scene as...
+  - [ ] `Ctrl+O` - Open scene
+  - [ ] `Ctrl+N` - New scene
+  - [ ] `Ctrl+Q` - Quit application
+
+- [ ] **Edit Operations:**
+  - [ ] `Ctrl+Z` - Undo (already working, verify)
+  - [ ] `Ctrl+Shift+Z` or `Ctrl+Y` - Redo (already working, verify)
+
+**Enhanced Shortcuts (Phase 2 - Power User Features):**
+- [ ] **Node Operations:**
+  - [ ] `Shift+C` - Add comment/sticky note
+  - [ ] `B` - Bypass selected nodes (toggle cook flag)
+  - [ ] `Ctrl+G` - Group selected nodes into subnet (deferred to M4.4)
+  - [ ] `I` - Jump to node input (cycle through inputs if multiple)
+  - [ ] `O` - Jump to node output
+  - [ ] `U` - Move node up in graph
+  - [ ] `D` - Move node down in graph
+
+- [ ] **Viewport Operations:**
+  - [ ] `W` - Toggle wireframe mode
+  - [ ] `G` - Toggle grid
+  - [ ] `T` - Toggle point numbers
+  - [ ] `N` - Toggle normals display
+  - [ ] `Ctrl+R` - Reset viewport camera
+
+- [ ] **Search & Navigation:**
+  - [ ] `/` - Focus search in node creation menu
+  - [ ] `Escape` - Close dialogs/menus, deselect all
+  - [ ] `Enter` - Confirm dialog/creation
+
+**Implementation Tasks:**
+- [ ] Create `KeyboardShortcutManager` class in nodo_studio
+  - [ ] Store shortcut mappings (action → key sequence)
+  - [ ] Handle key event routing from MainWindow
+  - [ ] Support modifier keys (Ctrl, Shift, Alt)
+  - [ ] Conflict detection (warn if duplicate shortcuts)
+
+- [ ] Integrate with existing UI:
+  - [ ] MainWindow::keyPressEvent() override
+  - [ ] NodeGraphWidget::keyPressEvent() for graph-specific shortcuts
+  - [ ] ViewportWidget::keyPressEvent() for viewport shortcuts
+  - [ ] Respect focus context (graph vs viewport vs property panel)
+
+- [ ] Settings/Preferences system:
+  - [ ] Load default shortcuts from JSON or hardcoded
+  - [ ] Save custom shortcuts to QSettings
+  - [ ] Preferences dialog: Keyboard Shortcuts tab (defer customization to v1.1)
+
+- [ ] Visual feedback:
+  - [ ] Show shortcuts in menu items (File → Save `Ctrl+S`)
+  - [ ] Tooltip hints for toolbar buttons
+  - [ ] Create "Keyboard Shortcuts" help dialog (`Ctrl+?` or `F1`)
+    - Display all shortcuts organized by category
+    - Searchable/filterable list
+
+- [ ] Testing:
+  - [ ] Verify shortcuts work in all contexts
+  - [ ] Test modifier key combinations
+  - [ ] Ensure no conflicts with Qt defaults
+  - [ ] Cross-platform testing (Ctrl vs Cmd on macOS)
+
+**Technical Considerations:**
+- Use Qt's `QKeySequence` for platform-independent key handling
+- Use `QShortcut` for global application shortcuts
+- Use `keyPressEvent` for context-sensitive shortcuts
+- Handle key repeat events appropriately (some actions shouldn't repeat)
+- Respect focus: property panel text fields shouldn't trigger graph shortcuts
+
+**Documentation:**
+- [ ] Create keyboard shortcuts reference page (docs/KEYBOARD_SHORTCUTS.md)
+- [ ] Update FIRST_TESTER_GUIDE.md with common shortcuts
+- [ ] In-app help overlay with printable cheat sheet
+
+**Success Criteria:**
+- All Phase 1 shortcuts working across all contexts
+- No conflicts with system/Qt shortcuts
+- Shortcuts displayed in menus and tooltips
+- Help dialog accessible and comprehensive
+- Smooth, responsive interaction (no lag)
+
+**Time Estimate:** 1-2 weeks
+**Priority:** HIGH - Essential for v1.0 beta
+**Deliverable:** Professional keyboard-driven workflow for power users
+
+---
+
+#### **M3.7: Beta Testing** (Weeks 10-12)
 - [ ] Recruit 10-20 beta testers (artists, technical artists)
 - [ ] Collect feedback via surveys and interviews
 - [ ] Bug fixing and stability improvements
@@ -579,7 +699,174 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 ---
 
-## Phase 5: Engine Integration (Q4 2026+) 🔮
+## Phase 4.5: Post-Launch Features (Q4 2026 - v1.1-v1.2)
+**Duration:** 8-12 weeks
+**Goal:** Add high-value features based on user feedback
+
+### Milestones
+
+#### **M4.4: Subgraphs/Subnets** (v1.1 - 3-4 weeks) 🔮
+**Purpose:** Enable reusable node groups and cleaner graph organization for complex workflows
+
+**User Benefits:**
+- Collapse complex node networks into single "subnet" nodes
+- Create reusable node groups (e.g., "Wood Grain Shader", "Brick Wall Generator")
+- Cleaner graph view - hide implementation details
+- Easier collaboration - share subnet definitions
+- Future: Potential for asset library/marketplace
+
+**Backend Implementation (nodo_core):**
+
+1. **SubnetworkNode Class** (2-3 days)
+   - [ ] Create `SubnetworkNode` inheriting from `SOPNode`
+   - [ ] Internal `NodeGraph` instance (self-contained graph)
+   - [ ] Input/Output proxy nodes inside subnet:
+     - [ ] `SubnetInputNode` - receives data from parent graph
+     - [ ] `SubnetOutputNode` - sends data to parent graph
+   - [ ] Parameters:
+     - [ ] Number of inputs (1-4, configurable)
+     - [ ] Number of outputs (1-2, typically 1)
+     - [ ] Optional: expose internal parameters to parent graph
+
+2. **Subnet Data Flow** (2 days)
+   - [ ] `cook()` implementation:
+     - Pass input geometries to internal SubnetInputNode(s)
+     - Execute internal graph via ExecutionEngine
+     - Extract result from SubnetOutputNode
+     - Return to parent graph
+   - [ ] Proper cache invalidation:
+     - Subnet marked dirty if any internal node changes
+     - Parent graph nodes invalidated when subnet output changes
+   - [ ] Error propagation from internal graph to parent
+
+3. **Serialization** (1 day)
+   - [ ] Save/load subnet definition in .nfg format:
+     ```json
+     {
+       "type": "Subnetwork",
+       "internal_graph": {
+         "nodes": [...],
+         "connections": [...]
+       },
+       "exposed_parameters": [...]
+     }
+     ```
+   - [ ] Preserve internal node states and connections
+   - [ ] Handle nested subnets (subnets within subnets)
+
+4. **Parameter Promotion** (Optional - v1.2)
+   - [ ] "Promote to Subnet Interface" - expose internal parameters
+   - [ ] UI shows promoted parameters in property panel
+   - [ ] Changes propagate to internal nodes
+
+**Frontend Implementation (nodo_studio):**
+
+1. **Subnet Creation UI** (2 days)
+   - [ ] Select nodes → Right-click → "Create Subnet"
+   - [ ] Algorithm:
+     - Identify external connections (inputs/outputs)
+     - Create SubnetworkNode with appropriate input/output counts
+     - Move selected nodes into subnet's internal graph
+     - Create SubnetInput/SubnetOutput nodes
+     - Re-connect to external nodes
+     - Position subnet node at centroid of selected nodes
+   - [ ] Undo/redo support via `CreateSubnetCommand`
+
+2. **Subnet Navigation** (2 days)
+   - [ ] Double-click SubnetworkNode → "dive inside" to edit internal graph
+   - [ ] Breadcrumb navigation bar: `Root / Subnet1 / NestedSubnet2`
+   - [ ] "Go Up One Level" button/shortcut (Alt+Up or similar)
+   - [ ] Visual indicator when inside subnet (dimmed background, border)
+   - [ ] Prevent recursive navigation issues
+
+3. **Subnet Visualization** (1-2 days)
+   - [ ] Distinct visual style for SubnetworkNode:
+     - Rounded rectangle with subnet icon
+     - Different color (e.g., purple tint vs regular blue)
+     - Input/output pins match internal proxy counts
+   - [ ] Show subnet name (editable, defaults to "Subnet")
+   - [ ] Optional: thumbnail preview of internal graph (v1.2 feature)
+
+4. **Subnet Expansion** (1 day)
+   - [ ] "Expand Subnet" action → move internal nodes back to parent
+   - [ ] Preserves connections and node positions
+   - [ ] Undo/redo support
+
+**Property Panel Integration:**
+- [ ] SubnetworkNode shows in property panel
+- [ ] Parameters:
+  - [ ] Subnet name (string)
+  - [ ] Input count (int, 1-4)
+  - [ ] Output count (int, 1-2)
+  - [ ] Promoted parameters (list, added dynamically)
+- [ ] Button: "Edit Subnet" → same as double-click
+
+**Testing & Edge Cases:**
+- [ ] Nested subnets (subnet within subnet)
+- [ ] Circular subnet references (prevent or detect)
+- [ ] Copy/paste subnet nodes (deep copy internal graph)
+- [ ] Undo/redo subnet creation/expansion
+- [ ] Serialization round-trip (save/load preserves internals)
+- [ ] Performance: Large subnets (100+ internal nodes)
+- [ ] Error handling: Missing SubnetInput/SubnetOutput nodes
+
+**Documentation:**
+- [ ] User guide: "Working with Subnetworks"
+- [ ] Tutorial: "Creating Reusable Node Groups"
+- [ ] Example .nfg with subnets
+
+**Future Enhancements (v1.2+):**
+- [ ] Subnet library panel (save/load subnet definitions as assets)
+- [ ] Parameter promotion UI (promote any internal param to interface)
+- [ ] Subnet versioning (track subnet definition changes)
+- [ ] For-each loops (subnet executes per point/primitive)
+- [ ] Subnet templates/presets
+
+**Success Criteria:**
+- Users can create subnets from selected nodes with 1 click
+- Double-click navigation works smoothly
+- Subnet nodes execute correctly in parent graph
+- Serialization preserves all subnet data
+- No performance degradation vs flat graphs
+
+**Time Estimate:** 3-4 weeks
+**Priority:** HIGH - Power users need this for complex workflows
+**Deliverable:** Fully functional subnet system with creation, navigation, and serialization
+
+---
+
+#### **M4.5: Curve/Spline Toolkit** (v1.1-v1.2 - 4-6 weeks) 🔮
+**Status:** CONTINGENT on beta user feedback - only build if curve operations are frequently requested
+
+**Potential Nodes:**
+- [ ] **CurveSOP** - Create curves (line, circle, arc, spiral)
+- [ ] **ResampleSOP** - Resample curve to even point spacing
+- [ ] **SweepSOP** - Sweep profile along curve to create geometry
+- [ ] **CarveSOP** - Extract portion of curve (parametric U range)
+- [ ] **FilletSOP** - Round corners on curves/polygons
+- [ ] **RailSOP** - Sweep with twist control along rail curve
+
+**Decision Point:** Wait for v1.0 launch feedback before committing resources
+
+---
+
+#### **M4.6: Performance Optimization** (v1.2-v1.3 - 3-4 weeks) 🔮
+**Status:** CONTINGENT on user feedback - only implement if performance issues reported
+
+**Potential Optimizations:**
+- [ ] Parallel node execution (multi-threaded ExecutionEngine)
+  - Execute independent branches simultaneously
+  - Thread pool for node cooking
+- [ ] SIMD optimizations for geometry operations
+- [ ] Spatial acceleration structures (BVH for boolean ops)
+- [ ] Incremental geometry updates (avoid full recook)
+- [ ] Large graph optimization (1000+ nodes)
+
+**Decision Point:** Wait for beta testing - current performance is sub-millisecond with caching
+
+---
+
+## Phase 5: Engine Integration (Q1 2027+) 🔮
 **Status:** CONTINGENT on Phase 4 market validation
 **Goal:** Embed Nodo in game engines (if demand validated)
 
@@ -627,19 +914,134 @@ Proceed with engine integration only if:
 
 ---
 
-## Phase 6: Ecosystem & Growth (2027+) 🌟
-**Status:** FUTURE - depends on Phase 5 success
+## Phase 6: Advanced Features & Ecosystem (2027+) 🌟
+**Status:** FUTURE - depends on Phase 4-5 success and user demand
+**Goal:** Transform Nodo into a platform with scripting, optimization, and extensibility
 
-### Potential Features
-- Asset marketplace for .nfg graphs
-- Cloud rendering/cooking services
-- Scripting system (Python/Lua/custom DSL)
-- Collaboration features (version control, sharing)
-- Plugin SDK for custom nodes
-- Education/certification program
-- Enterprise licensing tier
+### Potential Features (Prioritize based on user feedback)
 
-**Note:** These are speculative - prioritize based on actual user needs
+#### **A. Wrangle DSL Expansion / Python Scripting** (v2.0 - 8-12 weeks)
+**Purpose:** Extend Wrangle beyond VEX-like expressions to full scripting capabilities
+
+**Options:**
+1. **Expand VEX-like DSL** (Recommended first)
+   - Build on current exprtk foundation
+   - Add geometry manipulation functions (addpoint, setpointattrib, etc.)
+   - Loops, conditionals, custom functions
+   - Compiled expressions for performance
+   - **Pros:** Self-contained, fast, consistent with current Wrangle
+   - **Cons:** Need to design language, write documentation
+
+2. **Python Integration** (Alternative)
+   - Embed Python interpreter (pybind11)
+   - Python Wrangle node: full Python in geometry context
+   - Access to NumPy, SciPy for advanced math
+   - **Pros:** Huge ecosystem, familiar to TAs
+   - **Cons:** Performance overhead, dependency management, security concerns
+
+3. **Lua Scripting** (Alternative)
+   - Lightweight, embeddable, fast
+   - Simple C++ integration
+   - **Pros:** Fast, small footprint, game-friendly
+   - **Cons:** Less familiar than Python, smaller ecosystem
+
+**Decision Point:** Wait for v1.0 user feedback on Wrangle limitations before choosing approach
+
+**Implementation Phases:**
+- Phase 1: Language design & specification (2 weeks)
+- Phase 2: Parser/interpreter implementation (4-6 weeks)
+- Phase 3: Geometry API bindings (2-3 weeks)
+- Phase 4: Documentation & examples (1-2 weeks)
+
+---
+
+#### **B. Performance: Multithreading** (v1.2-v2.0 - 3-4 weeks)
+**Purpose:** Parallel node execution for large graphs on multi-core CPUs
+
+**Status:** CONTINGENT on user feedback - only implement if performance bottlenecks reported
+
+**Implementation:**
+- [ ] Parallel execution engine:
+  - Topological sort to identify independent branches
+  - Thread pool for parallel node cooking
+  - Lock-free dependency tracking
+- [ ] Thread-safe geometry cache
+- [ ] Per-node performance profiling
+- [ ] Configuration: max threads, enable/disable parallel execution
+
+**Current Performance:** Sub-millisecond with caching (300-500x speedup already)
+**Trigger:** Users report slow execution on graphs with 500+ nodes or multi-core systems
+
+---
+
+#### **C. GPU Compute Shaders** (v2.0+ - 8-12 weeks or never)
+**Purpose:** Accelerate geometry operations via GPU compute
+
+**Status:** UNCERTAIN VALUE - needs use case validation
+
+**Potential Use Cases:**
+1. **Geometry Operations** (questionable value)
+   - Most ops are memory-bound, not compute-bound
+   - Manifold library is already highly optimized
+   - GPU transfer overhead may negate benefits
+   - **Verdict:** Likely not worth complexity
+
+2. **Viewport Rendering/Instancing** (more promising)
+   - GPU instancing for Copy to Points preview (millions of instances)
+   - Compute-based viewport effects (AO, shadows)
+   - Real-time mesh simplification for large meshes
+   - **Verdict:** Could improve viewport UX for large scenes
+
+3. **Specialized Nodes** (niche)
+   - Particle simulation (GPU-accelerated)
+   - Texture synthesis (compute shaders)
+   - Fluid simulation
+   - **Verdict:** Too specialized for v1.0, maybe v2.0+
+
+**Implementation (if pursued):**
+- [ ] Vulkan Compute or OpenGL Compute Shaders
+- [ ] GPU-accelerated node variants (e.g., ScatterGPU)
+- [ ] Fallback to CPU for compatibility
+- [ ] Benchmark vs CPU to validate speedup
+
+**Decision Point:**
+- If beta users request GPU features → investigate viewport instancing
+- If users hit geometry performance walls → profile before assuming GPU helps
+- **Recommendation:** Defer indefinitely, focus on proven features
+
+---
+
+#### **D. Asset Marketplace & Ecosystem**
+- [ ] Subnet/node library (local file browser)
+- [ ] Online marketplace for .nfg graphs (v2.0+)
+- [ ] Community sharing platform
+- [ ] Asset versioning and dependency management
+
+---
+
+#### **E. Collaboration Features**
+- [ ] Git integration for .nfg files
+- [ ] Multi-user editing (operational transforms, like Figma)
+- [ ] Cloud storage/sync
+- [ ] Team libraries and shared assets
+
+---
+
+#### **F. Plugin SDK for Custom Nodes**
+- [ ] C++ SDK for third-party node development
+- [ ] Plugin discovery and loading system
+- [ ] API stability guarantees
+- [ ] Developer documentation and examples
+
+---
+
+#### **G. Enterprise Features**
+- [ ] Advanced licensing (floating licenses, node-locked)
+- [ ] SSO / Active Directory integration
+- [ ] Usage analytics and reporting
+- [ ] Priority support
+
+**Note:** These are speculative - prioritize based on actual user needs and revenue validation
 
 ---
 
@@ -691,55 +1093,59 @@ Proceed with engine integration only if:
 
 ---
 
-## 🎯 Current Status (November 4, 2025)
+## 🎯 Current Status (November 6, 2025)
 
 ### ✅ Completed
-- Node graph architecture with execution engine
-- Property panel system with auto-generation
-- **40 node types fully implemented** (all 8 patches complete!)
-- Universal parameter system (group, class, element_class)
-- Clean nodo_core/nodo_studio separation
-- **Phase 1, M1.1: Backend parameter definitions** ✅ COMPLETE
-- **Phase 1, M1.2: UI Component Library** ✅ COMPLETE
-- **Phase 1, M1.3: Auto-Generation System** ✅ COMPLETE
-- **Phase 1, M1.4: Complete All 40 Nodes** ✅ COMPLETE
-  - Patch 1: Geometry Generators (6 nodes)
-  - Patch 2: Modify Operations (5 nodes, Bevel basic)
-  - Patch 3: Transform Operations (6 nodes)
-  - Patch 4: Boolean & Combine (5 nodes, Remesh stub)
-  - Patch 5: Attribute Operations (6 nodes)
-  - Patch 6: Group Operations (7 nodes)
-  - Patch 7: Utility & Workflow (5 nodes)
-  - Patch 8: Deformers (3 nodes)
+- **Phase 1: Foundation & Core Nodes** ✅ COMPLETE
+  - M1.1: Backend parameter definitions
+  - M1.2: UI Component Library
+  - M1.3: Auto-Generation System
+  - M1.4: Complete All 40 Nodes (8 patches)
+  - M1.5: File Format & Serialization
+  - M1.6: Additional Scatter Nodes
+- **Phase 2: Engine-Ready Architecture** ✅ COMPLETE
+  - M2.1: Host Interface System
+  - M2.2: Headless Execution (nodo_cli)
+  - M2.3: Performance Optimization
+- **Phase 3: Polish & User Testing** 🔄 IN PROGRESS
+  - M3.0: Undo/Redo System ✅
+  - M3.1: Performance Optimization (deferred)
+  - M3.2: Graph Parameters System ✅
+  - M3.3: Full Expression System ✅
+  - M3.4: User Experience Polish ✅
+  - M3.6: Keyboard Shortcuts 🔄 **CURRENT MILESTONE**
+  - M3.7: Beta Testing ⏳ Next
 
-### 🔄 In Progress
-- **Phase 1 FULLY COMPLETE!** 🎉 All 6 milestones done!
+### 🔄 Current Focus
+**M3.6: Keyboard Shortcuts** (1-2 weeks)
+- Implementing essential keyboard shortcuts for professional workflows
+- Target completion: Mid-November 2025
+- Deliverable: Keyboard-driven interaction with shortcuts help overlay
 
 ### 📋 Next Up
-- Move to Phase 2: Engine-Ready Architecture
-- OR start Phase 3: Polish & User Testing
-- Recommended: **Phase 3 (Polish & User Testing)** to prepare for launch
+1. **M3.7: Beta Testing** (2-3 weeks) - Recruit 10-20 testers, gather feedback
+2. **Phase 4: Launch & v1.0 Release** (Q1 2027) - Public release
+3. **M4.4: Subgraphs/Subnets** (v1.1 - 3-4 weeks) - Post-launch feature
+4. **M4.5+: Additional features** based on user feedback
 
 ---
 
 ## 📞 Decision Points & Reviews
 
-### End of Phase 1 (Q1 2026)
-**Review:** Is the UI system working? Is auto-generation paying off?
-- If YES: Proceed to Phase 2 (engine architecture)
-- If NO: Iterate on widget system, delay Phase 2
+### End of Phase 3 (Q4 2026)
+**Review:** Is the product ready for public launch?
+- If YES: Proceed to Phase 4 (v1.0 launch)
+- If NO: Additional polish iteration, extend beta testing
 
-### End of Phase 3 (Q2 2026)
-**Review:** Is the product ready for users?
-- If YES: Proceed to Phase 4 (launch)
-- If NO: Additional polish iteration
+### End of Phase 4 (Q1-Q2 2027)
+**Review:** What features should we prioritize post-launch?
+- **If strong demand for subnets:** Implement M4.4 (Subgraphs) in v1.1
+- **If strong demand for curves:** Implement M4.5 (Curve Toolkit) in v1.1-v1.2
+- **If performance issues reported:** Implement M4.6 (Multithreading) in v1.2
+- **If engine integration requests:** Proceed to Phase 5 (Godot first)
+- **If none of the above:** Focus on bug fixes, stability, community building
 
-### End of Phase 4 (Q3-Q4 2026)
-**Review:** Is there market demand for engine integration?
-- If YES: Proceed to Phase 5 (choose engine based on demand)
-- If NO: Focus on Studio features, community building
-
-**Critical:** Don't build engine integration speculatively. Wait for clear signals.
+**Critical:** Don't build speculative features. Wait for clear user demand signals from v1.0 launch.
 
 ---
 
