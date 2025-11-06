@@ -158,7 +158,6 @@ Now that Nodo is installed:
 
 1. **[Quick Start Guide](quick-start.md)** - Build your first model in 30 minutes
 2. **[Interface Overview](interface.md)** - Learn the UI layout
-3. **[Your First Project](first-project.md)** - Guided tutorial
 
 ---
 

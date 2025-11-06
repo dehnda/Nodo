@@ -1,7 +1,8 @@
 site_name: Nodo Documentation
 site_description: Procedural 3D modeling with node-based workflows
 site_author: Nodo Team
-site_url: https://docs.nodo3d.com
+site_url: https://nodo3d.com/docs/
+use_directory_urls: true
 
 theme:
   name: material
@@ -42,7 +43,6 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quick-start.md
     - Interface Overview: getting-started/interface.md
-    - Your First Project: getting-started/first-project.md
 
   - Core Concepts:
     - Procedural Modeling: concepts/procedural-modeling.md
@@ -63,6 +63,7 @@ nav:
     - Modifier:
       - Transform: nodes/modifier/transform.md
       - Extrude: nodes/modifier/extrude.md
+      - PolyExtrude: nodes/modifier/polyextrude.md
       - Smooth: nodes/modifier/smooth_(laplacian).md
       - Subdivide: nodes/modifier/subdivide.md
       - Mirror: nodes/modifier/mirror.md
@@ -83,6 +84,9 @@ nav:
       - Group: nodes/group/group.md
       - Group Delete: nodes/group/group_delete.md
       - Group Combine: nodes/group/group_combine.md
+    - IO:
+      - File: nodes/io/file.md
+      - Export: nodes/io/export.md
 
   - Expressions:
     - Graph Parameters: expressions/graph-parameters.md
@@ -97,7 +101,6 @@ nav:
 
   - Reference:
     - Keyboard Shortcuts: reference/keyboard-shortcuts.md
-    - File Format: reference/file-format.md
     - FAQ: reference/faq.md
 
 # Extensions

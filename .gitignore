@@ -4,6 +4,11 @@ bin/
 lib/
 dist/
 
+# Documentation build outputs
+site/
+public/
+.cache/
+
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
@@ -35,7 +40,6 @@ third_party/*/
 *.swo
 *~
 .clangd/
-.cache/
 
 # OS generated files
 .DS_Store
@@ -120,6 +124,7 @@ test_output/
 *.gcda
 *.gcno
 coverage/
+coverage-report/
 coverage.info
 
 # Sanitizer outputs
@@ -1161,3 +1166,8 @@ coverage_report/src/spatial/index-sort-f.html
 coverage_report/src/spatial/index-sort-l.html
 coverage_report/src/spatial/index.html
 coverage_filtered.info
+
+# Python virtual environment
+venv/
+*.pyc
+__pycache__/

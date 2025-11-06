@@ -16,6 +16,5 @@ Connect geometry to the input, then adjust parameters to modify the result.
 
 ## See Also
 
-- [Array](array.md)
+- [Array](../array/array.md)
 - [Mirror](mirror.md)
-- [Align](align.md)

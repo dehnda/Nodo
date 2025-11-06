@@ -13,8 +13,6 @@ Nodo lets you create 3D models by connecting nodes in a graph. Each node perform
 - **Flexible** - Infinite combinations of nodes and operations
 - **Expression-Driven** - Use math to drive parameters dynamically
 
-![Nodo in Action](images/nodo_hero.png)
-
 ---
 
 ## Quick Links
@@ -154,7 +152,6 @@ Build optimized game-ready models with LOD control and export to common formats.
 ### Reference
 
 - **[Keyboard Shortcuts](reference/keyboard-shortcuts.md)** - Quick reference
-- **[File Format](reference/file-format.md)** - `.nfg` file specification
 
 ---
 

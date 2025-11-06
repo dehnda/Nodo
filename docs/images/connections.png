@@ -1,0 +1,9 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" fill="#1e1e2e"/>
+  <text x="300" y="200" font-family="Arial" font-size="24" fill="#cdd6f4" text-anchor="middle">
+    Connection Types Diagram
+  </text>
+  <text x="300" y="240" font-family="Arial" font-size="16" fill="#89b4fa" text-anchor="middle">
+    (Placeholder - Replace with actual diagram)
+  </text>
+</svg>

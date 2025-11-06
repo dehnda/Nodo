@@ -18,4 +18,3 @@ Add a Group node and connect appropriate inputs.
 
 - [Group Delete](group_delete.md)
 - [Group Combine](group_combine.md)
-- [Blast](blast.md)

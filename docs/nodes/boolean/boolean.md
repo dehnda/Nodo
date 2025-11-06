@@ -16,4 +16,3 @@ Connect multiple geometry inputs to perform boolean operations.
 ## See Also
 
 - [Merge](merge.md)
-- [Split](split.md)
