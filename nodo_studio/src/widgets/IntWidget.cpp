@@ -179,16 +179,6 @@ QWidget *IntWidget::createControlWidget() {
   // Start in numeric mode
   expression_container_->hide();
 
-  // Enable value scrubbing on label
-  label_widget_->installEventFilter(this);
-  label_widget_->setCursor(Qt::SizeHorCursor);
-  label_widget_->setStyleSheet(
-      label_widget_->styleSheet() +
-      " QLabel:hover { color: " + QString(COLOR_ACCENT) + "; }");
-
-  // Enable drag indicator
-  enableDragIndicator(true);
-
   return main_container;
 }
 
@@ -251,85 +241,6 @@ void IntWidget::onSliderValueChanged(int value) {
   if (value_changed_callback_) {
     value_changed_callback_(current_value_);
   }
-}
-
-bool IntWidget::eventFilter(QObject *obj, QEvent *event) {
-  if (obj == label_widget_) {
-    if (event->type() == QEvent::MouseButtonPress) {
-      auto *mouseEvent = static_cast<QMouseEvent *>(event);
-      if (mouseEvent->button() == Qt::LeftButton) {
-        startScrubbing(mouseEvent->globalPosition().toPoint());
-        return true;
-      }
-    } else if (event->type() == QEvent::MouseMove && is_scrubbing_) {
-      auto *mouseEvent = static_cast<QMouseEvent *>(event);
-      updateScrubbing(mouseEvent->globalPosition().toPoint(),
-                      mouseEvent->modifiers());
-      return true;
-    } else if (event->type() == QEvent::MouseButtonRelease && is_scrubbing_) {
-      endScrubbing();
-      return true;
-    }
-  }
-
-  return BaseParameterWidget::eventFilter(obj, event);
-}
-
-void IntWidget::startScrubbing(const QPoint &pos) {
-  is_scrubbing_ = true;
-  scrub_start_pos_ = pos;
-  scrub_start_value_ = current_value_;
-  QApplication::setOverrideCursor(Qt::BlankCursor);
-}
-
-void IntWidget::updateScrubbing(const QPoint &pos,
-                                Qt::KeyboardModifiers modifiers) {
-  if (!is_scrubbing_)
-    return;
-
-  // Calculate delta
-  int delta_x = pos.x() - scrub_start_pos_.x();
-
-  // Apply modifier keys
-  int delta_value = 0;
-  if (modifiers & Qt::ShiftModifier) {
-    // Fine adjustment: 1 unit per 10 pixels
-    delta_value = delta_x / 10;
-  } else if (modifiers & Qt::ControlModifier) {
-    // Coarse adjustment: 10 units per pixel
-    delta_value = delta_x * 10;
-  } else {
-    // Normal: 1 unit per pixel
-    delta_value = delta_x;
-  }
-
-  int new_value = scrub_start_value_ + delta_value;
-
-  // Snap to multiples of 5 with Alt
-  if (modifiers & Qt::AltModifier) {
-    new_value = (new_value / 5) * 5;
-  }
-
-  // Clamp and update
-  setValue(std::clamp(new_value, min_, max_));
-
-  emit valueChangedSignal(current_value_);
-  if (value_changed_callback_) {
-    value_changed_callback_(current_value_);
-  }
-
-  // Wrap cursor to prevent it from leaving screen
-  if (std::abs(delta_x) > 200) {
-    QCursor::setPos(scrub_start_pos_);
-  }
-}
-
-void IntWidget::endScrubbing() {
-  if (!is_scrubbing_)
-    return;
-
-  is_scrubbing_ = false;
-  QApplication::restoreOverrideCursor();
 }
 
 // === Expression Mode Methods (M3.3 Phase 1) ===

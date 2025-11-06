@@ -83,9 +83,6 @@ protected:
   // Label widget
   QLabel *label_widget_;
 
-  // Drag indicator (shown on hover for draggable labels)
-  QLabel *drag_indicator_ = nullptr;
-
   // Control widget (created by subclass)
   QWidget *control_widget_ = nullptr;
 

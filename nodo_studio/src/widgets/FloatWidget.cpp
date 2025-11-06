@@ -184,16 +184,6 @@ QWidget *FloatWidget::createControlWidget() {
   // Start in numeric mode
   expression_container_->hide();
 
-  // Enable value scrubbing on label
-  label_widget_->installEventFilter(this);
-  label_widget_->setCursor(Qt::SizeHorCursor);
-  label_widget_->setStyleSheet(
-      label_widget_->styleSheet() +
-      " QLabel:hover { color: " + QString(COLOR_ACCENT) + "; }");
-
-  // Enable drag indicator
-  enableDragIndicator(true);
-
   return main_container;
 }
 
@@ -258,84 +248,6 @@ void FloatWidget::onSliderValueChanged(int value) {
   if (value_changed_callback_) {
     value_changed_callback_(current_value_);
   }
-}
-
-bool FloatWidget::eventFilter(QObject *obj, QEvent *event) {
-  if (obj == label_widget_) {
-    if (event->type() == QEvent::MouseButtonPress) {
-      auto *mouseEvent = static_cast<QMouseEvent *>(event);
-      if (mouseEvent->button() == Qt::LeftButton) {
-        startScrubbing(mouseEvent->globalPosition().toPoint());
-        return true;
-      }
-    } else if (event->type() == QEvent::MouseMove && is_scrubbing_) {
-      auto *mouseEvent = static_cast<QMouseEvent *>(event);
-      updateScrubbing(mouseEvent->globalPosition().toPoint(),
-                      mouseEvent->modifiers());
-      return true;
-    } else if (event->type() == QEvent::MouseButtonRelease && is_scrubbing_) {
-      endScrubbing();
-      return true;
-    }
-  }
-
-  return BaseParameterWidget::eventFilter(obj, event);
-}
-
-void FloatWidget::startScrubbing(const QPoint &pos) {
-  is_scrubbing_ = true;
-  scrub_start_pos_ = pos;
-  scrub_start_value_ = current_value_;
-  QApplication::setOverrideCursor(Qt::BlankCursor);
-}
-
-void FloatWidget::updateScrubbing(const QPoint &pos,
-                                  Qt::KeyboardModifiers modifiers) {
-  if (!is_scrubbing_)
-    return;
-
-  // Calculate delta
-  int delta_x = pos.x() - scrub_start_pos_.x();
-
-  // Apply modifier keys
-  float sensitivity = 1.0f;
-  if (modifiers & Qt::ShiftModifier) {
-    sensitivity = 0.01f; // Fine adjustment
-  } else if (modifiers & Qt::ControlModifier) {
-    sensitivity = 10.0f; // Coarse adjustment
-  }
-
-  // Calculate new value
-  float range = max_ - min_;
-  float delta_value = (delta_x / 100.0f) * range * sensitivity;
-  float new_value = scrub_start_value_ + delta_value;
-
-  // Snap to grid with Alt
-  if (modifiers & Qt::AltModifier) {
-    float snap = std::pow(10.0f, std::floor(std::log10(range)) - 1);
-    new_value = std::round(new_value / snap) * snap;
-  }
-
-  // Clamp and update
-  setValue(std::clamp(new_value, min_, max_));
-
-  emit valueChangedSignal(current_value_);
-  if (value_changed_callback_) {
-    value_changed_callback_(current_value_);
-  }
-
-  // Wrap cursor to prevent it from leaving screen
-  if (std::abs(delta_x) > 200) {
-    QCursor::setPos(scrub_start_pos_);
-  }
-}
-
-void FloatWidget::endScrubbing() {
-  if (!is_scrubbing_)
-    return;
-
-  is_scrubbing_ = false;
-  QApplication::restoreOverrideCursor();
 }
 
 float FloatWidget::sliderToFloat(int slider_value) const {

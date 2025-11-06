@@ -98,20 +98,8 @@ private:
   bool is_expression_mode_ = false;
   QString expression_text_;
 
-  // Value scrubbing
-  bool is_scrubbing_ = false;
-  QPoint scrub_start_pos_;
-  float scrub_start_value_;
-
   // Callback
   std::function<void(float)> value_changed_callback_;
-
-  // Override mouse events for value scrubbing on label
-  bool eventFilter(QObject *obj, QEvent *event) override;
-
-  void startScrubbing(const QPoint &pos);
-  void updateScrubbing(const QPoint &pos, Qt::KeyboardModifiers modifiers);
-  void endScrubbing();
 
   // Helper to convert slider value to float
   float sliderToFloat(int slider_value) const;

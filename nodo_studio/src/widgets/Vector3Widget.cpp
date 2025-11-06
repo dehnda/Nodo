@@ -48,14 +48,8 @@ QWidget *Vector3Widget::createControlWidget() {
                                                 "  font-size: 11px; "
                                                 "  font-weight: bold; "
                                                 "  padding: 0px 2px; "
-                                                "}"
-                                                "QLabel:hover { "
-                                                "  color: %2; "
                                                 "}")
-                                            .arg(component_colors[i])
-                                            .arg(COLOR_ACCENT));
-    component_labels_[i]->setCursor(Qt::SizeHorCursor);
-    component_labels_[i]->installEventFilter(this);
+                                            .arg(component_colors[i]));
     component_labels_[i]->setProperty("component_index", i); // Store index
 
     numeric_layout->addWidget(component_labels_[i]);
@@ -215,9 +209,6 @@ QWidget *Vector3Widget::createControlWidget() {
   // Start in numeric mode
   expression_container_->hide();
 
-  // Enable drag indicator (components have their own drag)
-  enableDragIndicator(true);
-
   return main_container;
 }
 
@@ -313,77 +304,6 @@ void Vector3Widget::updateComponent(int component, double value,
   }
 }
 
-bool Vector3Widget::eventFilter(QObject *obj, QEvent *event) {
-  // Check if this is a component label
-  for (int i = 0; i < 3; ++i) {
-    if (obj == component_labels_[i]) {
-      if (event->type() == QEvent::MouseButtonPress) {
-        auto *mouseEvent = static_cast<QMouseEvent *>(event);
-        if (mouseEvent->button() == Qt::LeftButton) {
-          startScrubbing(i, mouseEvent->globalPosition().toPoint());
-          return true;
-        }
-      } else if (event->type() == QEvent::MouseMove && is_scrubbing_[i]) {
-        auto *mouseEvent = static_cast<QMouseEvent *>(event);
-        updateScrubbing(i, mouseEvent->globalPosition().toPoint(),
-                        mouseEvent->modifiers());
-        return true;
-      } else if (event->type() == QEvent::MouseButtonRelease &&
-                 is_scrubbing_[i]) {
-        endScrubbing(i);
-        return true;
-      }
-    }
-  }
-
-  return BaseParameterWidget::eventFilter(obj, event);
-}
-
-void Vector3Widget::startScrubbing(int component, const QPoint &pos) {
-  is_scrubbing_[component] = true;
-  scrub_start_pos_[component] = pos;
-  scrub_start_value_[component] = values_[component];
-  QApplication::setOverrideCursor(Qt::BlankCursor);
-}
-
-void Vector3Widget::updateScrubbing(int component, const QPoint &pos,
-                                    Qt::KeyboardModifiers modifiers) {
-  if (!is_scrubbing_[component])
-    return;
-
-  int delta_x = pos.x() - scrub_start_pos_[component].x();
-
-  double multiplier = 0.01; // Base sensitivity
-  if (modifiers & Qt::ShiftModifier) {
-    multiplier = 0.001; // Fine
-  } else if (modifiers & Qt::ControlModifier) {
-    multiplier = 0.1; // Coarse
-  }
-
-  double delta_value = delta_x * multiplier;
-  double new_value = scrub_start_value_[component] + delta_value;
-
-  // Snap to 0.1 increments with Alt
-  if (modifiers & Qt::AltModifier) {
-    new_value = std::round(new_value * 10.0) / 10.0;
-  }
-
-  updateComponent(component, new_value);
-
-  // Wrap cursor
-  if (std::abs(delta_x) > 200) {
-    QCursor::setPos(scrub_start_pos_[component]);
-  }
-}
-
-void Vector3Widget::endScrubbing(int component) {
-  if (!is_scrubbing_[component])
-    return;
-
-  is_scrubbing_[component] = false;
-  QApplication::restoreOverrideCursor();
-}
-
 // === Expression Mode Methods (M3.3 Phase 1) ===
 
 void Vector3Widget::setExpressionMode(bool enabled) {
@@ -414,11 +334,6 @@ void Vector3Widget::setExpressionMode(bool enabled) {
 
     // M3.3 Phase 5: Enable auto-completer
     expression_completer_->setEnabled(true);
-
-    // Disable value scrubbing in expression mode
-    for (int i = 0; i < 3; ++i) {
-      component_labels_[i]->setCursor(Qt::ArrowCursor);
-    }
   } else {
     // Switch to numeric mode
     expression_container_->hide();
@@ -428,11 +343,6 @@ void Vector3Widget::setExpressionMode(bool enabled) {
 
     // M3.3 Phase 5: Disable auto-completer
     expression_completer_->setEnabled(false);
-
-    // Re-enable value scrubbing
-    for (int i = 0; i < 3; ++i) {
-      component_labels_[i]->setCursor(Qt::SizeHorCursor);
-    }
   }
 }
 

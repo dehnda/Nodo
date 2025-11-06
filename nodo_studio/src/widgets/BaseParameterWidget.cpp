@@ -38,18 +38,7 @@ BaseParameterWidget::BaseParameterWidget(const QString &label,
   label_widget_->setFixedWidth(110); // Match HTML design
   label_widget_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-  // Create drag indicator (small blue square)
-  drag_indicator_ = new QLabel("■", label_container);
-  drag_indicator_->setStyleSheet(QString("QLabel { "
-                                         "  color: %1; "
-                                         "  font-size: 8px; "
-                                         "  opacity: 0; "
-                                         "}")
-                                     .arg(COLOR_ACCENT));
-  drag_indicator_->setVisible(false); // Hidden by default
-
   label_layout->addWidget(label_widget_);
-  label_layout->addWidget(drag_indicator_);
   label_layout->addStretch();
 
   // Set tooltip if description provided
@@ -111,38 +100,12 @@ void BaseParameterWidget::setEnabled(bool enabled) {
 }
 
 void BaseParameterWidget::enableDragIndicator(bool enable) {
-  if (drag_indicator_ != nullptr) {
-    drag_indicator_->setVisible(enable);
-
-    if (enable) {
-      // Install event filter on label to show indicator on hover
-      label_widget_->installEventFilter(this);
-      label_widget_->setAttribute(Qt::WA_Hover);
-    }
-  }
+  // Drag indicator functionality removed
+  Q_UNUSED(enable);
 }
 
 bool BaseParameterWidget::eventFilter(QObject *obj, QEvent *event) {
-  if (obj == label_widget_ && drag_indicator_ != nullptr &&
-      drag_indicator_->isVisible()) {
-    if (event->type() == QEvent::Enter) {
-      // Show drag indicator on hover
-      drag_indicator_->setStyleSheet(QString("QLabel { "
-                                             "  color: %1; "
-                                             "  font-size: 8px; "
-                                             "}")
-                                         .arg(COLOR_ACCENT));
-    } else if (event->type() == QEvent::Leave) {
-      // Hide drag indicator when not hovering
-      drag_indicator_->setStyleSheet(QString("QLabel { "
-                                             "  color: %1; "
-                                             "  font-size: 8px; "
-                                             "  opacity: 0; "
-                                             "}")
-                                         .arg(COLOR_ACCENT));
-    }
-  }
-
+  // Drag indicator hover functionality removed
   return QWidget::eventFilter(obj, event);
 }
 

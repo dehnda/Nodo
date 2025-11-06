@@ -81,7 +81,6 @@ signals:
 
 protected:
   QWidget *createControlWidget() override;
-  bool eventFilter(QObject *obj, QEvent *event) override;
 
 private slots:
   void onSpinBoxValueChanged(int component, double value);
@@ -91,10 +90,6 @@ private slots:
 
 private:
   void updateComponent(int component, double value, bool emit_signal = true);
-  void startScrubbing(int component, const QPoint &pos);
-  void updateScrubbing(int component, const QPoint &pos,
-                       Qt::KeyboardModifiers modifiers);
-  void endScrubbing(int component);
 
   std::array<double, 3> values_{0.0, 0.0, 0.0};
   std::array<double, 3> min_values_{-1000.0, -1000.0, -1000.0};
@@ -117,11 +112,6 @@ private:
   // Expression mode state
   bool is_expression_mode_{false};
   QString expression_text_;
-
-  // Scrubbing state per component
-  std::array<bool, 3> is_scrubbing_{false, false, false};
-  std::array<QPoint, 3> scrub_start_pos_;
-  std::array<double, 3> scrub_start_value_{0.0, 0.0, 0.0};
 
   std::function<void(double, double, double)> value_changed_callback_;
 
