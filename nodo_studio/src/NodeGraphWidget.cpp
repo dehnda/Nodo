@@ -597,7 +597,15 @@ ConnectionGraphicsItem::ConnectionGraphicsItem(int connection_id,
 }
 
 QRectF ConnectionGraphicsItem::boundingRect() const {
-  return path_.boundingRect();
+  return path_.boundingRect().adjusted(-10, -10, 10, 10);
+}
+
+QPainterPath ConnectionGraphicsItem::shape() const {
+  // Create a wider hit area for better selection
+  // This makes the connection easier to click without being visually thick
+  QPainterPathStroker stroker;
+  stroker.setWidth(12.0); // Wide hit area (12 pixels on each side)
+  return stroker.createStroke(path_);
 }
 
 void ConnectionGraphicsItem::paint(QPainter *painter,
@@ -612,8 +620,8 @@ void ConnectionGraphicsItem::paint(QPainter *painter,
   if (isSelected()) {
     line_color = QColor(255, 150, 50); // Orange for selected
     line_width = 3.5F;
-  } else if (option->state & QStyle::State_MouseOver) {
-    line_color = QColor(220, 220, 240); // Lighter when hovered
+  } else if (is_hovered_) {
+    line_color = QColor(100, 150, 255); // Blue when hovered
     line_width = 3.0F;
   }
 
@@ -621,6 +629,20 @@ void ConnectionGraphicsItem::paint(QPainter *painter,
   painter->setPen(pen);
   painter->setBrush(Qt::NoBrush);
   painter->drawPath(path_);
+}
+
+void ConnectionGraphicsItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event) {
+  is_hovered_ = true;
+  setCursor(Qt::PointingHandCursor);
+  update();
+  QGraphicsItem::hoverEnterEvent(event);
+}
+
+void ConnectionGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) {
+  is_hovered_ = false;
+  unsetCursor();
+  update();
+  QGraphicsItem::hoverLeaveEvent(event);
 }
 
 void ConnectionGraphicsItem::update_path() {
@@ -1026,13 +1048,11 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
       return;
     }
 
-    // If we clicked on something else (like a connection), clear selection
-    // unless Shift is held
+    // If we clicked on something else (like a connection), let QGraphicsView
+    // handle it This allows connections to be selected with a single click
     if (item != nullptr) {
-      if (!(event->modifiers() & Qt::ShiftModifier)) {
-        clear_selection();
-      }
-      event->accept();
+      // Pass to QGraphicsView to handle selection of connections, etc.
+      QGraphicsView::mousePressEvent(event);
       return;
     }
 
@@ -1339,10 +1359,26 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
   // Store the scene position for node creation
   context_menu_scene_pos_ = mapToScene(event->pos());
 
-  // Check if we're clicking on a node
+  // Check what item we're clicking on
   QGraphicsItem *item = scene_->itemAt(context_menu_scene_pos_, transform());
-  auto *node_item = dynamic_cast<NodeGraphicsItem *>(item);
 
+  // Check for connection first (connections are drawn under nodes)
+  auto *connection_item = dynamic_cast<ConnectionGraphicsItem *>(item);
+  if (connection_item != nullptr) {
+    // Context menu for connection
+    QMenu menu(this);
+    menu.addAction("Delete Connection", [this, connection_item]() {
+      QVector<int> ids;
+      ids.push_back(connection_item->get_connection_id());
+      emit connections_deleted(ids);
+    });
+    menu.exec(event->globalPos());
+    event->accept();
+    return;
+  }
+
+  // Check for node
+  auto *node_item = dynamic_cast<NodeGraphicsItem *>(item);
   if (node_item != nullptr) {
     // Context menu for existing node
     QMenu menu(this);

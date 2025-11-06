@@ -205,6 +205,7 @@ public:
                                   int target_pin);
 
   QRectF boundingRect() const override;
+  QPainterPath shape() const override; // For better hit testing
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
 
@@ -213,6 +214,10 @@ public:
   // Update connection when nodes move
   void update_path();
 
+protected:
+  void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+
 private:
   int connection_id_;
   NodeGraphicsItem *source_node_;
@@ -220,6 +225,7 @@ private:
   NodeGraphicsItem *target_node_;
   int target_pin_;
   QPainterPath path_;
+  bool is_hovered_ = false;
 };
 
 /**
