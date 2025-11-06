@@ -1,0 +1,159 @@
+site_name: Nodo Documentation
+site_description: Procedural 3D modeling with node-based workflows
+site_author: Nodo Team
+site_url: https://docs.nodo3d.com
+
+theme:
+  name: material
+  palette:
+    # Dark mode (default)
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    # Light mode
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+  features:
+    - navigation.instant      # Fast page loading
+    - navigation.tracking     # URL updates as you scroll
+    - navigation.tabs         # Top-level sections in tabs
+    - navigation.sections     # Sections in sidebar
+    - navigation.expand       # Expand subsections by default
+    - navigation.top          # Back to top button
+    - search.highlight        # Highlight search terms
+    - search.suggest          # Search suggestions
+    - content.code.copy       # Copy button for code blocks
+
+  icon:
+    repo: fontawesome/brands/github
+
+# Navigation structure
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Interface Overview: getting-started/interface.md
+    - Your First Project: getting-started/first-project.md
+
+  - Core Concepts:
+    - Procedural Modeling: concepts/procedural-modeling.md
+    - Node Graph Basics: concepts/node-graph.md
+    - Geometry Types: concepts/geometry-types.md
+    - Attributes: concepts/attributes.md
+    - Groups: concepts/groups.md
+
+  - Node Reference:
+    - Overview: nodes/index.md
+    - Generator:
+      - Sphere: nodes/generator/sphere.md
+      - Box: nodes/generator/box.md
+      - Cylinder: nodes/generator/cylinder.md
+      - Torus: nodes/generator/torus.md
+      - Grid: nodes/generator/grid.md
+      - Line: nodes/generator/line.md
+    - Modifier:
+      - Transform: nodes/modifier/transform.md
+      - Extrude: nodes/modifier/extrude.md
+      - Smooth: nodes/modifier/smooth_(laplacian).md
+      - Subdivide: nodes/modifier/subdivide.md
+      - Mirror: nodes/modifier/mirror.md
+      - Bend: nodes/modifier/bend.md
+      - Twist: nodes/modifier/twist.md
+    - Boolean:
+      - Boolean: nodes/boolean/boolean.md
+      - Merge: nodes/boolean/merge.md
+    - Array:
+      - Array: nodes/array/array.md
+      - Scatter: nodes/array/scatter.md
+      - Copy to Points: nodes/array/copy_to_points.md
+    - Attribute:
+      - Attribute Create: nodes/attribute/attribute_create.md
+      - Attribute Delete: nodes/attribute/attribute_delete.md
+      - Color: nodes/attribute/color.md
+    - Group:
+      - Group: nodes/group/group.md
+      - Group Delete: nodes/group/group_delete.md
+      - Group Combine: nodes/group/group_combine.md
+
+  - Expressions:
+    - Graph Parameters: expressions/graph-parameters.md
+    - Expression Syntax: expressions/expression-syntax.md
+    - Math Functions: expressions/math-functions.md
+    - Channel References: expressions/ch-references.md
+
+  - Workflows:
+    - Architectural Modeling: workflows/architectural.md
+    - Game Assets: workflows/game-assets.md
+    - Procedural Patterns: workflows/patterns.md
+
+  - Reference:
+    - Keyboard Shortcuts: reference/keyboard-shortcuts.md
+    - File Format: reference/file-format.md
+    - FAQ: reference/faq.md
+
+# Extensions
+markdown_extensions:
+  - abbr                      # Abbreviations
+  - admonition                # Call-outs (note, warning, etc.)
+  - attr_list                 # Add HTML attributes to elements
+  - def_list                  # Definition lists
+  - footnotes                 # Footnotes
+  - md_in_html                # Markdown inside HTML
+  - toc:
+      permalink: true         # Add ¶ links to headers
+      toc_depth: 3
+
+  # Code highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite     # Inline code highlighting
+  - pymdownx.snippets         # Include code from files
+  - pymdownx.superfences      # Advanced code blocks
+
+  # Enhanced formatting
+  - pymdownx.betterem:        # Better emphasis handling
+      smart_enable: all
+  - pymdownx.caret            # Superscript with ^^
+  - pymdownx.mark             # Highlighting with ==
+  - pymdownx.tilde            # Strikethrough with ~~
+  - pymdownx.keys             # Keyboard keys
+  - pymdownx.smartsymbols     # Special symbols
+
+  # Content tabs and details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+
+  # Task lists
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - minify:
+      minify_html: true
+
+# Extra CSS/JS
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://nodo3d.com
+
+# Copyright
+copyright: Copyright &copy; 2024-2025 Nodo. All rights reserved.
