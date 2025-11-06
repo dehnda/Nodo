@@ -92,12 +92,23 @@ private:
   QList<QAction *> recent_file_actions_;
   static constexpr int MaxRecentFiles = 10;
 
+  // Current file tracking
+  QString current_file_path_;
+  bool is_modified_;
+
 private slots:
   // File menu actions
   void onNewScene();
   void onOpenScene();
   void onSaveScene();
-  void onExportMesh();
+  void onSaveSceneAs();
+  void onRevertToSaved();
+  void onImportGeometry();
+  void onImportGraph();
+  void onExportGeometry();
+  void onExportGraph();
+  void onExportSelection();
+  void onExportMesh(); // Legacy, will redirect to onExportGeometry
   void onExit();
 
   // Edit menu actions

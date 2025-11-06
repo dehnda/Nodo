@@ -35,7 +35,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
 
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
@@ -85,14 +86,17 @@ auto MainWindow::setupMenuBar() -> void {
   // Get the menu bar (QMainWindow provides this)
   QMenuBar *menuBar = this->menuBar();
 
-  // Create a File menu
+  // ============================================================================
+  // File Menu
+  // ============================================================================
   QMenu *fileMenu = menuBar->addMenu("&File");
 
-  // Add actions to the File menu
+  // New, Open, Recent
   QAction *newAction = fileMenu->addAction("&New Scene");
-  QAction *openAction = fileMenu->addAction("&Open Scene");
-  QAction *saveAction = fileMenu->addAction("&Save Scene");
-  fileMenu->addSeparator(); // Visual separator line
+  newAction->setShortcut(QKeySequence::New); // Ctrl+N
+
+  QAction *openAction = fileMenu->addAction("&Open Scene...");
+  openAction->setShortcut(QKeySequence::Open); // Ctrl+O
 
   // Add Recent Projects submenu
   recent_projects_menu_ = fileMenu->addMenu("Recent Projects");
@@ -105,92 +109,299 @@ auto MainWindow::setupMenuBar() -> void {
   }
   updateRecentFileActions();
 
-  fileMenu->addSeparator(); // Visual separator line
-  QAction *exportAction = fileMenu->addAction("&Export Mesh...");
-  fileMenu->addSeparator(); // Visual separator line
-  QAction *exitAction = fileMenu->addAction("E&xit");
+  fileMenu->addSeparator();
 
-  // Connect actions to our slot functions
+  // Save operations
+  QAction *saveAction = fileMenu->addAction("&Save Scene");
+  saveAction->setShortcut(QKeySequence::Save); // Ctrl+S
+
+  QAction *saveAsAction = fileMenu->addAction("Save Scene &As...");
+  saveAsAction->setShortcut(QKeySequence::SaveAs); // Ctrl+Shift+S
+
+  QAction *revertAction = fileMenu->addAction("Re&vert to Saved");
+  revertAction->setEnabled(false); // Enable when file is modified
+
+  fileMenu->addSeparator();
+
+  // Import submenu
+  QMenu *importMenu = fileMenu->addMenu("&Import");
+  QAction *importGeomAction = importMenu->addAction("Geometry (.obj, .stl)...");
+  QAction *importGraphAction = importMenu->addAction("Graph (.nfg)...");
+
+  // Export submenu
+  QMenu *exportMenu = fileMenu->addMenu("&Export");
+  QAction *exportCurrentAction =
+      exportMenu->addAction("Current Output (.obj)...");
+  QAction *exportAllAction = exportMenu->addAction("All Outputs...");
+  exportAllAction->setEnabled(false); // TODO: Implement in future
+  QAction *exportSelectionAction = exportMenu->addAction("Selected Node...");
+  exportMenu->addSeparator();
+  QAction *exportGraphAction =
+      exportMenu->addAction("Graph Definition (.nfg)...");
+
+  fileMenu->addSeparator();
+
+  // Exit
+  QAction *exitAction = fileMenu->addAction("E&xit");
+  exitAction->setShortcut(QKeySequence::Quit); // Ctrl+Q
+
+  // Connect File menu actions
   connect(newAction, &QAction::triggered, this, &MainWindow::onNewScene);
   connect(openAction, &QAction::triggered, this, &MainWindow::onOpenScene);
   connect(saveAction, &QAction::triggered, this, &MainWindow::onSaveScene);
-  connect(exportAction, &QAction::triggered, this, &MainWindow::onExportMesh);
+  connect(saveAsAction, &QAction::triggered, this, &MainWindow::onSaveSceneAs);
+  connect(revertAction, &QAction::triggered, this,
+          &MainWindow::onRevertToSaved);
+  connect(importGeomAction, &QAction::triggered, this,
+          &MainWindow::onImportGeometry);
+  connect(importGraphAction, &QAction::triggered, this,
+          &MainWindow::onImportGraph);
+  connect(exportCurrentAction, &QAction::triggered, this,
+          &MainWindow::onExportGeometry);
+  connect(exportSelectionAction, &QAction::triggered, this,
+          &MainWindow::onExportSelection);
+  connect(exportGraphAction, &QAction::triggered, this,
+          &MainWindow::onExportGraph);
   connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
 
-  // Create an Edit menu
+  // ============================================================================
+  // Edit Menu
+  // ============================================================================
   QMenu *editMenu = menuBar->addMenu("&Edit");
 
+  // Undo/Redo
   undo_action_ = editMenu->addAction("&Undo");
   undo_action_->setShortcut(QKeySequence::Undo); // Ctrl+Z
   undo_action_->setEnabled(false);
 
   redo_action_ = editMenu->addAction("&Redo");
-  redo_action_->setShortcut(QKeySequence::Redo); // Ctrl+Shift+Z
+  redo_action_->setShortcut(QKeySequence::Redo); // Ctrl+Shift+Z or Ctrl+Y
   redo_action_->setEnabled(false);
 
+  editMenu->addSeparator();
+
+  // Node editing operations
+  QAction *cutAction = editMenu->addAction("Cu&t");
+  cutAction->setShortcut(QKeySequence::Cut); // Ctrl+X
+  cutAction->setEnabled(false);              // TODO: Implement in M3.6
+
+  QAction *copyAction = editMenu->addAction("&Copy");
+  copyAction->setShortcut(QKeySequence::Copy); // Ctrl+C
+  copyAction->setEnabled(false);               // TODO: Implement in M3.6
+
+  QAction *pasteAction = editMenu->addAction("&Paste");
+  pasteAction->setShortcut(QKeySequence::Paste); // Ctrl+V
+  pasteAction->setEnabled(false);                // TODO: Implement in M3.6
+
+  QAction *duplicateAction = editMenu->addAction("&Duplicate");
+  duplicateAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
+  duplicateAction->setEnabled(false); // TODO: Implement in M3.6
+
+  QAction *deleteAction = editMenu->addAction("&Delete");
+  deleteAction->setShortcut(QKeySequence::Delete);
+  deleteAction->setEnabled(false); // TODO: Implement in M3.6
+
+  editMenu->addSeparator();
+
+  // Selection operations
+  QAction *selectAllAction = editMenu->addAction("Select &All");
+  selectAllAction->setShortcut(QKeySequence(Qt::Key_A));
+  selectAllAction->setEnabled(false); // TODO: Implement in M3.6
+
+  QAction *deselectAllAction = editMenu->addAction("Deselect All");
+  deselectAllAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_A));
+  deselectAllAction->setEnabled(false); // TODO: Implement in M3.6
+
+  QAction *invertSelectionAction = editMenu->addAction("&Invert Selection");
+  invertSelectionAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_I));
+  invertSelectionAction->setEnabled(false); // TODO: Implement in M3.6
+
+  // Connect Edit menu actions
   connect(undo_action_, &QAction::triggered, this, &MainWindow::onUndo);
   connect(redo_action_, &QAction::triggered, this, &MainWindow::onRedo);
+  // TODO: Connect Cut/Copy/Paste/Duplicate/Delete/Select actions in M3.6
 
-  // Create a View menu
+  // ============================================================================
+  // View Menu
+  // ============================================================================
   QMenu *viewMenu = menuBar->addMenu("&View");
 
-  QAction *clearAction = viewMenu->addAction("&Clear Viewport");
+  // Frame operations
+  QAction *frameAllAction = viewMenu->addAction("Frame &All");
+  frameAllAction->setShortcut(QKeySequence(Qt::Key_Home));
+  frameAllAction->setEnabled(false); // TODO: Implement in M3.6
+
+  QAction *frameSelectedAction = viewMenu->addAction("Frame &Selected");
+  frameSelectedAction->setShortcut(QKeySequence(Qt::Key_F));
+  frameSelectedAction->setEnabled(false); // TODO: Implement in M3.6
 
   viewMenu->addSeparator();
 
-  // Debug visualization options
-  QAction *wireframeAction = viewMenu->addAction("Show &Wireframe");
-  wireframeAction->setCheckable(true);
-  wireframeAction->setChecked(false);
+  // Viewport Display submenu
+  QMenu *displayModeMenu = viewMenu->addMenu("Viewport &Display");
+  QAction *shadedModeAction = displayModeMenu->addAction("&Shaded");
+  shadedModeAction->setCheckable(true);
+  shadedModeAction->setChecked(true);
 
-  QAction *cullingAction = viewMenu->addAction("Backface C&ulling");
-  cullingAction->setCheckable(true);
-  cullingAction->setChecked(false); // Enabled by default
+  QAction *wireframeModeAction = displayModeMenu->addAction("&Wireframe");
+  wireframeModeAction->setShortcut(QKeySequence(Qt::Key_W));
+  wireframeModeAction->setCheckable(true);
+  wireframeModeAction->setChecked(false);
 
   viewMenu->addSeparator();
 
-  // Edge and vertex visualization (stored as members to connect after viewport
-  // creation)
-  edges_action_ = viewMenu->addAction("Show &Edges");
-  edges_action_->setCheckable(true);
-  edges_action_->setChecked(true); // Enabled by default
+  // Show/Hide submenu
+  QMenu *showHideMenu = viewMenu->addMenu("Show/&Hide");
 
-  vertices_action_ = viewMenu->addAction("Show &Vertices");
+  vertices_action_ = showHideMenu->addAction("&Vertices");
   vertices_action_->setCheckable(true);
-  vertices_action_->setChecked(true); // Enabled by default
+  vertices_action_->setChecked(true);
 
-  viewMenu->addSeparator();
+  edges_action_ = showHideMenu->addAction("&Edges");
+  edges_action_->setCheckable(true);
+  edges_action_->setChecked(true);
 
-  // Normal visualization (stored as members to connect after viewport creation)
-  vertex_normals_action_ = viewMenu->addAction("Show Vertex &Normals");
+  QAction *wireframeOverlayAction =
+      showHideMenu->addAction("Wireframe &Overlay");
+  wireframeOverlayAction->setCheckable(true);
+  wireframeOverlayAction->setChecked(false);
+
+  vertex_normals_action_ = showHideMenu->addAction("Vertex &Normals");
+  vertex_normals_action_->setShortcut(QKeySequence(Qt::Key_N));
   vertex_normals_action_->setCheckable(true);
   vertex_normals_action_->setChecked(false);
 
-  face_normals_action_ = viewMenu->addAction("Show &Face Normals");
+  face_normals_action_ = showHideMenu->addAction("&Face Normals");
+  face_normals_action_->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_N));
   face_normals_action_->setCheckable(true);
   face_normals_action_->setChecked(false);
 
-  // Connect view actions
-  connect(clearAction, &QAction::triggered, this, &MainWindow::onClearViewport);
-  connect(wireframeAction, &QAction::toggled, this,
+  QAction *pointNumbersAction = showHideMenu->addAction("Point &Numbers");
+  pointNumbersAction->setShortcut(QKeySequence(Qt::Key_NumberSign)); // #
+  pointNumbersAction->setCheckable(true);
+  pointNumbersAction->setChecked(false);
+  pointNumbersAction->setEnabled(false); // TODO: Implement
+
+  QAction *gridAction = showHideMenu->addAction("&Grid");
+  gridAction->setShortcut(QKeySequence(Qt::Key_G));
+  gridAction->setCheckable(true);
+  gridAction->setChecked(true);
+  gridAction->setEnabled(false); // TODO: Connect to viewport
+
+  QAction *axesAction = showHideMenu->addAction("&Axes");
+  axesAction->setCheckable(true);
+  axesAction->setChecked(true);
+  axesAction->setEnabled(false); // TODO: Connect to viewport
+
+  viewMenu->addSeparator();
+
+  // Panels submenu (will be populated in setupDockWidgets)
+  QMenu *panelsMenu = viewMenu->addMenu("&Panels");
+  panelsMenu->setObjectName("panelsMenu"); // So we can find it later
+
+  viewMenu->addSeparator();
+
+  // View operations
+  QAction *resetCameraAction = viewMenu->addAction("&Reset Camera");
+  resetCameraAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
+  resetCameraAction->setEnabled(false); // TODO: Implement
+
+  QAction *resetLayoutAction = viewMenu->addAction("Reset &Layout");
+  resetLayoutAction->setEnabled(false); // TODO: Implement in v1.1
+
+  // Connect View menu actions
+  connect(wireframeModeAction, &QAction::toggled, this,
           &MainWindow::onToggleWireframe);
-  connect(cullingAction, &QAction::toggled, this,
-          &MainWindow::onToggleBackfaceCulling);
+  connect(wireframeOverlayAction, &QAction::toggled, this,
+          &MainWindow::onToggleWireframe);
   // Note: viewport widget connections are made in setupDockWidgets() after
   // widget creation
 
-  // Add separator and panel visibility toggles
-  viewMenu->addSeparator();
-
-  // Panel visibility will be added in setupDockWidgets() after panels are
-  // created
-
-  // Create a Graph menu for node graph operations
+  // ============================================================================
+  // Graph Menu
+  // ============================================================================
   QMenu *graphMenu = menuBar->addMenu("&Graph");
-  QAction *testGraphAction = graphMenu->addAction("Create &Test Graph");
-  connect(testGraphAction, &QAction::triggered, this,
-          &MainWindow::onCreateTestGraph);
 
+  // Node operations
+  QAction *addNodeAction = graphMenu->addAction("&Add Node...");
+  addNodeAction->setShortcut(QKeySequence(Qt::Key_Tab));
+  addNodeAction->setEnabled(false); // TODO: Trigger node creation menu
+
+  QAction *createSubgraphAction = graphMenu->addAction("Create &Subgraph");
+  createSubgraphAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_G));
+  createSubgraphAction->setEnabled(false); // TODO: Implement in M4.4
+
+  graphMenu->addSeparator();
+
+  // Node state operations
+  QAction *bypassSelectedAction = graphMenu->addAction("&Bypass Selected");
+  bypassSelectedAction->setShortcut(QKeySequence(Qt::Key_B));
+  bypassSelectedAction->setEnabled(false); // TODO: Implement in M3.6
+
+  QAction *disconnectAction = graphMenu->addAction("&Disconnect Selected");
+  disconnectAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_D));
+  disconnectAction->setEnabled(false); // TODO: Implement in M3.6
+
+  graphMenu->addSeparator();
+
+  // Execution operations
+  QAction *executeGraphAction = graphMenu->addAction("&Execute Graph");
+  executeGraphAction->setShortcut(QKeySequence(Qt::Key_F5));
+  executeGraphAction->setEnabled(false); // TODO: Implement
+
+  QAction *clearCacheAction = graphMenu->addAction("&Clear Cache");
+  clearCacheAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C));
+  clearCacheAction->setEnabled(false); // TODO: Implement
+
+  graphMenu->addSeparator();
+
+  // Graph management
+  QAction *graphParamsAction = graphMenu->addAction("Graph &Parameters...");
+  graphParamsAction->setEnabled(false); // TODO: Open graph parameters panel
+
+  graphMenu->addSeparator();
+
+  // Utilities
+  QAction *validateGraphAction = graphMenu->addAction("&Validate Graph");
+  validateGraphAction->setEnabled(false); // TODO: Implement in v1.1
+
+  QAction *graphStatsAction = graphMenu->addAction("Show &Statistics");
+  graphStatsAction->setEnabled(false); // TODO: Implement in v1.1
+
+  // ============================================================================
+  // Help Menu
+  // ============================================================================
+  QMenu *helpMenu = menuBar->addMenu("&Help");
+
+  QAction *documentationAction = helpMenu->addAction("&Documentation");
+  documentationAction->setShortcut(QKeySequence::HelpContents); // F1
+  documentationAction->setEnabled(false); // TODO: Open docs in browser
+
+  QAction *keyboardShortcutsAction = helpMenu->addAction("&Keyboard Shortcuts");
+  keyboardShortcutsAction->setShortcut(
+      QKeySequence(Qt::CTRL | Qt::Key_Question));
+  keyboardShortcutsAction->setEnabled(
+      false); // TODO: Show shortcuts dialog in M3.6
+
+  QAction *gettingStartedAction = helpMenu->addAction("&Getting Started");
+  gettingStartedAction->setEnabled(false); // TODO: Open tutorial
+
+  helpMenu->addSeparator();
+
+  QAction *reportIssueAction = helpMenu->addAction("Report &Issue...");
+  reportIssueAction->setEnabled(false); // TODO: Open GitHub issues
+
+  QAction *featureRequestAction = helpMenu->addAction("&Feature Request...");
+  featureRequestAction->setEnabled(false); // TODO: Open GitHub discussions
+
+  helpMenu->addSeparator();
+
+  QAction *aboutAction = helpMenu->addAction("&About Nodo Studio");
+  aboutAction->setEnabled(false); // TODO: Show about dialog
+
+  // ============================================================================
+  // Icon Toolbar (Right side of menu bar)
+  // ============================================================================
   // Add icon toolbar to the right corner of menu bar
   auto *icon_toolbar = new QWidget(menuBar);
   auto *toolbar_layout = new QHBoxLayout(icon_toolbar);
@@ -474,15 +685,15 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(graph_parameters_panel_, &GraphParametersPanel::parameters_changed,
           this, &MainWindow::onParameterChanged);
 
-  // Add panel visibility toggles to View menu
-  QMenu *viewMenu = menuBar()->findChild<QMenu *>();
-  if (viewMenu) {
+  // Add panel visibility toggles to View → Panels submenu
+  QMenu *panelsMenu = menuBar()->findChild<QMenu *>("panelsMenu");
+  if (panelsMenu) {
     // Add toggle actions for each dock widget
-    viewMenu->addAction(viewport_dock_->toggleViewAction());
-    viewMenu->addAction(geometry_spreadsheet_dock_->toggleViewAction());
-    viewMenu->addAction(node_graph_dock_->toggleViewAction());
-    viewMenu->addAction(property_dock_->toggleViewAction());
-    viewMenu->addAction(graph_parameters_dock_->toggleViewAction());
+    panelsMenu->addAction(viewport_dock_->toggleViewAction());
+    panelsMenu->addAction(geometry_spreadsheet_dock_->toggleViewAction());
+    panelsMenu->addAction(node_graph_dock_->toggleViewAction());
+    panelsMenu->addAction(property_dock_->toggleViewAction());
+    panelsMenu->addAction(graph_parameters_dock_->toggleViewAction());
   }
 }
 
@@ -551,6 +762,7 @@ void MainWindow::onNewScene() {
 
   // Create a fresh empty graph to avoid signal issues
   node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
+  execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
 
   // Reconnect the node graph widget to the new graph
   node_graph_widget_->set_graph(node_graph_.get());
@@ -562,6 +774,17 @@ void MainWindow::onNewScene() {
   // Clear viewport and property panel
   viewport_widget_->clearMesh();
   property_panel_->clearProperties();
+
+  // Clear undo stack
+  undo_stack_->clear();
+
+  // Clear status bar
+  status_bar_widget_->setNodeCount(0, 17);
+
+  // Reset file tracking
+  current_file_path_.clear();
+  is_modified_ = false;
+  setWindowTitle("Nodo Studio - Untitled");
 
   statusBar()->showMessage("New scene created", 2000);
 }
@@ -595,6 +818,11 @@ void MainWindow::onOpenScene() {
     viewport_widget_->clearMesh();
     property_panel_->clearProperties();
 
+    // Track the opened file
+    current_file_path_ = file_path;
+    is_modified_ = false;
+    setWindowTitle("Nodo Studio - " + QFileInfo(file_path).fileName());
+
     // Add to recent files
     addToRecentFiles(file_path);
 
@@ -607,10 +835,31 @@ void MainWindow::onOpenScene() {
 }
 
 void MainWindow::onSaveScene() {
+  // If we have a current file, save to it directly
+  if (!current_file_path_.isEmpty()) {
+    using nodo::graph::GraphSerializer;
+    bool success = GraphSerializer::save_to_file(
+        *node_graph_, current_file_path_.toStdString());
+    if (success) {
+      is_modified_ = false;
+      statusBar()->showMessage("Graph saved successfully", 3000);
+      addToRecentFiles(current_file_path_);
+    } else {
+      QMessageBox::warning(this, "Save Failed",
+                           "Failed to save node graph to file.");
+      statusBar()->showMessage("Failed to save graph", 3000);
+    }
+  } else {
+    // No current file, prompt for Save As
+    onSaveSceneAs();
+  }
+}
+
+void MainWindow::onSaveSceneAs() {
   using nodo::graph::GraphSerializer;
 
   QString file_path = QFileDialog::getSaveFileName(
-      this, "Save Node Graph", "", "NodeFlux Graph (*.nfg);;All Files (*)");
+      this, "Save Node Graph As", "", "NodeFlux Graph (*.nfg);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return; // User cancelled
@@ -625,12 +874,85 @@ void MainWindow::onSaveScene() {
       GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
 
   if (success) {
+    current_file_path_ = file_path;
+    is_modified_ = false;
+    setWindowTitle("Nodo Studio - " + QFileInfo(file_path).fileName());
     statusBar()->showMessage("Graph saved successfully", 3000);
+    addToRecentFiles(file_path);
   } else {
     QMessageBox::warning(this, "Save Failed",
                          "Failed to save node graph to file.");
     statusBar()->showMessage("Failed to save graph", 3000);
   }
+}
+
+void MainWindow::onRevertToSaved() {
+  if (current_file_path_.isEmpty()) {
+    return;
+  }
+
+  auto reply = QMessageBox::question(
+      this, "Revert to Saved", "Discard all changes and reload from disk?",
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+  if (reply == QMessageBox::Yes) {
+    // For now, revert is essentially re-opening the current file
+    // TODO: Implement proper graph replacement without recreating widgets
+    using nodo::graph::GraphSerializer;
+    auto loaded_graph =
+        GraphSerializer::load_from_file(current_file_path_.toStdString());
+
+    if (loaded_graph.has_value()) {
+      node_graph_ =
+          std::make_unique<nodo::graph::NodeGraph>(std::move(*loaded_graph));
+      is_modified_ = false;
+      statusBar()->showMessage("Graph reverted to saved version", 3000);
+
+      // For now, show a message that the graph needs to be reloaded
+      // Full implementation would require widget->setGraph() methods
+      QMessageBox::information(this, "Revert Complete",
+                               "Graph reverted. Please reload the file using "
+                               "File → Open for full functionality.\n"
+                               "Full revert support coming in v1.1.");
+    } else {
+      QMessageBox::warning(this, "Revert Failed",
+                           "Failed to reload graph from file.");
+    }
+  }
+}
+
+void MainWindow::onImportGeometry() {
+  // TODO: Implement geometry import
+  // This would create a File node and load the selected geometry
+  QMessageBox::information(this, "Import Geometry",
+                           "Geometry import coming in v1.1!\n\n"
+                           "For now, use the File node in the node graph.");
+}
+
+void MainWindow::onImportGraph() {
+  // Import graph merges another .nfg into the current graph
+  // TODO: Implement graph merging
+  QMessageBox::information(this, "Import Graph",
+                           "Graph import/merge coming in v1.1!\n\n"
+                           "For now, use File → Open to load a graph.");
+}
+
+void MainWindow::onExportGeometry() {
+  // This is the same as onExportMesh, just renamed for consistency
+  onExportMesh();
+}
+
+void MainWindow::onExportGraph() {
+  // Export graph is the same as Save As
+  onSaveSceneAs();
+}
+
+void MainWindow::onExportSelection() {
+  // TODO: Export only the selected node's geometry
+  QMessageBox::information(this, "Export Selection",
+                           "Export selected node coming in v1.1!\n\n"
+                           "For now, set the display flag on the node "
+                           "and use Export → Current Output.");
 }
 
 void MainWindow::onExportMesh() {

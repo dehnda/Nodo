@@ -112,7 +112,7 @@
 7. **Patch 7 - Utility & Workflow (5 nodes)** ✅ COMPLETE
    - ✅ Switch, ✅ Null, ✅ Output, ✅ File (Import), ✅ Export
    - Universal: Group only
-   - **Deferred to Phase 2:** Cache, Time, Subnetwork (need infrastructure)
+   - **Deferred to Phase 2:** Cache, Time, Subgraph (need infrastructure)
 
 8. **Patch 8 - Deformers (3 nodes)** ✅ COMPLETE
    - ✅ Bend, ✅ Twist, ✅ Lattice
@@ -705,14 +705,14 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 ### Milestones
 
-#### **M4.4: Subgraphs/Subnets** (v1.1 - 3-4 weeks) 🔮
+#### **M4.4: Subgraphs** (v1.1 - 3-4 weeks) 🔮
 **Purpose:** Enable reusable node groups and cleaner graph organization for complex workflows
 
 **User Benefits:**
-- Collapse complex node networks into single "subnet" nodes
+- Collapse complex node networks into single "subgraph" nodes
 - Create reusable node groups (e.g., "Wood Grain Shader", "Brick Wall Generator")
 - Cleaner graph view - hide implementation details
-- Easier collaboration - share subnet definitions
+- Easier collaboration - share subgraph definitions
 - Future: Potential for asset library/marketplace
 
 **Backend Implementation (nodo_core):**
@@ -720,7 +720,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 1. **SubnetworkNode Class** (2-3 days)
    - [ ] Create `SubnetworkNode` inheriting from `SOPNode`
    - [ ] Internal `NodeGraph` instance (self-contained graph)
-   - [ ] Input/Output proxy nodes inside subnet:
+   - [ ] Input/Output proxy nodes inside subgraph:
      - [ ] `SubnetInputNode` - receives data from parent graph
      - [ ] `SubnetOutputNode` - sends data to parent graph
    - [ ] Parameters:
@@ -740,7 +740,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
    - [ ] Error propagation from internal graph to parent
 
 3. **Serialization** (1 day)
-   - [ ] Save/load subnet definition in .nfg format:
+   - [ ] Save/load subgraph definition in .nfg format:
      ```json
      {
        "type": "Subnetwork",
@@ -752,7 +752,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
      }
      ```
    - [ ] Preserve internal node states and connections
-   - [ ] Handle nested subnets (subnets within subnets)
+   - [ ] Handle nested subgraphs (subnets within subgraphs)
 
 4. **Parameter Promotion** (Optional - v1.2)
    - [ ] "Promote to Subnet Interface" - expose internal parameters
@@ -762,33 +762,33 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 **Frontend Implementation (nodo_studio):**
 
 1. **Subnet Creation UI** (2 days)
-   - [ ] Select nodes → Right-click → "Create Subnet"
+   - [ ] Select nodes → Right-click → "Create Subgraph"
    - [ ] Algorithm:
      - Identify external connections (inputs/outputs)
-     - Create SubnetworkNode with appropriate input/output counts
-     - Move selected nodes into subnet's internal graph
-     - Create SubnetInput/SubnetOutput nodes
+     - Create SubgraphworkNode with appropriate input/output counts
+     - Move selected nodes into subgraph's internal graph
+     - Create SubgraphInput/SubnetOutput nodes
      - Re-connect to external nodes
-     - Position subnet node at centroid of selected nodes
+     - Position subgraph node at centroid of selected nodes
    - [ ] Undo/redo support via `CreateSubnetCommand`
 
 2. **Subnet Navigation** (2 days)
    - [ ] Double-click SubnetworkNode → "dive inside" to edit internal graph
    - [ ] Breadcrumb navigation bar: `Root / Subnet1 / NestedSubnet2`
    - [ ] "Go Up One Level" button/shortcut (Alt+Up or similar)
-   - [ ] Visual indicator when inside subnet (dimmed background, border)
+   - [ ] Visual indicator when inside subgraph (dimmed background, border)
    - [ ] Prevent recursive navigation issues
 
 3. **Subnet Visualization** (1-2 days)
    - [ ] Distinct visual style for SubnetworkNode:
-     - Rounded rectangle with subnet icon
+     - Rounded rectangle with subgraph icon
      - Different color (e.g., purple tint vs regular blue)
      - Input/output pins match internal proxy counts
-   - [ ] Show subnet name (editable, defaults to "Subnet")
+   - [ ] Show subgraph name (editable, defaults to "Subnet")
    - [ ] Optional: thumbnail preview of internal graph (v1.2 feature)
 
 4. **Subnet Expansion** (1 day)
-   - [ ] "Expand Subnet" action → move internal nodes back to parent
+   - [ ] "Expand Subgraph" action → move internal nodes back to parent
    - [ ] Preserves connections and node positions
    - [ ] Undo/redo support
 
@@ -799,31 +799,31 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
   - [ ] Input count (int, 1-4)
   - [ ] Output count (int, 1-2)
   - [ ] Promoted parameters (list, added dynamically)
-- [ ] Button: "Edit Subnet" → same as double-click
+- [ ] Button: "Edit Subgraph" → same as double-click
 
 **Testing & Edge Cases:**
-- [ ] Nested subnets (subnet within subnet)
-- [ ] Circular subnet references (prevent or detect)
-- [ ] Copy/paste subnet nodes (deep copy internal graph)
-- [ ] Undo/redo subnet creation/expansion
+- [ ] Nested subgraphs (subnet within subgraph)
+- [ ] Circular subgraph references (prevent or detect)
+- [ ] Copy/paste subgraph nodes (deep copy internal graph)
+- [ ] Undo/redo subgraph creation/expansion
 - [ ] Serialization round-trip (save/load preserves internals)
-- [ ] Performance: Large subnets (100+ internal nodes)
+- [ ] Performance: Large subgraphs (100+ internal nodes)
 - [ ] Error handling: Missing SubnetInput/SubnetOutput nodes
 
 **Documentation:**
-- [ ] User guide: "Working with Subnetworks"
+- [ ] User guide: "Working with Subgraphs"
 - [ ] Tutorial: "Creating Reusable Node Groups"
-- [ ] Example .nfg with subnets
+- [ ] Example .nfg with subgraphs
 
 **Future Enhancements (v1.2+):**
-- [ ] Subnet library panel (save/load subnet definitions as assets)
+- [ ] Subnet library panel (save/load subgraph definitions as assets)
 - [ ] Parameter promotion UI (promote any internal param to interface)
-- [ ] Subnet versioning (track subnet definition changes)
-- [ ] For-each loops (subnet executes per point/primitive)
+- [ ] Subnet versioning (track subgraph definition changes)
+- [ ] For-each loops (subgraph executes per point/primitive)
 - [ ] Subnet templates/presets
 
 **Success Criteria:**
-- Users can create subnets from selected nodes with 1 click
+- Users can create subgraphs from selected nodes with 1 click
 - Double-click navigation works smoothly
 - Subnet nodes execute correctly in parent graph
 - Serialization preserves all subnet data
@@ -831,7 +831,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 **Time Estimate:** 3-4 weeks
 **Priority:** HIGH - Power users need this for complex workflows
-**Deliverable:** Fully functional subnet system with creation, navigation, and serialization
+**Deliverable:** Fully functional subgraph system with creation, navigation, and serialization
 
 ---
 
@@ -1125,7 +1125,7 @@ Proceed with engine integration only if:
 ### 📋 Next Up
 1. **M3.7: Beta Testing** (2-3 weeks) - Recruit 10-20 testers, gather feedback
 2. **Phase 4: Launch & v1.0 Release** (Q1 2027) - Public release
-3. **M4.4: Subgraphs/Subnets** (v1.1 - 3-4 weeks) - Post-launch feature
+3. **M4.4: Subgraphs** (v1.1 - 3-4 weeks) - Post-launch feature
 4. **M4.5+: Additional features** based on user feedback
 
 ---
@@ -1139,7 +1139,7 @@ Proceed with engine integration only if:
 
 ### End of Phase 4 (Q1-Q2 2027)
 **Review:** What features should we prioritize post-launch?
-- **If strong demand for subnets:** Implement M4.4 (Subgraphs) in v1.1
+- **If strong demand for subgraphs:** Implement M4.4 (Subgraphs) in v1.1
 - **If strong demand for curves:** Implement M4.5 (Curve Toolkit) in v1.1-v1.2
 - **If performance issues reported:** Implement M4.6 (Multithreading) in v1.2
 - **If engine integration requests:** Proceed to Phase 5 (Godot first)
