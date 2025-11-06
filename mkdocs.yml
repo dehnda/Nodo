@@ -1,6 +1,7 @@
 site_name: Nodo Documentation
 site_description: Procedural 3D modeling with node-based workflows
 site_author: Nodo Team
+site_url: https://nodo3d.vercel.app/docs/
 use_directory_urls: true
 
 theme:
