@@ -116,6 +116,29 @@ private slots:
   void onRedo();
   void updateUndoRedoActions();
 
+  // Selection operations
+  void onSelectAll();
+  void onDeselectAll();
+  void onInvertSelection();
+
+  // Node editing operations
+  void onCut();
+  void onCopy();
+  void onPaste();
+  void onDuplicate();
+  void onDelete();
+
+  // View menu actions
+  void onFrameAll();
+  void onFrameSelected();
+
+  // Graph menu actions
+  void onBypassSelected();
+  void onDisconnectSelected();
+
+  // Help menu actions
+  void onShowKeyboardShortcuts();
+
   // View menu actions
   void onClearViewport();
 

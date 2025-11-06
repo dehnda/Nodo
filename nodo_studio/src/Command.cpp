@@ -2,6 +2,7 @@
 #include "NodeGraphWidget.h"
 #include <QPointer>
 #include <QTimer>
+#include <nodo/graph/graph_serializer.hpp>
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/sop/sop_factory.hpp>
 
@@ -14,6 +15,8 @@ class MoveNodeCommand;
 class ChangeParameterCommand;
 class ConnectCommand;
 class DisconnectCommand;
+class PasteNodesCommand;
+class BypassNodesCommand;
 
 /**
  * @brief Command to add a node to the graph
@@ -504,6 +507,263 @@ std::unique_ptr<Command>
 create_disconnect_command(NodeGraphWidget *widget,
                           nodo::graph::NodeGraph *graph, int connection_id) {
   return std::make_unique<DisconnectCommand>(widget, graph, connection_id);
+}
+
+// ============================================================================
+// CompositeCommand Implementation
+// ============================================================================
+
+CompositeCommand::CompositeCommand(const QString &description)
+    : Command(description) {}
+
+void CompositeCommand::execute() {
+  for (auto &cmd : commands_) {
+    cmd->execute();
+  }
+}
+
+void CompositeCommand::undo() {
+  // Undo in reverse order
+  for (auto it = commands_.rbegin(); it != commands_.rend(); ++it) {
+    (*it)->undo();
+  }
+}
+
+void CompositeCommand::add_command(std::unique_ptr<Command> cmd) {
+  commands_.push_back(std::move(cmd));
+}
+
+// ============================================================================
+// PasteNodesCommand Implementation
+// ============================================================================
+
+class PasteNodesCommand : public Command {
+public:
+  PasteNodesCommand(NodeGraphWidget *widget, nodo::graph::NodeGraph *graph,
+                    const std::string &json_data, float offset_x,
+                    float offset_y)
+      : Command("Paste Nodes"), widget_(widget), graph_(graph),
+        json_data_(json_data), offset_x_(offset_x), offset_y_(offset_y) {}
+
+  void execute() override {
+    // Parse clipboard JSON
+    auto clipboard_graph_opt =
+        nodo::graph::GraphSerializer::deserialize_from_json(json_data_);
+
+    if (!clipboard_graph_opt) {
+      return;
+    }
+
+    const auto &clipboard_graph = clipboard_graph_opt.value();
+
+    // If this is the first execution, create the nodes and store IDs
+    if (pasted_node_ids_.empty()) {
+      // Map old IDs to new IDs
+      std::unordered_map<int, int> old_to_new_id_map;
+
+      // Paste nodes
+      for (const auto &node_ptr : clipboard_graph.get_nodes()) {
+        const auto *node = node_ptr.get();
+        if (node == nullptr)
+          continue;
+
+        int old_node_id = node->get_id();
+        int new_node_id = graph_->add_node(node->get_type());
+        old_to_new_id_map[old_node_id] = new_node_id;
+        pasted_node_ids_.push_back(new_node_id);
+
+        // Store node info for redo
+        NodeInfo info;
+        info.node_id = new_node_id;
+        info.node_type = node->get_type();
+        auto [pos_x, pos_y] = node->get_position();
+        info.position = QPointF(pos_x + offset_x_, pos_y + offset_y_);
+        info.parameters = node->get_parameters();
+        node_info_.push_back(info);
+
+        // Set position
+        auto *new_node = graph_->get_node(new_node_id);
+        if (new_node) {
+          new_node->set_position(info.position.x(), info.position.y());
+
+          // Copy all parameters
+          for (const auto &param : info.parameters) {
+            new_node->set_parameter(param.name, param);
+          }
+        }
+
+        // Create visual representation
+        widget_->create_node_item_public(new_node_id);
+
+        // Select the pasted node
+        auto *node_item = widget_->get_node_item_public(new_node_id);
+        if (node_item) {
+          node_item->setSelected(true);
+        }
+      }
+
+      // Paste connections
+      for (const auto &conn : clipboard_graph.get_connections()) {
+        if (old_to_new_id_map.contains(conn.source_node_id) &&
+            old_to_new_id_map.contains(conn.target_node_id)) {
+
+          int new_source_id = old_to_new_id_map[conn.source_node_id];
+          int new_target_id = old_to_new_id_map[conn.target_node_id];
+
+          int new_conn_id =
+              graph_->add_connection(new_source_id, conn.source_pin_index,
+                                     new_target_id, conn.target_pin_index);
+
+          if (new_conn_id >= 0) {
+            widget_->create_connection_item_public(new_conn_id);
+            pasted_connection_ids_.push_back(new_conn_id);
+
+            // Store connection info
+            ConnectionInfo conn_info;
+            conn_info.connection_id = new_conn_id;
+            conn_info.source_node_id = new_source_id;
+            conn_info.source_pin_index = conn.source_pin_index;
+            conn_info.target_node_id = new_target_id;
+            conn_info.target_pin_index = conn.target_pin_index;
+            connection_info_.push_back(conn_info);
+          }
+        }
+      }
+    } else {
+      // Redo: restore nodes and connections with stored IDs
+      for (const auto &info : node_info_) {
+        graph_->add_node_with_id(info.node_id, info.node_type, "");
+
+        auto *node = graph_->get_node(info.node_id);
+        if (node) {
+          node->set_position(info.position.x(), info.position.y());
+          for (const auto &param : info.parameters) {
+            node->set_parameter(param.name, param);
+          }
+        }
+
+        widget_->create_node_item_public(info.node_id);
+
+        auto *node_item = widget_->get_node_item_public(info.node_id);
+        if (node_item) {
+          node_item->setSelected(true);
+        }
+      }
+
+      // Restore connections
+      for (const auto &conn_info : connection_info_) {
+        graph_->add_connection(
+            conn_info.source_node_id, conn_info.source_pin_index,
+            conn_info.target_node_id, conn_info.target_pin_index);
+        widget_->create_connection_item_public(conn_info.connection_id);
+      }
+    }
+  }
+
+  void undo() override {
+    // Remove connections first
+    for (int conn_id : pasted_connection_ids_) {
+      widget_->remove_connection_item_public(conn_id);
+      graph_->remove_connection(conn_id);
+    }
+
+    // Remove nodes
+    for (int node_id : pasted_node_ids_) {
+      widget_->remove_node_item_public(node_id);
+      graph_->remove_node(node_id);
+    }
+  }
+
+private:
+  struct NodeInfo {
+    int node_id;
+    nodo::graph::NodeType node_type;
+    QPointF position;
+    std::vector<nodo::graph::NodeParameter> parameters;
+  };
+
+  struct ConnectionInfo {
+    int connection_id;
+    int source_node_id;
+    int source_pin_index;
+    int target_node_id;
+    int target_pin_index;
+  };
+
+  NodeGraphWidget *widget_;
+  nodo::graph::NodeGraph *graph_;
+  std::string json_data_;
+  float offset_x_;
+  float offset_y_;
+  QVector<int> pasted_node_ids_;
+  QVector<int> pasted_connection_ids_;
+  std::vector<NodeInfo> node_info_;
+  std::vector<ConnectionInfo> connection_info_;
+};
+
+// ============================================================================
+// BypassNodesCommand Implementation
+// ============================================================================
+
+class BypassNodesCommand : public Command {
+public:
+  BypassNodesCommand(NodeGraphWidget *widget, nodo::graph::NodeGraph *graph,
+                     const QVector<int> &node_ids)
+      : Command("Toggle Bypass"), widget_(widget), graph_(graph),
+        node_ids_(node_ids) {
+    // Store current bypass states
+    for (int node_id : node_ids_) {
+      auto *node_item = widget_->get_node_item_public(node_id);
+      if (node_item != nullptr) {
+        old_bypass_states_[node_id] = node_item->is_bypassed();
+      }
+    }
+  }
+
+  void execute() override {
+    // Toggle bypass state for all nodes
+    for (int node_id : node_ids_) {
+      auto *node_item = widget_->get_node_item_public(node_id);
+      if (node_item != nullptr) {
+        bool old_state = old_bypass_states_[node_id];
+        node_item->set_bypass_flag(!old_state);
+      }
+    }
+  }
+
+  void undo() override {
+    // Restore original bypass states
+    for (int node_id : node_ids_) {
+      auto *node_item = widget_->get_node_item_public(node_id);
+      if (node_item != nullptr) {
+        node_item->set_bypass_flag(old_bypass_states_[node_id]);
+      }
+    }
+  }
+
+private:
+  NodeGraphWidget *widget_;
+  nodo::graph::NodeGraph *graph_;
+  QVector<int> node_ids_;
+  std::unordered_map<int, bool> old_bypass_states_;
+};
+
+// ============================================================================
+// Factory Functions
+// ============================================================================
+
+std::unique_ptr<Command> create_paste_nodes_command(
+    NodeGraphWidget *widget, nodo::graph::NodeGraph *graph,
+    const std::string &json_data, float offset_x, float offset_y) {
+  return std::make_unique<PasteNodesCommand>(widget, graph, json_data, offset_x,
+                                             offset_y);
+}
+
+std::unique_ptr<Command>
+create_bypass_nodes_command(NodeGraphWidget *widget,
+                            nodo::graph::NodeGraph *graph,
+                            const QVector<int> &node_ids) {
+  return std::make_unique<BypassNodesCommand>(widget, graph, node_ids);
 }
 
 } // namespace nodo::studio

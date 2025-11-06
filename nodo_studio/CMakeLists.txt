@@ -35,6 +35,7 @@ set(STUDIO_SOURCES
     src/IconManager.cpp
     src/ParameterWidgetFactory.cpp
     src/GraphParametersPanel.cpp
+    src/KeyboardShortcutsDialog.cpp
     # Parameter widgets
     src/widgets/BaseParameterWidget.cpp
     src/widgets/FloatWidget.cpp
@@ -68,6 +69,7 @@ set(STUDIO_HEADERS
     src/IconManager.h
     src/ParameterWidgetFactory.h
     src/GraphParametersPanel.h
+    src/KeyboardShortcutsDialog.h
     # Parameter widgets
     src/widgets/BaseParameterWidget.h
     src/widgets/FloatWidget.h

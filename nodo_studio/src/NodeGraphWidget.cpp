@@ -1339,6 +1339,39 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent *event) {
   }
 
   if (event->key() == Qt::Key_F) {
+    // Frame selected nodes (or all if none selected)
+    QVector<int> selected_nodes = get_selected_node_ids();
+
+    if (!selected_nodes.isEmpty()) {
+      // Calculate bounding rect of selected nodes only
+      QRectF bounds;
+      for (int node_id : selected_nodes) {
+        auto it = node_items_.find(node_id);
+        if (it != node_items_.end()) {
+          QRectF node_bounds = it->second->sceneBoundingRect();
+          if (bounds.isNull()) {
+            bounds = node_bounds;
+          } else {
+            bounds = bounds.united(node_bounds);
+          }
+        }
+      }
+
+      if (!bounds.isNull()) {
+        // Add some padding
+        bounds.adjust(-50, -50, 50, 50);
+        fitInView(bounds, Qt::KeepAspectRatio);
+      }
+    } else if (!node_items_.empty()) {
+      // No selection, frame all nodes
+      scene_->setSceneRect(scene_->itemsBoundingRect());
+      fitInView(scene_->sceneRect(), Qt::KeepAspectRatio);
+    }
+    event->accept();
+    return;
+  }
+
+  if (event->key() == Qt::Key_Home) {
     // Frame all nodes
     if (!node_items_.empty()) {
       scene_->setSceneRect(scene_->itemsBoundingRect());

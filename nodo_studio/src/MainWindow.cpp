@@ -1,7 +1,9 @@
 #include "MainWindow.h"
+#include "Command.h"
 #include "GeometrySpreadsheet.h"
 #include "GraphParametersPanel.h"
 #include "IconManager.h"
+#include "KeyboardShortcutsDialog.h"
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
 #include "StatusBarWidget.h"
@@ -17,6 +19,8 @@
 #include <nodo/sop/sop_node.hpp>
 
 #include <QAction>
+#include <QApplication>
+#include <QClipboard>
 #include <QDebug>
 #include <QDockWidget>
 #include <QFile>
@@ -183,43 +187,44 @@ auto MainWindow::setupMenuBar() -> void {
   // Node editing operations
   QAction *cutAction = editMenu->addAction("Cu&t");
   cutAction->setShortcut(QKeySequence::Cut); // Ctrl+X
-  cutAction->setEnabled(false);              // TODO: Implement in M3.6
 
   QAction *copyAction = editMenu->addAction("&Copy");
   copyAction->setShortcut(QKeySequence::Copy); // Ctrl+C
-  copyAction->setEnabled(false);               // TODO: Implement in M3.6
 
   QAction *pasteAction = editMenu->addAction("&Paste");
   pasteAction->setShortcut(QKeySequence::Paste); // Ctrl+V
-  pasteAction->setEnabled(false);                // TODO: Implement in M3.6
 
   QAction *duplicateAction = editMenu->addAction("&Duplicate");
   duplicateAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
-  duplicateAction->setEnabled(false); // TODO: Implement in M3.6
 
   QAction *deleteAction = editMenu->addAction("&Delete");
   deleteAction->setShortcut(QKeySequence::Delete);
-  deleteAction->setEnabled(false); // TODO: Implement in M3.6
 
   editMenu->addSeparator();
 
   // Selection operations
   QAction *selectAllAction = editMenu->addAction("Select &All");
   selectAllAction->setShortcut(QKeySequence(Qt::Key_A));
-  selectAllAction->setEnabled(false); // TODO: Implement in M3.6
 
   QAction *deselectAllAction = editMenu->addAction("Deselect All");
   deselectAllAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_A));
-  deselectAllAction->setEnabled(false); // TODO: Implement in M3.6
 
   QAction *invertSelectionAction = editMenu->addAction("&Invert Selection");
   invertSelectionAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_I));
-  invertSelectionAction->setEnabled(false); // TODO: Implement in M3.6
 
   // Connect Edit menu actions
   connect(undo_action_, &QAction::triggered, this, &MainWindow::onUndo);
   connect(redo_action_, &QAction::triggered, this, &MainWindow::onRedo);
-  // TODO: Connect Cut/Copy/Paste/Duplicate/Delete/Select actions in M3.6
+  connect(cutAction, &QAction::triggered, this, &MainWindow::onCut);
+  connect(copyAction, &QAction::triggered, this, &MainWindow::onCopy);
+  connect(pasteAction, &QAction::triggered, this, &MainWindow::onPaste);
+  connect(duplicateAction, &QAction::triggered, this, &MainWindow::onDuplicate);
+  connect(deleteAction, &QAction::triggered, this, &MainWindow::onDelete);
+  connect(selectAllAction, &QAction::triggered, this, &MainWindow::onSelectAll);
+  connect(deselectAllAction, &QAction::triggered, this,
+          &MainWindow::onDeselectAll);
+  connect(invertSelectionAction, &QAction::triggered, this,
+          &MainWindow::onInvertSelection);
 
   // ============================================================================
   // View Menu
@@ -229,11 +234,9 @@ auto MainWindow::setupMenuBar() -> void {
   // Frame operations
   QAction *frameAllAction = viewMenu->addAction("Frame &All");
   frameAllAction->setShortcut(QKeySequence(Qt::Key_Home));
-  frameAllAction->setEnabled(false); // TODO: Implement in M3.6
 
   QAction *frameSelectedAction = viewMenu->addAction("Frame &Selected");
   frameSelectedAction->setShortcut(QKeySequence(Qt::Key_F));
-  frameSelectedAction->setEnabled(false); // TODO: Implement in M3.6
 
   viewMenu->addSeparator();
 
@@ -310,6 +313,9 @@ auto MainWindow::setupMenuBar() -> void {
   resetLayoutAction->setEnabled(false); // TODO: Implement in v1.1
 
   // Connect View menu actions
+  connect(frameAllAction, &QAction::triggered, this, &MainWindow::onFrameAll);
+  connect(frameSelectedAction, &QAction::triggered, this,
+          &MainWindow::onFrameSelected);
   connect(wireframeModeAction, &QAction::toggled, this,
           &MainWindow::onToggleWireframe);
   connect(wireframeOverlayAction, &QAction::toggled, this,
@@ -336,11 +342,9 @@ auto MainWindow::setupMenuBar() -> void {
   // Node state operations
   QAction *bypassSelectedAction = graphMenu->addAction("&Bypass Selected");
   bypassSelectedAction->setShortcut(QKeySequence(Qt::Key_B));
-  bypassSelectedAction->setEnabled(false); // TODO: Implement in M3.6
 
   QAction *disconnectAction = graphMenu->addAction("&Disconnect Selected");
   disconnectAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_D));
-  disconnectAction->setEnabled(false); // TODO: Implement in M3.6
 
   graphMenu->addSeparator();
 
@@ -368,6 +372,12 @@ auto MainWindow::setupMenuBar() -> void {
   QAction *graphStatsAction = graphMenu->addAction("Show &Statistics");
   graphStatsAction->setEnabled(false); // TODO: Implement in v1.1
 
+  // Connect Graph menu actions
+  connect(bypassSelectedAction, &QAction::triggered, this,
+          &MainWindow::onBypassSelected);
+  connect(disconnectAction, &QAction::triggered, this,
+          &MainWindow::onDisconnectSelected);
+
   // ============================================================================
   // Help Menu
   // ============================================================================
@@ -379,9 +389,7 @@ auto MainWindow::setupMenuBar() -> void {
 
   QAction *keyboardShortcutsAction = helpMenu->addAction("&Keyboard Shortcuts");
   keyboardShortcutsAction->setShortcut(
-      QKeySequence(Qt::CTRL | Qt::Key_Question));
-  keyboardShortcutsAction->setEnabled(
-      false); // TODO: Show shortcuts dialog in M3.6
+      QKeySequence(Qt::CTRL | Qt::Key_Slash)); // Ctrl+/
 
   QAction *gettingStartedAction = helpMenu->addAction("&Getting Started");
   gettingStartedAction->setEnabled(false); // TODO: Open tutorial
@@ -398,6 +406,10 @@ auto MainWindow::setupMenuBar() -> void {
 
   QAction *aboutAction = helpMenu->addAction("&About Nodo Studio");
   aboutAction->setEnabled(false); // TODO: Show about dialog
+
+  // Connect Help menu actions
+  connect(keyboardShortcutsAction, &QAction::triggered, this,
+          &MainWindow::onShowKeyboardShortcuts);
 
   // ============================================================================
   // Icon Toolbar (Right side of menu bar)
@@ -1426,6 +1438,341 @@ void MainWindow::updateUndoRedoActions() {
       redo_action_->setText("Redo");
     }
   }
+}
+
+// ============================================================================
+// Selection Operations
+// ============================================================================
+
+void MainWindow::onSelectAll() {
+  if (node_graph_widget_ == nullptr) {
+    return;
+  }
+
+  // Select all node items in the graph
+  auto all_nodes = node_graph_widget_->get_all_node_items();
+  for (auto *node_item : all_nodes) {
+    node_item->setSelected(true);
+  }
+
+  statusBar()->showMessage(QString("Selected %1 nodes").arg(all_nodes.size()),
+                           2000);
+}
+
+void MainWindow::onDeselectAll() {
+  if (node_graph_widget_ == nullptr) {
+    return;
+  }
+
+  node_graph_widget_->clear_selection();
+  statusBar()->showMessage("Selection cleared", 2000);
+}
+
+void MainWindow::onInvertSelection() {
+  if (node_graph_widget_ == nullptr) {
+    return;
+  }
+
+  // Get all node items
+  auto all_nodes = node_graph_widget_->get_all_node_items();
+
+  // Invert selection state for each node
+  for (auto *node_item : all_nodes) {
+    node_item->setSelected(!node_item->isSelected());
+  }
+
+  int selected_count = node_graph_widget_->get_selected_node_ids().size();
+  statusBar()->showMessage(QString("%1 nodes selected").arg(selected_count),
+                           2000);
+}
+
+// ============================================================================
+// Node Editing Operations
+// ============================================================================
+
+void MainWindow::onCut() {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+    return;
+  }
+
+  // Copy to clipboard first
+  onCopy();
+
+  // Then delete selected nodes
+  if (!node_graph_widget_->get_selected_node_ids().isEmpty()) {
+    onDelete();
+  }
+}
+
+void MainWindow::onCopy() {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+    return;
+  }
+
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected to copy", 2000);
+    return;
+  }
+
+  // Create a temporary graph with only selected nodes
+  nodo::graph::NodeGraph clipboard_graph;
+
+  // Copy selected nodes to clipboard graph
+  std::unordered_map<int, int> old_to_new_id_map;
+
+  for (int old_node_id : selected_nodes) {
+    auto *node = node_graph_->get_node(old_node_id);
+    if (node == nullptr)
+      continue;
+
+    // Create new node in clipboard graph
+    int new_node_id = clipboard_graph.add_node(node->get_type());
+    old_to_new_id_map[old_node_id] = new_node_id;
+
+    // Copy node position
+    auto [pos_x, pos_y] = node->get_position();
+    auto *new_node = clipboard_graph.get_node(new_node_id);
+    if (new_node) {
+      new_node->set_position(pos_x, pos_y);
+
+      // Copy all parameters
+      for (const auto &param : node->get_parameters()) {
+        new_node->set_parameter(param.name, param);
+      }
+    }
+  }
+
+  // Copy connections between selected nodes
+  for (const auto &conn : node_graph_->get_connections()) {
+    // Only copy connections where both ends are in selected nodes
+    if (old_to_new_id_map.contains(conn.source_node_id) &&
+        old_to_new_id_map.contains(conn.target_node_id)) {
+
+      int new_source_id = old_to_new_id_map[conn.source_node_id];
+      int new_target_id = old_to_new_id_map[conn.target_node_id];
+
+      clipboard_graph.add_connection(new_source_id, conn.source_pin_index,
+                                     new_target_id, conn.target_pin_index);
+    }
+  }
+
+  // Serialize to JSON and put on clipboard
+  std::string json_data =
+      nodo::graph::GraphSerializer::serialize_to_json(clipboard_graph);
+
+  QClipboard *clipboard = QApplication::clipboard();
+  clipboard->setText(QString::fromStdString(json_data));
+
+  statusBar()->showMessage(
+      QString("Copied %1 nodes to clipboard").arg(selected_nodes.size()), 2000);
+}
+
+void MainWindow::onPaste() {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+    return;
+  }
+
+  QClipboard *clipboard = QApplication::clipboard();
+  QString clipboard_text = clipboard->text();
+
+  if (clipboard_text.isEmpty()) {
+    statusBar()->showMessage("Clipboard is empty", 2000);
+    return;
+  }
+
+  // Try to parse clipboard to validate it's a valid graph
+  auto clipboard_graph_opt =
+      nodo::graph::GraphSerializer::deserialize_from_json(
+          clipboard_text.toStdString());
+
+  if (!clipboard_graph_opt) {
+    statusBar()->showMessage("Invalid graph data in clipboard", 2000);
+    return;
+  }
+
+  // Clear current selection before pasting
+  node_graph_widget_->clear_selection();
+
+  // Create and execute paste command (with 50px offset)
+  auto cmd = nodo::studio::create_paste_nodes_command(
+      node_graph_widget_, node_graph_.get(), clipboard_text.toStdString(),
+      50.0f, 50.0f);
+
+  undo_stack_->push(std::move(cmd));
+
+  // Count nodes in pasted graph
+  const auto &clipboard_graph = clipboard_graph_opt.value();
+  int node_count = clipboard_graph.get_nodes().size();
+
+  statusBar()->showMessage(QString("Pasted %1 nodes").arg(node_count), 2000);
+}
+
+void MainWindow::onDuplicate() {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+    return;
+  }
+
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected to duplicate", 2000);
+    return;
+  }
+
+  // Duplicate is like copy+paste but with smaller offset
+  // Store clipboard, do our operation, restore clipboard
+  QClipboard *clipboard = QApplication::clipboard();
+  QString old_clipboard = clipboard->text();
+
+  // Copy selected nodes
+  onCopy();
+
+  // Paste them back (which will offset them)
+  onPaste();
+
+  // Restore original clipboard
+  clipboard->setText(old_clipboard);
+}
+
+void MainWindow::onDelete() {
+  if (node_graph_widget_ == nullptr) {
+    return;
+  }
+
+  // Get selected nodes
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected", 2000);
+    return;
+  }
+
+  // The NodeGraphWidget already handles Delete key press and uses undo commands
+  // We can just simulate a Delete key press
+  QKeyEvent *keyEvent =
+      new QKeyEvent(QEvent::KeyPress, Qt::Key_Delete, Qt::NoModifier);
+  QApplication::postEvent(node_graph_widget_, keyEvent);
+
+  statusBar()->showMessage(
+      QString("Deleted %1 nodes").arg(selected_nodes.size()), 2000);
+}
+
+// ============================================================================
+// View Operations
+// ============================================================================
+
+void MainWindow::onFrameAll() {
+  if (node_graph_widget_ == nullptr) {
+    return;
+  }
+
+  // Simulate Home key press to frame all nodes
+  QKeyEvent *keyEvent =
+      new QKeyEvent(QEvent::KeyPress, Qt::Key_Home, Qt::NoModifier);
+  QApplication::postEvent(node_graph_widget_, keyEvent);
+}
+
+void MainWindow::onFrameSelected() {
+  if (node_graph_widget_ == nullptr) {
+    return;
+  }
+
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected to frame", 2000);
+    return;
+  }
+
+  // Simulate F key press to frame selected nodes
+  QKeyEvent *keyEvent =
+      new QKeyEvent(QEvent::KeyPress, Qt::Key_F, Qt::NoModifier);
+  QApplication::postEvent(node_graph_widget_, keyEvent);
+}
+
+// ============================================================================
+// Graph Operations
+// ============================================================================
+
+void MainWindow::onBypassSelected() {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+    return;
+  }
+
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected to bypass", 2000);
+    return;
+  }
+
+  // Create and execute bypass command
+  auto cmd = nodo::studio::create_bypass_nodes_command(
+      node_graph_widget_, node_graph_.get(), selected_nodes);
+  undo_stack_->push(std::move(cmd));
+
+  statusBar()->showMessage(
+      QString("Toggled bypass for %1 nodes").arg(selected_nodes.size()), 2000);
+}
+
+void MainWindow::onDisconnectSelected() {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+    return;
+  }
+
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected to disconnect", 2000);
+    return;
+  }
+
+  // Collect all connections to/from selected nodes
+  QVector<int> connections_to_delete;
+
+  for (const auto &conn : node_graph_->get_connections()) {
+    int source_node = conn.source_node_id;
+    int target_node = conn.target_node_id;
+
+    // If either end of the connection is a selected node, mark for deletion
+    if (selected_nodes.contains(source_node) ||
+        selected_nodes.contains(target_node)) {
+      connections_to_delete.push_back(conn.id);
+    }
+  }
+
+  if (connections_to_delete.isEmpty()) {
+    statusBar()->showMessage("Selected nodes have no connections", 2000);
+    return;
+  }
+
+  // Create a composite command for all disconnections (undo as single
+  // operation)
+  auto composite = std::make_unique<nodo::studio::CompositeCommand>(
+      QString("Disconnect %1 connections").arg(connections_to_delete.size()));
+
+  for (int conn_id : connections_to_delete) {
+    auto cmd = nodo::studio::create_disconnect_command(
+        node_graph_widget_, node_graph_.get(), conn_id);
+    composite->add_command(std::move(cmd));
+  }
+
+  undo_stack_->push(std::move(composite));
+
+  statusBar()->showMessage(
+      QString("Disconnected %1 connections").arg(connections_to_delete.size()),
+      2000);
+}
+
+// ============================================================================
+// Help Menu Actions
+// ============================================================================
+
+void MainWindow::onShowKeyboardShortcuts() {
+  auto *dialog = new KeyboardShortcutsDialog(this);
+  dialog->show();
 }
 
 // ============================================================================

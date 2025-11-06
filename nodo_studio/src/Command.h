@@ -5,7 +5,6 @@
 #include <memory>
 #include <string>
 
-
 // Forward declarations
 class NodeGraphWidget;
 
@@ -51,6 +50,26 @@ protected:
   QString description_;
 };
 
+/**
+ * @brief Composite command that executes multiple commands as a single unit
+ *
+ * Useful for operations that require multiple changes (like pasting multiple
+ * nodes)
+ */
+class CompositeCommand : public Command {
+public:
+  explicit CompositeCommand(const QString &description);
+
+  void execute() override;
+  void undo() override;
+
+  // Add a sub-command to the composite
+  void add_command(std::unique_ptr<Command> cmd);
+
+private:
+  std::vector<std::unique_ptr<Command>> commands_;
+};
+
 // Forward declare concrete commands (implementations in Command.cpp)
 class AddNodeCommand;
 class DeleteNodeCommand;
@@ -58,6 +77,7 @@ class MoveNodeCommand;
 class ChangeParameterCommand;
 class ConnectCommand;
 class DisconnectCommand;
+class BypassNodesCommand;
 
 // Factory functions to create commands
 std::unique_ptr<Command> create_add_node_command(NodeGraphWidget *widget,
@@ -87,5 +107,14 @@ std::unique_ptr<Command> create_connect_command(NodeGraphWidget *widget,
 std::unique_ptr<Command>
 create_disconnect_command(NodeGraphWidget *widget,
                           nodo::graph::NodeGraph *graph, int connection_id);
+
+std::unique_ptr<Command> create_paste_nodes_command(
+    NodeGraphWidget *widget, nodo::graph::NodeGraph *graph,
+    const std::string &json_data, float offset_x, float offset_y);
+
+std::unique_ptr<Command>
+create_bypass_nodes_command(NodeGraphWidget *widget,
+                            nodo::graph::NodeGraph *graph,
+                            const QVector<int> &node_ids);
 
 } // namespace nodo::studio
