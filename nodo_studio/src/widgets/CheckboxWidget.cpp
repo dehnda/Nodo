@@ -14,31 +14,29 @@ CheckboxWidget::CheckboxWidget(const QString &label, bool initial_value,
 QWidget *CheckboxWidget::createControlWidget() {
   checkbox_ = new QCheckBox(this);
   checkbox_->setChecked(checked_);
-  checkbox_->setStyleSheet(
-      QString(
-          "QCheckBox { "
-          "  spacing: 8px; "
-          "  color: %1; "
-          "}"
-          "QCheckBox::indicator { "
-          "  width: 16px; "
-          "  height: 16px; "
-          "  border: 1px solid %2; "
-          "  border-radius: 3px; "
-          "  background: %3; "
-          "}"
-          "QCheckBox::indicator:hover { "
-          "  border-color: %4; "
-          "}"
-          "QCheckBox::indicator:checked { "
-          "  background: %4; "
-          "  border-color: %4; "
-          "  image: url(:/icons/check.svg); " // Note: will need icon resource
-          "}")
-          .arg(COLOR_TEXT_PRIMARY)
-          .arg(COLOR_INPUT_BORDER)
-          .arg(COLOR_INPUT_BG)
-          .arg(COLOR_ACCENT));
+  checkbox_->setStyleSheet(QString("QCheckBox { "
+                                   "  spacing: 8px; "
+                                   "  color: %1; "
+                                   "}"
+                                   "QCheckBox::indicator { "
+                                   "  width: 16px; "
+                                   "  height: 16px; "
+                                   "  border: 1px solid %2; "
+                                   "  border-radius: 3px; "
+                                   "  background: %3; "
+                                   "}"
+                                   "QCheckBox::indicator:hover { "
+                                   "  border-color: %4; "
+                                   "}"
+                                   "QCheckBox::indicator:checked { "
+                                   "  background: %4; "
+                                   "  border-color: %4; "
+                                   "  image: url(:/icons/iconoir/check.svg); "
+                                   "}")
+                               .arg(COLOR_TEXT_PRIMARY)
+                               .arg(COLOR_INPUT_BORDER)
+                               .arg(COLOR_INPUT_BG)
+                               .arg(COLOR_ACCENT));
 
   connect(checkbox_, &QCheckBox::stateChanged, this,
           &CheckboxWidget::onCheckStateChanged);

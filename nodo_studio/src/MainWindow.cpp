@@ -636,6 +636,8 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onNodeDisplayFlagChanged);
   connect(node_graph_widget_, &NodeGraphWidget::node_wireframe_flag_changed,
           this, &MainWindow::onNodeWireframeFlagChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_pass_through_flag_changed,
+          this, &MainWindow::onNodePassThroughFlagChanged);
   connect(node_graph_widget_, &NodeGraphWidget::property_panel_refresh_needed,
           this, [this]() {
             // Refresh property panel to show updated parameter values after
@@ -1295,6 +1297,36 @@ void MainWindow::onNodeWireframeFlagChanged(int node_id, bool wireframe_flag) {
       qDebug() << "Wireframe overlay added to viewport for node" << node_id;
     }
   }
+}
+
+void MainWindow::onNodePassThroughFlagChanged(int node_id,
+                                              bool pass_through_flag) {
+  if (node_graph_ == nullptr || execution_engine_ == nullptr) {
+    return;
+  }
+
+  // Mark this node as needing update
+  auto *node = node_graph_->get_node(node_id);
+  if (node != nullptr) {
+    node->mark_for_update();
+  }
+
+  // Invalidate downstream nodes so they re-execute with the new pass-through
+  // state
+  execution_engine_->invalidate_node(*node_graph_, node_id);
+
+  // Re-execute the graph to see the effect
+  // If there's a display node, execute up to it
+  int display_node = node_graph_->get_display_node();
+  if (display_node >= 0) {
+    executeAndDisplayNode(display_node);
+  } else {
+    // No display node, just execute everything
+    execution_engine_->execute_graph(*node_graph_);
+  }
+
+  qDebug() << "Pass-through" << (pass_through_flag ? "enabled" : "disabled")
+           << "for node" << node_id;
 }
 
 void MainWindow::updateDisplayFlagVisuals() {

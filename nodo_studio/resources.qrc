@@ -32,6 +32,9 @@
         <file alias="icons/iconoir/eye-closed.svg">../external/iconoir/icons/regular/eye-closed.svg</file>
         <file alias="icons/iconoir/numbered-list-left.svg">../external/iconoir/icons/regular/numbered-list-left.svg</file>
 
+        <!-- Custom Icons -->
+        <file alias="icons/iconoir/pass-through.svg">resources/icons/pass-through.svg</file>
+
         <!-- Node Generators -->
         <file alias="icons/iconoir/cube.svg">../external/iconoir/icons/regular/cube.svg</file>
         <file alias="icons/iconoir/cylinder.svg">../external/iconoir/icons/regular/cylinder.svg</file>

@@ -100,6 +100,10 @@ QString IconManager::getUnicodeFallback(Icon icon) const {
     return "👁";
   case Icon::EyeClosed:
     return "✕";
+  case Icon::PointNumbers:
+    return "№";
+  case Icon::ForwardArrow:
+    return "⊘"; // Pass-through/bypass icon - circle with slash
 
   // Node generators
   case Icon::Sphere:
@@ -231,6 +235,8 @@ QString IconManager::getIconFileName(Icon icon) const {
     return "eye-closed";
   case Icon::PointNumbers:
     return "numbered-list-left";
+  case Icon::ForwardArrow:
+    return "pass-through";
 
   // Node generators
   case Icon::Sphere:
@@ -328,7 +334,13 @@ QPixmap IconManager::loadSvgIcon(const QString &iconName, const QColor &color,
   // Try to load from Qt resources first
   QString resource_path = QString(":/icons/iconoir/%1.svg").arg(iconName);
 
-  // If not in resources, try filesystem path (for development)
+  // If not in resources, try custom icons directory first
+  if (!QFile::exists(resource_path)) {
+    resource_path =
+        QString("../../../nodo_studio/resources/icons/%1.svg").arg(iconName);
+  }
+
+  // If not in custom icons, try filesystem path (for development)
   if (!QFile::exists(resource_path)) {
     // Path relative to build directory: external/iconoir/icons/regular/
     resource_path =

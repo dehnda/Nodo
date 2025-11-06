@@ -264,10 +264,23 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
         }
         button_y += BUTTON_SIZE + BUTTON_SPACING;
 
-        // Pass-through button (PASS) - lock flag
+        // Pass-through button - passes input through without processing
         if (isClickedButton(button_y)) {
-          lock_flag_ = !lock_flag_;
+          pass_through_flag_ = !pass_through_flag_;
           update();
+
+          // Notify the widget about pass-through flag change
+          if (scene()) {
+            for (QGraphicsView *view : scene()->views()) {
+              NodeGraphWidget *widget = qobject_cast<NodeGraphWidget *>(view);
+              if (widget) {
+                widget->on_node_pass_through_flag_changed(node_id_,
+                                                          pass_through_flag_);
+                break;
+              }
+            }
+          }
+
           event->accept();
           return;
         }
@@ -492,9 +505,10 @@ void NodeGraphicsItem::drawButtonToolbar(QPainter *painter) {
              nodo_studio::IconManager::Icon::Wireframe);
   button_y += BUTTON_SIZE + BUTTON_SPACING;
 
-  // Pass-through button (PASS) - represented by lock flag, use checkmark
-  drawButton(button_y, lock_flag_, QColor(100, 100, 110),
-             nodo_studio::IconManager::Icon::Success);
+  // Pass-through button - passes input geometry without processing (purple when
+  // active)
+  drawButton(button_y, pass_through_flag_, QColor(180, 120, 255),
+             nodo_studio::IconManager::Icon::ForwardArrow);
 }
 
 void NodeGraphicsItem::drawBody(QPainter *painter) {
@@ -1649,6 +1663,20 @@ void NodeGraphWidget::on_node_wireframe_flag_changed(int node_id,
                                                      bool wireframe_flag) {
   // Emit signal so MainWindow can update the viewport with wireframe overlay
   emit node_wireframe_flag_changed(node_id, wireframe_flag);
+}
+
+void NodeGraphWidget::on_node_pass_through_flag_changed(
+    int node_id, bool pass_through_flag) {
+  // Update the backend node's pass-through flag
+  if (graph_ != nullptr) {
+    auto *node = graph_->get_node(node_id);
+    if (node != nullptr) {
+      node->set_pass_through(pass_through_flag);
+    }
+  }
+
+  // Emit signal so MainWindow can update if needed
+  emit node_pass_through_flag_changed(node_id, pass_through_flag);
 }
 
 void NodeGraphWidget::on_node_menu_selected(const QString &type_id) {

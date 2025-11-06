@@ -135,6 +135,9 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     // Transfer parameters from GraphNode to SOP (with expression resolution)
     transfer_parameters(*node, *sop, graph);
 
+    // Transfer pass-through flag from GraphNode to SOP
+    sop->set_pass_through(node->is_pass_through());
+
     // Gather input geometries and set them on the SOP
     auto input_geometries = gather_input_geometries(graph, node_id);
     for (const auto &[port_index, geometry] : input_geometries) {

@@ -38,7 +38,10 @@ public:
     FitView,
     Eye,
     EyeClosed,
-    PointNumbers, // Node generators
+    PointNumbers,
+    ForwardArrow, // Pass-through icon
+
+    // Node generators
     Sphere,
     Box,
     Cylinder,

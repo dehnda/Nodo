@@ -316,6 +316,11 @@ public:
   bool is_bypassed() const { return bypass_flag_; }
   void set_bypass(bool bypass) { bypass_flag_ = bypass; }
 
+  bool is_pass_through() const { return pass_through_flag_; }
+  void set_pass_through(bool pass_through) {
+    pass_through_flag_ = pass_through;
+  }
+
   // Error state
   bool has_error() const { return has_error_; }
   void set_error(bool error, const std::string &message = "") {
@@ -353,6 +358,7 @@ private:
   bool display_flag_ = false;
   bool render_flag_ = false;
   bool bypass_flag_ = false;
+  bool pass_through_flag_ = false; // When enabled, node passes input unchanged
 
   // Error state
   bool has_error_ = false;

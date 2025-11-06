@@ -156,6 +156,7 @@ private slots:
   void onNodeSelectionChanged();
   void onNodeDisplayFlagChanged(int node_id, bool display_flag);
   void onNodeWireframeFlagChanged(int node_id, bool wireframe_flag);
+  void onNodePassThroughFlagChanged(int node_id, bool pass_through_flag);
 
   // Property panel callback
   void onParameterChanged();

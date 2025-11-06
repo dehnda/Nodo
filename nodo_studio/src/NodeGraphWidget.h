@@ -80,11 +80,11 @@ public:
   }
   bool is_bypassed() const { return bypass_flag_; }
 
-  void set_lock_flag(bool flag) {
-    lock_flag_ = flag;
+  void set_pass_through_flag(bool flag) {
+    pass_through_flag_ = flag;
     update();
   }
-  bool is_locked() const { return lock_flag_; }
+  bool is_pass_through() const { return pass_through_flag_; }
 
   void set_wireframe_flag(bool flag) {
     wireframe_flag_ = flag;
@@ -147,7 +147,7 @@ private:
   bool has_display_flag_ = false;
   bool has_error_flag_ = false;
   bool bypass_flag_ = false;
-  bool lock_flag_ = false;
+  bool pass_through_flag_ = false;
   bool wireframe_flag_ = false;
   bool compact_mode_ = false;
 
@@ -302,6 +302,9 @@ public:
   // Called by NodeGraphicsItem when wireframe button is clicked
   void on_node_wireframe_flag_changed(int node_id, bool wireframe_flag);
 
+  // Called by NodeGraphicsItem when pass-through button is clicked
+  void on_node_pass_through_flag_changed(int node_id, bool pass_through_flag);
+
 signals:
   void node_selected(int node_id);
   void node_double_clicked(int node_id);
@@ -313,6 +316,7 @@ signals:
   void node_created(int node_id);
   void node_display_flag_changed(int node_id, bool display_flag);
   void node_wireframe_flag_changed(int node_id, bool wireframe_flag);
+  void node_pass_through_flag_changed(int node_id, bool pass_through_flag);
   void parameter_changed();
   void property_panel_refresh_needed();
 

@@ -162,6 +162,7 @@ private:
   std::string node_name_;
   std::string node_type_;
   ExecutionState state_ = ExecutionState::DIRTY;
+  bool pass_through_ = false; // When true, passes first input unchanged
 
   // Error information
   std::string last_error_;
@@ -223,6 +224,13 @@ public:
    * @brief Get current execution state
    */
   ExecutionState get_state() const { return state_; }
+
+  /**
+   * @brief Set/get pass-through flag
+   * When true, the node passes its first input through without processing
+   */
+  void set_pass_through(bool pass_through) { pass_through_ = pass_through; }
+  bool is_pass_through() const { return pass_through_; }
 
   /**
    * @brief Get last error message
@@ -332,6 +340,24 @@ public:
     try {
       // Cook input dependencies first
       cook_inputs();
+
+      // Pass-through mode: return first input without processing
+      // This is useful for temporarily disabling a node while keeping
+      // connections intact
+      if (is_pass_through()) {
+        auto first_input = get_input_data(0);
+        if (first_input) {
+          // Pass through the input geometry unchanged
+          main_output_->set_data(first_input);
+          state_ = ExecutionState::CLEAN;
+          cook_duration_ =
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::steady_clock::now() - cook_start);
+          last_cook_time_ = cook_start;
+          return first_input;
+        }
+        // If no input, fall through to normal execution (generators will work)
+      }
 
       // Execute the node-specific computation
       auto result = execute();
