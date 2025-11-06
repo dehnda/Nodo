@@ -51,19 +51,17 @@ PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
   main_layout->setContentsMargins(0, 0, 0, 0);
   main_layout->setSpacing(0);
 
-  // Title label
+  // Title label (matches QDockWidget::title style from dark_theme.qss)
   title_label_ = new QLabel("Properties", this);
-  title_label_->setStyleSheet(
-      "QLabel {"
-      "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-      "      stop:0 #3a3a40, stop:1 #2e2e34);"
-      "   color: #e0e0e0;"
-      "   padding: 12px 16px;"
-      "   font-weight: 600;"
-      "   font-size: 13px;"
-      "   border-bottom: 1px solid rgba(255, 255, 255, 0.1);"
-      "   letter-spacing: 0.5px;"
-      "}");
+  title_label_->setStyleSheet("QLabel {"
+                              "   background: #1a1a1f;"
+                              "   color: #808088;"
+                              "   padding: 12px 16px;"
+                              "   font-weight: 600;"
+                              "   font-size: 13px;"
+                              "   border-bottom: 1px solid #2a2a32;"
+                              "   letter-spacing: 0.5px;"
+                              "}");
   main_layout->addWidget(title_label_);
 
   // Scroll area for parameters

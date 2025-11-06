@@ -52,6 +52,10 @@ private:
   void executeAndDisplayNode(int node_id);
   void updateDisplayFlagVisuals();
 
+  // Helper to create custom title bar matching PropertyPanel style
+  QWidget *createCustomTitleBar(const QString &title,
+                                QWidget *parent = nullptr);
+
   // UI components (these will be pointers to our widgets)
   ViewportWidget *viewport_widget_;
   ViewportToolbar *viewport_toolbar_;

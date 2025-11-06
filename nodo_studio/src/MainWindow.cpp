@@ -253,13 +253,38 @@ auto MainWindow::setupMenuBar() -> void {
   menuBar->setCornerWidget(icon_toolbar, Qt::TopRightCorner);
 }
 
+QWidget *MainWindow::createCustomTitleBar(const QString &title,
+                                          QWidget *parent) {
+  // Create a custom title bar that matches PropertyPanel's title style
+  auto *title_widget = new QWidget(parent);
+  auto *title_layout = new QVBoxLayout(title_widget);
+  title_layout->setContentsMargins(0, 0, 0, 0);
+  title_layout->setSpacing(0);
+
+  auto *title_label = new QLabel(title, title_widget);
+  title_label->setStyleSheet("QLabel {"
+                             "   background: #1a1a1f;"
+                             "   color: #808088;"
+                             "   padding: 12px 16px;"
+                             "   font-weight: 600;"
+                             "   font-size: 13px;"
+                             "   border-bottom: 1px solid #2a2a32;"
+                             "   letter-spacing: 0.5px;"
+                             "}");
+  title_layout->addWidget(title_label);
+
+  return title_widget;
+}
+
 auto MainWindow::setupDockWidgets() -> void {
   // Create the 3D viewport widget on the LEFT (takes most space)
   // We'll make it a dock widget so we can control its size
   viewport_dock_ = new QDockWidget("Viewport", this);
   viewport_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+  viewport_dock_->setTitleBarWidget(new QWidget()); // Hide default title bar
 
-  // Create container widget for toolbar + viewport
+  // Create container widget for toolbar + viewport (no custom title for
+  // viewport)
   QWidget *viewport_container = new QWidget(this);
   QVBoxLayout *viewport_layout = new QVBoxLayout(viewport_container);
   viewport_layout->setContentsMargins(0, 0, 0, 0);
@@ -328,20 +353,48 @@ auto MainWindow::setupDockWidgets() -> void {
   // Create dock widget for geometry spreadsheet (tabbed with viewport)
   geometry_spreadsheet_dock_ = new QDockWidget("Geometry Spreadsheet", this);
   geometry_spreadsheet_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+  geometry_spreadsheet_dock_->setTitleBarWidget(
+      new QWidget()); // Hide default title bar
+
+  // Create container with custom title bar
+  QWidget *spreadsheet_container = new QWidget(this);
+  QVBoxLayout *spreadsheet_layout = new QVBoxLayout(spreadsheet_container);
+  spreadsheet_layout->setContentsMargins(0, 0, 0, 0);
+  spreadsheet_layout->setSpacing(0);
+
+  // Add custom title bar
+  spreadsheet_layout->addWidget(
+      createCustomTitleBar("Geometry Spreadsheet", spreadsheet_container));
 
   // Create geometry spreadsheet widget
-  geometry_spreadsheet_ = new nodo::studio::GeometrySpreadsheet(this);
-  geometry_spreadsheet_dock_->setWidget(geometry_spreadsheet_);
+  geometry_spreadsheet_ =
+      new nodo::studio::GeometrySpreadsheet(spreadsheet_container);
+  spreadsheet_layout->addWidget(geometry_spreadsheet_);
+
+  geometry_spreadsheet_dock_->setWidget(spreadsheet_container);
 
   // Create dock widget for node graph (CENTER - vertical flow)
   node_graph_dock_ = new QDockWidget("Node Graph", this);
   node_graph_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+  node_graph_dock_->setTitleBarWidget(new QWidget()); // Hide default title bar
+
+  // Create container with custom title bar
+  QWidget *node_graph_container = new QWidget(this);
+  QVBoxLayout *node_graph_layout = new QVBoxLayout(node_graph_container);
+  node_graph_layout->setContentsMargins(0, 0, 0, 0);
+  node_graph_layout->setSpacing(0);
+
+  // Add custom title bar
+  node_graph_layout->addWidget(
+      createCustomTitleBar("Node Graph", node_graph_container));
 
   // Create node graph widget and connect to backend
-  node_graph_widget_ = new NodeGraphWidget(this);
+  node_graph_widget_ = new NodeGraphWidget(node_graph_container);
   node_graph_widget_->set_graph(node_graph_.get());
   node_graph_widget_->set_undo_stack(undo_stack_.get());
-  node_graph_dock_->setWidget(node_graph_widget_);
+  node_graph_layout->addWidget(node_graph_widget_);
+
+  node_graph_dock_->setWidget(node_graph_container);
 
   // Connect node graph signals
   connect(node_graph_widget_, &NodeGraphWidget::node_created, this,

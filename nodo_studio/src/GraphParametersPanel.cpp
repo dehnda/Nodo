@@ -33,6 +33,19 @@ void GraphParametersPanel::setup_ui() {
   main_layout_->setContentsMargins(0, 0, 0, 0);
   main_layout_->setSpacing(0);
 
+  // Add custom title bar (matching PropertyPanel style)
+  auto *title_label = new QLabel("Graph Parameters", main_widget_);
+  title_label->setStyleSheet("QLabel {"
+                             "   background: #1a1a1f;"
+                             "   color: #808088;"
+                             "   padding: 12px 16px;"
+                             "   font-weight: 600;"
+                             "   font-size: 13px;"
+                             "   border-bottom: 1px solid #2a2a32;"
+                             "   letter-spacing: 0.5px;"
+                             "}");
+  main_layout_->addWidget(title_label);
+
   // Create toolbar
   toolbar_ = new QToolBar(main_widget_);
   toolbar_->setIconSize(QSize(16, 16));
