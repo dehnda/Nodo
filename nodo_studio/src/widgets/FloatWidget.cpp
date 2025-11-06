@@ -15,10 +15,13 @@ namespace widgets {
 FloatWidget::FloatWidget(const QString &label, float value, float min,
                          float max, const QString &description, QWidget *parent)
     : BaseParameterWidget(label, description, parent), min_(min), max_(max),
-      current_value_(value) {
+      current_value_(value), slider_min_(min), slider_max_(max) {
 
   // Create and add the control widget
   addControlWidget(createControlWidget());
+
+  // Set initial slider range based on starting value
+  updateSliderRange();
 }
 
 QWidget *FloatWidget::createControlWidget() {
@@ -227,6 +230,9 @@ void FloatWidget::setValueChangedCallback(std::function<void(float)> callback) {
 void FloatWidget::onSpinBoxValueChanged(double value) {
   current_value_ = static_cast<float>(value);
 
+  // Update slider range dynamically based on new value
+  updateSliderRange();
+
   slider_->blockSignals(true);
   slider_->setValue(floatToSlider(current_value_));
   slider_->blockSignals(false);
@@ -252,11 +258,11 @@ void FloatWidget::onSliderValueChanged(int value) {
 
 float FloatWidget::sliderToFloat(int slider_value) const {
   float t = slider_value / 1000.0f;
-  return min_ + t * (max_ - min_);
+  return slider_min_ + t * (slider_max_ - slider_min_);
 }
 
 int FloatWidget::floatToSlider(float value) const {
-  float t = (value - min_) / (max_ - min_);
+  float t = (value - slider_min_) / (slider_max_ - slider_min_);
   return static_cast<int>(t * 1000.0f);
 }
 
@@ -498,6 +504,30 @@ void FloatWidget::onValidationTimerTimeout() {
     // Invalid - show red border with error message
     setExpressionError(result.error_message);
   }
+}
+
+void FloatWidget::updateSliderRange() {
+  if (!slider_)
+    return;
+
+  float abs_value = std::abs(current_value_);
+
+  // Calculate dynamic max based on current value (value = 25% of max range)
+  float dynamic_max = std::max(abs_value * RANGE_MULTIPLIER, MIN_SLIDER_RANGE);
+
+  // Handle negative values - extend range in both directions
+  if (current_value_ < 0) {
+    slider_min_ = -dynamic_max;
+    slider_max_ = dynamic_max / 2.0f; // Allow some positive range
+  } else {
+    slider_min_ =
+        std::min(0.0f, -dynamic_max / 4.0f); // Allow some negative range
+    slider_max_ = dynamic_max;
+  }
+
+  // Ensure slider range respects parameter hard limits
+  slider_min_ = std::max(slider_min_, min_);
+  slider_max_ = std::min(slider_max_, max_);
 }
 
 } // namespace widgets

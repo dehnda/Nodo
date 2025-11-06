@@ -105,6 +105,13 @@ private:
   float sliderToFloat(int slider_value) const;
   int floatToSlider(float value) const;
 
+  // Dynamic slider range adjustment
+  void updateSliderRange();
+  static constexpr float RANGE_MULTIPLIER = 4.0f; // Value represents 25% of max
+  static constexpr float MIN_SLIDER_RANGE = 10.0f; // Minimum useful range
+  float slider_min_; // Current slider range (can differ from parameter min/max)
+  float slider_max_;
+
   // Visual indicators helper (M3.3 Phase 4)
   void updateExpressionVisuals();
 };
