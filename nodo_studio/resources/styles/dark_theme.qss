@@ -29,14 +29,16 @@
 QMainWindow {
     background: #1a1a1f;
     color: #e0e0e0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    /* System font stack for Linux/Windows */
+    font-family: 'Segoe UI', 'Ubuntu', 'Roboto', 'Cantarell', 'Noto Sans', 'Liberation Sans', 'DejaVu Sans', sans-serif;
     font-size: 13px;
 }
 
 QWidget {
     background: transparent;
     color: #e0e0e0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    /* System font stack for Linux/Windows */
+    font-family: 'Segoe UI', 'Ubuntu', 'Roboto', 'Cantarell', 'Noto Sans', 'Liberation Sans', 'DejaVu Sans', sans-serif;
 }
 
 /* ============================================================================
@@ -132,7 +134,7 @@ QDockWidget::title {
     color: #808088;
     font-weight: 600;
     font-size: 13px;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */ /* Not supported by Qt */
     letter-spacing: 0.5px;
 }
 
@@ -227,7 +229,8 @@ QSpinBox, QDoubleSpinBox {
     padding: 8px 10px;
     color: #e0e0e0;
     font-size: 13px;
-    font-family: 'SF Mono', 'Consolas', monospace;
+    /* Monospace font stack for Linux/Windows */
+    font-family: 'Consolas', 'Ubuntu Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', monospace;
 }
 
 QSpinBox:focus, QDoubleSpinBox:focus {
@@ -427,7 +430,7 @@ QGroupBox::title {
     background: #1f1f26;
     color: #a0a0a8;
     font-size: 12px;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */ /* Not supported by Qt */
     letter-spacing: 0.5px;
 }
 
@@ -595,7 +598,7 @@ QHeaderView::section {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     font-weight: 600;
     font-size: 12px;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */ /* Not supported by Qt */
 }
 
 /* ============================================================================
@@ -616,7 +619,7 @@ QLabel[class="section-title"] {
     font-size: 12px;
     font-weight: 600;
     color: #a0a0a8;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */ /* Not supported by Qt */
     letter-spacing: 0.5px;
 }
 

@@ -3,6 +3,7 @@
 #include <nodo/core/geometry_container.hpp>
 #include <nodo/core/mesh.hpp>
 
+#include <QApplication>
 #include <QDebug>
 #include <QMouseEvent>
 #include <QPainter>
@@ -1707,7 +1708,15 @@ void ViewportWidget::drawPointLabels() {
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
   painter.setPen(QColor(255, 255, 255)); // White text
-  painter.setFont(QFont("Arial", 9, QFont::Bold));
+  // Use system font stack with fallbacks for cross-platform support
+  QFont pointFont;
+  pointFont.setFamilies(QStringList()
+                        << "Segoe UI" << "Ubuntu" << "Roboto"
+                        << "Cantarell" << "Noto Sans" << "Liberation Sans"
+                        << "DejaVu Sans" << "sans-serif");
+  pointFont.setWeight(QFont::Bold);
+  pointFont.setPointSize(9);
+  painter.setFont(pointFont);
 
   // Combined transformation matrix
   QMatrix4x4 mvp = projection_matrix_ * view_matrix_ * model_matrix_;

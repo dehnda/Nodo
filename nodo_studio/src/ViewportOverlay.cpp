@@ -1,5 +1,6 @@
 #include "ViewportOverlay.h"
 #include "IconManager.h"
+#include <QApplication>
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QPainterPath>
@@ -277,7 +278,15 @@ void ViewportAxisGizmo::paintEvent(QPaintEvent *event) {
   // Draw X axis (Red)
   painter.setPen(QPen(QColor(255, 68, 68), 2));
   painter.drawLine(center, center + QPointF(radius, 0));
-  painter.setFont(QFont("Arial", 10, QFont::Bold));
+  // Use system font stack with fallbacks for cross-platform support
+  QFont axisFont;
+  axisFont.setFamilies(QStringList()
+                       << "Segoe UI" << "Ubuntu" << "Roboto"
+                       << "Cantarell" << "Noto Sans" << "Liberation Sans"
+                       << "DejaVu Sans" << "sans-serif");
+  axisFont.setWeight(QFont::Bold);
+  axisFont.setPointSize(10);
+  painter.setFont(axisFont);
   painter.drawText(center + QPointF(radius + 8, 5), "X");
 
   // Draw Y axis (Green)

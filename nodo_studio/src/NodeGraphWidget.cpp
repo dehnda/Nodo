@@ -1499,8 +1499,13 @@ void NodeGraphWidget::draw_watermark_logo(QPainter *painter,
   logo_painter.setRenderHint(QPainter::TextAntialiasing, true);
   logo_painter.setRenderHint(QPainter::LosslessImageRendering, true);
 
-  // Set font hinting for better text rendering
-  QFont font("Arial", -1, QFont::DemiBold); // Match SVG font specification
+  // Use system font stack with fallbacks for cross-platform support
+  QFont font;
+  font.setFamilies(QStringList()
+                   << "Segoe UI" << "Ubuntu" << "Roboto"
+                   << "Cantarell" << "Noto Sans" << "Liberation Sans"
+                   << "DejaVu Sans" << "sans-serif");
+  font.setWeight(QFont::DemiBold);
   font.setHintingPreference(QFont::PreferFullHinting);
   logo_painter.setFont(font);
 

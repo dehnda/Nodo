@@ -65,7 +65,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 }
 
 MainWindow::~MainWindow() {
-  // Cleanup handled by smart pointers
+  // Disconnect all signals from node_graph_widget_ before Qt starts deleting
+  // child widgets This prevents crashes when PropertyPanel or other widgets
+  // try to access node_graph_widget_ during destruction
+  if (node_graph_widget_) {
+    disconnect(node_graph_widget_, nullptr, nullptr, nullptr);
+  }
+
+  // Clear the pointer in property panel to prevent access to deleted object
+  if (property_panel_) {
+    property_panel_->setNodeGraphWidget(nullptr);
+  }
+
+  // The rest of cleanup is handled by Qt's parent-child system and smart
+  // pointers
 }
 
 auto MainWindow::setupMenuBar() -> void {
