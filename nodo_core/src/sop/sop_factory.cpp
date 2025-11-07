@@ -36,6 +36,7 @@
 #include "nodo/sop/output_sop.hpp"
 #include "nodo/sop/polyextrude_sop.hpp"
 #include "nodo/sop/remesh_sop.hpp"
+#include "nodo/sop/repair_mesh_sop.hpp"
 #include "nodo/sop/resample_sop.hpp"
 #include "nodo/sop/scatter_sop.hpp"
 #include "nodo/sop/scatter_volume_sop.hpp"
@@ -91,6 +92,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<RemeshSOP>();
   case NodeType::Decimate:
     return std::make_shared<DecimationSOP>();
+  case NodeType::RepairMesh:
+    return std::make_shared<RepairMeshSOP>();
   case NodeType::Align:
     return std::make_shared<AlignSOP>();
   case NodeType::Split:
@@ -247,6 +250,8 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
        "Uniform mesh triangulation (Phase 2 placeholder)"},
       {NodeType::Decimate, "Decimate", "Modifier",
        "Reduce mesh complexity while preserving shape"},
+      {NodeType::RepairMesh, "RepairMesh", "Modifier",
+       "Automatically detect and fill holes in geometry"},
       {NodeType::Align, "Align", "Modifier",
        "Align geometry bounding box to axes or origin"},
       {NodeType::Split, "Split", "Modifier",
