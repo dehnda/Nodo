@@ -13,6 +13,7 @@
 #include "nodo/sop/cache_sop.hpp"
 #include "nodo/sop/color_sop.hpp"
 #include "nodo/sop/copy_to_points_sop.hpp"
+#include "nodo/sop/curvature_sop.hpp"
 #include "nodo/sop/cylinder_sop.hpp"
 #include "nodo/sop/decimation_sop.hpp"
 #include "nodo/sop/export_sop.hpp"
@@ -94,6 +95,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<DecimationSOP>();
   case NodeType::RepairMesh:
     return std::make_shared<RepairMeshSOP>();
+  case NodeType::Curvature:
+    return std::make_shared<CurvatureSOP>();
   case NodeType::Align:
     return std::make_shared<AlignSOP>();
   case NodeType::Split:
@@ -252,6 +255,8 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
        "Reduce mesh complexity while preserving shape"},
       {NodeType::RepairMesh, "RepairMesh", "Modifier",
        "Automatically detect and fill holes in geometry"},
+      {NodeType::Curvature, "Curvature", "Modifier",
+       "Analyze and visualize mesh curvature"},
       {NodeType::Align, "Align", "Modifier",
        "Align geometry bounding box to axes or origin"},
       {NodeType::Split, "Split", "Modifier",

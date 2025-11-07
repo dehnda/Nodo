@@ -47,6 +47,7 @@ enum class NodeType {
   Remesh,
   Decimate,
   RepairMesh,
+  Curvature,
   Align,
   Split,
 

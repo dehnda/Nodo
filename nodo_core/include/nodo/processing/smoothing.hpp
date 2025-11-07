@@ -10,8 +10,8 @@ namespace nodo::processing {
  * @brief Parameters for mesh smoothing operations
  */
 struct SmoothingParams {
-  /// Smoothing method: false = explicit (fast), true = implicit (quality)
-  bool use_implicit = false;
+  /// Smoothing method: 0 = explicit, 1 = implicit, 2 = fairing
+  int method = 0;
 
   /// Number of smoothing iterations
   unsigned int iterations = 10;

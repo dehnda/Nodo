@@ -1,5 +1,6 @@
 #include "nodo/processing/smoothing.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include <pmp/algorithms/fairing.h>
 #include <pmp/algorithms/smoothing.h>
 #include <pmp/algorithms/triangulation.h>
 
@@ -35,13 +36,17 @@ Smoothing::smooth(const core::GeometryContainer &container,
     // Triangulate the mesh if it has non-triangle faces
     pmp::triangulate(pmp_mesh);
 
-    // Perform smoothing
-    if (params.use_implicit) {
+    // Perform smoothing based on method
+    if (params.method == 2) {
+      // Fairing - minimizes curvature variation (highest quality)
+      // Use minimize_curvature which doesn't require boundary constraints
+      pmp::minimize_curvature(pmp_mesh);
+    } else if (params.method == 1) {
       // Implicit smoothing - higher quality, solves linear system
       pmp::implicit_smoothing(pmp_mesh, params.timestep, params.iterations,
                               params.use_uniform_laplace, params.rescale);
     } else {
-      // Explicit smoothing - fast iterative approach
+      // Explicit smoothing - fast iterative approach (method == 0)
       pmp::explicit_smoothing(pmp_mesh, params.iterations,
                               params.use_uniform_laplace);
     }

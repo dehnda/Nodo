@@ -8,13 +8,13 @@
 namespace nodo::sop {
 
 /**
- * @brief Smooth SOP - Smooths mesh surfaces using Laplacian smoothing
+ * @brief Smooth SOP - Smooths mesh surfaces using various algorithms
  *
- * Provides two smoothing methods:
+ * Provides three smoothing methods:
  * - Explicit: Fast iterative Laplacian smoothing
  * - Implicit: Higher quality smoothing via linear system solver
+ * - Fairing: Minimizes curvature variation (highest quality)
  *
- * Both methods can use uniform or cotangent Laplacian weights.
  * Useful for:
  * - Reducing surface noise
  * - Creating organic shapes
@@ -32,14 +32,13 @@ public:
                           NodePort::DataType::GEOMETRY, this);
 
     // Smoothing method
-    register_parameter(
-        define_int_parameter("method", 0)
-            .label("Method")
-            .options({"Explicit", "Implicit"})
-            .category("Smoothing")
-            .description("Explicit = fast iterative, Implicit = quality via "
-                         "linear solver")
-            .build());
+    register_parameter(define_int_parameter("method", 0)
+                           .label("Method")
+                           .options({"Explicit", "Implicit", "Fairing"})
+                           .category("Smoothing")
+                           .description("Explicit = fast, Implicit = quality, "
+                                        "Fairing = minimize curvature")
+                           .build());
 
     // Iterations
     register_parameter(define_int_parameter("iterations", 10)
@@ -96,7 +95,7 @@ protected:
 
     // Get parameters
     processing::SmoothingParams params;
-    params.use_implicit = (get_parameter<int>("method", 0) == 1);
+    params.method = get_parameter<int>("method", 0);
     params.iterations = get_parameter<int>("iterations", 10);
     params.use_uniform_laplace = (get_parameter<int>("laplace_type", 0) == 1);
     params.timestep = get_parameter<float>("timestep", 0.001F);

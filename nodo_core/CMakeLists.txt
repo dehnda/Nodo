@@ -61,6 +61,7 @@ set(NODO_CORE_SOURCES
     src/processing/smoothing.cpp
     src/processing/subdivision.cpp
     src/processing/hole_filling.cpp
+    src/processing/curvature.cpp
 
     # SOPs
     src/sop/array_sop.cpp
@@ -76,6 +77,7 @@ set(NODO_CORE_SOURCES
     src/sop/noise_displacement_sop.cpp
     src/sop/normal_sop.cpp
     src/sop/bevel_sop.cpp
+    src/sop/curvature_sop.cpp
     src/sop/polyextrude_sop.cpp
     src/sop/repair_mesh_sop.cpp
     src/sop/resample_sop.cpp
