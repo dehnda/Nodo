@@ -39,6 +39,7 @@
 #include "nodo/sop/resample_sop.hpp"
 #include "nodo/sop/scatter_sop.hpp"
 #include "nodo/sop/scatter_volume_sop.hpp"
+#include "nodo/sop/smooth_sop.hpp"
 #include "nodo/sop/sort_sop.hpp"
 #include "nodo/sop/sphere_sop.hpp"
 #include "nodo/sop/split_sop.hpp"
@@ -73,7 +74,7 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
   case NodeType::PolyExtrude:
     return std::make_shared<PolyExtrudeSOP>();
   case NodeType::Smooth:
-    return std::make_shared<LaplacianSOP>();
+    return std::make_shared<SmoothSOP>();
   case NodeType::Subdivide:
     return std::make_shared<SubdivisionSOP>();
   case NodeType::Mirror:

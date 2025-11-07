@@ -58,6 +58,7 @@ set(NODO_CORE_SOURCES
     src/processing/pmp_converter.cpp
     src/processing/decimation.cpp
     src/processing/remeshing.cpp
+    src/processing/smoothing.cpp
 
     # SOPs
     src/sop/array_sop.cpp
