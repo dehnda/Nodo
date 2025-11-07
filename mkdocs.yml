@@ -60,30 +60,47 @@ nav:
       - Grid: nodes/generator/grid.md
       - Line: nodes/generator/line.md
     - Modifier:
-      - Transform: nodes/modifier/transform.md
       - Extrude: nodes/modifier/extrude.md
-      - PolyExtrude: nodes/modifier/polyextrude.md
-      - Smooth: nodes/modifier/smooth_(laplacian).md
       - Subdivide: nodes/modifier/subdivide.md
+      - Smooth: nodes/modifier/smooth_(laplacian).md
+      - Noise Displacement: nodes/modifier/noise_displacement.md
+      - Bevel: nodes/modifier/bevel.md
+    - Transform:
+      - Transform: nodes/modifier/transform.md
+      - Array: nodes/array/array.md
+      - Copy to Points: nodes/array/copy_to_points.md
       - Mirror: nodes/modifier/mirror.md
-      - Bend: nodes/modifier/bend.md
-      - Twist: nodes/modifier/twist.md
-    - Boolean:
+      - Scatter: nodes/array/scatter.md
+      - Scatter Volume: nodes/array/scatter_volume.md
+      - Align: nodes/modifier/align.md
+    - Boolean & Combine:
       - Boolean: nodes/boolean/boolean.md
       - Merge: nodes/boolean/merge.md
-    - Array:
-      - Array: nodes/array/array.md
-      - Scatter: nodes/array/scatter.md
-      - Copy to Points: nodes/array/copy_to_points.md
+      - Split: nodes/modifier/split.md
+      - PolyExtrude: nodes/modifier/polyextrude.md
     - Attribute:
+      - Wrangle: nodes/attribute/wrangle.md
       - Attribute Create: nodes/attribute/attribute_create.md
       - Attribute Delete: nodes/attribute/attribute_delete.md
       - Color: nodes/attribute/color.md
+      - Normal: nodes/modifier/normal.md
+      - UV Unwrap: nodes/attribute/uv_unwrap.md
     - Group:
       - Group: nodes/group/group.md
-      - Group Delete: nodes/group/group_delete.md
+      - Blast: nodes/utility/blast.md
+      - Sort: nodes/utility/sort.md
+      - Group Promote: nodes/group/group_promote.md
       - Group Combine: nodes/group/group_combine.md
-    - IO:
+      - Group Expand: nodes/group/group_expand.md
+      - Group Transfer: nodes/group/group_transfer.md
+    - Deformers:
+      - Bend: nodes/modifier/bend.md
+      - Twist: nodes/modifier/twist.md
+      - Lattice: nodes/modifier/lattice.md
+    - Utility:
+      - Switch: nodes/utility/switch.md
+      - Null: nodes/utility/null.md
+      - Output: nodes/utility/output.md
       - File: nodes/io/file.md
       - Export: nodes/io/export.md
 

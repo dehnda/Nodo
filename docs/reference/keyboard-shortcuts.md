@@ -2,6 +2,15 @@
 
 Quick reference for all keyboard shortcuts in Nodo.
 
+## Help
+
+| Action | Windows/Linux |
+|--------|---------------|
+| **Show Shortcuts** | ++ctrl+slash++ |
+| **Documentation** | ++f1++ |
+
+---
+
 ## File Operations
 
 | Action | Windows/Linux |
@@ -19,13 +28,14 @@ Quick reference for all keyboard shortcuts in Nodo.
 | Action | Windows/Linux |
 |--------|---------------|
 | **Undo** | ++ctrl+z++ |
-| **Redo** | ++ctrl+shift+z++ or ++ctrl+y++ |
-| **Cut** | ++ctrl+x++ |
+| **Redo** | ++ctrl+shift+z++ |
 | **Copy** | ++ctrl+c++ |
 | **Paste** | ++ctrl+v++ |
 | **Delete** | ++delete++ or ++backspace++ |
 | **Duplicate** | ++ctrl+d++ |
-| **Select All** | ++ctrl+a++ |
+| **Select All** | ++a++ |
+| **Deselect All** | ++shift+a++ |
+| **Invert Selection** | ++ctrl+i++ |
 
 ---
 
@@ -38,19 +48,22 @@ Quick reference for all keyboard shortcuts in Nodo.
 | **Pan Graph** | ++middle-button++ drag |
 | | ++space++ + ++left-button++ drag |
 | **Zoom In/Out** | ++scroll-wheel++ |
-| **Frame All Nodes** | ++a++ or ++home++ |
-| **Frame Selected** | ++f++ |
+| **Frame All Nodes** | ++home++ |
 
 ### Node Operations
 
 | Action | Windows/Linux |
 |--------|---------------|
-| **Add Node** | ++tab++ (future) |
+| **Add Node (TAB Menu)** | ++tab++ |
 | **Delete Node** | ++delete++ or ++backspace++ |
 | **Duplicate Node** | ++ctrl+d++ |
+| **Bypass Selected** | ++b++ |
+| **Disconnect All** | ++shift+d++ |
 | **Rename Node** | ++f2++ or double-click title |
-| **Select All Nodes** | ++ctrl+a++ |
-| **Deselect All** | ++escape++ |
+| **Select All Nodes** | ++a++ |
+| **Deselect All** | ++shift+a++ |
+| **Invert Selection** | ++ctrl+i++ |
+| **Frame All Nodes** | ++home++ |
 
 ### Connections
 
@@ -73,19 +86,19 @@ Quick reference for all keyboard shortcuts in Nodo.
 | | ++shift+alt+left-button++ drag |
 | **Zoom** | ++scroll-wheel++ |
 | | ++alt+right-button++ drag |
-| **Frame All** | ++a++ or double-click background |
-| **Frame Selected** | ++f++ |
+| **Frame All** | ++home++ |
 | **Reset Camera** | ++home++ |
 
 ### Display Toggles
 
 | Action | Windows/Linux |
 |--------|---------------|
-| **Toggle Wireframe** | ++1++ (future) |
-| **Toggle Shading** | ++2++ (future) |
-| **Toggle Grid** | ++g++ (future) |
+| **Toggle Wireframe** | ++w++ |
+| **Toggle Vertex Normals** | ++n++ |
+| **Toggle Face Normals** | ++shift+n++ |
+| **Toggle Grid** | ++g++ |
 
-*Note: Current version uses toolbar buttons for display toggles. Keyboard shortcuts coming soon.*
+These toggles are also available in the viewport toolbar.
 
 ---
 
@@ -131,7 +144,9 @@ Quick reference for all keyboard shortcuts in Nodo.
 |--------|---------------|
 | **Add to Selection** | ++ctrl+left-button++ |
 | **Remove from Selection** | ++ctrl+left-button++ on selected |
-| **Invert Selection** | ++ctrl+i++ (future) |
+| **Invert Selection** | ++ctrl+i++ |
+| **Select All** | ++a++ |
+| **Deselect All** | ++shift+a++ |
 
 ---
 

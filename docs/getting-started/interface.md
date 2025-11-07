@@ -30,10 +30,13 @@ The Nodo interface has four main areas:
 
 - **Undo** (++ctrl+z++) - Reverse last action
 - **Redo** (++ctrl+shift+z++) - Reapply undone action
-- **Cut** (++ctrl+x++) - Cut selected nodes
-- **Copy** (++ctrl+c++) - Copy selected nodes
-- **Paste** (++ctrl+v++) - Paste copied nodes
+- **Copy** (++ctrl+c++) - Copy selected nodes to clipboard
+- **Paste** (++ctrl+v++) - Paste copied nodes (with 50px offset)
+- **Duplicate** (++ctrl+d++) - Duplicate selected nodes with connections
 - **Delete** (++delete++) - Remove selected nodes
+- **Select All** (++a++) - Select all nodes in graph
+- **Deselect All** (++shift+a++) - Clear selection
+- **Invert Selection** (++ctrl+i++) - Invert current selection
 
 ### View Menu
 
@@ -41,15 +44,21 @@ Display toggles for the viewport:
 
 - **Show Vertices** - Display geometry points
 - **Show Edges** - Display edge wireframe
-- **Show Vertex Normals** - Normal vector arrows at vertices
-- **Show Face Normals** - Normal vector arrows at face centers
-- **Show Grid** - Ground plane grid
+- **Show Vertex Normals** (++n++) - Normal vector arrows at vertices
+- **Show Face Normals** (++shift+n++) - Normal vector arrows at face centers
+- **Show Grid** (++g++) - Ground plane grid
 - **Show Axes** - XYZ axis indicator
+- **Toggle Wireframe** (++w++) - Wireframe display mode
+
+Panels:
+
+- **Graph Parameters Panel** - Show/hide graph parameters controls
+- **Property Panel** - Show/hide node properties panel
 
 ### Help Menu
 
-- **Documentation** - Opens this documentation site
-- **Keyboard Shortcuts** - Quick reference guide
+- **Documentation** (++f1++) - Opens this documentation site
+- **Keyboard Shortcuts** (++ctrl+slash++) - Quick reference guide
 - **About Nodo** - Version and credits
 
 ---
@@ -64,8 +73,7 @@ The heart of Nodo - where you build procedural workflows.
 |--------|---------|
 | **Pan** | ++middle-button++ drag or ++space++ + drag |
 | **Zoom** | ++scroll-wheel++ |
-| **Frame All** | ++a++ or ++home++ |
-| **Frame Selected** | ++f++ |
+| **Frame All** | ++home++ |
 
 ### Nodes
 
@@ -114,8 +122,10 @@ Right-click in the node graph:
 
 Right-click on a node:
 
-- **Duplicate** (++ctrl+d++) - Copy the node
+- **Duplicate** (++ctrl+d++) - Copy the node with connections
 - **Delete** (++delete++) - Remove the node
+- **Bypass** (++b++) - Toggle bypass (node passes input through unchanged)
+- **Disconnect All** (++shift+d++) - Remove all connections to/from node
 - **Rename** - Change node name
 - **Reset Parameters** - Restore defaults
 
@@ -159,8 +169,7 @@ Located at the top of the viewport:
 | | ++shift+alt+left-button++ drag |
 | **Zoom** | ++scroll-wheel++ |
 | | ++alt+right-button++ drag |
-| **Frame All** | ++a++ or double-click background |
-| **Frame Selected** | ++f++ |
+| **Frame All** | ++home++ |
 
 ### Shading Modes
 
@@ -218,6 +227,50 @@ Nodes are organized by **category**:
 
 !!! tip "Search Feature (Coming Soon)"
     Future versions will include node search for quick access.
+
+---
+
+## Graph Parameters Panel
+
+Control multiple nodes with shared parameters.
+
+The Graph Parameters panel (View → Panels → Graph Parameters) lets you create **master controls** that drive multiple nodes at once.
+
+### Creating Graph Parameters
+
+1. Click the **+** button in the panel toolbar
+2. Enter parameter details:
+   - **Name**: Unique identifier (e.g., `base_scale`, `detail_level`)
+   - **Type**: Float, Int, Bool, String, or Vector3
+   - **Value**: Initial value
+   - **Range** (optional): Min/max for numeric types
+3. Click OK
+
+### Using Graph Parameters
+
+Reference graph parameters in **any node parameter** using expressions:
+
+```
+$param_name                   # Direct reference
+$base_scale * 2              # With math
+ch("/graph/param_name")      # Explicit path
+```
+
+**Example Workflow:**
+1. Create graph parameter: `master_size` (Float, default 1.0)
+2. In Sphere node, set radius: `$master_size`
+3. In Box node, set size: `$master_size * 2`
+4. Now one slider controls both shapes!
+
+### Managing Graph Parameters
+
+- **Edit**: Double-click a parameter in the list
+- **Delete**: Select and click the **-** button
+- **Reorder**: Drag parameters up/down (future feature)
+
+When you change a graph parameter's value, **all nodes using it automatically update**.
+
+See [Graph Parameters](../expressions/graph-parameters.md) for advanced usage.
 
 ---
 
@@ -310,8 +363,7 @@ Shows helpful information:
 | **Delete** | ++delete++ or ++backspace++ |
 | **Duplicate** | ++ctrl+d++ |
 | **Select All** | ++ctrl+a++ |
-| **Frame All** | ++a++ or ++home++ |
-| **Frame Selected** | ++f++ |
+| **Frame All** | ++home++ |
 
 See [Keyboard Shortcuts](../reference/keyboard-shortcuts.md) for complete list.
 

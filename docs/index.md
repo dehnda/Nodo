@@ -68,58 +68,77 @@ New to Nodo? Start here:
 
 ## Core Features
 
-### 44+ Procedural Nodes
+### 40 Procedural Nodes
 
-Organized into categories:
+Organized into 8 categories:
 
-- **Generators** - Create primitives (Sphere, Box, Cylinder, Torus, Grid, Line)
-- **Modifiers** - Transform, Extrude, Smooth, Subdivide, Mirror, Bend, Twist, and more
-- **Arrays** - Duplicate geometry (Linear Array, Radial Array, Scatter, Copy to Points)
-- **Booleans** - Combine shapes (Union, Subtract, Intersect, Merge)
-- **Attributes** - Manage geometry data (Create, Delete, Color, UV Unwrap)
-- **Groups** - Selection and masking (Create, Delete, Combine, Promote, Expand)
-- **Utilities** - Helper nodes (Switch, Null, Cache, Sort, Blast)
+- **Generators** (6) - Create primitives (Sphere, Box, Cylinder, Torus, Grid, Line)
+- **Modifiers** (5) - Extrude, Subdivide, Smooth, Noise Displacement, Bevel (basic)
+- **Transform** (6) - Transform, Array, Copy to Points, Mirror, Scatter, Align
+- **Boolean & Combine** (5) - Boolean, Merge, Split, PolyExtrude, Remesh (stub)
+- **Attributes** (6) - Wrangle, Attribute Create/Delete, Color, Normal, UV Unwrap
+- **Groups** (7) - Group Create, Blast, Sort, Group Promote/Combine/Expand/Transfer
+- **Deformers** (3) - Bend, Twist, Lattice
+- **Utilities** (5) - Switch, Null, Output, File (import), Export
 
 [:octicons-arrow-right-24: Full Node List](nodes/index.md)
 
 ### Expression System
 
-Every parameter can use mathematical expressions:
+Every parameter supports mathematical expressions and references:
 
 ```
 // Simple math
-2 + 2
+$radius * 2 + 1
 
-// Trigonometry
-sin(45) * radius
+// Trigonometry & functions  
+sin(45) * $amplitude
 
-// Channel references
-ch("../control") * 2
+// Reference other nodes
+ch("../Sphere/radius") * 2
 
-// Frame-based animation
-$F * 0.1
+// Reference graph parameters
+$master_scale * 1.5
 ```
 
 [:octicons-arrow-right-24: Expression Guide](expressions/expression-syntax.md)
 
 ### Graph Parameters
 
-Create reusable parameters that control multiple nodes:
+Create master controls that drive multiple nodes:
 
-- Define once, use everywhere
-- Build responsive, intelligent models
-- Create preset systems for quick iteration
+- Define once, use everywhere with `$param_name` syntax
+- Build responsive, data-driven models
+- All parameter types: Float, Int, Bool, String, Vector3
+- Expression support with math functions (sin, cos, sqrt, etc.)
+- Auto-complete for parameters and functions
 
 [:octicons-arrow-right-24: Graph Parameters](expressions/graph-parameters.md)
 
 ### Real-Time Viewport
 
-See your geometry update as you work:
+See your geometry update instantly as you work:
 
 - Multiple shading modes (wireframe, solid, combined)
-- Display toggles (vertices, edges, normals, grid)
-- Smooth camera navigation
-- Instant feedback on parameter changes
+- Display toggles via compact viewport toolbar
+- Vertices, edges, vertex/face normals, grid, axes, point numbers
+- Smooth camera navigation (orbit, pan, zoom)
+- Instant feedback on all parameter changes
+- Frame selected (F) and frame all (Home) shortcuts
+
+---
+
+## Keyboard Shortcuts
+
+Professional keyboard-driven workflow:
+
+- **Node Operations**: Tab menu, Duplicate (Ctrl+D), Delete, Bypass (B), Disconnect (Shift+D)
+- **Edit Operations**: Full clipboard support (Ctrl+C/X/V), Undo/Redo (Ctrl+Z/Shift+Z)
+- **Selection**: Select All (A), Deselect (Shift+A), Invert (Ctrl+I), Frame (F/Home)
+- **Viewport**: Wireframe (W), Normals (N/Shift+N), Grid (G)
+- **Help**: Show shortcuts (Ctrl+/), Documentation (F1)
+
+[:octicons-arrow-right-24: Full Shortcuts](reference/keyboard-shortcuts.md)
 
 ---
 
@@ -222,18 +241,22 @@ Built on the [Manifold](https://github.com/elalish/manifold) geometry kernel for
 
 ## Version
 
-**Current Version:** 0.5.0 (Beta)
+**Current Version:** Alpha Preview (November 2025)
 
-Nodo is in active development. Expect frequent updates and new features.
+Nodo is in active beta testing. Expect frequent updates and new features.
 
 ### Recent Updates
 
-- ✅ Expression system with math functions
-- ✅ Graph parameters for reusable controls
-- ✅ Undo/Redo support
+- ✅ Full expression system with math functions and ch() references
+- ✅ Graph parameters for master controls ($param_name syntax)
+- ✅ Complete undo/redo support for all operations
+- ✅ Professional keyboard shortcuts (M3.6)
+- ✅ Viewport toolbar with display toggles
 - ✅ Recent projects menu
-- ✅ Connection selection improvements
-- ✅ 44 procedural nodes
+- ✅ Connection selection and editing
+- ✅ 40 procedural nodes across 8 categories
+- ✅ Expression auto-complete and validation
+- ✅ Circular reference detection
 
 ---
 
