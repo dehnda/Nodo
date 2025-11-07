@@ -341,10 +341,10 @@ auto MainWindow::setupMenuBar() -> void {
 
   // Node state operations
   QAction *bypassSelectedAction = graphMenu->addAction("&Bypass Selected");
-  bypassSelectedAction->setShortcut(QKeySequence(Qt::Key_B));
+  // Removed shortcut: B key
 
   QAction *disconnectAction = graphMenu->addAction("&Disconnect Selected");
-  disconnectAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_D));
+  // Removed shortcut: Shift+D
 
   graphMenu->addSeparator();
 
@@ -615,6 +615,19 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_widget_ = new NodeGraphWidget(node_graph_container);
   node_graph_widget_->set_graph(node_graph_.get());
   node_graph_widget_->set_undo_stack(undo_stack_.get());
+
+  // Add edit actions to node graph widget so shortcuts work when it has focus
+  // Find the actions from the menu
+  for (QAction *action : menuBar()->actions()) {
+    QMenu *menu = action->menu();
+    if (menu && (menu->title() == "&Edit" || menu->title() == "&Graph" ||
+                 menu->title() == "&View")) {
+      // Add all actions from Edit, Graph, and View menus to the node graph
+      // widget
+      node_graph_widget_->addActions(menu->actions());
+    }
+  }
+
   node_graph_layout->addWidget(node_graph_widget_);
 
   node_graph_dock_->setWidget(node_graph_container);
@@ -1527,13 +1540,18 @@ void MainWindow::onCut() {
     return;
   }
 
+  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
+
+  if (selected_nodes.isEmpty()) {
+    statusBar()->showMessage("No nodes selected to cut", 2000);
+    return;
+  }
+
   // Copy to clipboard first
   onCopy();
 
   // Then delete selected nodes
-  if (!node_graph_widget_->get_selected_node_ids().isEmpty()) {
-    onDelete();
-  }
+  onDelete();
 }
 
 void MainWindow::onCopy() {
@@ -1669,7 +1687,7 @@ void MainWindow::onDuplicate() {
 }
 
 void MainWindow::onDelete() {
-  if (node_graph_widget_ == nullptr) {
+  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
     return;
   }
 
@@ -1681,11 +1699,17 @@ void MainWindow::onDelete() {
     return;
   }
 
-  // The NodeGraphWidget already handles Delete key press and uses undo commands
-  // We can just simulate a Delete key press
-  QKeyEvent *keyEvent =
-      new QKeyEvent(QEvent::KeyPress, Qt::Key_Delete, Qt::NoModifier);
-  QApplication::postEvent(node_graph_widget_, keyEvent);
+  // Delete selected nodes using undo commands (same logic as NodeGraphWidget's
+  // Delete key)
+  if (undo_stack_ != nullptr) {
+    for (int node_id : selected_nodes) {
+      auto cmd = nodo::studio::create_delete_node_command(
+          node_graph_widget_, node_graph_.get(), node_id);
+      undo_stack_->push(std::move(cmd));
+    }
+    // Emit signal so MainWindow can update UI
+    emit node_graph_widget_->nodes_deleted(selected_nodes);
+  }
 
   statusBar()->showMessage(
       QString("Deleted %1 nodes").arg(selected_nodes.size()), 2000);
@@ -1700,10 +1724,14 @@ void MainWindow::onFrameAll() {
     return;
   }
 
-  // Simulate Home key press to frame all nodes
-  QKeyEvent *keyEvent =
-      new QKeyEvent(QEvent::KeyPress, Qt::Key_Home, Qt::NoModifier);
-  QApplication::postEvent(node_graph_widget_, keyEvent);
+  // Frame all nodes (same logic as NodeGraphWidget's Home key handler)
+  auto node_items = node_graph_widget_->get_all_node_items();
+  if (!node_items.isEmpty()) {
+    node_graph_widget_->scene()->setSceneRect(
+        node_graph_widget_->scene()->itemsBoundingRect());
+    node_graph_widget_->fitInView(node_graph_widget_->scene()->sceneRect(),
+                                  Qt::KeepAspectRatio);
+  }
 }
 
 void MainWindow::onFrameSelected() {
@@ -1718,10 +1746,30 @@ void MainWindow::onFrameSelected() {
     return;
   }
 
-  // Simulate F key press to frame selected nodes
-  QKeyEvent *keyEvent =
-      new QKeyEvent(QEvent::KeyPress, Qt::Key_F, Qt::NoModifier);
-  QApplication::postEvent(node_graph_widget_, keyEvent);
+  // Frame selected nodes (same logic as NodeGraphWidget's F key handler)
+  QRectF bounds;
+  auto node_items = node_graph_widget_->get_all_node_items();
+
+  for (int node_id : selected_nodes) {
+    // Find the node item with this ID
+    for (auto *item : node_items) {
+      if (item->get_node_id() == node_id) {
+        QRectF node_bounds = item->sceneBoundingRect();
+        if (bounds.isNull()) {
+          bounds = node_bounds;
+        } else {
+          bounds = bounds.united(node_bounds);
+        }
+        break;
+      }
+    }
+  }
+
+  if (!bounds.isNull()) {
+    // Add some padding
+    bounds.adjust(-50, -50, 50, 50);
+    node_graph_widget_->fitInView(bounds, Qt::KeepAspectRatio);
+  }
 }
 
 // ============================================================================
