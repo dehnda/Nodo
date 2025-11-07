@@ -39,6 +39,12 @@ protected:
 private:
   // UI setup methods
   void setupMenuBar();
+  void setupFileMenu();
+  void setupEditMenu();
+  void setupViewMenu();
+  void setupGraphMenu();
+  void setupHelpMenu();
+  void setupIconToolbar();
   void setupDockWidgets();
   void setupStatusBar();
   void setupUndoRedo();

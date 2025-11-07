@@ -87,10 +87,18 @@ MainWindow::~MainWindow() {
 }
 
 auto MainWindow::setupMenuBar() -> void {
-  // Get the menu bar (QMainWindow provides this)
+  setupFileMenu();
+  setupEditMenu();
+  setupViewMenu();
+  setupGraphMenu();
+  setupHelpMenu();
+  setupIconToolbar();
+}
+
+auto MainWindow::setupFileMenu() -> void {
   QMenuBar *menuBar = this->menuBar();
 
-  // ============================================================================
+// ============================================================================
   // File Menu
   // ============================================================================
   QMenu *fileMenu = menuBar->addMenu("&File");
@@ -167,8 +175,12 @@ auto MainWindow::setupMenuBar() -> void {
   connect(exportGraphAction, &QAction::triggered, this,
           &MainWindow::onExportGraph);
   connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
+}
 
-  // ============================================================================
+auto MainWindow::setupEditMenu() -> void {
+  QMenuBar *menuBar = this->menuBar();
+
+// ============================================================================
   // Edit Menu
   // ============================================================================
   QMenu *editMenu = menuBar->addMenu("&Edit");
@@ -225,8 +237,12 @@ auto MainWindow::setupMenuBar() -> void {
           &MainWindow::onDeselectAll);
   connect(invertSelectionAction, &QAction::triggered, this,
           &MainWindow::onInvertSelection);
+}
 
-  // ============================================================================
+auto MainWindow::setupViewMenu() -> void {
+  QMenuBar *menuBar = this->menuBar();
+
+// ============================================================================
   // View Menu
   // ============================================================================
   QMenu *viewMenu = menuBar->addMenu("&View");
@@ -322,8 +338,12 @@ auto MainWindow::setupMenuBar() -> void {
           &MainWindow::onToggleWireframe);
   // Note: viewport widget connections are made in setupDockWidgets() after
   // widget creation
+}
 
-  // ============================================================================
+auto MainWindow::setupGraphMenu() -> void {
+  QMenuBar *menuBar = this->menuBar();
+
+// ============================================================================
   // Graph Menu
   // ============================================================================
   QMenu *graphMenu = menuBar->addMenu("&Graph");
@@ -377,8 +397,12 @@ auto MainWindow::setupMenuBar() -> void {
           &MainWindow::onBypassSelected);
   connect(disconnectAction, &QAction::triggered, this,
           &MainWindow::onDisconnectSelected);
+}
 
-  // ============================================================================
+auto MainWindow::setupHelpMenu() -> void {
+  QMenuBar *menuBar = this->menuBar();
+
+// ============================================================================
   // Help Menu
   // ============================================================================
   QMenu *helpMenu = menuBar->addMenu("&Help");
@@ -410,8 +434,12 @@ auto MainWindow::setupMenuBar() -> void {
   // Connect Help menu actions
   connect(keyboardShortcutsAction, &QAction::triggered, this,
           &MainWindow::onShowKeyboardShortcuts);
+}
 
-  // ============================================================================
+auto MainWindow::setupIconToolbar() -> void {
+  QMenuBar *menuBar = this->menuBar();
+
+// ============================================================================
   // Icon Toolbar (Right side of menu bar)
   // ============================================================================
   // Add icon toolbar to the right corner of menu bar
