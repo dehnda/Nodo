@@ -15,6 +15,9 @@ option(NODO_BUILD_TESTS "Build unit tests" ON)
 option(NODO_BUILD_STUDIO "Build Qt Studio application" ON)
 option(NODO_BUILD_CLI "Build CLI headless tool" ON)
 
+# Find OpenMP (required for PMP library's Eigen)
+find_package(OpenMP REQUIRED)
+
 # External dependencies
 # xatlas - UV unwrapping library
 add_library(xatlas STATIC

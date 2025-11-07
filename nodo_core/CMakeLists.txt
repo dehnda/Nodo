@@ -57,6 +57,7 @@ set(NODO_CORE_SOURCES
     # Processing
     src/processing/pmp_converter.cpp
     src/processing/decimation.cpp
+    src/processing/remeshing.cpp
 
     # SOPs
     src/sop/array_sop.cpp
@@ -120,6 +121,7 @@ target_link_libraries(nodo_core
         exprtk::exprtk
         xatlas
         pmp::pmp
+        OpenMP::OpenMP_CXX
 )
 
 # Compiler warnings

@@ -1,21 +1,24 @@
 #pragma once
 
 #include "../core/geometry_container.hpp"
+#include "../processing/remeshing.hpp"
 #include "sop_node.hpp"
+#include <fmt/core.h>
 
 namespace nodo::sop {
 
 /**
- * @brief Remesh SOP - Creates uniform mesh triangulation
+ * @brief Remesh SOP - Creates uniform or adaptive mesh triangulation
  *
  * Remeshes input geometry to create uniform, well-shaped triangles.
- * This is a mesh optimization/repair tool useful for:
+ * Uses PMP library's remeshing algorithms:
+ * - Uniform remeshing: constant edge length
+ * - Adaptive remeshing: adjust to curvature
+ *
+ * Useful for:
  * - Cleaning up imported meshes
  * - Preparing geometry for simulation
  * - Creating uniform tessellation for displacement
- *
- * Full implementation requires isotropic remeshing algorithm
- * (e.g., incremental remeshing with edge splits/collapses/flips)
  */
 class RemeshSOP : public SOPNode {
 public:
@@ -23,7 +26,8 @@ public:
 
   explicit RemeshSOP(const std::string &node_name = "remesh")
       : SOPNode(node_name, "Remesh") {
-    // Single geometry input
+
+    // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
 
@@ -83,46 +87,53 @@ public:
             .build());
   }
 
+  InputConfig get_input_config() const override {
+    return InputConfig(InputType::SINGLE, 1, 1, 0);
+  }
+
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
+    // Get input geometry
     auto input = get_input_data(0);
+
+    // Debug output
+    fmt::print("RemeshSOP::execute() - input pointer: {}\n",
+               input ? "valid" : "nullptr");
+
     if (!input) {
-      set_error("Remesh requires input geometry");
+      set_error("No input geometry");
       return nullptr;
     }
 
-    // For Phase 1: Return simplified version
-    // Full implementation requires sophisticated remeshing algorithm
-    auto output = std::make_shared<core::GeometryContainer>(input->clone());
+    fmt::print("RemeshSOP::execute() - input has {} points, {} prims\n",
+               input->point_count(), input->primitive_count());
 
     // Get parameters
-    const float target_length =
+    processing::RemeshingParams params;
+    params.use_adaptive = (get_parameter<int>("adaptive", 0) == 1);
+    params.target_edge_length =
         get_parameter<float>("target_edge_length", 0.1F);
-    const int iterations = get_parameter<int>("iterations", 10);
-    const bool preserve_boundaries =
-        get_parameter<int>("preserve_boundaries", 1) != 0;
-    const bool preserve_sharp =
-        get_parameter<int>("preserve_sharp_edges", 1) != 0;
+    params.iterations = get_parameter<int>("iterations", 10);
+    params.preserve_boundaries =
+        (get_parameter<int>("preserve_boundaries", 1) == 1);
 
-    // TODO: Implement full remeshing algorithm
-    // Phase 1: Return unchanged
-    // Full remeshing requires:
-    // 1. Edge split (too long edges)
-    // 2. Edge collapse (too short edges)
-    // 3. Edge flip (improve triangle quality)
-    // 4. Vertex smoothing (Laplacian or angle-based)
-    // 5. Iterate until convergence
+    // For now, use default values for adaptive mode parameters
+    // TODO: Add UI parameters for these if needed
+    params.min_edge_length = params.target_edge_length * 0.5F;
+    params.max_edge_length = params.target_edge_length * 2.0F;
+    params.approx_error = 0.01F;
+    params.smoothing_iterations = 10;
 
-    // Could integrate with external library like OpenMesh or libigl
-    // for production-quality remeshing
+    // Perform remeshing
+    std::string error;
+    auto result = processing::Remeshing::remesh(*input, params, &error);
 
-    // Suppress unused variable warnings
-    (void)target_length;
-    (void)iterations;
-    (void)preserve_boundaries;
-    (void)preserve_sharp;
+    if (!result) {
+      set_error(error);
+      return nullptr;
+    }
 
-    return output;
+    return std::make_shared<core::GeometryContainer>(std::move(*result));
   }
 };
 
