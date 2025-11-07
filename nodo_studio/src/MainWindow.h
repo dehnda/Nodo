@@ -13,6 +13,7 @@ class StatusBarWidget;
 class GraphParametersPanel;
 class QDockWidget;
 class MenuManager;
+class SceneFileManager;
 
 // Undo/Redo system
 namespace nodo::studio {
@@ -84,6 +85,9 @@ private:
 
   // Menu management helper
   std::unique_ptr<MenuManager> menu_manager_;
+  
+  // Scene file management helper
+  std::unique_ptr<SceneFileManager> scene_file_manager_;
 
   // Backend graph system
   std::unique_ptr<nodo::graph::NodeGraph> node_graph_;

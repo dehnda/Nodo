@@ -22,6 +22,7 @@ set(STUDIO_SOURCES
     src/main.cpp
     src/MainWindow.cpp
     src/MenuManager.cpp
+    src/SceneFileManager.cpp
     src/ViewportWidget.cpp
     src/PropertyPanel.cpp
     src/NodeGraphWidget.cpp

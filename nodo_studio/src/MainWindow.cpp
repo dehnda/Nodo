@@ -7,6 +7,7 @@
 #include "MenuManager.h"
 #include "NodeGraphWidget.h"
 #include "PropertyPanel.h"
+#include "SceneFileManager.h"
 #include "StatusBarWidget.h"
 #include "UndoStack.h"
 #include "ViewportToolbar.h"
@@ -52,6 +53,11 @@ MainWindow::MainWindow(QWidget *parent)
 
   // Initialize menu manager
   menu_manager_ = std::make_unique<MenuManager>(this);
+  
+  // Initialize scene file manager
+  scene_file_manager_ = std::make_unique<SceneFileManager>(this);
+  scene_file_manager_->setNodeGraph(node_graph_.get());
+  scene_file_manager_->setExecutionEngine(execution_engine_.get());
 
   // Load and apply dark theme stylesheet
   QFile styleFile(":/resources/styles/dark_theme.qss");
@@ -246,6 +252,9 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_widget_ = new NodeGraphWidget(node_graph_container);
   node_graph_widget_->set_graph(node_graph_.get());
   node_graph_widget_->set_undo_stack(undo_stack_.get());
+  
+  // Set node graph widget in scene file manager
+  scene_file_manager_->setNodeGraphWidget(node_graph_widget_);
 
   // Add edit actions to node graph widget so shortcuts work when it has focus
   // Find the actions from the menu
@@ -422,6 +431,11 @@ void MainWindow::onNewScene() {
   node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
   execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
 
+  // Update scene file manager with new graph
+  scene_file_manager_->setNodeGraph(node_graph_.get());
+  scene_file_manager_->setExecutionEngine(execution_engine_.get());
+  scene_file_manager_->newScene();
+
   // Reconnect the node graph widget to the new graph
   node_graph_widget_->set_graph(node_graph_.get());
 
@@ -439,178 +453,47 @@ void MainWindow::onNewScene() {
   // Clear status bar
   status_bar_widget_->setNodeCount(0, 17);
 
-  // Reset file tracking
-  current_file_path_.clear();
-  is_modified_ = false;
+  // Update window title
   setWindowTitle("Nodo Studio - Untitled");
 
   statusBar()->showMessage("New scene created", 2000);
 }
 
 void MainWindow::onOpenScene() {
-  using nodo::graph::GraphSerializer;
-
-  QString file_path = QFileDialog::getOpenFileName(
-      this, "Open Node Graph", "", "NodeFlux Graph (*.nfg);;All Files (*)");
-
-  if (file_path.isEmpty()) {
-    return; // User cancelled
-  }
-
-  auto loaded_graph = GraphSerializer::load_from_file(file_path.toStdString());
-
-  if (loaded_graph.has_value()) {
-    // Replace current graph with loaded graph
-    // We need to create a new graph and swap pointers to avoid signal issues
-    node_graph_ = std::make_unique<nodo::graph::NodeGraph>(
-        std::move(loaded_graph.value()));
-
-    // Reconnect the node graph widget to the new graph
-    node_graph_widget_->set_graph(node_graph_.get());
-
-    // Reconnect and refresh graph parameters panel
-    graph_parameters_panel_->set_graph(node_graph_.get());
-    graph_parameters_panel_->refresh();
-
-    // Clear viewport
-    viewport_widget_->clearMesh();
-    property_panel_->clearProperties();
-
-    // Track the opened file
-    current_file_path_ = file_path;
-    is_modified_ = false;
-    setWindowTitle("Nodo Studio - " + QFileInfo(file_path).fileName());
-
-    // Add to recent files
-    addToRecentFiles(file_path);
-
-    statusBar()->showMessage("Graph loaded successfully", 3000);
-  } else {
-    QMessageBox::warning(this, "Load Failed",
-                         "Failed to load node graph from file.");
-    statusBar()->showMessage("Failed to load graph", 3000);
-  }
+  scene_file_manager_->openScene();
+  // TODO: Handle the graph loading through signals/callbacks
 }
 
 void MainWindow::onSaveScene() {
-  // If we have a current file, save to it directly
-  if (!current_file_path_.isEmpty()) {
-    using nodo::graph::GraphSerializer;
-    bool success = GraphSerializer::save_to_file(
-        *node_graph_, current_file_path_.toStdString());
-    if (success) {
-      is_modified_ = false;
-      statusBar()->showMessage("Graph saved successfully", 3000);
-      addToRecentFiles(current_file_path_);
-    } else {
-      QMessageBox::warning(this, "Save Failed",
-                           "Failed to save node graph to file.");
-      statusBar()->showMessage("Failed to save graph", 3000);
-    }
-  } else {
-    // No current file, prompt for Save As
-    onSaveSceneAs();
-  }
+  scene_file_manager_->saveScene();
 }
 
 void MainWindow::onSaveSceneAs() {
-  using nodo::graph::GraphSerializer;
-
-  QString file_path = QFileDialog::getSaveFileName(
-      this, "Save Node Graph As", "", "NodeFlux Graph (*.nfg);;All Files (*)");
-
-  if (file_path.isEmpty()) {
-    return; // User cancelled
-  }
-
-  // Add .nfg extension if not present
-  if (!file_path.endsWith(".nfg", Qt::CaseInsensitive)) {
-    file_path += ".nfg";
-  }
-
-  bool success =
-      GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
-
-  if (success) {
-    current_file_path_ = file_path;
-    is_modified_ = false;
-    setWindowTitle("Nodo Studio - " + QFileInfo(file_path).fileName());
-    statusBar()->showMessage("Graph saved successfully", 3000);
-    addToRecentFiles(file_path);
-  } else {
-    QMessageBox::warning(this, "Save Failed",
-                         "Failed to save node graph to file.");
-    statusBar()->showMessage("Failed to save graph", 3000);
-  }
+  scene_file_manager_->saveSceneAs();
 }
 
 void MainWindow::onRevertToSaved() {
-  if (current_file_path_.isEmpty()) {
-    return;
-  }
-
-  auto reply = QMessageBox::question(
-      this, "Revert to Saved", "Discard all changes and reload from disk?",
-      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-
-  if (reply == QMessageBox::Yes) {
-    // For now, revert is essentially re-opening the current file
-    // TODO: Implement proper graph replacement without recreating widgets
-    using nodo::graph::GraphSerializer;
-    auto loaded_graph =
-        GraphSerializer::load_from_file(current_file_path_.toStdString());
-
-    if (loaded_graph.has_value()) {
-      node_graph_ =
-          std::make_unique<nodo::graph::NodeGraph>(std::move(*loaded_graph));
-      is_modified_ = false;
-      statusBar()->showMessage("Graph reverted to saved version", 3000);
-
-      // For now, show a message that the graph needs to be reloaded
-      // Full implementation would require widget->setGraph() methods
-      QMessageBox::information(this, "Revert Complete",
-                               "Graph reverted. Please reload the file using "
-                               "File → Open for full functionality.\n"
-                               "Full revert support coming in v1.1.");
-    } else {
-      QMessageBox::warning(this, "Revert Failed",
-                           "Failed to reload graph from file.");
-    }
-  }
+  scene_file_manager_->revertToSaved();
 }
 
 void MainWindow::onImportGeometry() {
-  // TODO: Implement geometry import
-  // This would create a File node and load the selected geometry
-  QMessageBox::information(this, "Import Geometry",
-                           "Geometry import coming in v1.1!\n\n"
-                           "For now, use the File node in the node graph.");
+  scene_file_manager_->importGeometry();
 }
 
 void MainWindow::onImportGraph() {
-  // Import graph merges another .nfg into the current graph
-  // TODO: Implement graph merging
-  QMessageBox::information(this, "Import Graph",
-                           "Graph import/merge coming in v1.1!\n\n"
-                           "For now, use File → Open to load a graph.");
+  scene_file_manager_->importGraph();
 }
 
 void MainWindow::onExportGeometry() {
-  // This is the same as onExportMesh, just renamed for consistency
-  onExportMesh();
+  scene_file_manager_->exportGeometry();
 }
 
 void MainWindow::onExportGraph() {
-  // Export graph is the same as Save As
-  onSaveSceneAs();
+  scene_file_manager_->exportGraph();
 }
 
 void MainWindow::onExportSelection() {
-  // TODO: Export only the selected node's geometry
-  QMessageBox::information(this, "Export Selection",
-                           "Export selected node coming in v1.1!\n\n"
-                           "For now, set the display flag on the node "
-                           "and use Export → Current Output.");
+  scene_file_manager_->exportSelection();
 }
 
 void MainWindow::onExportMesh() {
