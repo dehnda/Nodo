@@ -65,13 +65,21 @@ BaseParameterWidget *ParameterWidgetFactory::createWidget(
     std::string value = std::get<std::string>(def.default_value);
     QString qvalue = QString::fromStdString(value);
 
-    // Check if it's a file path parameter (common naming conventions)
-    if (def.name.find("file") != std::string::npos ||
+    // Debug output
+    qDebug() << "String parameter:" << QString::fromStdString(def.name)
+             << "ui_hint:" << QString::fromStdString(def.ui_hint);
+
+    // Check if it's a file path parameter (ui_hint or common naming
+    // conventions)
+    if (def.ui_hint == "filepath" ||
+        def.name.find("file") != std::string::npos ||
         def.name.find("path") != std::string::npos ||
         def.name.find("texture") != std::string::npos) {
+      qDebug() << "  -> Creating FilePathWidget";
       return createFilePathWidget(label, qvalue, description, parent);
     }
 
+    qDebug() << "  -> Creating StringWidget";
     return createStringWidget(label, qvalue, description, parent);
   }
 
@@ -196,6 +204,16 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
 
   case nodo::graph::NodeParameter::Type::String: {
     QString value = QString::fromStdString(param.string_value);
+
+    // Check if it's a file path parameter (ui_hint or common naming
+    // conventions)
+    if (param.ui_hint == "filepath" ||
+        param.name.find("file") != std::string::npos ||
+        param.name.find("path") != std::string::npos ||
+        param.name.find("texture") != std::string::npos) {
+      return createFilePathWidget(label, value, description, parent);
+    }
+
     return createStringWidget(label, value, description, parent);
   }
 

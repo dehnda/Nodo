@@ -45,6 +45,7 @@ enum class NodeType {
   Normal,
   Bevel,
   Remesh,
+  Decimate,
   Align,
   Split,
 
@@ -122,6 +123,7 @@ struct NodeParameter {
   std::string name;
   std::string label;    // Display name for UI
   std::string category; // UI grouping/filtering (optional)
+  std::string ui_hint;  // UI widget hint (e.g., "filepath", "multiline")
 
   // M3.3 Phase 2: Value storage mode
   ParameterValueMode value_mode = ParameterValueMode::LITERAL;

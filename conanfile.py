@@ -56,6 +56,9 @@ class NodeFluxEngineConan(ConanFile):
         self.requires("fmt/10.2.1")
         self.requires("nlohmann_json/3.11.3")
 
+        # pmp mesh library for mesh processing (MIT license)
+        self.requires("pmp/3.0.0")
+
         # Manifold for boolean operations (Apache 2.0 - fully commercial-friendly!)
         self.requires("manifold/3.2.1")
 

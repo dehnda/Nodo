@@ -16,6 +16,9 @@ add_executable(nodo_tests
     test_element_topology.cpp
     test_geometry_container.cpp
 
+    # Processing (PMP Integration)
+    test_pmp_converter.cpp
+
     # Attribute System
     test_attribute_types.cpp
     test_attribute_storage.cpp

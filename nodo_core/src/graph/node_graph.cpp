@@ -86,6 +86,9 @@ convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
   param.category_control_param = def.category_control_param;
   param.category_control_value = def.category_control_value;
 
+  // Copy UI hint for widget selection
+  param.ui_hint = def.ui_hint;
+
   return param;
 }
 

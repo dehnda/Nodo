@@ -13,6 +13,7 @@ find_package(fmt REQUIRED)
 find_package(manifold REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(exprtk REQUIRED)
+find_package(pmp REQUIRED)
 
 # Core library sources
 set(NODO_CORE_SOURCES
@@ -53,10 +54,15 @@ set(NODO_CORE_SOURCES
     src/io/obj_exporter.cpp
     src/io/obj_importer.cpp
 
+    # Processing
+    src/processing/pmp_converter.cpp
+    src/processing/decimation.cpp
+
     # SOPs
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp
     src/sop/copy_to_points_sop.cpp
+    src/sop/decimation_sop.cpp
     src/sop/extrude_sop.cpp
     src/sop/group_sop.cpp
     src/sop/laplacian_sop.cpp
@@ -113,6 +119,7 @@ target_link_libraries(nodo_core
         manifold::manifold
         exprtk::exprtk
         xatlas
+        pmp::pmp
 )
 
 # Compiler warnings

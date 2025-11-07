@@ -91,7 +91,7 @@ Every parameter supports mathematical expressions and references:
 // Simple math
 $radius * 2 + 1
 
-// Trigonometry & functions  
+// Trigonometry & functions
 sin(45) * $amplitude
 
 // Reference other nodes

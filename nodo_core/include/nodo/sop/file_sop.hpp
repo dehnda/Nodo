@@ -31,6 +31,7 @@ public:
             .label("File Path")
             .category("File")
             .description("Path to geometry file to import (e.g., .obj)")
+            .hint("filepath")
             .build());
 
     // Reload button (int parameter acting as button)
@@ -113,8 +114,17 @@ protected:
       const auto &vertices = mesh->vertices();
       const auto &faces = mesh->faces();
 
-      // Set topology
-      container->topology().set_point_count(vertices.rows());
+      // Set topology (simple 1:1 mapping: each vertex is a point)
+      int num_points = vertices.rows();
+      container->set_point_count(num_points);
+      container->set_vertex_count(num_points);
+
+      // Set up 1:1 vertex→point mapping
+      for (int i = 0; i < num_points; ++i) {
+        container->topology().set_vertex_point(i, i);
+      }
+
+      // Add primitives (faces)
       for (int i = 0; i < faces.rows(); ++i) {
         std::vector<int> prim_verts = {faces(i, 0), faces(i, 1), faces(i, 2)};
         container->topology().add_primitive(prim_verts);
@@ -124,10 +134,14 @@ protected:
       container->add_point_attribute("P", core::AttributeType::VEC3F);
       auto *positions =
           container->get_point_attribute_typed<Eigen::Vector3f>("P");
+
       if (positions) {
         auto pos_span = positions->values_writable();
+
         for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
-          pos_span[i] = vertices.row(i).cast<float>();
+          pos_span[i] = Eigen::Vector3f(static_cast<float>(vertices(i, 0)),
+                                        static_cast<float>(vertices(i, 1)),
+                                        static_cast<float>(vertices(i, 2)));
         }
       }
 
@@ -140,7 +154,9 @@ protected:
         if (normal_attr) {
           auto norm_span = normal_attr->values_writable();
           for (size_t i = 0; i < static_cast<size_t>(normals.rows()); ++i) {
-            norm_span[i] = normals.row(i).cast<float>();
+            norm_span[i] = Eigen::Vector3f(static_cast<float>(normals(i, 0)),
+                                           static_cast<float>(normals(i, 1)),
+                                           static_cast<float>(normals(i, 2)));
           }
         }
       }

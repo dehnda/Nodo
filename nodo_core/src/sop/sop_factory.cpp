@@ -14,6 +14,7 @@
 #include "nodo/sop/color_sop.hpp"
 #include "nodo/sop/copy_to_points_sop.hpp"
 #include "nodo/sop/cylinder_sop.hpp"
+#include "nodo/sop/decimation_sop.hpp"
 #include "nodo/sop/export_sop.hpp"
 #include "nodo/sop/extrude_sop.hpp"
 #include "nodo/sop/file_sop.hpp"
@@ -87,6 +88,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<BevelSOP>();
   case NodeType::Remesh:
     return std::make_shared<RemeshSOP>();
+  case NodeType::Decimate:
+    return std::make_shared<DecimationSOP>();
   case NodeType::Align:
     return std::make_shared<AlignSOP>();
   case NodeType::Split:
@@ -241,6 +244,8 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
        "Create beveled edges and corners (Phase 2 placeholder)"},
       {NodeType::Remesh, "Remesh", "Modifier",
        "Uniform mesh triangulation (Phase 2 placeholder)"},
+      {NodeType::Decimate, "Decimate", "Modifier",
+       "Reduce mesh complexity while preserving shape"},
       {NodeType::Align, "Align", "Modifier",
        "Align geometry bounding box to axes or origin"},
       {NodeType::Split, "Split", "Modifier",
