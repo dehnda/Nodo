@@ -12,6 +12,7 @@ class NodeGraphWidget;
 class StatusBarWidget;
 class GraphParametersPanel;
 class QDockWidget;
+class MenuManager;
 
 // Undo/Redo system
 namespace nodo::studio {
@@ -30,6 +31,8 @@ class ExecutionEngine;
 class MainWindow : public QMainWindow {
 Q_OBJECT // This macro is required for Qt signals/slots system
 
+  friend class MenuManager;  // Allow MenuManager to access private members
+
     public : explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
 
@@ -39,12 +42,6 @@ protected:
 private:
   // UI setup methods
   void setupMenuBar();
-  void setupFileMenu();
-  void setupEditMenu();
-  void setupViewMenu();
-  void setupGraphMenu();
-  void setupHelpMenu();
-  void setupIconToolbar();
   void setupDockWidgets();
   void setupStatusBar();
   void setupUndoRedo();
@@ -62,6 +59,15 @@ private:
   QWidget *createCustomTitleBar(const QString &title,
                                 QWidget *parent = nullptr);
 
+  // Setters for MenuManager to store action pointers
+  void setUndoAction(QAction* action) { undo_action_ = action; }
+  void setRedoAction(QAction* action) { redo_action_ = action; }
+  void setVerticesAction(QAction* action) { vertices_action_ = action; }
+  void setEdgesAction(QAction* action) { edges_action_ = action; }
+  void setVertexNormalsAction(QAction* action) { vertex_normals_action_ = action; }
+  void setFaceNormalsAction(QAction* action) { face_normals_action_ = action; }
+  void setRecentProjectsMenu(QMenu* menu) { recent_projects_menu_ = menu; }
+
   // UI components (these will be pointers to our widgets)
   ViewportWidget *viewport_widget_;
   ViewportToolbar *viewport_toolbar_;
@@ -75,6 +81,9 @@ private:
   QDockWidget *node_graph_dock_;
   QDockWidget *geometry_spreadsheet_dock_;
   QDockWidget *graph_parameters_dock_;
+
+  // Menu management helper
+  std::unique_ptr<MenuManager> menu_manager_;
 
   // Backend graph system
   std::unique_ptr<nodo::graph::NodeGraph> node_graph_;
