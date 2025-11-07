@@ -96,6 +96,9 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
   }
   auto vertex_normals = geo.get_vertex_attribute_typed<Eigen::Vector3f>("N");
 
+  // Resize to match vertex count
+  vertex_normals->resize(topo.vertex_count());
+
   // Get point positions
   auto positions = geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!positions) {

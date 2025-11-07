@@ -59,6 +59,7 @@ set(NODO_CORE_SOURCES
     src/processing/decimation.cpp
     src/processing/remeshing.cpp
     src/processing/smoothing.cpp
+    src/processing/subdivision.cpp
 
     # SOPs
     src/sop/array_sop.cpp

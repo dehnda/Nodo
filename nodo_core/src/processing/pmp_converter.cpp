@@ -229,25 +229,27 @@ PMPConverter::from_pmp_container(const pmp::SurfaceMesh &pmp_mesh,
 
   // Add faces as primitives using the index mapping
   for (auto face : pmp_mesh.faces()) {
-    auto face_verts = pmp_mesh.vertices(face);
-    auto iter = face_verts.begin();
-    int vert0 = pmp_to_seq.at((*iter++).idx());
-    int vert1 = pmp_to_seq.at((*iter++).idx());
-    int vert2 = pmp_to_seq.at((*iter).idx());
+    std::vector<int> face_indices;
 
-    // Validate indices are in range
-    if (vert0 < 0 || vert0 >= static_cast<int>(num_vertices) || vert1 < 0 ||
-        vert1 >= static_cast<int>(num_vertices) || vert2 < 0 ||
-        vert2 >= static_cast<int>(num_vertices)) {
-      throw std::runtime_error("Internal error: Invalid vertex index mapping");
+    // Iterate through all vertices of the face (handles triangles, quads,
+    // n-gons)
+    for (auto vert : pmp_mesh.vertices(face)) {
+      int mapped_idx = pmp_to_seq.at(vert.idx());
+
+      // Validate index is in range
+      if (mapped_idx < 0 || mapped_idx >= static_cast<int>(num_vertices)) {
+        throw std::runtime_error(
+            "Internal error: Invalid vertex index mapping");
+      }
+
+      face_indices.push_back(mapped_idx);
     }
 
-    result.topology().add_primitive({vert0, vert1, vert2});
+    result.topology().add_primitive(face_indices);
   }
 
   return result;
 }
-
 std::string PMPConverter::validate_for_pmp(const core::Mesh &mesh) {
   if (mesh.vertices().rows() < 3) {
     return "Mesh must have at least 3 vertices";
