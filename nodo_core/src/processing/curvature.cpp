@@ -173,6 +173,25 @@ Curvature::compute(const core::GeometryContainer &input,
     fmt::print("Curvature: Result has {} points, {} point attributes\n",
                result.point_count(), result.get_point_attribute_names().size());
 
+    // Debug: Print all attribute names and verify they're accessible
+    auto attr_names = result.get_point_attribute_names();
+    fmt::print("Curvature: Point attribute names ({}): ", attr_names.size());
+    for (const auto &name : attr_names) {
+      fmt::print("'{}', ", name);
+    }
+    fmt::print("\n");
+
+    // Verify attributes can be retrieved
+    if (compute_mean) {
+      auto *attr = result.get_point_attribute_typed<float>("mean_curvature");
+      if (attr) {
+        fmt::print("  mean_curvature: size={}, first value={}\n", attr->size(),
+                   attr->size() > 0 ? (*attr)[0] : 0.0f);
+      } else {
+        fmt::print("  mean_curvature: FAILED TO RETRIEVE!\n");
+      }
+    }
+
     return result;
   } catch (const std::exception &e) {
     fmt::print("Curvature: Failed to compute: {}\n", e.what());

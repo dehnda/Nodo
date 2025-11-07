@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   // Initialize menu manager
   menu_manager_ = std::make_unique<MenuManager>(this);
-  
+
   // Initialize scene file manager
   scene_file_manager_ = std::make_unique<SceneFileManager>(this);
   scene_file_manager_->setNodeGraph(node_graph_.get());
@@ -98,7 +98,8 @@ MainWindow::~MainWindow() {
 
 auto MainWindow::setupMenuBar() -> void {
   menu_manager_->setupMenuBar(this->menuBar());
-  setupRecentFilesMenu();  // Still needs to populate the recent files after menu creation
+  setupRecentFilesMenu(); // Still needs to populate the recent files after menu
+                          // creation
 }
 
 auto MainWindow::setupRecentFilesMenu() -> void {
@@ -252,7 +253,7 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_widget_ = new NodeGraphWidget(node_graph_container);
   node_graph_widget_->set_graph(node_graph_.get());
   node_graph_widget_->set_undo_stack(undo_stack_.get());
-  
+
   // Set node graph widget in scene file manager
   scene_file_manager_->setNodeGraphWidget(node_graph_widget_);
 
@@ -464,37 +465,21 @@ void MainWindow::onOpenScene() {
   // TODO: Handle the graph loading through signals/callbacks
 }
 
-void MainWindow::onSaveScene() {
-  scene_file_manager_->saveScene();
-}
+void MainWindow::onSaveScene() { scene_file_manager_->saveScene(); }
 
-void MainWindow::onSaveSceneAs() {
-  scene_file_manager_->saveSceneAs();
-}
+void MainWindow::onSaveSceneAs() { scene_file_manager_->saveSceneAs(); }
 
-void MainWindow::onRevertToSaved() {
-  scene_file_manager_->revertToSaved();
-}
+void MainWindow::onRevertToSaved() { scene_file_manager_->revertToSaved(); }
 
-void MainWindow::onImportGeometry() {
-  scene_file_manager_->importGeometry();
-}
+void MainWindow::onImportGeometry() { scene_file_manager_->importGeometry(); }
 
-void MainWindow::onImportGraph() {
-  scene_file_manager_->importGraph();
-}
+void MainWindow::onImportGraph() { scene_file_manager_->importGraph(); }
 
-void MainWindow::onExportGeometry() {
-  scene_file_manager_->exportGeometry();
-}
+void MainWindow::onExportGeometry() { scene_file_manager_->exportGeometry(); }
 
-void MainWindow::onExportGraph() {
-  scene_file_manager_->exportGraph();
-}
+void MainWindow::onExportGraph() { scene_file_manager_->exportGraph(); }
 
-void MainWindow::onExportSelection() {
-  scene_file_manager_->exportSelection();
-}
+void MainWindow::onExportSelection() { scene_file_manager_->exportSelection(); }
 
 void MainWindow::onExportMesh() {
   using nodo::io::ObjExporter;
@@ -747,16 +732,49 @@ void MainWindow::onNodeSelectionChanged() {
         // todo we not need to add that manually but it should work
         // automatically
         bool is_sop =
+            // Generators
             (node_type == NodeType::Sphere || node_type == NodeType::Box ||
-             node_type == NodeType::Cylinder || node_type == NodeType::Merge ||
-             node_type == NodeType::Group || node_type == NodeType::Blast ||
-             node_type == NodeType::Transform ||
-             node_type == NodeType::Boolean || node_type == NodeType::Array ||
-             node_type == NodeType::Normal || node_type == NodeType::UVUnwrap ||
-             node_type == NodeType::Scatter ||
-             node_type == NodeType::CopyToPoints ||
+             node_type == NodeType::Cylinder || node_type == NodeType::Grid ||
+             node_type == NodeType::Torus || node_type == NodeType::Line ||
+             // Modifiers
+             node_type == NodeType::Extrude ||
+             node_type == NodeType::PolyExtrude ||
+             node_type == NodeType::Smooth ||
+             node_type == NodeType::Subdivide ||
+             node_type == NodeType::Transform || node_type == NodeType::Array ||
+             node_type == NodeType::Mirror || node_type == NodeType::Resample ||
+             node_type == NodeType::NoiseDisplacement ||
+             node_type == NodeType::Normal || node_type == NodeType::Bevel ||
+             node_type == NodeType::Remesh || node_type == NodeType::Decimate ||
+             node_type == NodeType::RepairMesh ||
+             node_type == NodeType::Curvature || node_type == NodeType::Align ||
+             node_type == NodeType::Split ||
+             // Attributes
+             node_type == NodeType::AttributeCreate ||
+             node_type == NodeType::AttributeDelete ||
+             node_type == NodeType::Color ||
+             // Group Operations
+             node_type == NodeType::GroupDelete ||
+             node_type == NodeType::GroupPromote ||
+             node_type == NodeType::GroupCombine ||
+             node_type == NodeType::GroupExpand ||
+             node_type == NodeType::GroupTransfer ||
+             // Utility
+             node_type == NodeType::Blast || node_type == NodeType::Sort ||
+             // Deformation
              node_type == NodeType::Bend || node_type == NodeType::Twist ||
-             node_type == NodeType::Lattice || node_type == NodeType::Bevel);
+             node_type == NodeType::Lattice ||
+             // Boolean
+             node_type == NodeType::Boolean ||
+             // Point Operations
+             node_type == NodeType::Scatter ||
+             node_type == NodeType::ScatterVolume ||
+             node_type == NodeType::CopyToPoints ||
+             // Utilities
+             node_type == NodeType::Merge || node_type == NodeType::Group ||
+             node_type == NodeType::Switch || node_type == NodeType::Null ||
+             node_type == NodeType::Cache || node_type == NodeType::UVUnwrap ||
+             node_type == NodeType::Wrangle);
 
         if (is_sop) {
           // Get geometry from execution engine for spreadsheet
