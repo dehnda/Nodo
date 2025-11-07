@@ -2,6 +2,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/geometry/boolean_ops.hpp"
+#include <iostream>
 
 namespace attrs = nodo::core::standard_attrs;
 
@@ -107,6 +108,19 @@ mesh_to_container(const core::Mesh &mesh) {
     int idx0 = faces(face_idx, 0);
     int idx1 = faces(face_idx, 1);
     int idx2 = faces(face_idx, 2);
+
+    // Validate face indices before accessing vertices
+    if (idx0 < 0 || idx0 >= vertices.rows() || idx1 < 0 ||
+        idx1 >= vertices.rows() || idx2 < 0 || idx2 >= vertices.rows()) {
+      std::cerr << "ERROR: Invalid face indices in boolean result!"
+                << std::endl;
+      std::cerr << "  Face " << face_idx << ": [" << idx0 << ", " << idx1
+                << ", " << idx2 << "]" << std::endl;
+      std::cerr << "  Vertex count: " << vertices.rows() << std::endl;
+      // Skip this face rather than crashing
+      face_normals[face_idx] = core::Vec3f(0, 1, 0); // Default normal
+      continue;
+    }
 
     core::Vec3f v0 = vertices.row(idx0).cast<float>();
     core::Vec3f v1 = vertices.row(idx1).cast<float>();
