@@ -157,6 +157,57 @@
 
 ---
 
+#### **M1.7: PMP Library Integration** (Weeks 16-21) ✅ COMPLETE
+**Purpose:** Integrate Polygon Mesh Processing library for production-quality mesh algorithms
+
+**All PMP Nodes Implemented:**
+- ✅ **GeodesicSOP** - Surface-following distance computation
+  - ✅ Dijkstra method (fast, approximate)
+  - ✅ Heat method (high quality, works on polygons)
+  - ✅ Seed group selection
+  - ✅ Distance/neighbor limits
+  - ✅ Output to custom attribute
+- ✅ **ParameterizeSOP** - UV parameterization
+  - ✅ Harmonic method (works on general meshes)
+  - ✅ LSCM method (triangle meshes, conformal)
+  - ✅ Custom UV attribute naming
+- ✅ **RemeshSOP** - Uniform/adaptive triangulation
+  - ✅ Uniform remeshing (constant edge length)
+  - ✅ Adaptive remeshing (curvature-based)
+  - ✅ Boundary preservation
+  - ✅ Sharp feature detection
+- ✅ **DecimationSOP** - Mesh complexity reduction
+  - ✅ Target vertex count or percentage
+  - ✅ Quadric error metrics
+  - ✅ Feature preservation
+  - ✅ Normal deviation control
+- ✅ **RepairMeshSOP** (Hole Filling) - Auto-detect and fill holes
+  - ✅ Automatic boundary detection
+  - ✅ Multiple hole repair
+  - ✅ Preserve surrounding geometry
+- ✅ **CurvatureSOP** - Mesh curvature analysis
+  - ✅ Min/Max/Mean/Gaussian curvature
+  - ✅ Output to point attributes
+  - ✅ Visualization support
+- ✅ **SmoothSOP** (Enhanced with PMP) - Already existed, now uses PMP
+  - ✅ Explicit Laplacian smoothing
+  - ✅ Implicit smoothing (higher quality)
+  - ✅ Fairing (curvature minimization)
+- ✅ **SubdivisionSOP** (Enhanced with PMP) - Already existed, now uses PMP
+  - ✅ Loop subdivision
+  - ✅ Catmull-Clark subdivision
+
+**Infrastructure:**
+- ✅ PMPConverter (Nodo ↔ PMP conversions)
+- ✅ Consistent error handling
+- ✅ Attribute preservation
+- ✅ All nodes registered in SOPFactory
+- ✅ Full parameter definitions with UI integration
+
+**Deliverable:** Professional-quality mesh processing matching Houdini/Maya capabilities ✅ COMPLETE
+
+---
+
 ## Phase 2: Engine-Ready Architecture (Q1-Q2 2026)
 **Duration:** 4-6 weeks
 **Goal:** Prepare nodo_core for potential engine integration without blocking studio work
@@ -624,6 +675,232 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 **Time Estimate:** 1-2 weeks
 **Priority:** HIGH - Essential for v1.0 beta
 **Deliverable:** Professional keyboard-driven workflow for power users
+
+---
+
+#### **M3.5: Data Manipulation & Group Semantics** (Week 9 - 2-3 weeks) 🔄 IN PROGRESS
+**Purpose:** Fix architectural issues with group widget semantics and establish robust geometry manipulation system
+
+**Context:** 
+- Expression system (M3.3) handles **parameter values** (Tier 1) - ✅ COMPLETE
+- Need geometry manipulation system for **attribute operations** (Tier 2) - 🔄 THIS MILESTONE
+- Current Wrangle node limited to math expressions via exprtk
+- Group widget has semantic confusion between base "group" parameter and node-specific group creation
+
+**Architecture Decision:**
+Three-tier approach for data manipulation:
+- **Tier 1: Expressions** (✅ COMPLETE in M3.3) - Parameter values: `$time * 2`, `ch("../tx")`
+- **Tier 2: VEX DSL** (🔄 THIS MILESTONE) - Geometry operations: `@P.y += sin(@P.x)`, control flow
+- **Tier 3: Python** (FUTURE) - Optional for complex algorithms and tool development
+
+---
+
+**Phase 1 - Group Widget Semantic Fix:** 🔄 NEXT (1-2 days)
+
+**Problem:**
+- Base `SOPNode` has universal "group" parameter (filters which elements to operate on)
+- Some nodes like `GroupSOP` have their own group selection parameters (creates groups)
+- Semantically correct but causes UX confusion - unclear what "group" means in different contexts
+
+**Solution:**
+- [ ] Rename base parameter: `"group"` → `"input_group"` in SOPNode constructor
+- [ ] Update all SOPs reading the group parameter (~40 nodes)
+  - [ ] Search codebase for `get_parameter("group")` calls
+  - [ ] Update to `get_parameter("input_group")`
+  - [ ] Verify each node's semantic intent (filter vs create)
+- [ ] Add parameter descriptions to clarify purpose:
+  - Base parameter: "Input Group - Limit operation to specific group (leave empty for all)"
+  - GroupSOP: "Group Name - Name of the group to create/modify"
+- [ ] **Serialization migration** for backward compatibility:
+  - [ ] Add migration code in `graph_serializer.cpp`
+  - [ ] On load, detect old "group" parameter and rename to "input_group"
+  - [ ] Test loading old .nfg files (pre-migration format)
+- [ ] Update documentation and tooltips
+
+**Technical Changes:**
+- `nodo_core/src/sopnode.cpp` - Constructor parameter rename
+- `nodo_core/src/sop_*.cpp` - Update ~40 SOPs reading group parameter
+- `nodo_core/src/graph_serializer.cpp` - Add parameter migration logic
+- Documentation updates
+
+**Success Criteria:**
+- ✅ All nodes use consistent "input_group" naming
+- ✅ Clear distinction between filter groups and created groups
+- ✅ Old .nfg files load correctly with automatic migration
+- ✅ No semantic confusion in UI
+
+---
+
+**Phase 2 - VEX Interpreter Core:** (Week 1-2, ~1.5 weeks)
+
+**Goal:** Implement VEX-like DSL for geometry manipulation in Wrangle node
+
+**Architecture:**
+```cpp
+// nodo_core/include/nodo/expressions/VEXInterpreter.h
+class VEXInterpreter {
+public:
+    struct Context {
+        subsim::Mesh* mesh;           // Current geometry
+        size_t current_element;       // Point/prim index
+        std::string element_type;     // "point", "primitive", "detail"
+        std::unordered_map<std::string, Variant> variables; // Local vars
+    };
+    
+    VEXInterpreter();
+    bool compile(const std::string& code); // Parse and validate
+    bool execute(Context& ctx);            // Run on geometry
+    std::string get_error() const;
+};
+```
+
+**Features to Implement:**
+
+1. **Attribute Access (@-syntax):** (3-4 days)
+   - [ ] `@P` - Point position (vec3)
+   - [ ] `@Cd` - Color (vec3)
+   - [ ] `@N` - Normal (vec3)
+   - [ ] `@pscale` - Point scale (float)
+   - [ ] `@group_*` - Group membership (int, 0 or 1)
+   - [ ] Custom attributes: `@myattr`, `@id`, `@uv`
+   - [ ] Read and write support
+   - [ ] Type inference from attribute type
+   - [ ] Component access: `@P.x`, `@Cd.r`
+
+2. **Control Flow:** (2-3 days)
+   - [ ] `if (condition) { ... } else { ... }`
+   - [ ] `for (int i = 0; i < 10; i++) { ... }`
+   - [ ] `while (condition) { ... }`
+   - [ ] Comparison operators: `==`, `!=`, `<`, `>`, `<=`, `>=`
+   - [ ] Logical operators: `&&`, `||`, `!`
+
+3. **Math Operations:** (1 day - leverage existing exprtk)
+   - [ ] Arithmetic: `+`, `-`, `*`, `/`, `%`
+   - [ ] Functions: `sin()`, `cos()`, `sqrt()`, `pow()`, `abs()`
+   - [ ] Vector operations: `length()`, `normalize()`, `dot()`, `cross()`
+   - [ ] `clamp()`, `fit()`, `mix()` (lerp)
+
+4. **Geometry Functions:** (3-4 days)
+   - [ ] `addpoint(pos)` - Create new point
+   - [ ] `removepoint(ptnum)` - Delete point
+   - [ ] `setpointattrib(name, value)` - Set attribute on current point
+   - [ ] `getpointattrib(ptnum, name)` - Read attribute from other point
+   - [ ] `npoints()` - Get point count
+   - [ ] `nprimtives()` - Get primitive count
+   - [ ] `setprimattrib()`, `getprimattrib()` - Primitive attributes
+
+5. **Variables & Types:** (1-2 days)
+   - [ ] Local variables: `int i = 5;`, `float x = 1.0;`, `vector pos = {0,0,0};`
+   - [ ] Type system: `int`, `float`, `vector` (3-component), `string`
+   - [ ] Automatic type conversion where safe
+   - [ ] `$F` - Current frame (from expression system)
+   - [ ] `$T` - Current time (from expression system)
+
+**Parser Implementation Options:**
+- [ ] **Option A:** Custom recursive descent parser (lightweight, full control)
+- [ ] **Option B:** ANTLR4 grammar (robust, but heavy dependency)
+- [ ] **Option C:** Boost.Spirit X3 (header-only, C++ integrated)
+
+**Recommendation:** Start with **Option A** (custom parser) for MVP, can switch to ANTLR later if needed.
+
+**Technical Changes:**
+- Create `nodo_core/include/nodo/expressions/VEXInterpreter.h`
+- Create `nodo_core/src/expressions/VEXInterpreter.cpp`
+- Create `nodo_core/include/nodo/expressions/VEXParser.h` (tokenizer + AST)
+- Create `nodo_core/src/expressions/VEXParser.cpp`
+- Update `WrangleSOP` to use VEXInterpreter instead of ExpressionEvaluator
+- Add element iteration: point loop, primitive loop, detail mode
+
+---
+
+**Phase 3 - WrangleSOP Integration:** (2-3 days)
+
+**Current State:**
+- WrangleSOP uses `ExpressionEvaluator` for math-only expressions
+- No attribute access, no control flow, no geometry mutation
+
+**Changes Needed:**
+- [ ] Add "Run Over" parameter: `Point`, `Primitive`, `Detail`
+- [ ] Replace ExpressionEvaluator with VEXInterpreter
+- [ ] Implement iteration loop:
+  ```cpp
+  if (run_over == "Point") {
+      for (size_t i = 0; i < mesh.vertices.size(); i++) {
+          ctx.current_element = i;
+          ctx.element_type = "point";
+          vex.execute(ctx);
+      }
+  }
+  ```
+- [ ] Error handling and user feedback (syntax errors, runtime errors)
+- [ ] Preserve attributes not modified by VEX code
+- [ ] Performance optimization: compile once, execute many
+
+**Technical Changes:**
+- `nodo_core/include/nodo/sops/wrangle.hpp` - Add VEXInterpreter member
+- `nodo_core/src/sop_wrangle.cpp` - Replace expression evaluation with VEX execution
+
+---
+
+**Phase 4 - Testing & Documentation:** (2-3 days)
+
+**Unit Tests:**
+- [ ] `test_vex_interpreter.cpp` - Core interpreter functionality
+  - [ ] Attribute read/write (@P, @Cd, @N)
+  - [ ] Control flow (if/for/while)
+  - [ ] Math operations and vector functions
+  - [ ] Geometry functions (addpoint, setpointattrib)
+  - [ ] Error handling (syntax errors, type errors)
+- [ ] `test_wrangle_sop.cpp` - Integration tests
+  - [ ] Point mode: Modify positions, colors
+  - [ ] Primitive mode: Set primitive attributes
+  - [ ] Detail mode: Global operations
+  - [ ] Performance: 10k points < 100ms
+
+**Example VEX Scripts:**
+```cpp
+// Noise displacement
+@P.y += sin(@P.x * 5 + $F * 0.1) * 0.1;
+
+// Color by height
+float height = fit(@P.y, -1, 1, 0, 1);
+@Cd = {height, 0, 1 - height};
+
+// Group creation
+if (@P.y > 0) {
+    @group_top = 1;
+}
+
+// Spiral
+float angle = @ptnum * 0.1;
+@P.x = cos(angle);
+@P.z = sin(angle);
+```
+
+**Documentation:**
+- [ ] Add `VEX_SYNTAX.md` - Language reference
+- [ ] Update `docs/WRANGLE_NODE.md` - Usage examples
+- [ ] Add inline help to WrangleSOP parameter (tooltip with syntax)
+- [ ] Update ROADMAP with completion status
+
+---
+
+**Success Criteria:**
+- ✅ Group widget semantic confusion resolved
+- ✅ VEX interpreter handles @attribute access (read/write)
+- ✅ Control flow working (if/for/while)
+- ✅ Geometry functions operational (addpoint, setpointattrib, etc.)
+- ✅ WrangleSOP integrated with point/primitive/detail modes
+- ✅ Performance acceptable (<100ms for 10k points)
+- ✅ Old .nfg files load correctly (group parameter migration)
+- ✅ Unit tests passing, documentation complete
+
+**Time Estimate:** 2-3 weeks
+**Priority:** HIGH - Critical architectural foundation for v1.0
+**Deliverable:** 
+- Clean group widget semantics with backward compatibility
+- Production-ready VEX interpreter for geometry manipulation
+- Houdini-compatible artist workflow
 
 ---
 
