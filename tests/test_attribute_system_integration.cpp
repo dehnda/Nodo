@@ -456,9 +456,16 @@ TEST_F(AttributeSystemIntegrationTest, PerformanceBaseline_1M_Positions) {
   std::cout << "Sum (to prevent optimization): " << sum.x() << "\n";
 
   // Success criteria: should complete in reasonable time
-  // Target: <50ms for write, <30ms for read on modern hardware
+  // Target: <50ms for write, <30ms for read on modern hardware (Release build)
+  // Debug builds are significantly slower, so we use relaxed thresholds
   EXPECT_LT(write_duration.count(), 100); // Generous for CI
+#ifdef NDEBUG
+  // Release build: strict threshold
   EXPECT_LT(read_duration.count(), 100);
+#else
+  // Debug build: relaxed threshold (3-4x slower is normal)
+  EXPECT_LT(read_duration.count(), 400);
+#endif
 
   // Verify correctness
   EXPECT_FLOAT_EQ((*positions)[0].x(), 0.0F);

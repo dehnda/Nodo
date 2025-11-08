@@ -334,8 +334,10 @@ private:
         value = "ch(\"" + path + "\")";
       }
 
-      // Replace in result string
-      size_t pos = match.position(0);
+      // Calculate actual position in result string
+      // match.position() is relative to search_start, not result.begin()
+      size_t offset = search_start - result.cbegin();
+      size_t pos = offset + match.position(0);
       size_t len = match.length(0);
       result.replace(pos, len, value);
 

@@ -638,8 +638,11 @@ void MainWindow::onCreateTestGraph() {
 }
 
 void MainWindow::onNodeCreated(int node_id) {
-  // Execute the graph and display the new node's output
-  executeAndDisplayNode(node_id);
+  // Defer execution slightly to allow any pending connections to be established
+  // first This fixes the issue where drag-connecting creates a node and
+  // immediately executes before the auto-connection is made
+  QTimer::singleShot(0, this,
+                     [this, node_id]() { executeAndDisplayNode(node_id); });
 
   // Update node count in status bar
   if (node_graph_ != nullptr && status_bar_widget_ != nullptr) {

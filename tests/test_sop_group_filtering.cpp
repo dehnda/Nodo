@@ -67,8 +67,8 @@ TEST_F(SOPGroupFilteringTest, WrangleWithGroupFilter) {
   auto wrangle = std::make_shared<WrangleSOP>("wrangle1");
   wrangle->get_input_ports().get_port("0")->set_data(group_result);
   wrangle->set_parameter("expression", std::string("Py := Py + 0.5"));
-  wrangle->set_parameter(
-      "group", std::string("top_half")); // Use inherited group parameter!
+  wrangle->set_parameter("input_group",
+                         std::string("top_half")); // Group filter parameter
 
   auto wrangle_result = wrangle->cook();
   ASSERT_NE(wrangle_result, nullptr);

@@ -21,26 +21,26 @@ This checklist covers all critical functionality before handing off to your firs
 ## 1. Core Application Startup & Stability 🔴
 
 ### Application Launch
-- [ ] Application launches without crashes on clean install
-- [ ] Window appears with correct size (1280x720) and dark theme
-- [ ] All UI panels visible: Node Graph (center), Property Panel (right), Viewport (top)
-- [ ] Status bar shows "Ready" and node count "0 / 17 categories"
-- [ ] No console errors or warnings on startup
-- [ ] Application icon displays correctly (if set)
+- [X] Application launches without crashes on clean install
+- [X] Window appears with correct size (1280x720) and dark theme
+- [X] All UI panels visible: Node Graph (center), Property Panel (right), Viewport (top)
+- [X] Status bar shows "Ready" and node count "0 / 17 categories"
+- [X] No console errors or warnings on startup
+- [X] Application icon displays correctly (if set)
 
 ### Window Management
-- [ ] Window can be resized smoothly
-- [ ] Window can be maximized/restored
-- [ ] Window can be minimized
+- [X] Window can be resized smoothly
+- [X] Window can be maximized/restored
+- [x] Window can be minimized
 - [ ] Dock panels can be resized (splitters work)
 - [ ] Dock panels remember size between sessions
 - [ ] View menu toggles work for all panels
 
 ### Clean Exit
-- [ ] Application closes cleanly via File → Exit
-- [ ] Application closes cleanly via window close button
+- [X] Application closes cleanly via File → Exit
+- [X] Application closes cleanly via window close button
 - [ ] No crash on exit
-- [ ] No "Application quit unexpectedly" errors
+- [X] No "Application quit unexpectedly" errors
 
 ---
 

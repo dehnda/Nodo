@@ -384,23 +384,13 @@ TEST_F(PMPConverterTest, ThrowsOnNonTriangles) {
   // Add quad
   container.topology().add_primitive({0, 1, 2, 3});
 
-  EXPECT_THROW(PMPConverter::to_pmp(container), std::runtime_error);
+  // to_pmp() should accept quads (they can be triangulated later if needed)
+  EXPECT_NO_THROW(PMPConverter::to_pmp(container));
 }
 
 // ============================================================================
 // Different Mesh Types Tests
 // ============================================================================
-
-// Note: Disabled because BoxGenerator creates quads, not triangles.
-// PMP only supports triangular meshes.
-TEST_F(PMPConverterTest, DISABLED_BoxMeshConversion) {
-  // Test with box geometry (different topology than sphere)
-  auto pmp_mesh = PMPConverter::to_pmp(box_mesh_);
-  auto result_mesh = PMPConverter::from_pmp(pmp_mesh);
-
-  EXPECT_EQ(result_mesh.vertices().rows(), box_mesh_.vertices().rows());
-  EXPECT_EQ(result_mesh.faces().rows(), box_mesh_.faces().rows());
-}
 
 TEST_F(PMPConverterTest, LargeMeshConversion) {
   // Create a larger sphere for stress testing

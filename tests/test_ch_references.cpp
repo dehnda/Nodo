@@ -98,7 +98,7 @@ TEST_F(CHReferencesTest, CHInMathExpression) {
   EXPECT_FLOAT_EQ(result2.value(), 8.0F);
 
   // Test multiple ch() references
-  int sphere2_id = graph_->add_node(NodeType::Sphere, "sphere");
+  int sphere2_id = graph_->add_node(NodeType::Sphere, "sphere1");
   auto *sphere2 = graph_->get_node(sphere2_id);
   ASSERT_NE(sphere2, nullptr);
   sphere2->add_parameter(NodeParameter("radius", 3.0F));

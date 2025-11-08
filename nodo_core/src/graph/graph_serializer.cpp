@@ -333,6 +333,9 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
             } else if (param_type == "group_selector") {
               std::string value = param_json["value"];
               NodeParameter param(param_name, value, label, category);
+              // Fix: explicitly set type to GroupSelector (string constructor
+              // creates String type)
+              param.type = NodeParameter::Type::GroupSelector;
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
@@ -573,6 +576,16 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
     return "Align";
   case NodeType::Split:
     return "Split";
+  case NodeType::Parameterize:
+    return "Parameterize";
+  case NodeType::Geodesic:
+    return "Geodesic";
+  case NodeType::Curvature:
+    return "Curvature";
+  case NodeType::RepairMesh:
+    return "RepairMesh";
+  case NodeType::Decimate:
+    return "Decimate";
   default:
     return "Unknown";
   }
@@ -676,6 +689,16 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
     return NodeType::Align;
   if (type_str == "Split")
     return NodeType::Split;
+  if (type_str == "Parameterize")
+    return NodeType::Parameterize;
+  if (type_str == "Geodesic")
+    return NodeType::Geodesic;
+  if (type_str == "Curvature")
+    return NodeType::Curvature;
+  if (type_str == "RepairMesh")
+    return NodeType::RepairMesh;
+  if (type_str == "Decimate")
+    return NodeType::Decimate;
   return std::nullopt;
 }
 
