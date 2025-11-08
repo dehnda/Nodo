@@ -45,7 +45,7 @@ public:
    * @brief Parameter definition with UI metadata (schema)
    */
   struct ParameterDefinition {
-    enum class Type { Float, Int, Bool, String, Vector3, Code };
+    enum class Type { Float, Int, Bool, String, Vector3, Code, GroupSelector };
 
     std::string name;             // Internal identifier
     std::string label;            // UI display name
@@ -195,9 +195,9 @@ public:
 
     // Add universal group parameter (all SOPs inherit this)
     register_parameter(
-        define_string_parameter("group", "")
+        define_group_selector_parameter("input_group", "")
             .label("Group")
-            .category("Group")
+            .category("Universal")
             .description("Name of group to operate on (empty = all elements)")
             .build());
   }
@@ -492,6 +492,14 @@ protected:
     ParameterDefinition def(name, ParameterDefinition::Type::Vector3,
                             default_value);
     return ParameterBuilder(def);
+  }
+
+  auto define_group_selector_parameter(const std::string &name,
+                                       const std::string &default_value = "")
+      -> ParameterBuilder {
+    ParameterDefinition def(name, ParameterDefinition::Type::GroupSelector,
+                            default_value);
+    return {def};
   }
 
   /**

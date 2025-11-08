@@ -80,6 +80,10 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
           param_json["float_min"] = param.ui_range.float_min;
           param_json["float_max"] = param.ui_range.float_max;
           break;
+        case NodeParameter::Type::GroupSelector:
+          param_json["type"] = "group_selector";
+          param_json["value"] = param.string_value;
+          break;
         }
 
         node_json["parameters"].push_back(param_json);
@@ -326,80 +330,95 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
               }
 
               node->add_parameter(param);
+            } else if (param_type == "group_selector") {
+              std::string value = param_json["value"];
+              NodeParameter param(param_name, value, label, category);
+
+              // Restore expression mode (M3.3)
+              if (param_json.contains("value_mode")) {
+                param.value_mode = static_cast<ParameterValueMode>(
+                    param_json["value_mode"].get<int>());
+              }
+              if (param_json.contains("expression")) {
+                param.expression_string = param_json["expression"];
+              }
+
+              node->add_parameter(param);
             }
           }
         }
       }
-    }
 
-    // Deserialize connections
-    if (j.contains("connections") && j["connections"].is_array()) {
-      for (const auto &conn_json : j["connections"]) {
-        if (!conn_json.contains("source_node") ||
-            !conn_json.contains("source_pin") ||
-            !conn_json.contains("target_node") ||
-            !conn_json.contains("target_pin")) {
-          continue;
+      // Deserialize connections
+      if (j.contains("connections") && j["connections"].is_array()) {
+        for (const auto &conn_json : j["connections"]) {
+          if (!conn_json.contains("source_node") ||
+              !conn_json.contains("source_pin") ||
+              !conn_json.contains("target_node") ||
+              !conn_json.contains("target_pin")) {
+            continue;
+          }
+
+          int source_node = conn_json["source_node"];
+          int source_pin = conn_json["source_pin"];
+          int target_node = conn_json["target_node"];
+          int target_pin = conn_json["target_pin"];
+
+          graph.add_connection(source_node, source_pin, target_node,
+                               target_pin);
         }
-
-        int source_node = conn_json["source_node"];
-        int source_pin = conn_json["source_pin"];
-        int target_node = conn_json["target_node"];
-        int target_pin = conn_json["target_pin"];
-
-        graph.add_connection(source_node, source_pin, target_node, target_pin);
       }
-    }
 
-    // Deserialize graph parameters (M3.2)
-    if (j.contains("graph_parameters") && j["graph_parameters"].is_array()) {
-      for (const auto &param_json : j["graph_parameters"]) {
-        if (!param_json.contains("name") || !param_json.contains("type") ||
-            !param_json.contains("value")) {
-          continue;
+      // Deserialize graph parameters (M3.2)
+      if (j.contains("graph_parameters") && j["graph_parameters"].is_array()) {
+        for (const auto &param_json : j["graph_parameters"]) {
+          if (!param_json.contains("name") || !param_json.contains("type") ||
+              !param_json.contains("value")) {
+            continue;
+          }
+
+          std::string name = param_json["name"];
+          std::string type_str = param_json["type"];
+          std::string description = param_json.value("description", "");
+
+          GraphParameter::Type type = GraphParameter::string_to_type(type_str);
+          GraphParameter param(name, type, description);
+
+          // Set value based on type
+          switch (type) {
+          case GraphParameter::Type::Int:
+            if (param_json["value"].is_number_integer()) {
+              param.set_value(param_json["value"].get<int>());
+            }
+            break;
+          case GraphParameter::Type::Float:
+            if (param_json["value"].is_number()) {
+              param.set_value(param_json["value"].get<float>());
+            }
+            break;
+          case GraphParameter::Type::String:
+            if (param_json["value"].is_string()) {
+              param.set_value(param_json["value"].get<std::string>());
+            }
+            break;
+          case GraphParameter::Type::Bool:
+            if (param_json["value"].is_boolean()) {
+              param.set_value(param_json["value"].get<bool>());
+            }
+            break;
+          case GraphParameter::Type::Vector3:
+            if (param_json["value"].is_array() &&
+                param_json["value"].size() >= 3) {
+              std::array<float, 3> vec = {param_json["value"][0].get<float>(),
+                                          param_json["value"][1].get<float>(),
+                                          param_json["value"][2].get<float>()};
+              param.set_value(vec);
+            }
+            break;
+          }
+
+          graph.add_graph_parameter(param);
         }
-
-        std::string name = param_json["name"];
-        std::string type_str = param_json["type"];
-        std::string description = param_json.value("description", "");
-
-        GraphParameter::Type type = GraphParameter::string_to_type(type_str);
-        GraphParameter param(name, type, description);
-
-        // Set value based on type
-        switch (type) {
-        case GraphParameter::Type::Int:
-          if (param_json["value"].is_number_integer()) {
-            param.set_value(param_json["value"].get<int>());
-          }
-          break;
-        case GraphParameter::Type::Float:
-          if (param_json["value"].is_number()) {
-            param.set_value(param_json["value"].get<float>());
-          }
-          break;
-        case GraphParameter::Type::String:
-          if (param_json["value"].is_string()) {
-            param.set_value(param_json["value"].get<std::string>());
-          }
-          break;
-        case GraphParameter::Type::Bool:
-          if (param_json["value"].is_boolean()) {
-            param.set_value(param_json["value"].get<bool>());
-          }
-          break;
-        case GraphParameter::Type::Vector3:
-          if (param_json["value"].is_array() &&
-              param_json["value"].size() >= 3) {
-            std::array<float, 3> vec = {param_json["value"][0].get<float>(),
-                                        param_json["value"][1].get<float>(),
-                                        param_json["value"][2].get<float>()};
-            param.set_value(vec);
-          }
-          break;
-        }
-
-        graph.add_graph_parameter(param);
       }
     }
 
@@ -698,6 +717,10 @@ std::string GraphSerializer::parameter_to_json(const NodeParameter &param) {
     param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
                            param.vector3_value[2]};
     break;
+  case NodeParameter::Type::GroupSelector:
+    param_json["type"] = "group_selector";
+    param_json["value"] = param.string_value;
+    break;
   }
 
   return param_json.dump();
@@ -738,6 +761,11 @@ GraphSerializer::json_to_parameter(const std::string &json_obj) {
     } else if (type == "string") {
       std::string value = param_json["value"];
       result_param = NodeParameter(name, value);
+    } else if (type == "group_selector") {
+      std::string value = param_json["value"];
+      result_param = NodeParameter(name, value);
+      // Mark as GroupSelector type (stored as string internally)
+      result_param->type = NodeParameter::Type::GroupSelector;
     } else if (type == "vector3" && param_json["value"].is_array() &&
                param_json["value"].size() >= 3) {
       std::array<float, 3> value = {param_json["value"][0],

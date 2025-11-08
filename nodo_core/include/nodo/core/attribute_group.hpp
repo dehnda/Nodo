@@ -218,4 +218,17 @@ bool grow_group(GeometryContainer &container, std::string_view group_name,
 bool shrink_group(GeometryContainer &container, std::string_view group_name,
                   ElementClass element_class, size_t iterations = 1);
 
+/**
+ * @brief Get all group names for a specific element class
+ *
+ * Groups are stored as attributes with the "group_" prefix.
+ * This function scans all attributes and returns those that are groups.
+ *
+ * @param container Geometry container
+ * @param element_class Which element class (POINT or PRIMITIVE)
+ * @return Vector of group names (without the "group_" prefix)
+ */
+std::vector<std::string> get_group_names(const GeometryContainer &container,
+                                         ElementClass element_class);
+
 } // namespace nodo::core

@@ -121,7 +121,7 @@ enum class ParameterValueMode {
  * execution time.
  */
 struct NodeParameter {
-  enum class Type { Float, Int, Bool, Vector3, String, Code };
+  enum class Type { Float, Int, Bool, Vector3, String, Code, GroupSelector };
 
   Type type;
   std::string name;

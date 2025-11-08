@@ -4,6 +4,8 @@
 #include "NodeGraphWidget.h"
 #include "ParameterWidgetFactory.h"
 #include "UndoStack.h"
+#include <nodo/core/attribute_group.hpp>
+#include <nodo/graph/execution_engine.hpp>
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/sop/sop_node.hpp>
 
@@ -13,6 +15,7 @@
 #include "widgets/DropdownWidget.h"
 #include "widgets/FilePathWidget.h"
 #include "widgets/FloatWidget.h"
+#include "widgets/GroupSelectorWidget.h"
 #include "widgets/IntWidget.h"
 #include "widgets/ModeSelectorWidget.h"
 #include "widgets/MultiLineTextWidget.h"
@@ -1145,7 +1148,84 @@ void PropertyPanel::connectParameterWidget(
       node->set_parameter(param.name, updated_param);
       emit parameterChanged();
     });
+  } else if (auto *group_widget =
+                 dynamic_cast<nodo_studio::widgets::GroupSelectorWidget *>(
+                     widget)) {
+    group_widget->setGroupChangedCallback([this, node, graph,
+                                           param](const QString &new_value) {
+      // Get old parameter value
+      auto old_param_opt = node->get_parameter(param.name);
+      if (!old_param_opt.has_value()) {
+        return;
+      }
+
+      auto updated_param = NodeParameter(param.name, new_value.toStdString(),
+                                         param.label, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+      // Override type to GroupSelector
+      updated_param.type = NodeParameter::Type::GroupSelector;
+
+      // Push command to undo stack
+      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+          graph != nullptr) {
+        auto cmd = nodo::studio::create_change_parameter_command(
+            node_graph_widget_, graph, node->get_id(), param.name,
+            old_param_opt.value(), updated_param);
+        undo_stack_->push(std::move(cmd));
+      } else {
+        node->set_parameter(param.name, updated_param);
+      }
+
+      emit parameterChanged();
+    });
+
+    // Populate the widget with available groups from input geometry
+    populateGroupWidget(group_widget, node, graph);
   }
+}
+
+void PropertyPanel::populateGroupWidget(
+    nodo_studio::widgets::GroupSelectorWidget *widget,
+    nodo::graph::GraphNode *node, nodo::graph::NodeGraph *graph) {
+
+  if (widget == nullptr || node == nullptr || graph == nullptr) {
+    return;
+  }
+
+  // Get the input nodes (sources of geometry)
+  std::vector<int> input_node_ids = graph->get_input_nodes(node->get_id());
+
+  std::vector<std::string> all_groups;
+
+  // Collect groups from all input geometries
+  for (int input_id : input_node_ids) {
+    // Get the geometry from the execution engine
+    if (execution_engine_ != nullptr) {
+      auto geometry = execution_engine_->get_node_geometry(input_id);
+      if (geometry != nullptr) {
+        // Get point groups
+        auto point_groups = nodo::core::get_group_names(
+            *geometry, nodo::core::ElementClass::POINT);
+        all_groups.insert(all_groups.end(), point_groups.begin(),
+                          point_groups.end());
+
+        // Get primitive groups
+        auto prim_groups = nodo::core::get_group_names(
+            *geometry, nodo::core::ElementClass::PRIMITIVE);
+        all_groups.insert(all_groups.end(), prim_groups.begin(),
+                          prim_groups.end());
+      }
+    }
+  }
+
+  // Remove duplicates
+  std::sort(all_groups.begin(), all_groups.end());
+  all_groups.erase(std::unique(all_groups.begin(), all_groups.end()),
+                   all_groups.end());
+
+  // Populate the widget
+  widget->setAvailableGroups(all_groups);
 }
 
 void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,

@@ -698,4 +698,32 @@ bool shrink_group(GeometryContainer & /*container*/,
   return false;
 }
 
+std::vector<std::string> get_group_names(const GeometryContainer &container,
+                                         ElementClass element_class) {
+  std::vector<std::string> group_names;
+
+  const AttributeSet *attr_set = get_attr_set_const(container, element_class);
+  if (attr_set == nullptr) {
+    return group_names;
+  }
+
+  // Get all attribute names
+  const auto all_attr_names = attr_set->attribute_names();
+
+  // Filter for group attributes (those starting with "group_")
+  const std::string group_prefix = "group_";
+  for (const auto &attr_name : all_attr_names) {
+    if (attr_name.find(group_prefix) == 0) {
+      // Remove the "group_" prefix to get the actual group name
+      std::string group_name = attr_name.substr(group_prefix.length());
+      group_names.push_back(group_name);
+    }
+  }
+
+  // Sort alphabetically for consistent ordering
+  std::sort(group_names.begin(), group_names.end());
+
+  return group_names;
+}
+
 } // namespace nodo::core

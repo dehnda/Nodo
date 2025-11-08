@@ -18,8 +18,8 @@
 #include <nodo/graph/graph_serializer.hpp>
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/io/obj_exporter.hpp>
-#include <nodo/sop/sop_node.hpp>
 #include <nodo/sop/sop_factory.hpp>
+#include <nodo/sop/sop_node.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -315,6 +315,7 @@ auto MainWindow::setupDockWidgets() -> void {
   property_panel_ = new PropertyPanel(this);
   property_panel_->setUndoStack(undo_stack_.get());
   property_panel_->setNodeGraphWidget(node_graph_widget_);
+  property_panel_->setExecutionEngine(execution_engine_.get());
   property_dock_->setWidget(property_panel_);
 
   // Add properties to the right of node graph

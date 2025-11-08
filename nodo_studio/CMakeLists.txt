@@ -53,6 +53,7 @@ set(STUDIO_SOURCES
     src/widgets/SliderWidget.cpp
     src/widgets/ColorWidget.cpp
     src/widgets/FilePathWidget.cpp
+    src/widgets/GroupSelectorWidget.cpp
 )
 
 set(STUDIO_HEADERS
@@ -84,6 +85,7 @@ set(STUDIO_HEADERS
     src/widgets/SliderWidget.h
     src/widgets/ColorWidget.h
     src/widgets/FilePathWidget.h
+    src/widgets/GroupSelectorWidget.h
 )
 
 # Resource files

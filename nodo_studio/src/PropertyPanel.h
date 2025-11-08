@@ -13,6 +13,7 @@ namespace nodo::graph {
 class GraphNode;
 class NodeGraph;
 struct NodeParameter;
+class ExecutionEngine;
 } // namespace nodo::graph
 
 namespace nodo::studio {
@@ -21,6 +22,7 @@ class UndoStack;
 
 namespace nodo_studio::widgets {
 class BaseParameterWidget;
+class GroupSelectorWidget;
 } // namespace nodo_studio::widgets
 
 class NodeGraphWidget;
@@ -64,6 +66,11 @@ public:
     node_graph_widget_ = widget;
   }
 
+  // Set execution engine for accessing node geometry
+  void setExecutionEngine(nodo::graph::ExecutionEngine *engine) {
+    execution_engine_ = engine;
+  }
+
 signals:
   // Emitted when a parameter changes
   void parameterChanged();
@@ -86,6 +93,7 @@ private:
   // Undo/redo support
   nodo::studio::UndoStack *undo_stack_ = nullptr;
   NodeGraphWidget *node_graph_widget_ = nullptr;
+  nodo::graph::ExecutionEngine *execution_engine_ = nullptr;
 
   // Throttle mechanism for slider updates
   QTimer *slider_update_timer_ = nullptr;
@@ -103,6 +111,11 @@ private:
                               const nodo::graph::NodeParameter &param,
                               nodo::graph::GraphNode *node,
                               nodo::graph::NodeGraph *graph);
+
+  // Populate group selector widget with available groups from input geometry
+  void populateGroupWidget(nodo_studio::widgets::GroupSelectorWidget *widget,
+                           nodo::graph::GraphNode *node,
+                           nodo::graph::NodeGraph *graph);
 
   // Parameter widget builders
   void addIntParameter(const QString &label, int value, int min, int max,

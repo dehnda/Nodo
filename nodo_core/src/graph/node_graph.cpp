@@ -80,6 +80,14 @@ convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
                           static_cast<float>(def.float_max), def.category);
     break;
   }
+
+  case ParamType::GroupSelector: {
+    std::string default_val = std::get<std::string>(def.default_value);
+    param = NodeParameter(def.name, default_val, def.label, def.category);
+    // Override type to GroupSelector after construction
+    param.type = nodo::graph::NodeParameter::Type::GroupSelector;
+    break;
+  }
   }
 
   // Copy visibility control metadata
@@ -740,6 +748,7 @@ NodeGraph::resolve_parameter_path(int current_node_id,
 
   case NodeParameter::Type::String:
   case NodeParameter::Type::Code:
+  case NodeParameter::Type::GroupSelector:
     return param.string_value;
 
   case NodeParameter::Type::Vector3:

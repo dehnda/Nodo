@@ -3,6 +3,7 @@
 #include "widgets/DropdownWidget.h"
 #include "widgets/FilePathWidget.h"
 #include "widgets/FloatWidget.h"
+#include "widgets/GroupSelectorWidget.h"
 #include "widgets/IntWidget.h"
 #include "widgets/ModeSelectorWidget.h"
 #include "widgets/MultiLineTextWidget.h"
@@ -95,6 +96,12 @@ BaseParameterWidget *ParameterWidgetFactory::createWidget(
     float max = static_cast<float>(def.float_max);
     return createVector3Widget(label, vec.x(), vec.y(), vec.z(), min, max,
                                description, parent);
+  }
+
+  case nodo::sop::SOPNode::ParameterDefinition::Type::GroupSelector: {
+    std::string value = std::get<std::string>(def.default_value);
+    QString qvalue = QString::fromStdString(value);
+    return createGroupSelectorWidget(label, qvalue, description, parent);
   }
 
   default:
@@ -264,6 +271,11 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
     return widget;
   }
 
+  case nodo::graph::NodeParameter::Type::GroupSelector: {
+    QString value = QString::fromStdString(param.string_value);
+    return createGroupSelectorWidget(label, value, description, parent);
+  }
+
   default:
     return nullptr;
   }
@@ -327,6 +339,12 @@ BaseParameterWidget *ParameterWidgetFactory::createFilePathWidget(
     QWidget *parent) {
   return new FilePathWidget(label, value, FilePathWidget::Mode::OpenFile,
                             "All Files (*)", description, parent);
+}
+
+BaseParameterWidget *ParameterWidgetFactory::createGroupSelectorWidget(
+    const QString &label, const QString &value, const QString &description,
+    QWidget *parent) {
+  return new GroupSelectorWidget(label, value, description, parent);
 }
 
 } // namespace nodo_studio

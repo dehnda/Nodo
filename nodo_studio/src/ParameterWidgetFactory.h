@@ -87,6 +87,10 @@ private:
   static widgets::BaseParameterWidget *
   createFilePathWidget(const QString &label, const QString &value,
                        const QString &description, QWidget *parent);
+
+  static widgets::BaseParameterWidget *
+  createGroupSelectorWidget(const QString &label, const QString &value,
+                            const QString &description, QWidget *parent);
 };
 
 } // namespace nodo_studio
