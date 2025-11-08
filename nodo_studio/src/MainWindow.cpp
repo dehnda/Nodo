@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "../include/StudioHostInterface.h"
 #include "Command.h"
 #include "GeometrySpreadsheet.h"
 #include "GraphParametersPanel.h"
@@ -30,6 +31,8 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFrame>
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
@@ -41,6 +44,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QtConcurrent/QtConcurrent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
@@ -48,6 +52,26 @@ MainWindow::MainWindow(QWidget *parent)
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
   execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
+
+  // Initialize host interface for progress reporting
+  host_interface_ = std::make_unique<StudioHostInterface>(this);
+  execution_engine_->set_host_interface(host_interface_.get());
+
+  // Connect progress signals
+  connect(host_interface_.get(), &StudioHostInterface::progressReported, this,
+          &MainWindow::onProgressReported);
+  connect(host_interface_.get(), &StudioHostInterface::logMessage, this,
+          &MainWindow::onLogMessage);
+  connect(host_interface_.get(), &StudioHostInterface::executionStarted, this,
+          &MainWindow::onExecutionStarted);
+  connect(host_interface_.get(), &StudioHostInterface::executionCompleted, this,
+          &MainWindow::onExecutionCompleted);
+
+  // Initialize async execution watcher
+  execution_watcher_ = new QFutureWatcher<bool>(this);
+  connect(execution_watcher_, &QFutureWatcher<bool>::finished, this,
+          &MainWindow::onExecutionFinished);
+  pending_display_node_id_ = -1;
 
   // Initialize undo/redo system
   undo_stack_ = std::make_unique<nodo::studio::UndoStack>();
@@ -840,19 +864,36 @@ void MainWindow::executeAndDisplayNode(int node_id) {
     return;
   }
 
+  // Check if already executing
+  if (execution_watcher_->isRunning()) {
+    qDebug() << "Execution already in progress, ignoring request";
+    return;
+  }
+
   // Set display flag on this node (clears it from all others)
   node_graph_->set_display_node(node_id);
 
   // Update display flag visuals without rebuilding everything
   updateDisplayFlagVisuals();
 
-  // Execute the entire graph up to this node
-  bool success = execution_engine_->execute_graph(*node_graph_);
+  // Store the node ID for when execution completes
+  pending_display_node_id_ = node_id;
+
+  // Execute asynchronously using QtConcurrent
+  QFuture<bool> future = QtConcurrent::run(
+      [this]() { return execution_engine_->execute_graph(*node_graph_); });
+
+  execution_watcher_->setFuture(future);
+}
+
+void MainWindow::onExecutionFinished() {
+  bool success = execution_watcher_->result();
+  int node_id = pending_display_node_id_;
 
   // Update error flags after execution
   updateDisplayFlagVisuals();
 
-  if (success) {
+  if (success && node_id >= 0) {
     // Get the geometry result for this specific node
     auto geometry = execution_engine_->get_node_geometry(node_id);
 
@@ -1340,6 +1381,51 @@ void MainWindow::onDisconnectSelected() {
 void MainWindow::onShowKeyboardShortcuts() {
   auto *dialog = new KeyboardShortcutsDialog(this);
   dialog->show();
+}
+
+// ============================================================================
+// Progress Reporting
+// ============================================================================
+
+void MainWindow::onProgressReported(int current, int total,
+                                    const QString &message) {
+  if (status_bar_widget_) {
+    // Update status bar with progress
+    QString progress_text =
+        QString("Executing: %1/%2 nodes").arg(current).arg(total);
+    if (!message.isEmpty()) {
+      progress_text = message;
+    }
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Processing,
+                                  progress_text);
+  }
+}
+
+void MainWindow::onLogMessage(const QString &level, const QString &message) {
+  // Log to console (could also show in a log panel)
+  if (level == "error") {
+    qWarning() << "Error:" << message;
+    if (status_bar_widget_) {
+      status_bar_widget_->setStatus(StatusBarWidget::Status::Error, message);
+    }
+  } else if (level == "warning") {
+    qWarning() << "Warning:" << message;
+  } else {
+    qDebug() << message;
+  }
+}
+
+void MainWindow::onExecutionStarted() {
+  // Could show a busy cursor or disable UI during execution
+  // QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+void MainWindow::onExecutionCompleted() {
+  // Restore cursor and clear progress message
+  // QApplication::restoreOverrideCursor();
+  if (status_bar_widget_) {
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
+  }
 }
 
 // ============================================================================

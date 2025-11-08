@@ -38,6 +38,7 @@ set(STUDIO_SOURCES
     src/ParameterWidgetFactory.cpp
     src/GraphParametersPanel.cpp
     src/KeyboardShortcutsDialog.cpp
+    src/StudioHostInterface.cpp
     # Parameter widgets
     src/widgets/BaseParameterWidget.cpp
     src/widgets/FloatWidget.cpp
@@ -73,6 +74,7 @@ set(STUDIO_HEADERS
     src/ParameterWidgetFactory.h
     src/GraphParametersPanel.h
     src/KeyboardShortcutsDialog.h
+    include/StudioHostInterface.h
     # Parameter widgets
     src/widgets/BaseParameterWidget.h
     src/widgets/FloatWidget.h
@@ -108,6 +110,7 @@ target_link_libraries(nodo_studio PRIVATE
     Qt6::OpenGL
     Qt6::OpenGLWidgets
     Qt6::Svg
+    Qt6::Concurrent
     OpenGL::GL
 )
 

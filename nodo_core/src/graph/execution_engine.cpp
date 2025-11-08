@@ -97,8 +97,15 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     node_ptr->set_error(false);
   }
 
+  // Report start of execution
+  int total_nodes = execution_order.size();
+  int completed_nodes = 0;
+
   // Execute nodes in dependency order
   for (int node_id : execution_order) {
+    // Report progress before executing each node
+    notify_progress(completed_nodes, total_nodes);
+
     auto *node = graph.get_node(node_id);
     if (!node) {
       std::cout << "❌ Node " << node_id << " not found" << std::endl;
@@ -171,6 +178,9 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       node->set_output_mesh(mesh_result);
       node->set_error(false); // Clear any previous error
       node->mark_updated();   // Mark as no longer needing update
+
+      // Increment completed count after successful execution
+      completed_nodes++;
     } else {
       // Get the actual error message from the SOPNode
       std::string error_msg = sop->get_last_error();
@@ -185,6 +195,9 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
       return false;
     }
   }
+
+  // Report completion
+  notify_progress(completed_nodes, total_nodes);
 
   return true;
 }

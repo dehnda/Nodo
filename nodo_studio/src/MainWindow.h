@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFutureWatcher>
 #include <QMainWindow>
 #include <QShowEvent>
 #include <memory>
@@ -14,6 +15,7 @@ class GraphParametersPanel;
 class QDockWidget;
 class MenuManager;
 class SceneFileManager;
+class StudioHostInterface;
 
 // Undo/Redo system
 namespace nodo::studio {
@@ -30,11 +32,12 @@ class ExecutionEngine;
 } // namespace nodo
 
 class MainWindow : public QMainWindow {
-Q_OBJECT // This macro is required for Qt signals/slots system
+  Q_OBJECT // This macro is required for Qt signals/slots system
 
-  friend class MenuManager;  // Allow MenuManager to access private members
+      friend class MenuManager; // Allow MenuManager to access private members
 
-    public : explicit MainWindow(QWidget *parent = nullptr);
+public:
+  explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
 
 protected:
@@ -61,13 +64,15 @@ private:
                                 QWidget *parent = nullptr);
 
   // Setters for MenuManager to store action pointers
-  void setUndoAction(QAction* action) { undo_action_ = action; }
-  void setRedoAction(QAction* action) { redo_action_ = action; }
-  void setVerticesAction(QAction* action) { vertices_action_ = action; }
-  void setEdgesAction(QAction* action) { edges_action_ = action; }
-  void setVertexNormalsAction(QAction* action) { vertex_normals_action_ = action; }
-  void setFaceNormalsAction(QAction* action) { face_normals_action_ = action; }
-  void setRecentProjectsMenu(QMenu* menu) { recent_projects_menu_ = menu; }
+  void setUndoAction(QAction *action) { undo_action_ = action; }
+  void setRedoAction(QAction *action) { redo_action_ = action; }
+  void setVerticesAction(QAction *action) { vertices_action_ = action; }
+  void setEdgesAction(QAction *action) { edges_action_ = action; }
+  void setVertexNormalsAction(QAction *action) {
+    vertex_normals_action_ = action;
+  }
+  void setFaceNormalsAction(QAction *action) { face_normals_action_ = action; }
+  void setRecentProjectsMenu(QMenu *menu) { recent_projects_menu_ = menu; }
 
   // UI components (these will be pointers to our widgets)
   ViewportWidget *viewport_widget_;
@@ -85,13 +90,20 @@ private:
 
   // Menu management helper
   std::unique_ptr<MenuManager> menu_manager_;
-  
+
   // Scene file management helper
   std::unique_ptr<SceneFileManager> scene_file_manager_;
 
   // Backend graph system
   std::unique_ptr<nodo::graph::NodeGraph> node_graph_;
   std::unique_ptr<nodo::graph::ExecutionEngine> execution_engine_;
+
+  // Host interface for progress reporting
+  std::unique_ptr<StudioHostInterface> host_interface_;
+
+  // Async execution tracking
+  QFutureWatcher<bool> *execution_watcher_;
+  int pending_display_node_id_;
 
   // Undo/Redo system
   std::unique_ptr<nodo::studio::UndoStack> undo_stack_;
@@ -180,8 +192,17 @@ private slots:
   // Property panel callback
   void onParameterChanged();
 
+  // Async execution
+  void onExecutionFinished();
+
   // Recent files
   void openRecentFile();
   void updateRecentFileActions();
   void addToRecentFiles(const QString &filename);
+
+  // Progress reporting
+  void onProgressReported(int current, int total, const QString &message);
+  void onLogMessage(const QString &level, const QString &message);
+  void onExecutionStarted();
+  void onExecutionCompleted();
 };
