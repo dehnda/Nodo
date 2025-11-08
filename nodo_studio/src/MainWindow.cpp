@@ -1509,6 +1509,9 @@ void MainWindow::openRecentFile() {
       node_graph_ = std::make_unique<nodo::graph::NodeGraph>(
           std::move(loaded_graph.value()));
 
+      // Update SceneFileManager with new graph pointer
+      scene_file_manager_->setNodeGraph(node_graph_.get());
+
       // Reconnect the node graph widget to the new graph
       node_graph_widget_->set_graph(node_graph_.get());
 
@@ -1519,6 +1522,17 @@ void MainWindow::openRecentFile() {
       // Clear viewport
       viewport_widget_->clearMesh();
       property_panel_->clearProperties();
+
+      // Set current file path in SceneFileManager so Save works correctly
+      scene_file_manager_->setCurrentFilePath(filename);
+      scene_file_manager_->setModified(false);
+
+      // Update window title to show loaded file
+      QFileInfo file_info(filename);
+      setWindowTitle(QString("Nodo Studio - %1").arg(file_info.fileName()));
+
+      // Rebuild graph visualization
+      node_graph_widget_->rebuild_from_graph();
 
       // Add to recent files
       addToRecentFiles(filename);
