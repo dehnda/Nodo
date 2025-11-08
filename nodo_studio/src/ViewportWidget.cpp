@@ -562,6 +562,114 @@ void ViewportWidget::setGeometry(
     }
   } // End of mesh primitive processing
 
+  // Extract colors from "Cd" attribute - check VERTEX first, then POINT
+  std::vector<float> color_data;
+  has_vertex_colors_ = false;
+
+  const auto *vertex_colors =
+      geometry.get_vertex_attribute_typed<nodo::core::Vec3f>("Cd");
+  const auto *point_colors =
+      geometry.get_point_attribute_typed<nodo::core::Vec3f>("Cd");
+
+  if (vertex_colors != nullptr || point_colors != nullptr) {
+    has_vertex_colors_ = true;
+
+    if (vertex_colors != nullptr) {
+      // Use per-vertex colors
+      const auto &color_values = vertex_colors->values();
+
+      for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+           ++prim_idx) {
+        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+        // Skip line primitives
+        if (prim_verts.size() == 2) {
+          continue;
+        }
+
+        // Match the triangulation pattern used for vertices
+        if (prim_verts.size() == 3) {
+          // Triangle
+          for (int vert_idx : prim_verts) {
+            const auto &color = color_values[vert_idx];
+            color_data.push_back(color.x());
+            color_data.push_back(color.y());
+            color_data.push_back(color.z());
+          }
+        } else if (prim_verts.size() == 4) {
+          // Quad: triangulated as 0-1-2, 0-2-3
+          const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
+          for (int local_idx : tri_indices) {
+            const auto &color = color_values[prim_verts[local_idx]];
+            color_data.push_back(color.x());
+            color_data.push_back(color.y());
+            color_data.push_back(color.z());
+          }
+        } else if (prim_verts.size() > 4) {
+          // N-gon: fan triangulation
+          for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
+            const std::array<size_t, 3> tri_local = {0, i, i + 1};
+            for (size_t local_idx : tri_local) {
+              const auto &color = color_values[prim_verts[local_idx]];
+              color_data.push_back(color.x());
+              color_data.push_back(color.y());
+              color_data.push_back(color.z());
+            }
+          }
+        }
+      }
+    } else if (point_colors != nullptr) {
+      // Use per-point colors (same color for all vertices of each point)
+      const auto &color_values = point_colors->values();
+
+      for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
+           ++prim_idx) {
+        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+
+        // Skip line primitives
+        if (prim_verts.size() == 2) {
+          continue;
+        }
+
+        // Match the triangulation pattern
+        if (prim_verts.size() == 3) {
+          // Triangle
+          for (int vert_idx : prim_verts) {
+            int point_idx = topology.get_vertex_point(vert_idx);
+            const auto &color = color_values[point_idx];
+            color_data.push_back(color.x());
+            color_data.push_back(color.y());
+            color_data.push_back(color.z());
+          }
+        } else if (prim_verts.size() == 4) {
+          // Quad: triangulated as 0-1-2, 0-2-3
+          const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
+          for (int local_idx : tri_indices) {
+            int vert_idx = prim_verts[local_idx];
+            int point_idx = topology.get_vertex_point(vert_idx);
+            const auto &color = color_values[point_idx];
+            color_data.push_back(color.x());
+            color_data.push_back(color.y());
+            color_data.push_back(color.z());
+          }
+        } else if (prim_verts.size() > 4) {
+          // N-gon: fan triangulation
+          for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
+            const std::array<size_t, 3> tri_local = {0, i, i + 1};
+            for (size_t local_idx : tri_local) {
+              int vert_idx = prim_verts[local_idx];
+              int point_idx = topology.get_vertex_point(vert_idx);
+              const auto &color = color_values[point_idx];
+              color_data.push_back(color.x());
+              color_data.push_back(color.y());
+              color_data.push_back(color.z());
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Upload to GPU
   vao_->bind();
 
@@ -576,6 +684,18 @@ void ViewportWidget::setGeometry(
       normal_data.data(), static_cast<int>(normal_data.size() * sizeof(float)));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+  // Upload color data if available
+  if (has_vertex_colors_ && !color_data.empty()) {
+    color_buffer_->bind();
+    color_buffer_->allocate(
+        color_data.data(), static_cast<int>(color_data.size() * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+  } else {
+    // Disable color attribute if not present
+    glDisableVertexAttribArray(2);
+  }
 
   index_buffer_->bind();
   index_buffer_->allocate(
@@ -896,6 +1016,8 @@ void ViewportWidget::paintGL() {
     shader_program_->setUniformValue("view_position", camera_pos);
   }
 
+  // Set color mode: use vertex colors if available, otherwise use uniform color
+  active_shader->setUniformValue("use_vertex_colors", has_vertex_colors_);
   active_shader->setUniformValue("object_color", QVector3D(0.7F, 0.7F, 0.7F));
 
   // Toggle face culling
@@ -1148,6 +1270,9 @@ void ViewportWidget::setupBuffers() {
 
   normal_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
   normal_buffer_->create();
+
+  color_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+  color_buffer_->create();
 
   // Create index buffer
   index_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::IndexBuffer);

@@ -101,6 +101,7 @@ private:
   std::unique_ptr<QOpenGLVertexArrayObject> vao_;
   std::unique_ptr<QOpenGLBuffer> vertex_buffer_;
   std::unique_ptr<QOpenGLBuffer> normal_buffer_;
+  std::unique_ptr<QOpenGLBuffer> color_buffer_;
   std::unique_ptr<QOpenGLBuffer> index_buffer_;
 
   // Line rendering (for curve/line primitives)
@@ -120,6 +121,7 @@ private:
   // Mesh data
   int vertex_count_ = 0;
   int index_count_ = 0;
+  bool has_vertex_colors_ = false;
   QVector3D mesh_center_;
   float mesh_radius_ = 1.0F;
   std::shared_ptr<nodo::core::Mesh>
