@@ -1482,3 +1482,386 @@ TEST_F(GraphSerializationTest, WrangleNode) {
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Wrangle);
 }
+
+// ============================================================================
+// Full Graph Serialization Tests
+// ============================================================================
+
+TEST_F(GraphSerializationTest, FullGraph_SimpleChain) {
+  NodeGraph original;
+
+  // Create: Sphere -> Transform -> Subdivide
+  int sphere_id = original.add_node(NodeType::Sphere, "MySphere");
+  int transform_id = original.add_node(NodeType::Transform, "MyTransform");
+  int subdivide_id = original.add_node(NodeType::Subdivide, "MySubdivide");
+
+  // Set parameters
+  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 2.5f));
+  original.get_node(sphere_id)->add_parameter(NodeParameter("rows", 24));
+  original.get_node(sphere_id)->add_parameter(NodeParameter("columns", 48));
+
+  original.get_node(transform_id)
+      ->add_parameter(NodeParameter("translate_x", 1.0f));
+  original.get_node(transform_id)
+      ->add_parameter(NodeParameter("translate_y", 2.0f));
+  original.get_node(transform_id)->add_parameter(NodeParameter("scale", 1.5f));
+
+  original.get_node(subdivide_id)
+      ->add_parameter(NodeParameter("subdivisions", 2));
+
+  // Set positions
+  original.get_node(sphere_id)->set_position(0.0f, 0.0f);
+  original.get_node(transform_id)->set_position(300.0f, 0.0f);
+  original.get_node(subdivide_id)->set_position(600.0f, 0.0f);
+
+  // Connect
+  original.add_connection(sphere_id, 0, transform_id, 0);
+  original.add_connection(transform_id, 0, subdivide_id, 0);
+
+  // Note: display_flag serialization not yet implemented
+  // original.set_display_node(subdivide_id);
+
+  // Serialize to file and back
+  std::filesystem::path file_path = test_dir_ / "simple_chain.nfg";
+  ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
+
+  auto loaded = GraphSerializer::load_from_file(file_path.string());
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify nodes exist
+  ASSERT_NE(loaded->get_node(sphere_id), nullptr);
+  ASSERT_NE(loaded->get_node(transform_id), nullptr);
+  ASSERT_NE(loaded->get_node(subdivide_id), nullptr);
+
+  // Verify names
+  EXPECT_EQ(loaded->get_node(sphere_id)->get_name(), "MySphere");
+  EXPECT_EQ(loaded->get_node(transform_id)->get_name(), "MyTransform");
+  EXPECT_EQ(loaded->get_node(subdivide_id)->get_name(), "MySubdivide");
+
+  // Verify parameters
+  auto radius = loaded->get_node(sphere_id)->get_parameter("radius");
+  ASSERT_TRUE(radius.has_value());
+  EXPECT_FLOAT_EQ(radius->float_value, 2.5f);
+
+  auto tx = loaded->get_node(transform_id)->get_parameter("translate_x");
+  ASSERT_TRUE(tx.has_value());
+  EXPECT_FLOAT_EQ(tx->float_value, 1.0f);
+
+  auto subdivs = loaded->get_node(subdivide_id)->get_parameter("subdivisions");
+  ASSERT_TRUE(subdivs.has_value());
+  EXPECT_EQ(subdivs->int_value, 2);
+
+  // Verify connections
+  const auto &connections = loaded->get_connections();
+  EXPECT_EQ(connections.size(), 2);
+}
+
+TEST_F(GraphSerializationTest, FullGraph_BranchingNetwork) {
+  NodeGraph original;
+
+  // Create branching network:
+  //     Box -----> Merge
+  //               /
+  //    Sphere ---/
+  int box_id = original.add_node(NodeType::Box, "InputBox");
+  int sphere_id = original.add_node(NodeType::Sphere, "InputSphere");
+  int merge_id = original.add_node(NodeType::Merge, "Combiner");
+
+  // Set parameters
+  original.get_node(box_id)->add_parameter(NodeParameter("width", 1.0f));
+  original.get_node(box_id)->add_parameter(NodeParameter("height", 1.0f));
+  original.get_node(box_id)->add_parameter(NodeParameter("depth", 1.0f));
+
+  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 0.5f));
+
+  // Set positions
+  original.get_node(box_id)->set_position(0.0f, 0.0f);
+  original.get_node(sphere_id)->set_position(0.0f, 200.0f);
+  original.get_node(merge_id)->set_position(400.0f, 100.0f);
+
+  // Connect both to merge
+  original.add_connection(box_id, 0, merge_id, 0);
+  original.add_connection(sphere_id, 0, merge_id, 1);
+
+  // Serialize and deserialize
+  std::string json = GraphSerializer::serialize_to_json(original);
+  auto loaded = GraphSerializer::deserialize_from_json(json);
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify structure
+  EXPECT_EQ(loaded->get_nodes().size(), 3);
+  EXPECT_EQ(loaded->get_connections().size(), 2);
+
+  // Verify merge has two inputs
+  auto inputs = loaded->get_input_nodes(merge_id);
+  EXPECT_EQ(inputs.size(), 2);
+  EXPECT_TRUE(std::find(inputs.begin(), inputs.end(), box_id) != inputs.end());
+  EXPECT_TRUE(std::find(inputs.begin(), inputs.end(), sphere_id) !=
+              inputs.end());
+}
+
+TEST_F(GraphSerializationTest, FullGraph_BooleanOperation) {
+  NodeGraph original;
+
+  // Create: Box A -> Boolean <- Box B
+  int box_a_id = original.add_node(NodeType::Box, "BoxA");
+  int box_b_id = original.add_node(NodeType::Box, "BoxB");
+  int boolean_id = original.add_node(NodeType::Boolean, "BoolOp");
+
+  // Configure boxes
+  original.get_node(box_a_id)->add_parameter(NodeParameter("width", 2.0f));
+  original.get_node(box_b_id)->add_parameter(NodeParameter("width", 1.5f));
+
+  // Configure boolean operation (0=Union, 1=Intersection, 2=Difference)
+  original.get_node(boolean_id)->add_parameter(NodeParameter("operation", 2));
+
+  // Set positions
+  original.get_node(box_a_id)->set_position(0.0f, 0.0f);
+  original.get_node(box_b_id)->set_position(0.0f, 200.0f);
+  original.get_node(boolean_id)->set_position(400.0f, 100.0f);
+
+  // Connect
+  original.add_connection(box_a_id, 0, boolean_id, 0);
+  original.add_connection(box_b_id, 0, boolean_id, 1);
+
+  // Round-trip
+  std::string json = GraphSerializer::serialize_to_json(original);
+  auto loaded = GraphSerializer::deserialize_from_json(json);
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify boolean operation parameter
+  auto op = loaded->get_node(boolean_id)->get_parameter("operation");
+  ASSERT_TRUE(op.has_value());
+  EXPECT_EQ(op->int_value, 2); // Difference
+}
+
+TEST_F(GraphSerializationTest, FullGraph_WithGroups) {
+  NodeGraph original;
+
+  // Create: Box -> Group -> Blast
+  int box_id = original.add_node(NodeType::Box, "Cube");
+  int group_id = original.add_node(NodeType::Group, "TopFaces");
+  int blast_id = original.add_node(NodeType::Blast, "DeleteGroup");
+
+  // Configure group selection
+  original.get_node(group_id)->add_parameter(
+      NodeParameter("group_name", std::string("top")));
+  original.get_node(group_id)->add_parameter(
+      NodeParameter("element_class", 1)); // Primitives
+
+  // Configure blast to delete the group
+  original.get_node(blast_id)->add_parameter(
+      NodeParameter("input_group", std::string("top")));
+  original.get_node(blast_id)->add_parameter(
+      NodeParameter("delete_non_selected", 0));
+
+  // Connect
+  original.add_connection(box_id, 0, group_id, 0);
+  original.add_connection(group_id, 0, blast_id, 0);
+
+  // Serialize
+  std::filesystem::path file_path = test_dir_ / "with_groups.nfg";
+  ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
+
+  auto loaded = GraphSerializer::load_from_file(file_path.string());
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify group name preserved
+  auto group_name = loaded->get_node(group_id)->get_parameter("group_name");
+  ASSERT_TRUE(group_name.has_value());
+  EXPECT_EQ(group_name->string_value, "top");
+
+  // Verify blast group reference
+  auto blast_group = loaded->get_node(blast_id)->get_parameter("input_group");
+  ASSERT_TRUE(blast_group.has_value());
+  EXPECT_EQ(blast_group->string_value, "top");
+}
+
+TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
+  NodeGraph original;
+
+  // Create realistic modeling chain:
+  // Torus -> Subdivide -> Twist -> Smooth -> UVUnwrap -> Color
+  int torus_id = original.add_node(NodeType::Torus, "BaseTorus");
+  int subdivide_id = original.add_node(NodeType::Subdivide, "Refine");
+  int twist_id = original.add_node(NodeType::Twist, "TwistDeform");
+  int smooth_id = original.add_node(NodeType::Smooth, "SmoothSurface");
+  int uv_id = original.add_node(NodeType::UVUnwrap, "UVs");
+  int color_id = original.add_node(NodeType::Color, "ColorByUV");
+
+  // Configure nodes
+  original.get_node(torus_id)->add_parameter(
+      NodeParameter("major_radius", 1.0f));
+  original.get_node(torus_id)->add_parameter(
+      NodeParameter("minor_radius", 0.3f));
+
+  original.get_node(subdivide_id)
+      ->add_parameter(NodeParameter("subdivisions", 1));
+
+  original.get_node(twist_id)->add_parameter(NodeParameter("angle", 180.0f));
+
+  original.get_node(smooth_id)->add_parameter(NodeParameter("iterations", 5));
+
+  original.get_node(color_id)->add_parameter(
+      NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.2f}));
+
+  // Set positions
+  float x = 0.0f;
+  original.get_node(torus_id)->set_position(x, 0.0f);
+  x += 250.0f;
+  original.get_node(subdivide_id)->set_position(x, 0.0f);
+  x += 250.0f;
+  original.get_node(twist_id)->set_position(x, 0.0f);
+  x += 250.0f;
+  original.get_node(smooth_id)->set_position(x, 0.0f);
+  x += 250.0f;
+  original.get_node(uv_id)->set_position(x, 0.0f);
+  x += 250.0f;
+  original.get_node(color_id)->set_position(x, 0.0f);
+
+  // Chain connections
+  original.add_connection(torus_id, 0, subdivide_id, 0);
+  original.add_connection(subdivide_id, 0, twist_id, 0);
+  original.add_connection(twist_id, 0, smooth_id, 0);
+  original.add_connection(smooth_id, 0, uv_id, 0);
+  original.add_connection(uv_id, 0, color_id, 0);
+
+  // Set display and render flags
+  original.set_display_node(color_id);
+  original.get_node(color_id)->set_render_flag(true);
+
+  // Serialize to file
+  std::filesystem::path file_path = test_dir_ / "complex_chain.nfg";
+  ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
+
+  // Load and verify
+  auto loaded = GraphSerializer::load_from_file(file_path.string());
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify all nodes present
+  EXPECT_EQ(loaded->get_nodes().size(), 6);
+  EXPECT_EQ(loaded->get_connections().size(), 5);
+
+  // Verify chain is intact
+  auto execution_order = loaded->get_execution_order();
+  EXPECT_EQ(execution_order.size(), 6);
+  EXPECT_EQ(execution_order[0], torus_id);
+  EXPECT_EQ(execution_order[5], color_id);
+
+  // Note: display_flag and render_flag serialization not yet implemented
+
+  // Verify parameters survived
+  auto twist_angle = loaded->get_node(twist_id)->get_parameter("angle");
+  ASSERT_TRUE(twist_angle.has_value());
+  EXPECT_FLOAT_EQ(twist_angle->float_value, 180.0f);
+}
+
+TEST_F(GraphSerializationTest, FullGraph_ScatterCopyPattern) {
+  NodeGraph original;
+
+  // Create: Grid -> Scatter -> Sphere (template) -> CopyToPoints
+  int grid_id = original.add_node(NodeType::Grid, "BaseGrid");
+  int scatter_id = original.add_node(NodeType::Scatter, "Points");
+  int sphere_id = original.add_node(NodeType::Sphere, "Template");
+  int copy_id = original.add_node(NodeType::CopyToPoints, "Distribute");
+
+  // Configure
+  original.get_node(grid_id)->add_parameter(NodeParameter("size", 10.0f));
+  original.get_node(scatter_id)->add_parameter(NodeParameter("count", 50));
+  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 0.2f));
+
+  // Positions
+  original.get_node(grid_id)->set_position(0.0f, 0.0f);
+  original.get_node(scatter_id)->set_position(300.0f, 0.0f);
+  original.get_node(sphere_id)->set_position(300.0f, 200.0f);
+  original.get_node(copy_id)->set_position(600.0f, 100.0f);
+
+  // Connect: grid->scatter, scatter->copy(points), sphere->copy(template)
+  original.add_connection(grid_id, 0, scatter_id, 0);
+  original.add_connection(scatter_id, 0, copy_id, 0);
+  original.add_connection(sphere_id, 0, copy_id, 1);
+
+  // Round-trip
+  std::string json = GraphSerializer::serialize_to_json(original);
+  auto loaded = GraphSerializer::deserialize_from_json(json);
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify dual-input node (CopyToPoints) has both connections
+  auto copy_inputs = loaded->get_input_nodes(copy_id);
+  EXPECT_EQ(copy_inputs.size(), 2);
+
+  // Verify the connections target the correct pins
+  const auto &connections = loaded->get_connections();
+  int copy_connections = 0;
+  for (const auto &conn : connections) {
+    if (conn.target_node_id == copy_id) {
+      copy_connections++;
+      // Scatter should connect to pin 0, Sphere to pin 1
+      if (conn.source_node_id == scatter_id) {
+        EXPECT_EQ(conn.target_pin_index, 0);
+      } else if (conn.source_node_id == sphere_id) {
+        EXPECT_EQ(conn.target_pin_index, 1);
+      }
+    }
+  }
+  EXPECT_EQ(copy_connections, 2);
+}
+
+TEST_F(GraphSerializationTest, FullGraph_WithGraphParameters) {
+  NodeGraph original;
+
+  // Add graph-level parameters
+  GraphParameter scale_param("global_scale", GraphParameter::Type::Float,
+                             "Global scale factor");
+  scale_param.set_value(1.5f);
+  original.add_graph_parameter(scale_param);
+
+  GraphParameter detail_param("detail_level", GraphParameter::Type::Int,
+                              "Subdivision detail");
+  detail_param.set_value(2);
+  original.add_graph_parameter(detail_param);
+
+  GraphParameter color_param("base_color", GraphParameter::Type::Vector3,
+                             "Base material color");
+  color_param.set_value(std::array<float, 3>{0.8f, 0.3f, 0.1f});
+  original.add_graph_parameter(color_param);
+
+  // Create simple graph that could use these parameters
+  int sphere_id = original.add_node(NodeType::Sphere, "Sphere");
+  int subdivide_id = original.add_node(NodeType::Subdivide, "Detail");
+
+  // Set parameters (in real usage these might reference graph params via
+  // expressions)
+  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 1.5f));
+  original.get_node(subdivide_id)
+      ->add_parameter(NodeParameter("subdivisions", 2));
+
+  original.add_connection(sphere_id, 0, subdivide_id, 0);
+
+  // Serialize
+  std::filesystem::path file_path = test_dir_ / "with_graph_params.nfg";
+  ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
+
+  // Load
+  auto loaded = GraphSerializer::load_from_file(file_path.string());
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify graph parameters
+  const auto &graph_params = loaded->get_graph_parameters();
+  EXPECT_EQ(graph_params.size(), 3);
+
+  const auto *loaded_scale = loaded->get_graph_parameter("global_scale");
+  ASSERT_NE(loaded_scale, nullptr);
+  EXPECT_FLOAT_EQ(loaded_scale->get_float_value(), 1.5f);
+
+  const auto *loaded_detail = loaded->get_graph_parameter("detail_level");
+  ASSERT_NE(loaded_detail, nullptr);
+  EXPECT_EQ(loaded_detail->get_int_value(), 2);
+
+  const auto *loaded_color = loaded->get_graph_parameter("base_color");
+  ASSERT_NE(loaded_color, nullptr);
+  auto color_val = loaded_color->get_vector3_value();
+  EXPECT_FLOAT_EQ(color_val[0], 0.8f);
+  EXPECT_FLOAT_EQ(color_val[1], 0.3f);
+  EXPECT_FLOAT_EQ(color_val[2], 0.1f);
+}
