@@ -852,6 +852,24 @@ void PropertyPanel::connectParameterWidget(
 
   if (auto *float_widget =
           dynamic_cast<nodo_studio::widgets::FloatWidget *>(widget)) {
+
+    // Set up live callback for slider drag preview (no cache invalidation)
+    float_widget->setLiveValueChangedCallback([this, node,
+                                               param](double new_value) {
+      // Update the parameter directly without undo stack or cache invalidation
+      auto updated_param = NodeParameter(
+          param.name, static_cast<float>(new_value), param.label,
+          param.ui_range.float_min, param.ui_range.float_max, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+
+      node->set_parameter(param.name, updated_param);
+
+      // Emit live signal for viewport preview without full graph rebuild
+      emit parameterChangedLive();
+    });
+
+    // Set up final callback for slider release (full update with undo)
     float_widget->setValueChangedCallback([this, node, graph, param,
                                            float_widget](double new_value) {
       // Get old parameter value
@@ -893,6 +911,23 @@ void PropertyPanel::connectParameterWidget(
     });
   } else if (auto *int_widget =
                  dynamic_cast<nodo_studio::widgets::IntWidget *>(widget)) {
+
+    // Set up live callback for slider drag preview (no cache invalidation)
+    int_widget->setLiveValueChangedCallback([this, node, param](int new_value) {
+      // Update the parameter directly without undo stack or cache invalidation
+      auto updated_param = NodeParameter(
+          param.name, new_value, param.label, param.ui_range.int_min,
+          param.ui_range.int_max, param.category);
+      updated_param.category_control_param = param.category_control_param;
+      updated_param.category_control_value = param.category_control_value;
+
+      node->set_parameter(param.name, updated_param);
+
+      // Emit live signal for viewport preview without full graph rebuild
+      emit parameterChangedLive();
+    });
+
+    // Set up final callback for slider release (full update with undo)
     int_widget->setValueChangedCallback([this, node, graph, param,
                                          int_widget](int new_value) {
       // Get old parameter value

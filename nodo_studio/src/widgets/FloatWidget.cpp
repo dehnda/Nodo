@@ -15,13 +15,20 @@ namespace widgets {
 FloatWidget::FloatWidget(const QString &label, float value, float min,
                          float max, const QString &description, QWidget *parent)
     : BaseParameterWidget(label, description, parent), min_(min), max_(max),
-      current_value_(value), slider_min_(min), slider_max_(max) {
+      current_value_(value), is_slider_dragging_(false) {
+
+  // Create timer for periodic live updates during slider drag
+  slider_update_timer_ = new QTimer(this);
+  slider_update_timer_->setInterval(100); // Update every 100ms during drag
+  connect(slider_update_timer_, &QTimer::timeout, this, [this]() {
+    // Fire live callback for viewport preview without full cache invalidation
+    if (live_value_changed_callback_) {
+      live_value_changed_callback_(current_value_);
+    }
+  });
 
   // Create and add the control widget
   addControlWidget(createControlWidget());
-
-  // Set initial slider range based on starting value
-  updateSliderRange();
 }
 
 QWidget *FloatWidget::createControlWidget() {
@@ -92,6 +99,25 @@ QWidget *FloatWidget::createControlWidget() {
 
   connect(slider_, &QSlider::valueChanged, this,
           &FloatWidget::onSliderValueChanged);
+
+  // Track when slider is being dragged
+  connect(slider_, &QSlider::sliderPressed, this, [this]() {
+    is_slider_dragging_ = true;
+    // Start periodic live updates for viewport preview
+    slider_update_timer_->start();
+  });
+
+  // Only fire full callback when slider is released
+  connect(slider_, &QSlider::sliderReleased, this, [this]() {
+    is_slider_dragging_ = false;
+    // Stop live updates
+    slider_update_timer_->stop();
+    // Send final update with full graph execution
+    emit valueChangedSignal(current_value_);
+    if (value_changed_callback_) {
+      value_changed_callback_(current_value_);
+    }
+  });
 
   // Add slider first (left), then spinbox (right)
   // Ratio: slider takes more space (2), spinbox takes less (1)
@@ -227,11 +253,13 @@ void FloatWidget::setValueChangedCallback(std::function<void(float)> callback) {
   value_changed_callback_ = callback;
 }
 
+void FloatWidget::setLiveValueChangedCallback(
+    std::function<void(float)> callback) {
+  live_value_changed_callback_ = callback;
+}
+
 void FloatWidget::onSpinBoxValueChanged(double value) {
   current_value_ = static_cast<float>(value);
-
-  // Update slider range dynamically based on new value
-  updateSliderRange();
 
   slider_->blockSignals(true);
   slider_->setValue(floatToSlider(current_value_));
@@ -245,24 +273,24 @@ void FloatWidget::onSpinBoxValueChanged(double value) {
 
 void FloatWidget::onSliderValueChanged(int value) {
   current_value_ = sliderToFloat(value);
+  pending_slider_value_ = current_value_;
 
+  // Update spinbox display during drag
   spinbox_->blockSignals(true);
   spinbox_->setValue(current_value_);
   spinbox_->blockSignals(false);
 
-  emit valueChangedSignal(current_value_);
-  if (value_changed_callback_) {
-    value_changed_callback_(current_value_);
-  }
+  // Timer will periodically emit signals during drag
+  // Final update happens on sliderReleased
 }
 
 float FloatWidget::sliderToFloat(int slider_value) const {
   float t = slider_value / 1000.0f;
-  return slider_min_ + t * (slider_max_ - slider_min_);
+  return min_ + t * (max_ - min_);
 }
 
 int FloatWidget::floatToSlider(float value) const {
-  float t = (value - slider_min_) / (slider_max_ - slider_min_);
+  float t = (value - min_) / (max_ - min_);
   return static_cast<int>(t * 1000.0f);
 }
 
@@ -504,30 +532,6 @@ void FloatWidget::onValidationTimerTimeout() {
     // Invalid - show red border with error message
     setExpressionError(result.error_message);
   }
-}
-
-void FloatWidget::updateSliderRange() {
-  if (!slider_)
-    return;
-
-  float abs_value = std::abs(current_value_);
-
-  // Calculate dynamic max based on current value (value = 25% of max range)
-  float dynamic_max = std::max(abs_value * RANGE_MULTIPLIER, MIN_SLIDER_RANGE);
-
-  // Handle negative values - extend range in both directions
-  if (current_value_ < 0) {
-    slider_min_ = -dynamic_max;
-    slider_max_ = dynamic_max / 2.0f; // Allow some positive range
-  } else {
-    slider_min_ =
-        std::min(0.0f, -dynamic_max / 4.0f); // Allow some negative range
-    slider_max_ = dynamic_max;
-  }
-
-  // Ensure slider range respects parameter hard limits
-  slider_min_ = std::max(slider_min_, min_);
-  slider_max_ = std::min(slider_max_, max_);
 }
 
 } // namespace widgets

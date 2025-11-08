@@ -15,7 +15,18 @@ namespace widgets {
 IntWidget::IntWidget(const QString &label, int value, int min, int max,
                      const QString &description, QWidget *parent)
     : BaseParameterWidget(label, description, parent), min_(min), max_(max),
-      current_value_(value) {
+      current_value_(value), is_slider_dragging_(false) {
+
+  // Create timer for periodic live updates during slider drag
+  slider_update_timer_ = new QTimer(this);
+  slider_update_timer_->setInterval(100); // Update every 100ms during drag
+  connect(slider_update_timer_, &QTimer::timeout, this, [this]() {
+    // Fire live callback for viewport preview without full cache invalidation
+    if (live_value_changed_callback_) {
+      live_value_changed_callback_(current_value_);
+    }
+  });
+
   addControlWidget(createControlWidget());
 }
 
@@ -85,6 +96,25 @@ QWidget *IntWidget::createControlWidget() {
 
   connect(slider_, &QSlider::valueChanged, this,
           &IntWidget::onSliderValueChanged);
+
+  // Track when slider is being dragged
+  connect(slider_, &QSlider::sliderPressed, this, [this]() {
+    is_slider_dragging_ = true;
+    // Start periodic live updates for viewport preview
+    slider_update_timer_->start();
+  });
+
+  // Only fire full callback when slider is released
+  connect(slider_, &QSlider::sliderReleased, this, [this]() {
+    is_slider_dragging_ = false;
+    // Stop live updates
+    slider_update_timer_->stop();
+    // Send final update with full graph execution
+    emit valueChangedSignal(current_value_);
+    if (value_changed_callback_) {
+      value_changed_callback_(current_value_);
+    }
+  });
 
   // Add slider first (left), then spinbox (right) - matches HTML design
   numeric_layout->addWidget(slider_, 2);
@@ -217,6 +247,10 @@ void IntWidget::setValueChangedCallback(std::function<void(int)> callback) {
   value_changed_callback_ = callback;
 }
 
+void IntWidget::setLiveValueChangedCallback(std::function<void(int)> callback) {
+  live_value_changed_callback_ = callback;
+}
+
 void IntWidget::onSpinBoxValueChanged(int value) {
   current_value_ = value;
 
@@ -237,9 +271,13 @@ void IntWidget::onSliderValueChanged(int value) {
   spinbox_->setValue(value);
   spinbox_->blockSignals(false);
 
-  emit valueChangedSignal(current_value_);
-  if (value_changed_callback_) {
-    value_changed_callback_(current_value_);
+  // Only fire callbacks if not dragging (sliderReleased will handle final
+  // update)
+  if (!is_slider_dragging_) {
+    emit valueChangedSignal(current_value_);
+    if (value_changed_callback_) {
+      value_changed_callback_(current_value_);
+    }
   }
 }
 

@@ -357,6 +357,10 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(property_panel_, &PropertyPanel::parameterChanged, this,
           &MainWindow::onParameterChanged);
 
+  // Connect live parameter changes during slider drag (no cache invalidation)
+  connect(property_panel_, &PropertyPanel::parameterChangedLive, this,
+          &MainWindow::onParameterChangedLive);
+
   // Create dock widget for graph parameters (tabbed with properties)
   graph_parameters_dock_ = new QDockWidget("Graph Parameters", this);
   graph_parameters_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -424,6 +428,23 @@ void MainWindow::onParameterChanged() {
           executeAndDisplayNode(item->get_node_id());
           break;
         }
+      }
+    }
+  }
+}
+
+void MainWindow::onParameterChangedLive() {
+  // Live updates during slider drag - execute without cache invalidation
+  // This allows smooth viewport updates without full graph rebuild
+
+  // Find which node has the display flag set and update viewport
+  if (node_graph_widget_) {
+    auto node_items = node_graph_widget_->get_all_node_items();
+    for (auto *item : node_items) {
+      if (item && item->has_display_flag()) {
+        // Execute and display without invalidating cache
+        executeAndDisplayNode(item->get_node_id());
+        break;
       }
     }
   }

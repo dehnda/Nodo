@@ -192,6 +192,9 @@ private slots:
   // Property panel callback
   void onParameterChanged();
 
+  // Property panel live callback (during slider drag)
+  void onParameterChangedLive();
+
   // Async execution
   void onExecutionFinished();
 

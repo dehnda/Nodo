@@ -47,6 +47,9 @@ public:
   // Set value change callback
   void setValueChangedCallback(std::function<void(int)> callback);
 
+  // Set live value change callback (fires during slider drag for preview)
+  void setLiveValueChangedCallback(std::function<void(int)> callback);
+
   // Expression mode support (M3.3 Phase 1)
   void setExpressionMode(bool enabled);
   bool isExpressionMode() const { return is_expression_mode_; }
@@ -86,14 +89,19 @@ private:
   QWidget *numeric_container_;
   QWidget *expression_container_;
   ExpressionCompleter *expression_completer_; // M3.3 Phase 5
-  QTimer *validation_timer_; // M3.3 Phase 6: Debounced validation
+  QTimer *validation_timer_;    // M3.3 Phase 6: Debounced validation
+  QTimer *slider_update_timer_; // Periodic updates during slider drag
 
   // Expression mode state
   bool is_expression_mode_ = false;
   QString expression_text_;
 
+  // Slider drag state
+  bool is_slider_dragging_ = false;
+
   // Callback
   std::function<void(int)> value_changed_callback_;
+  std::function<void(int)> live_value_changed_callback_;
 
   // Visual indicators helper (M3.3 Phase 4)
   void updateExpressionVisuals();

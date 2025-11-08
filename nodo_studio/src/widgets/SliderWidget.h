@@ -45,6 +45,9 @@ public:
   // Callback support
   void setValueChangedCallback(std::function<void(double)> callback);
 
+  // Set live value change callback (fires during slider drag for preview)
+  void setLiveValueChangedCallback(std::function<void(double)> callback);
+
 signals:
   void valueChangedSignal(double value);
 
@@ -67,10 +70,15 @@ private:
 
   QSlider *slider_{nullptr};
   QLabel *value_label_{nullptr};
+  QTimer *slider_update_timer_{nullptr}; // Periodic updates during slider drag
 
   static constexpr int SLIDER_RESOLUTION = 1000; // Internal slider precision
 
+  // Slider drag state
+  bool is_slider_dragging_{false};
+
   std::function<void(double)> value_changed_callback_;
+  std::function<void(double)> live_value_changed_callback_;
 };
 
 } // namespace widgets

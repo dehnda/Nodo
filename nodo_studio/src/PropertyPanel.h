@@ -72,8 +72,12 @@ public:
   }
 
 signals:
-  // Emitted when a parameter changes
+  // Emitted when a parameter changes (triggers full graph execution)
   void parameterChanged();
+
+  // Emitted during interactive slider drag for live preview (no execution
+  // blocking)
+  void parameterChangedLive();
 
 private:
   // UI components
@@ -141,6 +145,7 @@ private:
   void addInfoLabel(const QString &text);
 
   // Builder methods for specific node types
+  // todo remove if not needed anymore
   void buildSphereParameters(nodo::graph::GraphNode *node);
   void buildBoxParameters(nodo::graph::GraphNode *node);
   void buildCylinderParameters(nodo::graph::GraphNode *node);

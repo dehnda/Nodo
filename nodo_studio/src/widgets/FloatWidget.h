@@ -53,6 +53,9 @@ public:
   // Set value change callback
   void setValueChangedCallback(std::function<void(float)> callback);
 
+  // Set live value change callback (fires during slider drag for preview)
+  void setLiveValueChangedCallback(std::function<void(float)> callback);
+
   // Expression mode support (M3.3 Phase 1)
   void setExpressionMode(bool enabled);
   bool isExpressionMode() const { return is_expression_mode_; }
@@ -92,25 +95,24 @@ private:
   QWidget *numeric_container_;
   QWidget *expression_container_;
   ExpressionCompleter *expression_completer_; // M3.3 Phase 5
-  QTimer *validation_timer_; // M3.3 Phase 6: Debounced validation
+  QTimer *validation_timer_;    // M3.3 Phase 6: Debounced validation
+  QTimer *slider_update_timer_; // Periodic updates during slider drag
 
   // Expression mode state
   bool is_expression_mode_ = false;
   QString expression_text_;
 
+  // Slider drag state
+  bool is_slider_dragging_ = false;
+  float pending_slider_value_;
+
   // Callback
   std::function<void(float)> value_changed_callback_;
+  std::function<void(float)> live_value_changed_callback_;
 
   // Helper to convert slider value to float
   float sliderToFloat(int slider_value) const;
   int floatToSlider(float value) const;
-
-  // Dynamic slider range adjustment
-  void updateSliderRange();
-  static constexpr float RANGE_MULTIPLIER = 4.0f; // Value represents 25% of max
-  static constexpr float MIN_SLIDER_RANGE = 10.0f; // Minimum useful range
-  float slider_min_; // Current slider range (can differ from parameter min/max)
-  float slider_max_;
 
   // Visual indicators helper (M3.3 Phase 4)
   void updateExpressionVisuals();
