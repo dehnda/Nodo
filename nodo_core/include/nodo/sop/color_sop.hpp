@@ -305,15 +305,13 @@ private:
     const float g = get_parameter<float>("color_g", 1.0F);
     const float b = get_parameter<float>("color_b", 1.0F);
     const core::Vec3f color(r, g, b);
-    const std::string group_name =
-        get_parameter<std::string>("input_group", "");
 
     switch (attr_class) {
     case 0: { // Point
       auto *cd = geo->get_point_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             (*cd)[i] = color;
           }
         }
@@ -324,7 +322,7 @@ private:
       auto *cd = geo->get_vertex_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             (*cd)[i] = color;
           }
         }
@@ -335,7 +333,7 @@ private:
       auto *cd = geo->get_primitive_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             (*cd)[i] = color;
           }
         }
@@ -348,8 +346,6 @@ private:
   void apply_random_color(std::shared_ptr<core::GeometryContainer> &geo,
                           int attr_class) {
     const int seed = get_parameter<int>("seed", 0);
-    const std::string group_name =
-        get_parameter<std::string>("input_group", "");
     std::mt19937 rng(seed);
     std::uniform_real_distribution<float> dist(0.0F, 1.0F);
 
@@ -358,7 +354,7 @@ private:
       auto *cd = geo->get_point_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             (*cd)[i] = core::Vec3f(dist(rng), dist(rng), dist(rng));
           }
         }
@@ -369,7 +365,7 @@ private:
       auto *cd = geo->get_vertex_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             (*cd)[i] = core::Vec3f(dist(rng), dist(rng), dist(rng));
           }
         }
@@ -380,7 +376,7 @@ private:
       auto *cd = geo->get_primitive_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             (*cd)[i] = core::Vec3f(dist(rng), dist(rng), dist(rng));
           }
         }
@@ -399,8 +395,6 @@ private:
     const float end_g = get_parameter<float>("ramp_end_g", 0.0F);
     const float end_b = get_parameter<float>("ramp_end_b", 0.0F);
     const int axis = get_parameter<int>("ramp_axis", 1);
-    const std::string group_name =
-        get_parameter<std::string>("input_group", "");
 
     const core::Vec3f start_color(start_r, start_g, start_b);
     const core::Vec3f end_color(end_r, end_g, end_b);
@@ -438,7 +432,7 @@ private:
       auto *cd = geo->get_point_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             float t = ((*positions)[i][axis] - min_val) / range;
             t = std::clamp(t, 0.0F, 1.0F);
             (*cd)[i] = start_color * (1.0F - t) + end_color * t;
@@ -451,7 +445,7 @@ private:
       auto *cd = geo->get_vertex_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             int pt_idx = geo->topology().get_vertex_point(i);
             if (pt_idx >= 0 &&
                 static_cast<size_t>(pt_idx) < positions->size()) {
@@ -468,7 +462,7 @@ private:
       auto *cd = geo->get_primitive_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t prim_idx = 0; prim_idx < cd->size(); ++prim_idx) {
-          if (is_in_group(geo, attr_class, prim_idx, group_name)) {
+          if (is_in_group(geo, attr_class, prim_idx)) {
             // Calculate primitive centroid
             const auto &prim_verts =
                 geo->topology().get_primitive_vertices(prim_idx);
@@ -503,8 +497,6 @@ private:
     // Get attribute name
     const std::string attr_name =
         get_parameter<std::string>("attr_name", "geodesic_dist");
-    const std::string group_name =
-        get_parameter<std::string>("input_group", "");
 
     // Get color ramp parameters
     const float start_r = get_parameter<float>("attr_ramp_start_r", 0.0F);
@@ -582,7 +574,7 @@ private:
       auto *cd = geo->get_point_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             float val = (*attr_data)[i];
             float t = (val - min_val) / range;
             t = std::clamp(t, 0.0F, 1.0F);
@@ -596,7 +588,7 @@ private:
       auto *cd = geo->get_vertex_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             float val = (*attr_data)[i];
             float t = (val - min_val) / range;
             t = std::clamp(t, 0.0F, 1.0F);
@@ -610,7 +602,7 @@ private:
       auto *cd = geo->get_primitive_attribute_typed<core::Vec3f>("Cd");
       if (cd) {
         for (size_t i = 0; i < cd->size(); ++i) {
-          if (is_in_group(geo, attr_class, i, group_name)) {
+          if (is_in_group(geo, attr_class, i)) {
             float val = (*attr_data)[i];
             float t = (val - min_val) / range;
             t = std::clamp(t, 0.0F, 1.0F);
@@ -621,54 +613,6 @@ private:
       break;
     }
     }
-  }
-
-  // Helper to check if an element is in the specified group
-  bool is_in_group(const std::shared_ptr<core::GeometryContainer> &geo,
-                   int attr_class, size_t index,
-                   const std::string &group_name) const {
-    // Empty string means no filtering (apply to all)
-    if (group_name.empty()) {
-      return true;
-    }
-
-    // Build the attribute name: "group_<name>"
-    const std::string attr_name = "group_" + group_name;
-
-    // Check if the group attribute exists for the given class
-    switch (attr_class) {
-    case 0: { // Point
-      if (!geo->has_point_attribute(attr_name)) {
-        return false;
-      }
-      auto *group_attr = geo->get_point_attribute_typed<int>(attr_name);
-      if (group_attr && index < group_attr->size()) {
-        return (*group_attr)[index] > 0;
-      }
-      break;
-    }
-    case 1: { // Vertex
-      if (!geo->has_vertex_attribute(attr_name)) {
-        return false;
-      }
-      auto *group_attr = geo->get_vertex_attribute_typed<int>(attr_name);
-      if (group_attr && index < group_attr->size()) {
-        return (*group_attr)[index] > 0;
-      }
-      break;
-    }
-    case 2: { // Primitive
-      if (!geo->has_primitive_attribute(attr_name)) {
-        return false;
-      }
-      auto *group_attr = geo->get_primitive_attribute_typed<int>(attr_name);
-      if (group_attr && index < group_attr->size()) {
-        return (*group_attr)[index] > 0;
-      }
-      break;
-    }
-    }
-    return false;
   }
 };
 

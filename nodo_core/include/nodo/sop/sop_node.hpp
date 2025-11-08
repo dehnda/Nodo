@@ -590,7 +590,7 @@ protected:
    * @return True if a group name is specified
    */
   bool has_group_filter() const {
-    std::string group_name = get_parameter<std::string>("group", "");
+    std::string group_name = get_parameter<std::string>("input_group", "");
     return !group_name.empty();
   }
 
@@ -599,7 +599,7 @@ protected:
    * @return Group name, or empty string if no group filter
    */
   std::string get_group_name() const {
-    return get_parameter<std::string>("group", "");
+    return get_parameter<std::string>("input_group", "");
   }
 
   /**
@@ -657,6 +657,62 @@ protected:
         func(i);
       }
     }
+  }
+
+  /**
+   * @brief Check if element is in the active group (works with attr_class
+   * parameter)
+   * @param geo Geometry container
+   * @param attr_class Element class as integer (0=Point, 1=Vertex, 2=Primitive)
+   * @param index Element index
+   * @return True if element passes group filter (or no filter active)
+   */
+  bool is_in_group(const std::shared_ptr<core::GeometryContainer> &geo,
+                   int attr_class, size_t index) const {
+    const std::string group_name = get_group_name();
+
+    // Empty group name means no filtering (all elements pass)
+    if (group_name.empty()) {
+      return true;
+    }
+
+    // Build the attribute name: "group_<name>"
+    const std::string attr_name = "group_" + group_name;
+
+    // Check based on element class
+    switch (attr_class) {
+    case 0: { // Point
+      if (!geo->has_point_attribute(attr_name)) {
+        return false;
+      }
+      auto *group_attr = geo->get_point_attribute_typed<int>(attr_name);
+      if (group_attr && index < group_attr->size()) {
+        return (*group_attr)[index] > 0;
+      }
+      break;
+    }
+    case 1: { // Vertex
+      if (!geo->has_vertex_attribute(attr_name)) {
+        return false;
+      }
+      auto *group_attr = geo->get_vertex_attribute_typed<int>(attr_name);
+      if (group_attr && index < group_attr->size()) {
+        return (*group_attr)[index] > 0;
+      }
+      break;
+    }
+    case 2: { // Primitive
+      if (!geo->has_primitive_attribute(attr_name)) {
+        return false;
+      }
+      auto *group_attr = geo->get_primitive_attribute_typed<int>(attr_name);
+      if (group_attr && index < group_attr->size()) {
+        return (*group_attr)[index] > 0;
+      }
+      break;
+    }
+    }
+    return false;
   }
 
 private:

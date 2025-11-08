@@ -98,6 +98,10 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
 
   auto p_span = p_storage->values_writable();
   for (size_t i = 0; i < p_span.size(); ++i) {
+    // Skip points not in group filter
+    if (!is_in_group(output, 0, i))
+      continue;
+
     const core::Vec3f &vertex = p_span[i];
 
     // Generate noise value at vertex position

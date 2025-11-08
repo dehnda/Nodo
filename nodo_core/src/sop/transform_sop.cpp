@@ -110,6 +110,10 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
   // Transform P attribute
   auto positions_span = p_attr->values_writable();
   for (size_t i = 0; i < positions_span.size(); ++i) {
+    // Skip points not in group filter
+    if (!is_in_group(output_container, 0, i))
+      continue;
+
     Eigen::Vector3d vertex = positions_span[i].cast<double>();
     vertex = vertex.cwiseProduct(scale); // Scale
     vertex = rotation * vertex;          // Rotate
@@ -124,6 +128,10 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
     if (n_attr) {
       auto normals_span = n_attr->values_writable();
       for (size_t i = 0; i < normals_span.size(); ++i) {
+        // Skip normals for points not in group filter
+        if (!is_in_group(output_container, 0, i))
+          continue;
+
         Eigen::Vector3d normal = normals_span[i].cast<double>();
         normal = rotation * normal; // Rotate only
         normal.normalize();         // Renormalize

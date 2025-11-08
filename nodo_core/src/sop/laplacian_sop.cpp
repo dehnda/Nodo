@@ -59,7 +59,8 @@ void smooth_iteration(
     core::GeometryContainer &container,
     core::AttributeStorage<core::Vec3f> *P_storage,
     const std::unordered_map<int, std::unordered_set<int>> &point_neighbors,
-    float lambda, int method) {
+    float lambda, int method,
+    const std::unordered_set<size_t> &points_to_smooth) {
 
   const size_t num_points = container.point_count();
 
@@ -73,6 +74,10 @@ void smooth_iteration(
 
   // For each point, compute Laplacian and update position
   for (size_t point_idx = 0; point_idx < num_points; ++point_idx) {
+    // Skip points not in group filter
+    if (points_to_smooth.find(point_idx) == points_to_smooth.end())
+      continue;
+
     auto neighbors_it = point_neighbors.find(static_cast<int>(point_idx));
 
     // Skip points with no neighbors
@@ -178,9 +183,16 @@ std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
   std::unordered_map<int, std::unordered_set<int>> point_neighbors;
   build_point_connectivity(*output, point_neighbors);
 
+  // Build set of points to smooth based on group filter
+  std::unordered_set<size_t> points_to_smooth;
+  for_each_point_in_group(output.get(), [&points_to_smooth](size_t i) {
+    points_to_smooth.insert(i);
+  });
+
   // Perform smoothing iterations
   for (int iter = 0; iter < iterations; ++iter) {
-    smooth_iteration(*output, P_storage, point_neighbors, lambda, method);
+    smooth_iteration(*output, P_storage, point_neighbors, lambda, method,
+                     points_to_smooth);
   }
 
   // If we have vertex or point normals, recompute them after smoothing
