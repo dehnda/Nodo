@@ -19,6 +19,7 @@
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/io/obj_exporter.hpp>
 #include <nodo/sop/sop_node.hpp>
+#include <nodo/sop/sop_factory.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -725,56 +726,9 @@ void MainWindow::onNodeSelectionChanged() {
         property_panel_->setGraphNode(node, node_graph_.get());
 
         // Update geometry spreadsheet if this is a SOP node
-        // Check node type to determine if it's a SOP node
+        // Use SOPFactory to automatically check if node type is a SOP
         auto node_type = node->get_type();
-        using nodo::graph::NodeType;
-
-        // todo we not need to add that manually but it should work
-        // automatically
-        bool is_sop =
-            // Generators
-            (node_type == NodeType::Sphere || node_type == NodeType::Box ||
-             node_type == NodeType::Cylinder || node_type == NodeType::Grid ||
-             node_type == NodeType::Torus || node_type == NodeType::Line ||
-             // Modifiers
-             node_type == NodeType::Extrude ||
-             node_type == NodeType::PolyExtrude ||
-             node_type == NodeType::Smooth ||
-             node_type == NodeType::Subdivide ||
-             node_type == NodeType::Transform || node_type == NodeType::Array ||
-             node_type == NodeType::Mirror || node_type == NodeType::Resample ||
-             node_type == NodeType::NoiseDisplacement ||
-             node_type == NodeType::Normal || node_type == NodeType::Bevel ||
-             node_type == NodeType::Remesh || node_type == NodeType::Decimate ||
-             node_type == NodeType::RepairMesh ||
-             node_type == NodeType::Curvature || node_type == NodeType::Align ||
-             node_type == NodeType::Split ||
-             // Attributes
-             node_type == NodeType::AttributeCreate ||
-             node_type == NodeType::AttributeDelete ||
-             node_type == NodeType::Color ||
-             // Group Operations
-             node_type == NodeType::GroupDelete ||
-             node_type == NodeType::GroupPromote ||
-             node_type == NodeType::GroupCombine ||
-             node_type == NodeType::GroupExpand ||
-             node_type == NodeType::GroupTransfer ||
-             // Utility
-             node_type == NodeType::Blast || node_type == NodeType::Sort ||
-             // Deformation
-             node_type == NodeType::Bend || node_type == NodeType::Twist ||
-             node_type == NodeType::Lattice ||
-             // Boolean
-             node_type == NodeType::Boolean ||
-             // Point Operations
-             node_type == NodeType::Scatter ||
-             node_type == NodeType::ScatterVolume ||
-             node_type == NodeType::CopyToPoints ||
-             // Utilities
-             node_type == NodeType::Merge || node_type == NodeType::Group ||
-             node_type == NodeType::Switch || node_type == NodeType::Null ||
-             node_type == NodeType::Cache || node_type == NodeType::UVUnwrap ||
-             node_type == NodeType::Wrangle);
+        bool is_sop = nodo::sop::SOPFactory::is_sop_supported(node_type);
 
         if (is_sop) {
           // Get geometry from execution engine for spreadsheet
