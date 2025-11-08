@@ -1,0 +1,394 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    },
+    {
+      "id": 3,
+      "source_node": 3,
+      "source_pin": 0,
+      "target_node": 4,
+      "target_pin": 0
+    }
+  ],
+  "graph_parameters": [],
+  "nodes": [
+    {
+      "id": 1,
+      "name": "grid",
+      "parameters": [
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Universal",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Primitive Type",
+          "name": "primitive_type",
+          "string_options": [
+            "Polygon",
+            "Points"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 1000.0,
+          "float_min": 0.009999999776482582,
+          "label": "Size X",
+          "name": "size_x",
+          "type": "float",
+          "value": 10.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 1000.0,
+          "float_min": 0.009999999776482582,
+          "label": "Size Z",
+          "name": "size_z",
+          "type": "float",
+          "value": 10.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Resolution",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Columns",
+          "name": "columns",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Resolution",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Rows",
+          "name": "rows",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -84.0,
+        -167.0
+      ],
+      "type": "Plane"
+    },
+    {
+      "id": 2,
+      "name": "remesh",
+      "parameters": [
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Remeshing",
+          "float_max": 10.0,
+          "float_min": 0.0010000000474974513,
+          "label": "Target Edge Length",
+          "name": "target_edge_length",
+          "type": "float",
+          "value": 0.5,
+          "value_mode": 0
+        },
+        {
+          "category": "Remeshing",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Iterations",
+          "name": "iterations",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Options",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Preserve Boundaries",
+          "name": "preserve_boundaries",
+          "string_options": [
+            "Off",
+            "On"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Options",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Preserve Sharp Edges",
+          "name": "preserve_sharp_edges",
+          "string_options": [
+            "Off",
+            "On"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Options",
+          "float_max": 180.0,
+          "float_min": 0.0,
+          "label": "Feature Angle",
+          "name": "feature_angle",
+          "type": "float",
+          "value": 30.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Advanced",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Adaptive",
+          "name": "adaptive",
+          "string_options": [
+            "Off",
+            "On"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        16.0,
+        1.0
+      ],
+      "type": "Remesh"
+    },
+    {
+      "id": 3,
+      "name": "group",
+      "parameters": [
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "label": "Group Name",
+          "name": "group_name",
+          "type": "string",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Group Type",
+          "name": "element_class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Operation",
+          "name": "operation",
+          "string_options": [
+            "Create/Replace",
+            "Add to Existing",
+            "Remove from Existing"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Selection",
+          "int_max": 3,
+          "int_min": 0,
+          "label": "Selection Mode",
+          "name": "selection_mode",
+          "string_options": [
+            "Range",
+            "Every Nth",
+            "Random",
+            "All"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Start",
+          "name": "range_start",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "End",
+          "name": "range_end",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Step",
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Offset",
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 1,
+          "label": "Count",
+          "name": "random_count",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Seed",
+          "name": "random_seed",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -63.0,
+        119.0
+      ],
+      "type": "Group"
+    },
+    {
+      "id": 4,
+      "name": "geodesic",
+      "parameters": [
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Geodesic",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Method",
+          "name": "method",
+          "string_options": [
+            "Dijkstra",
+            "Heat"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Geodesic",
+          "label": "Seed Group",
+          "name": "seed_group",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Geodesic",
+          "float_max": 1000.0,
+          "float_min": 0.0,
+          "label": "Max Distance",
+          "name": "max_distance",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Geodesic",
+          "int_max": 100000,
+          "int_min": 0,
+          "label": "Max Neighbors",
+          "name": "max_neighbors",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Output",
+          "label": "Output Attribute",
+          "name": "output_attribute",
+          "type": "string",
+          "value": "geodesic_dist",
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        35.0,
+        259.0
+      ],
+      "type": "Unknown"
+    }
+  ],
+  "version": "1.0"
+}

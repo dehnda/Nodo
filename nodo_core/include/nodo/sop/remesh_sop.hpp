@@ -33,7 +33,7 @@ public:
 
     // Target edge length
     register_parameter(
-        define_float_parameter("target_edge_length", 0.1F)
+        define_float_parameter("target_edge_length", 0.5F)
             .label("Target Edge Length")
             .range(0.001F, 10.0F)
             .category("Remeshing")

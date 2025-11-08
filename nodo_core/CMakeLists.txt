@@ -63,13 +63,16 @@ set(NODO_CORE_SOURCES
     src/processing/hole_filling.cpp
     src/processing/curvature.cpp
     src/processing/parameterization.cpp
+    src/processing/geodesic.cpp
 
     # SOPs
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp
     src/sop/copy_to_points_sop.cpp
+    src/sop/curvature_sop.cpp
     src/sop/decimation_sop.cpp
     src/sop/extrude_sop.cpp
+    src/sop/geodesic_sop.cpp
     src/sop/group_sop.cpp
     src/sop/laplacian_sop.cpp
     src/sop/line_sop.cpp
@@ -78,7 +81,6 @@ set(NODO_CORE_SOURCES
     src/sop/noise_displacement_sop.cpp
     src/sop/normal_sop.cpp
     src/sop/bevel_sop.cpp
-    src/sop/curvature_sop.cpp
     src/sop/polyextrude_sop.cpp
     src/sop/repair_mesh_sop.cpp
     src/sop/resample_sop.cpp

@@ -90,6 +90,7 @@ enum class NodeType {
   Output,
   UVUnwrap,
   Parameterize,
+  Geodesic,
   Wrangle
 };
 

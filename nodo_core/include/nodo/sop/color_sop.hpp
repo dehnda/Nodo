@@ -30,10 +30,10 @@ public:
     register_parameter(
         define_int_parameter("color_mode", 0)
             .label("Color Mode")
-            .options({"Constant", "Random", "Ramp"})
+            .options({"Constant", "Random", "Ramp", "Attribute Ramp"})
             .category("Color")
-            .description(
-                "Color assignment method (constant, random, or gradient ramp)")
+            .description("Color assignment method (constant, random, gradient "
+                         "ramp, or attribute-based ramp)")
             .build());
 
     // Universal class parameter (customized for color - only
@@ -146,6 +146,83 @@ public:
             .visible_when("color_mode", 2)
             .description("Axis along which to apply color gradient")
             .build());
+
+    // Attribute Ramp parameters
+    register_parameter(define_string_parameter("attr_name", "geodesic_dist")
+                           .label("Attribute")
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Name of float attribute to visualize")
+                           .build());
+
+    register_parameter(define_float_parameter("attr_min", 0.0F)
+                           .label("Min Value")
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Minimum attribute value (maps to "
+                                        "start color). Use 0 for auto-detect.")
+                           .build());
+
+    register_parameter(define_float_parameter("attr_max", 0.0F)
+                           .label("Max Value")
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Maximum attribute value (maps to end "
+                                        "color). Use 0 for auto-detect.")
+                           .build());
+
+    register_parameter(
+        define_float_parameter("attr_ramp_start_r", 0.0F)
+            .label("Start R")
+            .range(0.0, 1.0)
+            .category("Attribute Ramp")
+            .visible_when("color_mode", 3)
+            .description("Red component of ramp start color (0-1)")
+            .build());
+
+    register_parameter(
+        define_float_parameter("attr_ramp_start_g", 0.0F)
+            .label("Start G")
+            .range(0.0, 1.0)
+            .category("Attribute Ramp")
+            .visible_when("color_mode", 3)
+            .description("Green component of ramp start color (0-1)")
+            .build());
+
+    register_parameter(
+        define_float_parameter("attr_ramp_start_b", 1.0F)
+            .label("Start B")
+            .range(0.0, 1.0)
+            .category("Attribute Ramp")
+            .visible_when("color_mode", 3)
+            .description("Blue component of ramp start color (0-1)")
+            .build());
+
+    register_parameter(define_float_parameter("attr_ramp_end_r", 1.0F)
+                           .label("End R")
+                           .range(0.0, 1.0)
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Red component of ramp end color (0-1)")
+                           .build());
+
+    register_parameter(
+        define_float_parameter("attr_ramp_end_g", 0.0F)
+            .label("End G")
+            .range(0.0, 1.0)
+            .category("Attribute Ramp")
+            .visible_when("color_mode", 3)
+            .description("Green component of ramp end color (0-1)")
+            .build());
+
+    register_parameter(
+        define_float_parameter("attr_ramp_end_b", 0.0F)
+            .label("End B")
+            .range(0.0, 1.0)
+            .category("Attribute Ramp")
+            .visible_when("color_mode", 3)
+            .description("Blue component of ramp end color (0-1)")
+            .build());
   }
 
 protected:
@@ -192,6 +269,9 @@ protected:
       break;
     case 2: // Ramp
       apply_ramp_color(output, attr_class);
+      break;
+    case 3: // Attribute Ramp
+      apply_attribute_ramp(output, attr_class);
       break;
     }
 
@@ -363,6 +443,123 @@ private:
             t = std::clamp(t, 0.0F, 1.0F);
             (*cd)[prim_idx] = start_color * (1.0F - t) + end_color * t;
           }
+        }
+      }
+      break;
+    }
+    }
+  }
+
+  void apply_attribute_ramp(std::shared_ptr<core::GeometryContainer> &geo,
+                            int attr_class) {
+    // Get attribute name
+    const std::string attr_name =
+        get_parameter<std::string>("attr_name", "geodesic_dist");
+
+    // Get color ramp parameters
+    const float start_r = get_parameter<float>("attr_ramp_start_r", 0.0F);
+    const float start_g = get_parameter<float>("attr_ramp_start_g", 0.0F);
+    const float start_b = get_parameter<float>("attr_ramp_start_b", 1.0F);
+    const float end_r = get_parameter<float>("attr_ramp_end_r", 1.0F);
+    const float end_g = get_parameter<float>("attr_ramp_end_g", 0.0F);
+    const float end_b = get_parameter<float>("attr_ramp_end_b", 0.0F);
+
+    const core::Vec3f start_color(start_r, start_g, start_b);
+    const core::Vec3f end_color(end_r, end_g, end_b);
+
+    // Get min/max range (0 = auto-detect)
+    float user_min = get_parameter<float>("attr_min", 0.0F);
+    float user_max = get_parameter<float>("attr_max", 0.0F);
+
+    // Get the attribute based on class
+    core::AttributeStorage<float> *attr_data = nullptr;
+
+    switch (attr_class) {
+    case 0: // Point
+      if (!geo->has_point_attribute(attr_name)) {
+        set_error("Attribute '" + attr_name + "' not found on points");
+        return;
+      }
+      attr_data = geo->get_point_attribute_typed<float>(attr_name);
+      break;
+    case 1: // Vertex
+      if (!geo->has_vertex_attribute(attr_name)) {
+        set_error("Attribute '" + attr_name + "' not found on vertices");
+        return;
+      }
+      attr_data = geo->get_vertex_attribute_typed<float>(attr_name);
+      break;
+    case 2: // Primitive
+      if (!geo->has_primitive_attribute(attr_name)) {
+        set_error("Attribute '" + attr_name + "' not found on primitives");
+        return;
+      }
+      attr_data = geo->get_primitive_attribute_typed<float>(attr_name);
+      break;
+    }
+
+    if (!attr_data) {
+      set_error("Failed to get attribute '" + attr_name + "' as float type");
+      return;
+    }
+
+    // Auto-detect range if needed
+    float min_val = user_min;
+    float max_val = user_max;
+
+    if (std::abs(user_max - user_min) < 1e-6F) {
+      // Auto-detect
+      min_val = std::numeric_limits<float>::max();
+      max_val = std::numeric_limits<float>::lowest();
+
+      for (size_t i = 0; i < attr_data->size(); ++i) {
+        float val = (*attr_data)[i];
+        min_val = std::min(min_val, val);
+        max_val = std::max(max_val, val);
+      }
+    }
+
+    const float range = max_val - min_val;
+    if (range < 1e-6F) {
+      // No variation, use start color
+      apply_constant_color(geo, attr_class);
+      return;
+    }
+
+    // Apply colors based on attribute values
+    switch (attr_class) {
+    case 0: { // Point
+      auto *cd = geo->get_point_attribute_typed<core::Vec3f>("Cd");
+      if (cd) {
+        for (size_t i = 0; i < cd->size(); ++i) {
+          float val = (*attr_data)[i];
+          float t = (val - min_val) / range;
+          t = std::clamp(t, 0.0F, 1.0F);
+          (*cd)[i] = start_color * (1.0F - t) + end_color * t;
+        }
+      }
+      break;
+    }
+    case 1: { // Vertex
+      auto *cd = geo->get_vertex_attribute_typed<core::Vec3f>("Cd");
+      if (cd) {
+        for (size_t i = 0; i < cd->size(); ++i) {
+          float val = (*attr_data)[i];
+          float t = (val - min_val) / range;
+          t = std::clamp(t, 0.0F, 1.0F);
+          (*cd)[i] = start_color * (1.0F - t) + end_color * t;
+        }
+      }
+      break;
+    }
+    case 2: { // Primitive
+      auto *cd = geo->get_primitive_attribute_typed<core::Vec3f>("Cd");
+      if (cd) {
+        for (size_t i = 0; i < cd->size(); ++i) {
+          float val = (*attr_data)[i];
+          float t = (val - min_val) / range;
+          t = std::clamp(t, 0.0F, 1.0F);
+          (*cd)[i] = start_color * (1.0F - t) + end_color * t;
         }
       }
       break;

@@ -99,9 +99,18 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
 
   std::cerr << "  Input has " << input->point_count() << " points, "
             << input->primitive_count() << " primitives\n";
+  std::cerr << "  Input point_attributes().size() = "
+            << input->point_attributes().size() << "\n";
+  std::cerr << "  Input point_attributes().attribute_count() = "
+            << input->point_attributes().attribute_count() << "\n";
 
   // Clone input (groups are stored as attributes, geometry unchanged)
   auto result = std::make_shared<core::GeometryContainer>(input->clone());
+
+  std::cerr << "  Cloned result has " << result->point_count() << " points, "
+            << result->primitive_count() << " primitives\n";
+  std::cerr << "  Point attributes size: " << result->point_attributes().size()
+            << "\n";
 
   // Get parameters
   std::string group_name = get_parameter<std::string>("group_name", "group1");
@@ -209,7 +218,10 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
 
   if (operation == 0 || operation == 1) {
     // Create/Replace or Add
-    core::add_to_group(*result, group_name, elem_class, selection);
+    bool success =
+        core::add_to_group(*result, group_name, elem_class, selection);
+    std::cerr << "  add_to_group returned: " << (success ? "true" : "false")
+              << "\n";
   } else if (operation == 2) {
     // Remove
     core::remove_from_group(*result, group_name, elem_class, selection);

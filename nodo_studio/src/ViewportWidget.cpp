@@ -17,6 +17,7 @@ static const char *vertex_shader_source = R"(
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
+layout(location = 2) in vec3 color;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -24,11 +25,13 @@ uniform mat4 projection;
 
 out vec3 frag_position;
 out vec3 frag_normal;
+out vec3 frag_color;
 
 void main() {
     vec4 world_pos = model * vec4(position, 1.0);
     frag_position = world_pos.xyz;
     frag_normal = mat3(transpose(inverse(model))) * normal;
+    frag_color = color;
     gl_Position = projection * view * world_pos;
 }
 )";
@@ -39,16 +42,21 @@ static const char *fragment_shader_source = R"(
 
 in vec3 frag_position;
 in vec3 frag_normal;
+in vec3 frag_color;
 
-out vec4 frag_color;
+out vec4 out_color;
 
 uniform vec3 view_position;
 uniform vec3 object_color = vec3(0.7, 0.7, 0.7);
+uniform bool use_vertex_colors = false;
 
 void main() {
     // Normalize interpolated normal
     vec3 normal = normalize(frag_normal);
     vec3 view_dir = normalize(view_position - frag_position);
+
+    // Choose between vertex colors and uniform color
+    vec3 base_color = use_vertex_colors ? frag_color : object_color;
 
     // Base ambient (darker for more dramatic look)
     vec3 ambient = vec3(0.25, 0.25, 0.28);
@@ -81,12 +89,12 @@ void main() {
     vec3 sss_color = vec3(0.1, 0.1, 0.12) * sss;
 
     // Combine all lighting
-    vec3 result = (ambient + key_light + fill_light + rim_light + sss_color + specular) * object_color;
+    vec3 result = (ambient + key_light + fill_light + rim_light + sss_color + specular) * base_color;
 
     // Slight gamma correction for better contrast
     result = pow(result, vec3(0.95));
 
-    frag_color = vec4(result, 1.0);
+    out_color = vec4(result, 1.0);
 }
 )";
 

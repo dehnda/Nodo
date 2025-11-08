@@ -19,6 +19,7 @@
 #include "nodo/sop/export_sop.hpp"
 #include "nodo/sop/extrude_sop.hpp"
 #include "nodo/sop/file_sop.hpp"
+#include "nodo/sop/geodesic_sop.hpp"
 #include "nodo/sop/grid_sop.hpp"
 #include "nodo/sop/group_combine_sop.hpp"
 #include "nodo/sop/group_delete_sop.hpp"
@@ -156,6 +157,8 @@ std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
     return std::make_shared<UVUnwrapSOP>();
   case NodeType::Parameterize:
     return std::make_shared<ParameterizeSOP>();
+  case NodeType::Geodesic:
+    return std::make_shared<GeodesicSOP>();
   case NodeType::Wrangle:
     return std::make_shared<WrangleSOP>();
 
@@ -296,6 +299,8 @@ std::vector<NodeMetadata> SOPFactory::get_all_available_nodes() {
       {NodeType::UVUnwrap, "UV Unwrap", "Attribute", "Generate UV coordinates"},
       {NodeType::Parameterize, "Parameterize", "Attribute",
        "UV parameterization using harmonic or LSCM methods"},
+      {NodeType::Geodesic, "Geodesic", "Attribute",
+       "Compute geodesic distances from seed points"},
 
       // Group
       {NodeType::Group, "Group", "Group", "Create geometry groups"},

@@ -1,5 +1,6 @@
 #include "nodo/core/attribute_set.hpp"
 #include <algorithm>
+#include <iostream>
 
 namespace nodo::core {
 
@@ -46,6 +47,17 @@ bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
   // Resize to match current element count
   if (element_count_ > 0) {
     storage->resize(element_count_);
+  } else if (!attributes_.empty()) {
+    // If element_count_ is 0 but we have other attributes, infer count from
+    // them This handles cases where geometry was created without calling
+    // set_point_count()
+    auto first_attr = attributes_.begin()->second.get();
+    if (first_attr && first_attr->size() > 0) {
+      element_count_ = first_attr->size();
+      storage->resize(element_count_);
+      std::cerr << "AttributeSet::add_attribute - Inferred element_count_="
+                << element_count_ << " from existing attributes\n";
+    }
   }
 
   // Add to map
