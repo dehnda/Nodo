@@ -117,8 +117,8 @@ void StatusBarWidget::updateStatusIndicator() {
                                        .arg(color));
 }
 
-void StatusBarWidget::setNodeCount(int current, int total) {
-  node_count_label_->setText(QString("Nodes: %1/%2").arg(current).arg(total));
+void StatusBarWidget::setNodeCount(int current) {
+  node_count_label_->setText(QString("Nodes: %1").arg(current));
 }
 
 void StatusBarWidget::setGPUInfo(const QString &gpu_name) {

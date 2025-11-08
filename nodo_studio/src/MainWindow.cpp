@@ -435,7 +435,7 @@ auto MainWindow::setupStatusBar() -> void {
 
   // Set initial state
   status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
-  status_bar_widget_->setNodeCount(0, 17);
+  status_bar_widget_->setNodeCount(0);
   status_bar_widget_->setHintText("Press Tab or Right-Click to add nodes");
 
   // GPU info will be set automatically when viewport initializes via signal
@@ -478,7 +478,7 @@ void MainWindow::onNewScene() {
   undo_stack_->clear();
 
   // Clear status bar
-  status_bar_widget_->setNodeCount(0, 17);
+  status_bar_widget_->setNodeCount(0);
 
   // Update window title
   setWindowTitle("Nodo Studio - Untitled");
@@ -644,7 +644,7 @@ void MainWindow::onNodeCreated(int node_id) {
   // Update node count in status bar
   if (node_graph_ != nullptr && status_bar_widget_ != nullptr) {
     int node_count = static_cast<int>(node_graph_->get_nodes().size());
-    status_bar_widget_->setNodeCount(node_count, 17);
+    status_bar_widget_->setNodeCount(node_count);
   }
 
   // Update undo/redo actions
@@ -714,7 +714,7 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
   // Update node count in status bar
   if (status_bar_widget_ != nullptr) {
     int node_count = static_cast<int>(node_graph_->get_nodes().size());
-    status_bar_widget_->setNodeCount(node_count, 17);
+    status_bar_widget_->setNodeCount(node_count);
   }
 
   // Update undo/redo actions
