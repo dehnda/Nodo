@@ -89,6 +89,7 @@ enum class NodeType {
   Time,
   Output,
   UVUnwrap,
+  Parameterize,
   Wrangle
 };
 

@@ -896,9 +896,17 @@ Proceed with engine integration only if:
 #### **A. Wrangle DSL Expansion / Python Scripting** (v2.0 - 8-12 weeks)
 **Purpose:** Extend Wrangle beyond VEX-like expressions to full scripting capabilities
 
+**Current Limitation:** ExprTk (current Wrangle backend) only supports scalar attributes (float, int, Vec3f). Complex types like Vec2f (UV coordinates) are not accessible, limiting procedural workflows.
+
 **Options:**
 1. **Expand VEX-like DSL** (Recommended first)
    - Build on current exprtk foundation
+   - **Add full attribute type support:**
+     - Vec2f (UV coordinates, texture space)
+     - Vec4f (RGBA, quaternions)
+     - Matrix types (transforms)
+     - String attributes (names, paths)
+     - Array attributes (variable-length data)
    - Add geometry manipulation functions (addpoint, setpointattrib, etc.)
    - Loops, conditionals, custom functions
    - Compiled expressions for performance
@@ -909,7 +917,7 @@ Proceed with engine integration only if:
    - Embed Python interpreter (pybind11)
    - Python Wrangle node: full Python in geometry context
    - Access to NumPy, SciPy for advanced math
-   - **Pros:** Huge ecosystem, familiar to TAs
+   - **Pros:** Huge ecosystem, familiar to TAs, natural attribute access
    - **Cons:** Performance overhead, dependency management, security concerns
 
 3. **Lua Scripting** (Alternative)
@@ -917,6 +925,13 @@ Proceed with engine integration only if:
    - Simple C++ integration
    - **Pros:** Fast, small footprint, game-friendly
    - **Cons:** Less familiar than Python, smaller ecosystem
+
+**TODO - Architecture Planning:**
+- [ ] Design unified attribute access API for DSL (all types: Vec2f, Vec3f, Vec4f, Matrix, String, Arrays)
+- [ ] Evaluate ExprTk limitations vs. custom parser
+- [ ] Prototype attribute type binding system
+- [ ] Create design document for full attribute type support
+- [ ] Consider breaking Vec2f/Vec4f into separate scalar attributes as interim solution (e.g., `uv` → `uv_u` + `uv_v`)
 
 **Decision Point:** Wait for v1.0 user feedback on Wrangle limitations before choosing approach
 

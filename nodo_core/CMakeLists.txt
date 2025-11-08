@@ -62,6 +62,7 @@ set(NODO_CORE_SOURCES
     src/processing/subdivision.cpp
     src/processing/hole_filling.cpp
     src/processing/curvature.cpp
+    src/processing/parameterization.cpp
 
     # SOPs
     src/sop/array_sop.cpp
