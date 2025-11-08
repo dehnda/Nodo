@@ -681,7 +681,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 #### **M3.5: Data Manipulation & Group Semantics** (Week 9 - 2-3 weeks) 🔄 IN PROGRESS
 **Purpose:** Fix architectural issues with group widget semantics and establish robust geometry manipulation system
 
-**Context:** 
+**Context:**
 - Expression system (M3.3) handles **parameter values** (Tier 1) - ✅ COMPLETE
 - Need geometry manipulation system for **attribute operations** (Tier 2) - 🔄 THIS MILESTONE
 - Current Wrangle node limited to math expressions via exprtk
@@ -746,7 +746,7 @@ public:
         std::string element_type;     // "point", "primitive", "detail"
         std::unordered_map<std::string, Variant> variables; // Local vars
     };
-    
+
     VEXInterpreter();
     bool compile(const std::string& code); // Parse and validate
     bool execute(Context& ctx);            // Run on geometry
@@ -897,7 +897,7 @@ float angle = @ptnum * 0.1;
 
 **Time Estimate:** 2-3 weeks
 **Priority:** HIGH - Critical architectural foundation for v1.0
-**Deliverable:** 
+**Deliverable:**
 - Clean group widget semantics with backward compatibility
 - Production-ready VEX interpreter for geometry manipulation
 - Houdini-compatible artist workflow
@@ -1097,6 +1097,112 @@ float angle = @ptnum * 0.1;
 - [ ] **RailSOP** - Sweep with twist control along rail curve
 
 **Decision Point:** Wait for v1.0 launch feedback before committing resources
+
+---
+
+#### **M4.6: Interactive Viewport Editing** (v1.2-v1.3 - 3-5 weeks) 🔮
+**Status:** DEFERRED - Houdini-style viewport interaction for manual geometry manipulation
+
+**Purpose:** Enable direct manipulation of geometry in viewport, similar to Houdini's "Edit SOP" mode
+
+**Complexity Assessment:**
+- **Difficulty:** Medium (3-5 days for MVP, 3-5 weeks for full implementation)
+- **Dependencies:** Existing mouse infrastructure already in place (ViewportWidget)
+
+**Features:**
+
+1. **Viewport Mode System** (1-2 days)
+   - [ ] Add `ViewportMode` enum: `VIEW` (camera control), `EDIT_TRANSFORM`, `EDIT_SELECTION`
+   - [ ] Visual mode indicators (orange border, status bar message)
+   - [ ] Keyboard shortcuts to enter/exit modes (e.g., `T` for transform, `Esc` to exit)
+   - [ ] Mode-specific mouse event routing
+
+2. **Transform Gizmo** (2-3 days)
+   - [ ] Render RGB axis arrows (X=red, Y=green, Z=blue) at geometry center
+   - [ ] Ray-casting for gizmo handle selection
+   - [ ] Constrained dragging along selected axis
+   - [ ] Visual feedback (highlight hovered handle, show drag plane)
+   - [ ] Real-time parameter updates (sync to Transform node)
+
+3. **Selection System** (3-5 days)
+   - [ ] Screen-to-world ray casting (convert mouse clicks to 3D rays)
+   - [ ] Ray-triangle intersection tests for faces
+   - [ ] Ray-point distance tests for vertices
+   - [ ] Ray-line segment tests for edges
+   - [ ] Visual highlighting of selected elements (shader-based)
+   - [ ] Multi-selection support (Shift+click to add, Ctrl+click to remove)
+   - [ ] Box select support (drag rectangle)
+
+4. **Node-Specific Interaction** (2-3 days)
+   - [ ] "Enter Node" action (double-click node or keyboard shortcut)
+   - [ ] Display flag to show which node is being edited
+   - [ ] Transform node: Gizmo at geometry center, updates translate/rotate/scale params
+   - [ ] Group node: Selection tools create/modify group membership
+   - [ ] Parameter binding: Viewport changes update PropertyPanel in real-time
+   - [ ] Exit mode: Return to normal graph editing
+
+5. **Advanced Selection Features** (Optional - v1.3+)
+   - [ ] Selection painting (brush-based point/face selection)
+   - [ ] Selection grow/shrink operations
+   - [ ] Loop selection (edge loops, face loops)
+   - [ ] Selection by attribute (select faces with @Cd > 0.5)
+   - [ ] Group creation from selection (auto-create group attributes)
+
+**Technical Implementation:**
+
+```cpp
+// ViewportWidget.h additions
+enum class ViewportMode {
+    VIEW,           // Normal camera control
+    EDIT_TRANSFORM, // Transform gizmo manipulation
+    EDIT_SELECTION  // Geometry selection mode
+};
+
+ViewportMode viewport_mode_ = ViewportMode::VIEW;
+nodo::graph::GraphNode* active_edit_node_ = nullptr;
+
+// Ray casting
+QVector3D screenToWorldRay(QPoint screen_pos);
+bool rayCastTriangle(const Ray& ray, const Triangle& tri, float& t);
+bool rayCastPoint(const Ray& ray, const QVector3D& point, float threshold, float& t);
+
+// Gizmo rendering
+void drawTransformGizmo();
+bool hitTestGizmo(const Ray& ray, int& axis_index);
+```
+
+**Integration Points:**
+- **MainWindow**: Add "Enter Node" menu action, keyboard shortcuts
+- **NodeGraphWidget**: Signal on node double-click → enter edit mode for that node
+- **PropertyPanel**: Two-way binding (viewport↔panel parameter sync)
+- **ViewportWidget**: New render passes for gizmos, selection highlights
+
+**MVP Scope (2 days):**
+- Transform gizmo only (no selection system)
+- Gizmo at mesh center, keyboard activation (`T` key)
+- Constrained dragging along axes
+- Real-time parameter sync to Transform node
+- Visual mode indicator
+
+**Full Implementation (3-5 weeks):**
+- Complete selection system (points, edges, faces)
+- Multiple node types supported (Transform, Group, etc.)
+- Advanced selection tools (grow, loop, paint)
+- Group creation from selection
+- Polish and edge cases
+
+**Success Criteria:**
+- Users can press `T` to enter transform mode and manipulate geometry with gizmo
+- Selection tools enable face/point/edge selection with visual feedback
+- Parameters update in real-time as viewport is manipulated
+- No degradation to normal camera controls in VIEW mode
+- Intuitive UX matching Houdini/Blender conventions
+
+**Time Estimate:** 3-5 weeks (MVP: 2-3 days)
+**Priority:** MEDIUM - Nice-to-have for power users, not critical for v1.0
+**Deliverable:** Houdini-style interactive viewport editing with transform gizmo and selection tools
+
+**Decision Point:** Wait for v1.0/v1.1 user feedback - only implement if users request interactive editing frequently
 
 ---
 
