@@ -1,9 +1,12 @@
 #include "nodo/processing/decimation.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <algorithm>
 #include <pmp/algorithms/decimation.h>
 #include <pmp/algorithms/triangulation.h>
+
 
 namespace attrs = nodo::core::standard_attrs;
 

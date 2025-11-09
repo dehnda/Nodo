@@ -1,4 +1,4 @@
-# Iconoir Icons for NodeFlux
+# Iconoir Icons for Nodo
 
 This is a git submodule containing the Iconoir icon library.
 
@@ -9,7 +9,7 @@ This is a git submodule containing the Iconoir icon library.
 - **Total Icons**: 1400+ SVG icons
 - **Style**: Regular and Solid variants
 
-## Used in NodeFlux
+## Used in Nodo
 
 Icons from `icons/regular/` are used throughout the NodeFlux Studio UI via the `IconManager` class.
 

@@ -1,8 +1,11 @@
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/core/attribute_types.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <pmp/algorithms/normals.h>
 #include <unordered_map>
+
 
 namespace attrs = nodo::core::standard_attrs;
 

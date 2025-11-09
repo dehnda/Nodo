@@ -11,7 +11,7 @@ class NodeGraphWidget;
 namespace nodo {
 namespace graph {
 class NodeGraph;
-class NodeParameter;
+struct NodeParameter;
 enum class NodeType;
 } // namespace graph
 } // namespace nodo

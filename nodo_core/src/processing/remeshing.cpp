@@ -1,7 +1,10 @@
 #include "nodo/processing/remeshing.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <pmp/algorithms/remeshing.h>
 #include <pmp/algorithms/triangulation.h>
+
 
 namespace nodo::processing {
 

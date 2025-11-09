@@ -1,9 +1,12 @@
 #include "nodo/processing/curvature.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <cmath>
 #include <fmt/core.h>
 #include <pmp/algorithms/curvature.h>
 #include <pmp/algorithms/normals.h>
+
 
 namespace nodo::processing {
 

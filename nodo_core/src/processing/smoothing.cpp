@@ -1,8 +1,11 @@
 #include "nodo/processing/smoothing.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <pmp/algorithms/fairing.h>
 #include <pmp/algorithms/smoothing.h>
 #include <pmp/algorithms/triangulation.h>
+
 
 namespace nodo::processing {
 

@@ -1,8 +1,11 @@
 #include "nodo/processing/hole_filling.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <fmt/core.h>
 #include <pmp/algorithms/hole_filling.h>
 #include <set>
+
 
 namespace nodo::processing {
 

@@ -1,8 +1,11 @@
 #include "nodo/processing/subdivision.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <fmt/core.h>
 #include <pmp/algorithms/subdivision.h>
 #include <pmp/algorithms/triangulation.h>
+
 
 namespace nodo::processing {
 

@@ -1,11 +1,14 @@
 #include "nodo/processing/geodesic.hpp"
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/attribute_types.hpp"
+#include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+#include "nodo/processing/processing_common.hpp"
 #include <fmt/core.h>
 #include <limits>
 #include <pmp/algorithms/geodesics.h>
+
 
 namespace attrs = nodo::core::standard_attrs;
 
