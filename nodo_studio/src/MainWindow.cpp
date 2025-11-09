@@ -494,12 +494,14 @@ void MainWindow::onNewScene() {
   // Clear viewport and property panel
   viewport_widget_->clearMesh();
   property_panel_->clearProperties();
+  geometry_spreadsheet_->clear();
 
   // Clear undo stack
   undo_stack_->clear();
 
-  // Clear status bar
+  // Clear status bar and reset to ready state
   status_bar_widget_->setNodeCount(0);
+  status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
 
   // Update window title
   setWindowTitle("Nodo Studio - Untitled");

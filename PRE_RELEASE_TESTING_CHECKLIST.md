@@ -47,12 +47,13 @@ This checklist covers all critical functionality before handing off to your firs
 ## 2. File Operations 🔴
 
 ### New Scene
-- [ ] File → New clears the graph completely
-- [ ] Viewport clears
-- [ ] Property panel clears
-- [ ] Status bar resets to "0 nodes"
-- [ ] Undo stack clears
-- [ ] No warnings or prompts if scene is already empty
+- [X] File → New clears the graph completely
+- [X] Viewport clears
+- [X] Property panel clears
+- [X] Status bar resets to "0 nodes"
+- [X] Status bar resets to default.
+- [X] Undo stack clears
+- [X] No warnings or prompts if scene is already empty
 
 ### Save Scene (.nfg)
 - [ ] File → Save As works on first save
