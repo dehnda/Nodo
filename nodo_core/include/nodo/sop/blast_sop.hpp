@@ -8,9 +8,6 @@ namespace nodo::sop {
 /**
  * @brief Delete geometry elements by group membership
  *
- * TODO: Full implementation requires attribute type introspection system.
- * Current version is a simplified pass-through placeholder.
- *
  * Removes points or primitives that are in a specified group.
  * Similar to Delete node but group-focused with simpler interface.
  */
@@ -32,7 +29,7 @@ public:
             .build());
 
     // Element class
-    register_parameter(define_int_parameter("class", 1)
+    register_parameter(define_int_parameter("class", 0)
                            .label("Delete")
                            .options({"Points", "Primitives"})
                            .category("Group")
@@ -51,18 +48,7 @@ public:
   ~BlastSOP() override = default;
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
-    auto input = get_input_data(0);
-    if (!input) {
-      set_error("BlastSOP requires input geometry");
-      return nullptr;
-    }
-
-    // TODO: Implement full group-based deletion
-    // Requires attribute type introspection system to properly copy/rebuild
-    // geometry
-    return std::make_shared<core::GeometryContainer>(input->clone());
-  }
+  std::shared_ptr<core::GeometryContainer> execute() override;
 };
 
 } // namespace nodo::sop

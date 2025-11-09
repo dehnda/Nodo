@@ -1,0 +1,1043 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 5,
+      "source_pin": 0,
+      "target_node": 6,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 5,
+      "source_pin": 0,
+      "target_node": 8,
+      "target_pin": 0
+    },
+    {
+      "id": 3,
+      "source_node": 8,
+      "source_pin": 0,
+      "target_node": 11,
+      "target_pin": 0
+    },
+    {
+      "id": 6,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    },
+    {
+      "id": 7,
+      "source_node": 3,
+      "source_pin": 0,
+      "target_node": 6,
+      "target_pin": 0
+    },
+    {
+      "id": 8,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 4,
+      "target_pin": 0
+    },
+    {
+      "id": 9,
+      "source_node": 4,
+      "source_pin": 0,
+      "target_node": 5,
+      "target_pin": 0
+    },
+    {
+      "id": 11,
+      "source_node": 6,
+      "source_pin": 0,
+      "target_node": 13,
+      "target_pin": 0
+    },
+    {
+      "id": 24,
+      "source_node": 21,
+      "source_pin": 0,
+      "target_node": 22,
+      "target_pin": 0
+    },
+    {
+      "id": 25,
+      "source_node": 11,
+      "source_pin": 0,
+      "target_node": 23,
+      "target_pin": 0
+    },
+    {
+      "id": 27,
+      "source_node": 22,
+      "source_pin": 0,
+      "target_node": 24,
+      "target_pin": 0
+    },
+    {
+      "id": 28,
+      "source_node": 24,
+      "source_pin": 0,
+      "target_node": 23,
+      "target_pin": 1
+    },
+    {
+      "id": 29,
+      "source_node": 23,
+      "source_pin": 0,
+      "target_node": 13,
+      "target_pin": 0
+    }
+  ],
+  "graph_parameters": [
+    {
+      "description": "",
+      "name": "dock_bottom_h",
+      "type": "float",
+      "value": 0.20000000298023224
+    },
+    {
+      "description": "",
+      "name": "dock_angle",
+      "type": "float",
+      "value": 0.5
+    },
+    {
+      "description": "",
+      "name": "panel_width",
+      "type": "float",
+      "value": 2.0
+    },
+    {
+      "description": "",
+      "name": "panel_top_h",
+      "type": "float",
+      "value": 2.0
+    }
+  ],
+  "nodes": [
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 5,
+      "name": "polyextrude1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Extrusion Type",
+          "name": "extrusion_type",
+          "string_options": [
+            "Faces",
+            "Edges",
+            "Points"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Distance",
+          "name": "distance",
+          "type": "float",
+          "value": 0.30000001192092896,
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Inset",
+          "name": "inset",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "label": "Individual Elements",
+          "name": "individual_faces",
+          "type": "bool",
+          "value": true,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Edge Direction",
+          "name": "edge_direction_mode",
+          "string_options": [
+            "Auto (Perpendicular)",
+            "Custom Direction"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction X",
+          "name": "edge_direction_x",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "expression": "$dock_angle",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Y",
+          "name": "edge_direction_y",
+          "type": "float",
+          "value": 0.5,
+          "value_mode": 1
+        },
+        {
+          "category": "Edge Extrusion",
+          "expression": "$dock_angle*-1",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Z",
+          "name": "edge_direction_z",
+          "type": "float",
+          "value": -0.5,
+          "value_mode": 1
+        }
+      ],
+      "position": [
+        55.83298110961914,
+        245.8134765625
+      ],
+      "render_flag": false,
+      "type": "PolyExtrude"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 6,
+      "name": "merge",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Merge",
+          "int_max": 4,
+          "int_min": 1,
+          "label": "Number of Inputs",
+          "name": "num_inputs",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -197.4712371826172,
+        474.23797607421875
+      ],
+      "render_flag": false,
+      "type": "Merge"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 8,
+      "name": "group",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "label": "Group Name",
+          "name": "group_name",
+          "type": "string",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Group Type",
+          "name": "element_class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Operation",
+          "name": "operation",
+          "string_options": [
+            "Create/Replace",
+            "Add to Existing",
+            "Remove from Existing"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Selection",
+          "int_max": 3,
+          "int_min": 0,
+          "label": "Selection Mode",
+          "name": "selection_mode",
+          "string_options": [
+            "Range",
+            "Every Nth",
+            "Random",
+            "All"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Start",
+          "name": "range_start",
+          "type": "int",
+          "value": 3,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "End",
+          "name": "range_end",
+          "type": "int",
+          "value": 4,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Step",
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Offset",
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 1,
+          "label": "Count",
+          "name": "random_count",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Seed",
+          "name": "random_seed",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        143.5668182373047,
+        471.6582336425781
+      ],
+      "render_flag": false,
+      "type": "Group"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 11,
+      "name": "blast",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "label": "Group",
+          "name": "group",
+          "type": "string",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Delete",
+          "name": "class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Options",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Delete Non-Selected",
+          "name": "negate",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        156.79347229003906,
+        671.1566162109375
+      ],
+      "render_flag": false,
+      "type": "Blast"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 1,
+      "name": "line",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start X",
+          "name": "start_x",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start Y",
+          "name": "start_y",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start Z",
+          "name": "start_z",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "End Point",
+          "expression": "$panel_width",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End X",
+          "name": "end_x",
+          "type": "float",
+          "value": 2.0,
+          "value_mode": 1
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End Y",
+          "name": "end_y",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End Z",
+          "name": "end_z",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Line",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Segments",
+          "name": "segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -90.3299331665039,
+        -139.2173309326172
+      ],
+      "render_flag": false,
+      "type": "Line"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 3,
+      "name": "polyextrude3",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Extrusion Type",
+          "name": "extrusion_type",
+          "string_options": [
+            "Faces",
+            "Edges",
+            "Points"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "expression": "$dock_bottom_h",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Distance",
+          "name": "distance",
+          "type": "float",
+          "value": 0.20000000298023224,
+          "value_mode": 1
+        },
+        {
+          "category": "Extrusion",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Inset",
+          "name": "inset",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Extrusion",
+          "label": "Individual Elements",
+          "name": "individual_faces",
+          "type": "bool",
+          "value": true,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Edge Direction",
+          "name": "edge_direction_mode",
+          "string_options": [
+            "Auto (Perpendicular)",
+            "Custom Direction"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction X",
+          "name": "edge_direction_x",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Y",
+          "name": "edge_direction_y",
+          "type": "float",
+          "value": 1.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Z",
+          "name": "edge_direction_z",
+          "type": "float",
+          "value": 0.0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -238.31600952148438,
+        77.00995635986328
+      ],
+      "render_flag": false,
+      "type": "PolyExtrude"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 4,
+      "name": "transform",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "expression": "0, $dock_bottom_h, 0",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Translate",
+          "name": "translate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 1
+        },
+        {
+          "category": "Transform",
+          "float_max": 360.0,
+          "float_min": -360.0,
+          "label": "Rotate",
+          "name": "rotate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 10.0,
+          "float_min": 0.009999999776482582,
+          "label": "Scale",
+          "name": "scale",
+          "type": "vector3",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        39.01785659790039,
+        85.41720581054688
+      ],
+      "render_flag": false,
+      "type": "Transform"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 13,
+      "name": "merge1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Merge",
+          "int_max": 4,
+          "int_min": 1,
+          "label": "Number of Inputs",
+          "name": "num_inputs",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -207.12403869628906,
+        1899.8267822265625
+      ],
+      "render_flag": false,
+      "type": "Merge"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 21,
+      "name": "grid",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Universal",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Primitive Type",
+          "name": "primitive_type",
+          "string_options": [
+            "Polygon",
+            "Points"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 1000.0,
+          "float_min": 0.009999999776482582,
+          "label": "Size X",
+          "name": "size_x",
+          "type": "float",
+          "value": 2.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 1000.0,
+          "float_min": 0.009999999776482582,
+          "label": "Size Z",
+          "name": "size_z",
+          "type": "float",
+          "value": 1.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Resolution",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Columns",
+          "name": "columns",
+          "type": "int",
+          "value": 3,
+          "value_mode": 0
+        },
+        {
+          "category": "Resolution",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Rows",
+          "name": "rows",
+          "type": "int",
+          "value": 3,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        560.6776123046875,
+        774.8356323242188
+      ],
+      "render_flag": false,
+      "type": "Plane"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 22,
+      "name": "transform1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Translate",
+          "name": "translate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 360.0,
+          "float_min": -360.0,
+          "label": "Rotate",
+          "name": "rotate",
+          "type": "vector3",
+          "value": [
+            90.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 10.0,
+          "float_min": 0.009999999776482582,
+          "label": "Scale",
+          "name": "scale",
+          "type": "vector3",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        536.8822631835938,
+        1000.8912963867188
+      ],
+      "render_flag": false,
+      "type": "Transform"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 23,
+      "name": "copy_to_points",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Copy",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Use Point Normals",
+          "name": "use_point_normals",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Copy",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Use Point Scale",
+          "name": "use_point_scale",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Copy",
+          "float_max": 10.0,
+          "float_min": 0.009999999776482582,
+          "label": "Uniform Scale",
+          "name": "uniform_scale",
+          "type": "float",
+          "value": 1.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Copy",
+          "label": "Scale Attribute",
+          "name": "scale_attribute",
+          "type": "string",
+          "value": "point_index",
+          "value_mode": 0
+        },
+        {
+          "category": "Copy",
+          "label": "Rotation Attribute",
+          "name": "rotation_attribute",
+          "type": "string",
+          "value": "",
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        176.97781372070313,
+        1436.6434326171875
+      ],
+      "render_flag": false,
+      "type": "CopyToPoints"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": true,
+      "id": 24,
+      "name": "align",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Alignment",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Align Mode",
+          "name": "align_mode",
+          "string_options": [
+            "Center to Origin",
+            "Min to Origin",
+            "Max to Origin"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Axes",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Align X",
+          "name": "align_x",
+          "string_options": [
+            "Off",
+            "On"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Axes",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Align Y",
+          "name": "align_y",
+          "string_options": [
+            "Off",
+            "On"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Axes",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Align Z",
+          "name": "align_z",
+          "string_options": [
+            "Off",
+            "On"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        533.9078979492188,
+        1203.1517333984375
+      ],
+      "render_flag": false,
+      "type": "Align"
+    }
+  ],
+  "version": "1.0"
+}

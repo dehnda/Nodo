@@ -48,6 +48,12 @@ signals:
    */
   void parameters_changed();
 
+  /**
+   * @brief Emitted when a parameter value is changed (for triggering
+   * re-execution)
+   */
+  void parameter_value_changed();
+
 private slots:
   void on_add_parameter_clicked();
   void on_edit_parameter_clicked();

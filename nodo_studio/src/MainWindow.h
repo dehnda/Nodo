@@ -197,6 +197,9 @@ private slots:
   // Property panel live callback (during slider drag)
   void onParameterChangedLive();
 
+  // Graph parameter value changed callback
+  void onGraphParameterValueChanged();
+
   // Async execution
   void onExecutionFinished();
 

@@ -399,6 +399,10 @@ public:
     return nodes_;
   }
 
+  // ID management (for deserialization)
+  void set_next_node_id(int id) { next_node_id_ = id; }
+  void set_next_connection_id(int id) { next_connection_id_ = id; }
+
   // Connection management
   int add_connection(int source_node_id, int source_pin, int target_node_id,
                      int target_pin);

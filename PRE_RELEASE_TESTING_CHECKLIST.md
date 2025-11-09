@@ -135,22 +135,22 @@ This checklist covers all critical functionality before handing off to your firs
 - ~~[ ] Multiple selection shows count in status bar~~
 
 ### Node Movement
-- [ ] Can drag nodes with left mouse button
-- [ ] Multiple selected nodes move together
-- [ ] Nodes snap smoothly during drag
-- [ ] Connections update in real-time during drag
-- [ ] Undo works after moving nodes
+- [X] Can drag nodes with left mouse button
+- [X] Multiple selected nodes move together
+- [X] Nodes snap smoothly during drag
+- [X] Connections update in real-time during drag
+- [X] Undo works after moving nodes
 
 ### Node Deletion
-- [ ] Delete key removes selected nodes
-- [ ] Confirmation prompt appears (if configured)
-- [ ] Connected wires are removed
-- [ ] Undo restores deleted nodes
-- [ ] Can delete multiple nodes at once
-- [ ] Status bar updates node count
+- [X] Delete key removes selected nodes
+- ~~[ ] Confirmation prompt appears (if configured)~~
+- [X] Connected wires are removed
+- [X] Undo restores deleted nodes
+- [X] Can delete multiple nodes at once
+- [X] Status bar updates node count
 
 ### Node Connections
-- [ ] Can drag from output pin (bottom) to input pin (top)
+- [X] Can drag from output pin (bottom) to input pin (top)
 - [ ] Connection highlights valid target pins during drag
 - [ ] Invalid connections are rejected (no geometry → geometry)
 - [ ] Connection wire shows as curved line

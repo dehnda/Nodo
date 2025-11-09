@@ -176,21 +176,14 @@ void PointAttributeTableModel::buildColumns() {
     return;
 
   auto attr_names = geometry_->get_point_attribute_names();
-  qDebug() << "PointAttributeTableModel::buildColumns() - Found"
-           << attr_names.size() << "attributes";
   for (const auto &name : attr_names) {
-    qDebug() << "  Attribute:" << QString::fromStdString(name);
     auto attr = geometry_->get_point_attribute(name);
     if (attr) {
-      qDebug() << "    Type:" << static_cast<int>(attr->descriptor().type())
-               << ", Size:" << attr->size();
       addAttributeColumns(name, attr->descriptor().type());
     } else {
       qDebug() << "    FAILED TO GET ATTRIBUTE!";
     }
   }
-  qDebug() << "PointAttributeTableModel::buildColumns() - Built"
-           << columns_.size() << "columns";
 }
 
 size_t PointAttributeTableModel::getElementCount() const {

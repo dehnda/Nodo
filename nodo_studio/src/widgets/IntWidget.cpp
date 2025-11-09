@@ -110,7 +110,8 @@ QWidget *IntWidget::createControlWidget() {
     // Stop live updates
     slider_update_timer_->stop();
     // Send final update with full graph execution
-    emit valueChangedSignal(current_value_);
+    emit valueChanged(); // Base class signal (no parameters)
+    emit valueChangedSignal(current_value_); // Typed signal with value
     if (value_changed_callback_) {
       value_changed_callback_(current_value_);
     }
@@ -258,7 +259,8 @@ void IntWidget::onSpinBoxValueChanged(int value) {
   slider_->setValue(value);
   slider_->blockSignals(false);
 
-  emit valueChangedSignal(current_value_);
+  emit valueChanged();                     // Base class signal (no parameters)
+  emit valueChangedSignal(current_value_); // Typed signal with value
   if (value_changed_callback_) {
     value_changed_callback_(current_value_);
   }

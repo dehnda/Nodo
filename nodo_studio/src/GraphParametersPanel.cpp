@@ -453,6 +453,7 @@ void GraphParametersPanel::show_empty_state() {
 void GraphParametersPanel::on_parameter_value_changed(
     const std::string & /*param_name*/) {
   emit parameters_changed();
+  emit parameter_value_changed(); // Specific signal for value changes
 }
 
 void GraphParametersPanel::on_add_parameter_clicked() {

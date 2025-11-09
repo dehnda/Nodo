@@ -113,7 +113,8 @@ QWidget *FloatWidget::createControlWidget() {
     // Stop live updates
     slider_update_timer_->stop();
     // Send final update with full graph execution
-    emit valueChangedSignal(current_value_);
+    emit valueChanged(); // Base class signal (no parameters)
+    emit valueChangedSignal(current_value_); // Typed signal with value
     if (value_changed_callback_) {
       value_changed_callback_(current_value_);
     }
@@ -265,7 +266,8 @@ void FloatWidget::onSpinBoxValueChanged(double value) {
   slider_->setValue(floatToSlider(current_value_));
   slider_->blockSignals(false);
 
-  emit valueChangedSignal(current_value_);
+  emit valueChanged();                     // Base class signal (no parameters)
+  emit valueChangedSignal(current_value_); // Typed signal with value
   if (value_changed_callback_) {
     value_changed_callback_(current_value_);
   }

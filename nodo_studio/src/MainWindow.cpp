@@ -383,6 +383,11 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(graph_parameters_panel_, &GraphParametersPanel::parameters_changed,
           this, &MainWindow::onParameterChanged);
 
+  // Connect graph parameter value changes specifically (more targeted)
+  connect(graph_parameters_panel_,
+          &GraphParametersPanel::parameter_value_changed, this,
+          &MainWindow::onGraphParameterValueChanged);
+
   // Add panel visibility toggles to View → Panels submenu
   QMenu *panelsMenu = menuBar()->findChild<QMenu *>("panelsMenu");
   if (panelsMenu) {
@@ -408,7 +413,9 @@ void MainWindow::showEvent(QShowEvent *event) {
 }
 
 void MainWindow::onParameterChanged() {
-  // When a parameter changes in the property panel, re-execute the graph
+  // When a node parameter changes in the property panel, re-execute the graph
+  // (Graph parameters are handled by onGraphParameterValueChanged)
+
   auto selected_nodes = node_graph_widget_->get_selected_node_ids();
   if (!selected_nodes.isEmpty()) {
     int node_id = selected_nodes.first();
@@ -428,6 +435,27 @@ void MainWindow::onParameterChanged() {
           executeAndDisplayNode(item->get_node_id());
           break;
         }
+      }
+    }
+  }
+}
+
+void MainWindow::onGraphParameterValueChanged() {
+  // Graph parameter value changed - invalidate all nodes since any node could
+  // reference it via $param_name in an expression
+  if (execution_engine_ && node_graph_) {
+    // Clear the entire geometry cache to force re-execution
+    execution_engine_->clear_cache();
+  }
+
+  // Find which node has the display flag set and update viewport
+  if (node_graph_widget_) {
+    auto node_items = node_graph_widget_->get_all_node_items();
+    for (auto *item : node_items) {
+      if (item && item->has_display_flag()) {
+        // Execute and display the node that has the display flag
+        executeAndDisplayNode(item->get_node_id());
+        break;
       }
     }
   }

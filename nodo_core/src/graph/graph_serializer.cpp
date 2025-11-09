@@ -171,13 +171,15 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
     // Deserialize nodes
     if (j.contains("nodes") && j["nodes"].is_array()) {
       for (const auto &node_json : j["nodes"]) {
-        if (!node_json.contains("type") || !node_json.contains("name")) {
-          std::cerr << "Invalid node: missing type or name\n";
+        if (!node_json.contains("type") || !node_json.contains("name") ||
+            !node_json.contains("id")) {
+          std::cerr << "Invalid node: missing type, name, or id\n";
           continue;
         }
 
         std::string type_str = node_json["type"];
         std::string name = node_json["name"];
+        int node_id = node_json["id"];
 
         auto node_type = string_to_node_type(type_str);
         if (!node_type.has_value()) {
@@ -185,11 +187,11 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
           continue;
         }
 
-        // Add node to graph
-        int new_id = graph.add_node(node_type.value(), name);
-        auto *node = graph.get_node(new_id);
+        // Add node to graph with preserved ID
+        graph.add_node_with_id(node_id, node_type.value(), name);
+        auto *node = graph.get_node(node_id);
         if (!node) {
-          std::cerr << "Failed to create node\n";
+          std::cerr << "Failed to create node with id " << node_id << "\n";
           continue;
         }
 
@@ -368,6 +370,16 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
         }
       }
 
+      // Update next_node_id_ to be higher than any loaded node ID
+      // This ensures new nodes get unique IDs
+      int max_node_id = 0;
+      for (const auto &node_ptr : graph.get_nodes()) {
+        if (node_ptr->get_id() > max_node_id) {
+          max_node_id = node_ptr->get_id();
+        }
+      }
+      graph.set_next_node_id(max_node_id + 1);
+
       // Deserialize connections
       if (j.contains("connections") && j["connections"].is_array()) {
         for (const auto &conn_json : j["connections"]) {
@@ -375,6 +387,8 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
               !conn_json.contains("source_pin") ||
               !conn_json.contains("target_node") ||
               !conn_json.contains("target_pin")) {
+            std::cerr
+                << "Skipping invalid connection: missing required fields\n";
             continue;
           }
 
@@ -383,9 +397,35 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
           int target_node = conn_json["target_node"];
           int target_pin = conn_json["target_pin"];
 
-          graph.add_connection(source_node, source_pin, target_node,
-                               target_pin);
+          // Verify nodes exist before creating connection
+          if (!graph.get_node(source_node)) {
+            std::cerr << "Failed to create connection: source node "
+                      << source_node << " does not exist\n";
+            continue;
+          }
+          if (!graph.get_node(target_node)) {
+            std::cerr << "Failed to create connection: target node "
+                      << target_node << " does not exist\n";
+            continue;
+          }
+
+          int conn_id = graph.add_connection(source_node, source_pin,
+                                             target_node, target_pin);
+          if (conn_id < 0) {
+            std::cerr << "Failed to create connection from node " << source_node
+                      << " pin " << source_pin << " to node " << target_node
+                      << " pin " << target_pin << "\n";
+          }
         }
+
+        // Update next_connection_id_ to be higher than any loaded connection ID
+        int max_conn_id = 0;
+        for (const auto &conn : graph.get_connections()) {
+          if (conn.id > max_conn_id) {
+            max_conn_id = conn.id;
+          }
+        }
+        graph.set_next_connection_id(max_conn_id + 1);
       }
 
       // Deserialize graph parameters (M3.2)

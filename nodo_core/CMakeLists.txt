@@ -68,6 +68,7 @@ set(NODO_CORE_SOURCES
     # SOPs
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp
+    src/sop/blast_sop.cpp
     src/sop/copy_to_points_sop.cpp
     src/sop/curvature_sop.cpp
     src/sop/decimation_sop.cpp
