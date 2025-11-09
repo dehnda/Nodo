@@ -1,6 +1,7 @@
 #pragma once
 
 #include "widgets/BaseParameterWidget.h"
+#include "widgets/FilePathWidget.h"
 #include <QWidget>
 #include <memory>
 #include <nodo/graph/node_graph.hpp>
@@ -90,7 +91,9 @@ private:
 
   static widgets::BaseParameterWidget *
   createFilePathWidget(const QString &label, const QString &value,
-                       const QString &description, QWidget *parent);
+                       const QString &description, QWidget *parent,
+                       widgets::FilePathWidget::Mode mode =
+                           widgets::FilePathWidget::Mode::OpenFile);
 
   static widgets::BaseParameterWidget *
   createGroupSelectorWidget(const QString &label, const QString &value,

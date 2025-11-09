@@ -33,10 +33,12 @@ public:
             .label("File Path")
             .category("Export")
             .description("Destination file path for export (e.g., output.obj)")
+            .hint("filepath_save")
             .build());
 
     // Export button (int parameter acting as button)
     register_parameter(define_int_parameter("export_now", 0)
+                           .hint("button")
                            .label("Export Now")
                            .category("Export")
                            .description("Trigger export to file")
@@ -47,7 +49,7 @@ public:
    * @brief Trigger export
    */
   void export_now() {
-    set_parameter("export_now", true);
+    set_parameter("export_now", 1);
     mark_dirty(); // Force re-cook
   }
 
@@ -64,7 +66,8 @@ protected:
     }
 
     const std::string file_path = get_parameter<std::string>("file_path", "");
-    const bool should_export = get_parameter<int>("export_now", 0) != 0;
+    const bool should_export =
+        static_cast<bool>(get_parameter<int>("export_now", 0));
 
     // Reset export flag
     if (should_export) {

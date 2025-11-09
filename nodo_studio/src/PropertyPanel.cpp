@@ -1397,16 +1397,6 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
     }
   }
 
-  // Add Export button for Export nodes
-  if (node->get_type() == nodo::graph::NodeType::Export) {
-    addSeparator();
-    addButtonParameter("Export Now", [this, node]() {
-      node->set_parameter("export_now", nodo::graph::NodeParameter(
-                                            "export_now", true, "Export Now"));
-      emit parameterChanged();
-    });
-  }
-
   // Add Parse Expression button for Wrangle nodes
   if (node->get_type() == nodo::graph::NodeType::Wrangle) {
     addSeparator();

@@ -78,12 +78,15 @@ BaseParameterWidget *ParameterWidgetFactory::createWidget(
 
     // Check if it's a file path parameter (ui_hint or common naming
     // conventions)
-    if (def.ui_hint == "filepath" ||
+    if (def.ui_hint == "filepath" || def.ui_hint == "filepath_save" ||
         def.name.find("file") != std::string::npos ||
         def.name.find("path") != std::string::npos ||
         def.name.find("texture") != std::string::npos) {
       qDebug() << "  -> Creating FilePathWidget";
-      return createFilePathWidget(label, qvalue, description, parent);
+      FilePathWidget::Mode mode = (def.ui_hint == "filepath_save")
+                                      ? FilePathWidget::Mode::SaveFile
+                                      : FilePathWidget::Mode::OpenFile;
+      return createFilePathWidget(label, qvalue, description, parent, mode);
     }
 
     qDebug() << "  -> Creating StringWidget";
@@ -225,11 +228,14 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
 
     // Check if it's a file path parameter (ui_hint or common naming
     // conventions)
-    if (param.ui_hint == "filepath" ||
+    if (param.ui_hint == "filepath" || param.ui_hint == "filepath_save" ||
         param.name.find("file") != std::string::npos ||
         param.name.find("path") != std::string::npos ||
         param.name.find("texture") != std::string::npos) {
-      return createFilePathWidget(label, value, description, parent);
+      FilePathWidget::Mode mode = (param.ui_hint == "filepath_save")
+                                      ? FilePathWidget::Mode::SaveFile
+                                      : FilePathWidget::Mode::OpenFile;
+      return createFilePathWidget(label, value, description, parent, mode);
     }
 
     return createStringWidget(label, value, description, parent);
@@ -352,9 +358,9 @@ BaseParameterWidget *ParameterWidgetFactory::createDropdown(
 
 BaseParameterWidget *ParameterWidgetFactory::createFilePathWidget(
     const QString &label, const QString &value, const QString &description,
-    QWidget *parent) {
-  return new FilePathWidget(label, value, FilePathWidget::Mode::OpenFile,
-                            "All Files (*)", description, parent);
+    QWidget *parent, FilePathWidget::Mode mode) {
+  return new FilePathWidget(label, value, mode, "All Files (*)", description,
+                            parent);
 }
 
 BaseParameterWidget *ParameterWidgetFactory::createGroupSelectorWidget(
