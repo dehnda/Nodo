@@ -39,6 +39,7 @@ public:
     Eye,
     EyeClosed,
     PointNumbers,
+    PrimitiveNumbers,
     ForwardArrow, // Pass-through icon
 
     // Node generators

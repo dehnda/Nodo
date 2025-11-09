@@ -49,6 +49,7 @@ signals:
   void wireframeToggled(bool enabled);
   void shadingModeChanged(const QString &mode);
   void pointNumbersToggled(bool enabled);
+  void primitiveNumbersToggled(bool enabled);
   void cameraReset();
   void cameraFitToView();
 
@@ -72,6 +73,7 @@ private:
   QToolButton *wireframe_button_;
   QToolButton *shading_button_;
   QToolButton *point_numbers_button_;
+  QToolButton *primitive_numbers_button_;
   QToolButton *reset_camera_button_;
   QToolButton *fit_view_button_;
 };

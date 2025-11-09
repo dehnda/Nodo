@@ -1086,6 +1086,10 @@ void ViewportWidget::paintGL() {
     }
   }
 
+  if (show_primitive_numbers_) {
+    drawPrimitiveLabels(); // Draw primitive numbers at face centers
+  }
+
   // Draw wireframe overlays on top of everything
   if (!wireframe_overlays_.empty()) {
     drawWireframeOverlays();
@@ -1887,6 +1891,93 @@ void ViewportWidget::drawPointLabels() {
   painter.end();
 }
 
+void ViewportWidget::drawPrimitiveLabels() {
+  if (!current_geometry_) {
+    return;
+  }
+
+  // Get topology to access primitives
+  const auto &topology = current_geometry_->topology();
+
+  if (topology.primitive_count() == 0) {
+    return;
+  }
+
+  // Get point positions from geometry
+  const auto *positions =
+      current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>("P");
+  if (positions == nullptr || positions->size() == 0) {
+    return;
+  }
+
+  // Begin QPainter overlay
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setPen(QColor(255, 200, 100)); // Orange/yellow text for primitives
+  QFont primFont;
+  primFont.setFamilies(QStringList()
+                       << "Segoe UI" << "Ubuntu" << "Roboto"
+                       << "Cantarell" << "Noto Sans" << "Liberation Sans"
+                       << "DejaVu Sans" << "sans-serif");
+  primFont.setWeight(QFont::Bold);
+  primFont.setPointSize(9);
+  painter.setFont(primFont);
+
+  // Combined transformation matrix
+  QMatrix4x4 mvp = projection_matrix_ * view_matrix_ * model_matrix_;
+
+  // Draw label for each primitive at its center
+  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
+    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+
+    if (vert_indices.empty()) {
+      continue;
+    }
+
+    // Calculate center of primitive
+    nodo::core::Vec3f center(0.0F, 0.0F, 0.0F);
+    for (int vert_idx : vert_indices) {
+      int point_idx = topology.get_vertex_point(vert_idx);
+      if (point_idx >= 0 && point_idx < static_cast<int>(positions->size())) {
+        const auto &pos = (*positions)[point_idx];
+        center.x() += pos.x();
+        center.y() += pos.y();
+        center.z() += pos.z();
+      }
+    }
+    center.x() /= vert_indices.size();
+    center.y() /= vert_indices.size();
+    center.z() /= vert_indices.size();
+
+    // Transform to clip space
+    QVector4D world_pos(center.x(), center.y(), center.z(), 1.0F);
+    QVector4D clip_pos = mvp * world_pos;
+
+    // Perspective divide
+    if (std::abs(clip_pos.w()) < 0.0001F) {
+      continue;
+    }
+
+    QVector3D ndc(clip_pos.x() / clip_pos.w(), clip_pos.y() / clip_pos.w(),
+                  clip_pos.z() / clip_pos.w());
+
+    // Skip primitives behind camera or outside frustum
+    if (ndc.z() < -1.0F || ndc.z() > 1.0F || ndc.x() < -1.0F ||
+        ndc.x() > 1.0F || ndc.y() < -1.0F || ndc.y() > 1.0F) {
+      continue;
+    }
+
+    // Convert to screen coordinates
+    float screen_x = (ndc.x() + 1.0F) * 0.5F * width();
+    float screen_y = (1.0F - ndc.y()) * 0.5F * height();
+
+    // Draw the primitive number at center
+    painter.drawText(QPointF(screen_x, screen_y), QString::number(prim_idx));
+  }
+
+  painter.end();
+}
+
 void ViewportWidget::drawWireframeOverlays() {
   if (!simple_shader_program_) {
     return;
@@ -2217,6 +2308,11 @@ void ViewportWidget::setShowVertices(bool show) {
 
 void ViewportWidget::setShowPointNumbers(bool show) {
   show_point_numbers_ = show;
+  update();
+}
+
+void ViewportWidget::setShowPrimitiveNumbers(bool show) {
+  show_primitive_numbers_ = show;
   update();
 }
 

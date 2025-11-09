@@ -45,9 +45,12 @@ void ViewportToolbar::setupUI() {
   shading_button_->setChecked(true);
   point_numbers_button_ =
       createIconButton("PointNumbers", "Toggle Point Numbers", true);
+  primitive_numbers_button_ =
+      createIconButton("PrimitiveNumbers", "Toggle Primitive Numbers", true);
   addWidget(wireframe_button_);
   addWidget(shading_button_);
   addWidget(point_numbers_button_);
+  addWidget(primitive_numbers_button_);
 
   addSeparator();
   reset_camera_button_ = createIconButton("ResetCamera", "Reset Camera", false);
@@ -77,6 +80,8 @@ void ViewportToolbar::setupUI() {
   });
   connect(point_numbers_button_, &QToolButton::toggled, this,
           &ViewportToolbar::pointNumbersToggled);
+  connect(primitive_numbers_button_, &QToolButton::toggled, this,
+          &ViewportToolbar::primitiveNumbersToggled);
   connect(reset_camera_button_, &QToolButton::clicked, this,
           &ViewportToolbar::cameraReset);
   connect(fit_view_button_, &QToolButton::clicked, this,
@@ -113,6 +118,9 @@ QToolButton *ViewportToolbar::createIconButton(const QString &icon_name,
   } else if (icon_name == "PointNumbers") {
     button->setIcon(
         nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PointNumbers));
+  } else if (icon_name == "PrimitiveNumbers") {
+    button->setIcon(nodo_studio::Icons::get(
+        nodo_studio::IconManager::Icon::PrimitiveNumbers));
   } else if (icon_name == "ResetCamera") {
     button->setIcon(
         nodo_studio::Icons::get(nodo_studio::IconManager::Icon::ResetCamera));

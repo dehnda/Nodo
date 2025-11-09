@@ -210,6 +210,8 @@ auto MainWindow::setupDockWidgets() -> void {
           });
   connect(viewport_toolbar_, &ViewportToolbar::pointNumbersToggled,
           viewport_widget_, &ViewportWidget::setShowPointNumbers);
+  connect(viewport_toolbar_, &ViewportToolbar::primitiveNumbersToggled,
+          viewport_widget_, &ViewportWidget::setShowPrimitiveNumbers);
   connect(viewport_toolbar_, &ViewportToolbar::cameraReset, viewport_widget_,
           &ViewportWidget::resetCamera);
   connect(viewport_toolbar_, &ViewportToolbar::cameraFitToView,

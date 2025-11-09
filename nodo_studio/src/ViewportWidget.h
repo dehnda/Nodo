@@ -59,6 +59,7 @@ public:
   void setShowEdges(bool show);
   void setShowVertices(bool show);
   void setShowPointNumbers(bool show);
+  void setShowPrimitiveNumbers(bool show);
   void setShowGrid(bool show);
   void setShowAxes(bool show);
 
@@ -163,9 +164,10 @@ private:
   bool first_mesh_load_ = true;
   bool show_grid_ = true;
   bool show_axes_ = true;
-  bool show_edges_ = true;          // Show mesh edges in white
-  bool show_vertices_ = true;       // Show vertices as blue points
-  bool show_point_numbers_ = false; // Show point numbers as labels
+  bool show_edges_ = true;              // Show mesh edges in white
+  bool show_vertices_ = true;           // Show vertices as blue points
+  bool show_point_numbers_ = false;     // Show point numbers as labels
+  bool show_primitive_numbers_ = false; // Show primitive numbers as labels
 
   // Grid and axes buffers
   std::unique_ptr<QOpenGLVertexArrayObject> grid_vao_;
@@ -195,5 +197,6 @@ private:
   void drawEdges();
   void drawVertices();
   void drawPointLabels();
+  void drawPrimitiveLabels();
   void drawWireframeOverlays();
 };

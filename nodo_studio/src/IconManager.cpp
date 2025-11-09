@@ -102,6 +102,8 @@ QString IconManager::getUnicodeFallback(Icon icon) const {
     return "✕";
   case Icon::PointNumbers:
     return "№";
+  case Icon::PrimitiveNumbers:
+    return "▣";
   case Icon::ForwardArrow:
     return "⊘"; // Pass-through/bypass icon - circle with slash
 
@@ -235,6 +237,8 @@ QString IconManager::getIconFileName(Icon icon) const {
     return "eye-closed";
   case Icon::PointNumbers:
     return "numbered-list-left";
+  case Icon::PrimitiveNumbers:
+    return "numbered-list-right";
   case Icon::ForwardArrow:
     return "pass-through";
 
