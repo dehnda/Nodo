@@ -22,73 +22,108 @@
       "target_pin": 0
     },
     {
-      "id": 6,
+      "id": 4,
       "source_node": 1,
       "source_pin": 0,
       "target_node": 3,
       "target_pin": 0
     },
     {
-      "id": 7,
+      "id": 5,
       "source_node": 3,
       "source_pin": 0,
       "target_node": 6,
       "target_pin": 0
     },
     {
-      "id": 8,
+      "id": 6,
       "source_node": 1,
       "source_pin": 0,
       "target_node": 4,
       "target_pin": 0
     },
     {
-      "id": 9,
+      "id": 7,
       "source_node": 4,
       "source_pin": 0,
       "target_node": 5,
       "target_pin": 0
     },
     {
-      "id": 11,
+      "id": 8,
       "source_node": 6,
       "source_pin": 0,
       "target_node": 13,
       "target_pin": 0
     },
     {
-      "id": 24,
-      "source_node": 21,
-      "source_pin": 0,
-      "target_node": 22,
-      "target_pin": 0
-    },
-    {
-      "id": 25,
+      "id": 10,
       "source_node": 11,
       "source_pin": 0,
       "target_node": 23,
       "target_pin": 0
     },
     {
-      "id": 27,
+      "id": 11,
       "source_node": 22,
       "source_pin": 0,
       "target_node": 24,
       "target_pin": 0
     },
     {
-      "id": 28,
+      "id": 12,
       "source_node": 24,
       "source_pin": 0,
       "target_node": 23,
       "target_pin": 1
     },
     {
-      "id": 29,
+      "id": 13,
       "source_node": 23,
       "source_pin": 0,
       "target_node": 13,
+      "target_pin": 0
+    },
+    {
+      "id": 15,
+      "source_node": 25,
+      "source_pin": 0,
+      "target_node": 26,
+      "target_pin": 0
+    },
+    {
+      "id": 16,
+      "source_node": 26,
+      "source_pin": 0,
+      "target_node": 22,
+      "target_pin": 0
+    },
+    {
+      "id": 17,
+      "source_node": 21,
+      "source_pin": 0,
+      "target_node": 27,
+      "target_pin": 0
+    },
+    {
+      "id": 19,
+      "source_node": 27,
+      "source_pin": 0,
+      "target_node": 29,
+      "target_pin": 0
+    },
+    {
+      "id": 20,
+      "source_node": 29,
+      "source_pin": 0,
+      "target_node": 28,
+      "target_pin": 0
+    },
+    {
+      "id": 21,
+      "source_node": 28,
+      "source_pin": 0,
+      "target_node": 25,
       "target_pin": 0
     }
   ],
@@ -116,6 +151,18 @@
       "name": "panel_top_h",
       "type": "float",
       "value": 2.0
+    },
+    {
+      "description": "",
+      "name": "panel_window_w",
+      "type": "float",
+      "value": 1.5
+    },
+    {
+      "description": "",
+      "name": "panel_window_h",
+      "type": "float",
+      "value": 1.0
     }
   ],
   "nodes": [
@@ -408,14 +455,6 @@
           "label": "Group",
           "name": "input_group",
           "type": "group_selector",
-          "value": "group1",
-          "value_mode": 0
-        },
-        {
-          "category": "Group",
-          "label": "Group",
-          "name": "group",
-          "type": "string",
           "value": "group1",
           "value_mode": 0
         },
@@ -721,7 +760,7 @@
     },
     {
       "bypass_flag": false,
-      "display_flag": false,
+      "display_flag": true,
       "id": 13,
       "name": "merge1",
       "parameters": [
@@ -745,8 +784,8 @@
         }
       ],
       "position": [
-        -207.12403869628906,
-        1899.8267822265625
+        -158.51304626464844,
+        1664.1851806640625
       ],
       "render_flag": false,
       "type": "Merge"
@@ -821,8 +860,8 @@
         }
       ],
       "position": [
-        560.6776123046875,
-        774.8356323242188
+        540.822998046875,
+        -13.463638305664063
       ],
       "render_flag": false,
       "type": "Plane"
@@ -961,7 +1000,7 @@
     },
     {
       "bypass_flag": false,
-      "display_flag": true,
+      "display_flag": false,
       "id": 24,
       "name": "align",
       "parameters": [
@@ -1037,6 +1076,522 @@
       ],
       "render_flag": false,
       "type": "Align"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 25,
+      "name": "group1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "label": "Group Name",
+          "name": "group_name",
+          "type": "string",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Group Type",
+          "name": "element_class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Operation",
+          "name": "operation",
+          "string_options": [
+            "Create/Replace",
+            "Add to Existing",
+            "Remove from Existing"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Selection",
+          "int_max": 3,
+          "int_min": 0,
+          "label": "Selection Mode",
+          "name": "selection_mode",
+          "string_options": [
+            "Range",
+            "Every Nth",
+            "Random",
+            "All"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Start",
+          "name": "range_start",
+          "type": "int",
+          "value": 4,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "End",
+          "name": "range_end",
+          "type": "int",
+          "value": 5,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Step",
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Offset",
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 1,
+          "label": "Count",
+          "name": "random_count",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Seed",
+          "name": "random_seed",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        553.7208251953125,
+        685.0255126953125
+      ],
+      "render_flag": false,
+      "type": "Group"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 26,
+      "name": "blast1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Delete",
+          "name": "class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Options",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Delete Non-Selected",
+          "name": "negate",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        538.4163818359375,
+        826.7853393554688
+      ],
+      "render_flag": false,
+      "type": "Blast"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 27,
+      "name": "group2",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "label": "Group Name",
+          "name": "group_name",
+          "type": "string",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Group Type",
+          "name": "element_class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Operation",
+          "name": "operation",
+          "string_options": [
+            "Create/Replace",
+            "Add to Existing",
+            "Remove from Existing"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Selection",
+          "int_max": 3,
+          "int_min": 0,
+          "label": "Selection Mode",
+          "name": "selection_mode",
+          "string_options": [
+            "Range",
+            "Every Nth",
+            "Random",
+            "All"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Start",
+          "name": "range_start",
+          "type": "int",
+          "value": 5,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "End",
+          "name": "range_end",
+          "type": "int",
+          "value": 7,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Step",
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Offset",
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 1,
+          "label": "Count",
+          "name": "random_count",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Seed",
+          "name": "random_seed",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        560.74462890625,
+        153.58314514160156
+      ],
+      "render_flag": false,
+      "type": "Group"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 28,
+      "name": "transform2",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Translate",
+          "name": "translate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "float_max": 360.0,
+          "float_min": -360.0,
+          "label": "Rotate",
+          "name": "rotate",
+          "type": "vector3",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "value_mode": 0
+        },
+        {
+          "category": "Transform",
+          "expression": "$panel_window_w, 1, $panel_window_h",
+          "float_max": 10.0,
+          "float_min": 0.009999999776482582,
+          "label": "Scale",
+          "name": "scale",
+          "type": "vector3",
+          "value": [
+            2.0,
+            1.0,
+            1.5
+          ],
+          "value_mode": 1
+        }
+      ],
+      "position": [
+        572.3531494140625,
+        485.3719787597656
+      ],
+      "render_flag": false,
+      "type": "Transform"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 29,
+      "name": "group3",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "label": "Group Name",
+          "name": "group_name",
+          "type": "string",
+          "value": "group1",
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Group Type",
+          "name": "element_class",
+          "string_options": [
+            "Points",
+            "Primitives"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Group",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Operation",
+          "name": "operation",
+          "string_options": [
+            "Create/Replace",
+            "Add to Existing",
+            "Remove from Existing"
+          ],
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Selection",
+          "int_max": 3,
+          "int_min": 0,
+          "label": "Selection Mode",
+          "name": "selection_mode",
+          "string_options": [
+            "Range",
+            "Every Nth",
+            "Random",
+            "All"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Start",
+          "name": "range_start",
+          "type": "int",
+          "value": 9,
+          "value_mode": 0
+        },
+        {
+          "category": "Range",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "End",
+          "name": "range_end",
+          "type": "int",
+          "value": 11,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Step",
+          "name": "pattern_step",
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        },
+        {
+          "category": "Pattern",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Offset",
+          "name": "pattern_offset",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 1,
+          "label": "Count",
+          "name": "random_count",
+          "type": "int",
+          "value": 10,
+          "value_mode": 0
+        },
+        {
+          "category": "Random",
+          "int_max": 10000,
+          "int_min": 0,
+          "label": "Seed",
+          "name": "random_seed",
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        572.0872802734375,
+        321.5484924316406
+      ],
+      "render_flag": false,
+      "type": "Group"
     }
   ],
   "version": "1.0"

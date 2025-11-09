@@ -1,5 +1,6 @@
 #include "GeometryTableModel.h"
 #include <Eigen/Dense>
+#include <iostream>
 
 namespace nodo::studio {
 
@@ -356,6 +357,19 @@ PrimitiveAttributeTableModel::getElementData(size_t element_index,
   using core::AttributeType;
 
   auto attr = geometry_->get_primitive_attribute(column.attribute_name);
+
+  // Debug output for group attributes
+  if (column.attribute_name.find("group_") == 0) {
+    std::cerr << "PrimitiveAttributeTableModel::getElementData for '"
+              << column.attribute_name << "' element " << element_index;
+    if (attr) {
+      std::cerr << ", attr->size()=" << attr->size();
+    } else {
+      std::cerr << ", attr is NULL";
+    }
+    std::cerr << "\n";
+  }
+
   if (!attr || element_index >= attr->size())
     return QVariant();
 

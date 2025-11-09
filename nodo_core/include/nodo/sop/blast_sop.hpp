@@ -20,14 +20,6 @@ public:
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
 
-    // Group name to delete
-    register_parameter(
-        define_string_parameter("group", "")
-            .label("Group")
-            .category("Group")
-            .description("Name of group to delete (leave empty for all)")
-            .build());
-
     // Element class
     register_parameter(define_int_parameter("class", 0)
                            .label("Delete")

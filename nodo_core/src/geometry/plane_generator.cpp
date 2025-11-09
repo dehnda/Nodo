@@ -91,7 +91,7 @@ PlaneGenerator::generate(double width, double height, int width_segments,
       const int bottom_right = bottom_left + 1;
 
       // Single quad (counter-clockwise winding)
-      topology.add_primitive({top_left, bottom_left, bottom_right, top_right});
+      container.add_primitive({top_left, bottom_left, bottom_right, top_right});
     }
   }
 

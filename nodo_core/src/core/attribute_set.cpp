@@ -33,8 +33,14 @@ bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
                                  InterpolationMode interpolation) {
   std::string name_str(name);
 
+  std::cerr << "AttributeSet::add_attribute('" << name_str
+            << "', element_class=" << static_cast<int>(element_class_)
+            << ", element_count_=" << element_count_
+            << ", existing_attrs=" << attributes_.size() << ")\n";
+
   // Check if already exists
   if (attributes_.contains(name_str)) {
+    std::cerr << "  Attribute already exists, returning false\n";
     return false;
   }
 
@@ -46,6 +52,7 @@ bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
 
   // Resize to match current element count
   if (element_count_ > 0) {
+    std::cerr << "  Resizing to element_count_=" << element_count_ << "\n";
     storage->resize(element_count_);
   } else if (!attributes_.empty()) {
     // If element_count_ is 0 but we have other attributes, infer count from
@@ -55,10 +62,15 @@ bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
     if (first_attr && first_attr->size() > 0) {
       element_count_ = first_attr->size();
       storage->resize(element_count_);
-      std::cerr << "AttributeSet::add_attribute - Inferred element_count_="
-                << element_count_ << " from existing attributes\n";
+      std::cerr << "  Inferred element_count_=" << element_count_
+                << " from existing attributes\n";
     }
+  } else {
+    std::cerr << "  WARNING: element_count_ is 0 and no existing attributes to "
+                 "infer from!\n";
   }
+
+  std::cerr << "  Created storage with size=" << storage->size() << "\n";
 
   // Add to map
   attributes_[name_str] = std::move(storage);
