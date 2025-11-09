@@ -41,6 +41,7 @@ set(STUDIO_SOURCES
     src/StudioHostInterface.cpp
     # Parameter widgets
     src/widgets/BaseParameterWidget.cpp
+    src/widgets/ButtonWidget.cpp
     src/widgets/FloatWidget.cpp
     src/widgets/IntWidget.cpp
     src/widgets/Vector3Widget.cpp
@@ -77,6 +78,7 @@ set(STUDIO_HEADERS
     include/StudioHostInterface.h
     # Parameter widgets
     src/widgets/BaseParameterWidget.h
+    src/widgets/ButtonWidget.h
     src/widgets/FloatWidget.h
     src/widgets/IntWidget.h
     src/widgets/Vector3Widget.h

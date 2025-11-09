@@ -11,6 +11,7 @@
 
 // Widget includes
 #include "widgets/BaseParameterWidget.h"
+#include "widgets/ButtonWidget.h"
 #include "widgets/CheckboxWidget.h"
 #include "widgets/DropdownWidget.h"
 #include "widgets/FilePathWidget.h"
@@ -1099,6 +1100,40 @@ void PropertyPanel::connectParameterWidget(
               NodeParameter(param.name, new_value, param.label, param.category);
           updated_param.category_control_param = param.category_control_param;
           updated_param.category_control_value = param.category_control_value;
+
+          // Push command to undo stack
+          if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&
+              graph != nullptr) {
+            auto cmd = nodo::studio::create_change_parameter_command(
+                node_graph_widget_, graph, node->get_id(), param.name,
+                old_param_opt.value(), updated_param);
+            undo_stack_->push(std::move(cmd));
+          } else {
+            node->set_parameter(param.name, updated_param);
+          }
+
+          emit parameterChanged();
+        });
+  } else if (auto *button_widget =
+                 dynamic_cast<nodo_studio::widgets::ButtonWidget *>(widget)) {
+    // Button widget triggers an action by setting parameter to 1
+    // The node's execute() will reset it back to 0
+    connect(
+        button_widget, &nodo_studio::widgets::ButtonWidget::buttonClicked, this,
+        [this, node, graph, param]() {
+          // Get old parameter value
+          auto old_param_opt = node->get_parameter(param.name);
+          if (!old_param_opt.has_value()) {
+            return;
+          }
+
+          // Create parameter with value 1 to trigger action
+          auto updated_param =
+              NodeParameter(param.name, 1, param.label, param.ui_range.int_min,
+                            param.ui_range.int_max, param.category);
+          updated_param.category_control_param = param.category_control_param;
+          updated_param.category_control_value = param.category_control_value;
+          updated_param.ui_hint = param.ui_hint; // Preserve button hint!
 
           // Push command to undo stack
           if (undo_stack_ != nullptr && node_graph_widget_ != nullptr &&

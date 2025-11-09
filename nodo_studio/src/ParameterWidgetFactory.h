@@ -62,6 +62,10 @@ private:
                    QWidget *parent);
 
   static widgets::BaseParameterWidget *
+  createButtonWidget(const QString &label, const QString &description,
+                     QWidget *parent);
+
+  static widgets::BaseParameterWidget *
   createStringWidget(const QString &label, const QString &value,
                      const QString &description, QWidget *parent);
 

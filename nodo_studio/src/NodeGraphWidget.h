@@ -239,7 +239,6 @@ class NodeGraphWidget : public QGraphicsView {
 
 public:
   explicit NodeGraphWidget(QWidget *parent = nullptr);
-  ~NodeGraphWidget() override;
 
   // Graph management
   void set_graph(nodo::graph::NodeGraph *graph);

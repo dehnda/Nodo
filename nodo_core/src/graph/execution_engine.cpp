@@ -394,19 +394,47 @@ void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode &sop_node,
     }
   }
 
-  // Check which parameters are new
+  // Check which parameters are new or need updates
   for (const auto &sop_param : sop_params) {
     // Check if parameter already exists in GraphNode
-    bool param_exists = false;
-    for (const auto &existing : existing_params) {
-      if (existing.name == sop_param.name) {
-        param_exists = true;
-        break;
-      }
-    }
+    auto existing_param_opt = graph_node.get_parameter(sop_param.name);
 
-    if (param_exists) {
-      // Parameter already exists in GraphNode - preserve its value
+    if (existing_param_opt.has_value()) {
+      // Parameter exists - update its value from SOP if changed
+      auto &existing_param = existing_param_opt.value();
+
+      // Get current value from SOP's parameter map
+      auto sop_value = sop_node.get_parameters();
+      auto sop_value_it = sop_value.find(sop_param.name);
+
+      if (sop_value_it != sop_value.end()) {
+        // Update the value based on type
+        if (std::holds_alternative<int>(sop_value_it->second)) {
+          int new_value = std::get<int>(sop_value_it->second);
+          if (existing_param.int_value != new_value) {
+            existing_param.int_value = new_value;
+            graph_node.set_parameter(sop_param.name, existing_param);
+          }
+        } else if (std::holds_alternative<float>(sop_value_it->second)) {
+          float new_value = std::get<float>(sop_value_it->second);
+          if (existing_param.float_value != new_value) {
+            existing_param.float_value = new_value;
+            graph_node.set_parameter(sop_param.name, existing_param);
+          }
+        } else if (std::holds_alternative<bool>(sop_value_it->second)) {
+          bool new_value = std::get<bool>(sop_value_it->second);
+          if (existing_param.bool_value != new_value) {
+            existing_param.bool_value = new_value;
+            graph_node.set_parameter(sop_param.name, existing_param);
+          }
+        } else if (std::holds_alternative<std::string>(sop_value_it->second)) {
+          std::string new_value = std::get<std::string>(sop_value_it->second);
+          if (existing_param.string_value != new_value) {
+            existing_param.string_value = new_value;
+            graph_node.set_parameter(sop_param.name, existing_param);
+          }
+        }
+      }
       continue;
     }
 

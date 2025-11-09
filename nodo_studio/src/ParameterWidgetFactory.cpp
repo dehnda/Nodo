@@ -1,4 +1,5 @@
 #include "ParameterWidgetFactory.h"
+#include "widgets/ButtonWidget.h"
 #include "widgets/CheckboxWidget.h"
 #include "widgets/DropdownWidget.h"
 #include "widgets/FilePathWidget.h"
@@ -36,6 +37,11 @@ BaseParameterWidget *ParameterWidgetFactory::createWidget(
 
   case nodo::sop::SOPNode::ParameterDefinition::Type::Int: {
     int value = std::get<int>(def.default_value);
+
+    // Check for button hint first
+    if (def.ui_hint == "button") {
+      return createButtonWidget(label, description, parent);
+    }
 
     // If has options, create mode selector or dropdown
     if (!def.options.empty()) {
@@ -155,6 +161,11 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter &param,
   }
 
   case nodo::graph::NodeParameter::Type::Int: {
+    // Check for button hint first
+    if (param.ui_hint == "button") {
+      return createButtonWidget(label, description, parent);
+    }
+
     // Check for options (combo box)
     if (!param.string_options.empty()) {
       std::vector<QString> options;
@@ -302,6 +313,11 @@ ParameterWidgetFactory::createBoolWidget(const QString &label, bool value,
                                          const QString &description,
                                          QWidget *parent) {
   return new CheckboxWidget(label, value, description, parent);
+}
+
+BaseParameterWidget *ParameterWidgetFactory::createButtonWidget(
+    const QString &label, const QString &description, QWidget *parent) {
+  return new ButtonWidget(label, description, parent);
 }
 
 BaseParameterWidget *ParameterWidgetFactory::createStringWidget(

@@ -36,6 +36,7 @@ public:
 
     // Reload button (int parameter acting as button)
     register_parameter(define_int_parameter("reload", 0)
+                           .hint("button")
                            .label("Reload")
                            .category("File")
                            .description("Reload file from disk")
@@ -51,7 +52,7 @@ public:
    * @brief Trigger reload of file
    */
   void reload() {
-    set_parameter("reload", true);
+    set_parameter("reload", 1);
     mark_dirty(); // Force re-cook
   }
 
@@ -62,8 +63,9 @@ protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
     const std::string file_path = get_parameter<std::string>("file_path", "");
 
-    // Reset reload flag
-    if (get_parameter<int>("reload", 0) != 0) {
+    // Reset reload flag if button was pressed
+    int reload_flag = get_parameter<int>("reload", 0);
+    if (reload_flag != 0) {
       set_parameter("reload", 0);
     }
 

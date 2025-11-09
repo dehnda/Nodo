@@ -726,8 +726,6 @@ NodeGraphWidget::NodeGraphWidget(QWidget *parent)
           this, &NodeGraphWidget::on_node_menu_selected);
 }
 
-NodeGraphWidget::~NodeGraphWidget() = default;
-
 void NodeGraphWidget::set_graph(nodo::graph::NodeGraph *graph) {
   graph_ = graph;
   rebuild_from_graph();
@@ -1235,7 +1233,7 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent *event) {
       context_menu_scene_pos_ = scene_pos;
 
       // Show node selector at mouse position
-      QPoint global_pos = event->globalPos();
+      QPoint global_pos = event->globalPosition().toPoint();
       node_creation_menu_->showAtPosition(global_pos);
     }
 
@@ -1426,21 +1424,8 @@ void NodeGraphWidget::contextMenuEvent(QContextMenuEvent *event) {
     return;
   }
 
-  // Check for node
-  auto *node_item = dynamic_cast<NodeGraphicsItem *>(item);
-  if (node_item != nullptr) {
-    // Context menu for existing node
-    QMenu menu(this);
-    menu.addAction("Delete Node", [this, node_item]() {
-      QVector<int> ids;
-      ids.push_back(node_item->get_node_id());
-      emit nodes_deleted(ids);
-    });
-    menu.exec(event->globalPos());
-  } else {
-    // Context menu for empty space - show NodeCreationMenu
-    node_creation_menu_->showAtPosition(event->globalPos());
-  }
+  // Context menu for empty space - show NodeCreationMenu
+  node_creation_menu_->showAtPosition(event->globalPos());
 
   event->accept();
 }

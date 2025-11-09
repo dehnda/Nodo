@@ -80,17 +80,17 @@ This checklist covers all critical functionality before handing off to your firs
 - [ ] Full path shown in tooltip
 - [X] Selecting item loads that project
 - [X] List updates when opening new files
-- [ ] Missing files show warning and are removed from list
-- [ ] Menu disabled when list is empty
+- [X] Missing files show warning and are removed from list
+- [X] Menu disabled when list is empty
 
 ### Import (File Node)
-- [ ] File node can be created via TAB menu
-- [ ] Can import .obj files
+- [X] File node can be created via TAB menu
+- [X] Can import .obj files
 - [ ] Can import .stl files
-- [ ] Geometry displays correctly in viewport
-- [ ] Point and primitive counts match original mesh
-- [ ] File path widget in property panel works (browse button)
-- [ ] Changing file path reloads geometry
+- [X] Geometry displays correctly in viewport
+- [X] Point and primitive counts match original mesh
+- [X] File path widget in property panel works (browse button)
+- [X] Changing file path reloads geometry
 
 ### Export (Export Node)
 - [ ] Export node can be created via TAB menu
