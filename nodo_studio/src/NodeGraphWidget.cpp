@@ -291,10 +291,16 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     drag_start_position_ = pos();
     is_dragging_ = true;
 
-    // Don't modify selection here - let the view handle it
-    // Just update our internal selected flag to match Qt's selection state
-    set_selected(isSelected());
+    // We need to call QGraphicsItem::mousePressEvent to enable dragging,
+    // but we must prevent it from changing selection. Temporarily disable
+    // the ItemIsSelectable flag so Qt doesn't modify selection state.
+    QGraphicsItem::GraphicsItemFlags original_flags = flags();
+    setFlag(QGraphicsItem::ItemIsSelectable, false);
+
     QGraphicsItem::mousePressEvent(event);
+
+    // Restore the original flags
+    setFlags(original_flags);
   } else {
     // Don't accept other buttons - let them pass through to view
     event->ignore();
@@ -1031,7 +1037,13 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
       node_drag_start_positions_[node_item->get_node_id()] = node_item->pos();
 
       // If clicked on node (not on a pin), handle selection explicitly
-      bool is_ctrl_held = (event->modifiers() & Qt::ControlModifier);
+      // Use the global keyboard state here because on some platforms or
+      // under certain input timing the event's modifier flags may not
+      // reflect the current physical keyboard state. QApplication
+      // keyboardModifiers() is more reliable for modifier checks that
+      // accompany mouse events.
+      bool is_ctrl_held =
+          (QApplication::keyboardModifiers() & Qt::ControlModifier) != 0;
       bool node_already_selected = node_item->isSelected();
 
       // Block signals to prevent on_scene_selection_changed from being called
@@ -1056,8 +1068,9 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
       scene_->blockSignals(false);
       on_scene_selection_changed();
 
-      // Let QGraphicsView handle the dragging, but we've already handled
-      // selection So we pass the event to the base class to enable dragging
+      // Now pass the event to the base class. The item has been set up to
+      // not modify selection (via the ItemIsSelectable flag trick), so our
+      // selection logic above will be preserved while still enabling dragging.
       QGraphicsView::mousePressEvent(event);
       return;
     }
@@ -1086,8 +1099,9 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent *event) {
     selection_rect_->setRect(QRectF(scene_pos, scene_pos));
     selection_rect_->show();
 
-    // Clear existing selection unless holding Shift
-    if (!(event->modifiers() & Qt::ShiftModifier)) {
+    // Clear existing selection unless holding Shift. Use global keyboard
+    // modifier state for the same reason as above.
+    if ((QApplication::keyboardModifiers() & Qt::ShiftModifier) == 0) {
       clear_selection();
     }
 

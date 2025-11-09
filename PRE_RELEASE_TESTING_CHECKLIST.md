@@ -93,11 +93,11 @@ This checklist covers all critical functionality before handing off to your firs
 - [X] Changing file path reloads geometry
 
 ### Export (Export Node)
-- [ ] Export node can be created via TAB menu
-- [ ] Can export to .obj format
-- [ ] Exported file is valid and can be re-imported
-- [ ] File includes vertex positions, normals, faces
-- [ ] File path widget works (browse button)
+- [X] Export node can be created via TAB menu
+- [X] Can export to .obj format
+- [X] Exported file is valid and can be re-imported
+- [X] File includes vertex positions, normals, faces
+- [X] File path widget works (browse button)
 - [ ] Status bar confirms export success with file size
 
 ---
@@ -105,34 +105,34 @@ This checklist covers all critical functionality before handing off to your firs
 ## 3. Node Graph Workflow 🔴
 
 ### Node Creation (TAB Menu)
-- [ ] TAB key opens node creation menu
-- [ ] Search field is focused automatically
-- [ ] Can type to filter nodes (e.g., "box" shows Box node)
-- [ ] Arrow keys navigate filtered list
-- [ ] Enter key creates selected node
-- [ ] Node appears at cursor position or screen center
-- [ ] Menu closes after creation
-- [ ] **Recent Nodes section** shows last 5-10 created nodes
-- [ ] Menu can be cancelled with Escape
+- [X] TAB key opens node creation menu
+- [X] Search field is focused automatically
+- [X] Can type to filter nodes (e.g., "box" shows Box node)
+- [X] Arrow keys navigate filtered list
+- [X] Enter key creates selected node
+- [X] Node appears at cursor position or screen center
+- [X] Menu closes after creation
+- [X] **Recent Nodes section** shows last 5-10 created nodes
+- [X] Menu can be cancelled with Escape
 
 ### Node Categories (TAB Menu)
-- [ ] All 8 categories shown: Generators, Modify, Transform, Boolean, Attributes, Groups, Utility, Deformers
-- [ ] Geometry Generators (6): Box, Sphere, Cylinder, Torus, Grid, Line
-- [ ] Modify (5): Extrude, Subdivide, Noise, Smooth, Bevel
-- [ ] Transform (7): Transform, Array, Copy to Points, Mirror, Scatter, ScatterVolume, Align
-- [ ] Boolean/Combine (5): Boolean, Merge, Split, PolyExtrude, Remesh
-- [ ] Attributes (6): Wrangle, AttributeCreate, AttributeDelete, Color, Normal, UVUnwrap
-- [ ] Groups (7): Group, Blast, Sort, GroupPromote, GroupCombine, GroupExpand, GroupTransfer
-- [ ] Utility (7): Switch, Null, Output, File, Export, Cache, Time
-- [ ] Deformers (3): Bend, Twist, Lattice
+- [x] All 8 categories shown: Generators, Modify, Transform, Boolean, Attributes, Groups, Utility, Deformers
+- [x] Geometry Generators (6): Box, Sphere, Cylinder, Torus, Grid, Line
+- [x] Modify (5): Extrude, Subdivide, Noise, Smooth, Bevel
+- [x] Transform (7): Transform, Array, Copy to Points, Mirror, Scatter, ScatterVolume, Align
+- [x] Boolean/Combine (5): Boolean, Merge, Split, PolyExtrude, Remesh
+- [x] Attributes (6): Wrangle, AttributeCreate, AttributeDelete, Color, Normal, UVUnwrap
+- [x] Groups (7): Group, Blast, Sort, GroupPromote, GroupCombine, GroupExpand, GroupTransfer
+- [x] Utility (7): Switch, Null, Output, File, Export, Cache, Time
+- [x] Deformers (3): Bend, Twist, Lattice
 
 ### Node Selection
-- [ ] Click on node selects it (blue highlight)
-- [ ] Ctrl+Click adds to selection
-- [ ] Click on empty area clears selection
-- [ ] Drag box selection works (multiple nodes)
-- [ ] Selected node shows in Property Panel
-- [ ] Multiple selection shows count in status bar
+- [X] Click on node selects it (blue highlight)
+- [X] Ctrl+Click adds to selection
+- [X] Click on empty area clears selection
+- [X] Drag box selection works (multiple nodes)
+- [X] Selected node shows in Property Panel
+- ~~[ ] Multiple selection shows count in status bar~~
 
 ### Node Movement
 - [ ] Can drag nodes with left mouse button
