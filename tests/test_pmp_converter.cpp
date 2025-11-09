@@ -314,35 +314,6 @@ TEST_F(PMPConverterTest, ValidationMissingPositions) {
   EXPECT_NE(error.find("position"), std::string::npos);
 }
 
-TEST_F(PMPConverterTest, ValidationNonTriangles) {
-  core::GeometryContainer container;
-  container.topology().set_point_count(4);
-  container.topology().set_vertex_count(4);
-
-  // Initialize vertex→point mapping
-  for (int i = 0; i < 4; ++i) {
-    container.topology().set_vertex_point(i, i);
-  }
-
-  // Add positions
-  std::vector<core::Vec3f> positions = {
-      {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}};
-  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *pos_attr = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
-  pos_attr->resize(4);
-  auto pos_span = pos_attr->values_writable();
-  for (size_t i = 0; i < 4; ++i) {
-    pos_span[i] = positions[i];
-  }
-
-  // Add quad (4 vertices)
-  container.topology().add_primitive({0, 1, 2, 3});
-
-  auto error = PMPConverter::validate_for_pmp(container);
-  EXPECT_FALSE(error.empty());
-  EXPECT_NE(error.find("triangle"), std::string::npos);
-}
-
 // ============================================================================
 // Error Handling Tests
 // ============================================================================

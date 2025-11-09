@@ -56,30 +56,30 @@ This checklist covers all critical functionality before handing off to your firs
 - [X] No warnings or prompts if scene is already empty
 
 ### Save Scene (.nfg)
-- [ ] File → Save As works on first save
-- [ ] File dialog opens with .nfg filter
-- [ ] Can create new file in any directory
-- [ ] File saves successfully with no errors
-- [ ] Status bar confirms "Scene saved"
-- [ ] File → Save works after first save (no dialog)
+- [X] File → Save As works on first save
+- [x] File dialog opens with .nfg filter
+- [X] Can create new file in any directory
+- [X] File saves successfully with no errors
+- [X] Status bar confirms "Scene saved"
+- [X] File → Save works after first save (no dialog)
 
 ### Load Scene (.nfg)
-- [ ] File → Open shows file dialog with .nfg filter
-- [ ] Can browse to existing .nfg files
-- [ ] Graph loads with all nodes in correct positions
-- [ ] Connections restored correctly
-- [ ] Parameter values preserved
-- [ ] **Expression mode preserved** (M3.3 - blue borders on expression params)
-- [ ] **Combo box widgets restored** (not plain int widgets)
-- [ ] Viewport displays geometry immediately
-- [ ] Status bar updates node count
+- [X] File → Open shows file dialog with .nfg filter
+- [X] Can browse to existing .nfg files
+- [X] Graph loads with all nodes in correct positions
+- [X] Connections restored correctly
+- [X] Parameter values preserved
+- [X] **Expression mode preserved** (M3.3 - blue borders on expression params)
+- [X] **Combo box widgets restored** (not plain int widgets)
+- [X] Viewport displays geometry immediately
+- [X] Status bar updates node count
 
 ### Recent Projects
-- [ ] File → Recent Projects shows last 10 opened files
-- [ ] Items numbered "&1" through "&10"
+- [X] File → Recent Projects shows last 10 opened files
+- [X] Items numbered "&1" through "&10"
 - [ ] Full path shown in tooltip
-- [ ] Selecting item loads that project
-- [ ] List updates when opening new files
+- [X] Selecting item loads that project
+- [X] List updates when opening new files
 - [ ] Missing files show warning and are removed from list
 - [ ] Menu disabled when list is empty
 

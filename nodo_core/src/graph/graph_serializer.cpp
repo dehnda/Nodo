@@ -29,6 +29,11 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
       auto position = node->get_position();
       node_json["position"] = {position.first, position.second};
 
+      // Serialize flags (display, bypass, render)
+      node_json["display_flag"] = node->has_display_flag();
+      node_json["bypass_flag"] = node->is_bypassed();
+      node_json["render_flag"] = node->has_render_flag();
+
       // Serialize parameters
       node_json["parameters"] = json::array();
       const auto &parameters = node->get_parameters();
@@ -195,6 +200,17 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
           float pos_x = node_json["position"][0];
           float pos_y = node_json["position"][1];
           node->set_position(pos_x, pos_y);
+        }
+
+        // Deserialize flags (display, bypass, render)
+        if (node_json.contains("display_flag")) {
+          node->set_display_flag(node_json["display_flag"]);
+        }
+        if (node_json.contains("bypass_flag")) {
+          node->set_bypass(node_json["bypass_flag"]);
+        }
+        if (node_json.contains("render_flag")) {
+          node->set_render_flag(node_json["render_flag"]);
         }
 
         // Deserialize parameters

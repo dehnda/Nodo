@@ -1518,8 +1518,8 @@ TEST_F(GraphSerializationTest, FullGraph_SimpleChain) {
   original.add_connection(sphere_id, 0, transform_id, 0);
   original.add_connection(transform_id, 0, subdivide_id, 0);
 
-  // Note: display_flag serialization not yet implemented
-  // original.set_display_node(subdivide_id);
+  // Set display node
+  original.set_display_node(subdivide_id);
 
   // Serialize to file and back
   std::filesystem::path file_path = test_dir_ / "simple_chain.nfg";
@@ -1748,7 +1748,9 @@ TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
   EXPECT_EQ(execution_order[0], torus_id);
   EXPECT_EQ(execution_order[5], color_id);
 
-  // Note: display_flag and render_flag serialization not yet implemented
+  // Verify flags
+  EXPECT_TRUE(loaded->get_node(color_id)->has_display_flag());
+  EXPECT_TRUE(loaded->get_node(color_id)->has_render_flag());
 
   // Verify parameters survived
   auto twist_angle = loaded->get_node(twist_id)->get_parameter("angle");
@@ -1864,4 +1866,170 @@ TEST_F(GraphSerializationTest, FullGraph_WithGraphParameters) {
   EXPECT_FLOAT_EQ(color_val[0], 0.8f);
   EXPECT_FLOAT_EQ(color_val[1], 0.3f);
   EXPECT_FLOAT_EQ(color_val[2], 0.1f);
+}
+
+// Test node flags serialization (display_flag, bypass_flag, render_flag)
+TEST_F(GraphSerializationTest, NodeFlagsSerialization) {
+  NodeGraph original;
+
+  // Create multiple nodes
+  int sphere_id = original.add_node(NodeType::Sphere, "Sphere");
+  int box_id = original.add_node(NodeType::Box, "Box");
+  int transform_id = original.add_node(NodeType::Transform, "Transform");
+  int merge_id = original.add_node(NodeType::Merge, "Merge");
+
+  // Set different flags on different nodes
+  original.get_node(sphere_id)->set_display_flag(true);
+  original.get_node(box_id)->set_bypass(true);
+  original.get_node(transform_id)->set_render_flag(true);
+
+  // Merge node has no flags set (all false by default)
+
+  // Set positions
+  original.get_node(sphere_id)->set_position(0.0f, 0.0f);
+  original.get_node(box_id)->set_position(300.0f, 0.0f);
+  original.get_node(transform_id)->set_position(0.0f, 300.0f);
+  original.get_node(merge_id)->set_position(300.0f, 300.0f);
+
+  // Serialize to JSON
+  std::string json = GraphSerializer::serialize_to_json(original);
+  EXPECT_FALSE(json.empty());
+
+  // Deserialize
+  auto loaded = GraphSerializer::deserialize_from_json(json);
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify all nodes exist
+  auto *loaded_sphere = loaded->get_node(sphere_id);
+  auto *loaded_box = loaded->get_node(box_id);
+  auto *loaded_transform = loaded->get_node(transform_id);
+  auto *loaded_merge = loaded->get_node(merge_id);
+
+  ASSERT_NE(loaded_sphere, nullptr);
+  ASSERT_NE(loaded_box, nullptr);
+  ASSERT_NE(loaded_transform, nullptr);
+  ASSERT_NE(loaded_merge, nullptr);
+
+  // Verify display_flag
+  EXPECT_TRUE(loaded_sphere->has_display_flag());
+  EXPECT_FALSE(loaded_box->has_display_flag());
+  EXPECT_FALSE(loaded_transform->has_display_flag());
+  EXPECT_FALSE(loaded_merge->has_display_flag());
+
+  // Verify bypass_flag
+  EXPECT_FALSE(loaded_sphere->is_bypassed());
+  EXPECT_TRUE(loaded_box->is_bypassed());
+  EXPECT_FALSE(loaded_transform->is_bypassed());
+  EXPECT_FALSE(loaded_merge->is_bypassed());
+
+  // Verify render_flag
+  EXPECT_FALSE(loaded_sphere->has_render_flag());
+  EXPECT_FALSE(loaded_box->has_render_flag());
+  EXPECT_TRUE(loaded_transform->has_render_flag());
+  EXPECT_FALSE(loaded_merge->has_render_flag());
+}
+
+// Test node flags with file save/load
+TEST_F(GraphSerializationTest, NodeFlagsFileRoundtrip) {
+  NodeGraph original;
+
+  // Create a simple chain with various flags
+  int sphere_id = original.add_node(NodeType::Sphere, "Source");
+  int transform_id = original.add_node(NodeType::Transform, "Middle");
+  int subdivide_id = original.add_node(NodeType::Subdivide, "Output");
+
+  // Configure parameters
+  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 1.5f));
+  original.get_node(transform_id)
+      ->add_parameter(
+          NodeParameter("translate", std::array<float, 3>{0.0f, 2.0f, 0.0f}));
+  original.get_node(subdivide_id)
+      ->add_parameter(NodeParameter("subdivisions", 2));
+
+  // Set positions
+  original.get_node(sphere_id)->set_position(0.0f, 0.0f);
+  original.get_node(transform_id)->set_position(300.0f, 0.0f);
+  original.get_node(subdivide_id)->set_position(600.0f, 0.0f);
+
+  // Connect nodes
+  original.add_connection(sphere_id, 0, transform_id, 0);
+  original.add_connection(transform_id, 0, subdivide_id, 0);
+
+  // Set flags: display on output, render on middle, bypass on none
+  original.set_display_node(subdivide_id);
+  original.get_node(transform_id)->set_render_flag(true);
+
+  // Save to file
+  std::filesystem::path file_path = test_dir_ / "flags_test.nfg";
+  ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
+
+  // Load from file
+  auto loaded = GraphSerializer::load_from_file(file_path.string());
+  ASSERT_TRUE(loaded.has_value());
+
+  // Verify structure
+  EXPECT_EQ(loaded->get_nodes().size(), 3);
+  EXPECT_EQ(loaded->get_connections().size(), 2);
+
+  // Verify flags persisted correctly
+  auto *loaded_sphere = loaded->get_node(sphere_id);
+  auto *loaded_transform = loaded->get_node(transform_id);
+  auto *loaded_subdivide = loaded->get_node(subdivide_id);
+
+  ASSERT_NE(loaded_sphere, nullptr);
+  ASSERT_NE(loaded_transform, nullptr);
+  ASSERT_NE(loaded_subdivide, nullptr);
+
+  // Check display flag
+  EXPECT_FALSE(loaded_sphere->has_display_flag());
+  EXPECT_FALSE(loaded_transform->has_display_flag());
+  EXPECT_TRUE(loaded_subdivide->has_display_flag());
+
+  // Check render flag
+  EXPECT_FALSE(loaded_sphere->has_render_flag());
+  EXPECT_TRUE(loaded_transform->has_render_flag());
+  EXPECT_FALSE(loaded_subdivide->has_render_flag());
+
+  // Check bypass flag (all should be false)
+  EXPECT_FALSE(loaded_sphere->is_bypassed());
+  EXPECT_FALSE(loaded_transform->is_bypassed());
+  EXPECT_FALSE(loaded_subdivide->is_bypassed());
+
+  // Verify parameters also survived
+  auto radius = loaded_sphere->get_parameter("radius");
+  ASSERT_TRUE(radius.has_value());
+  EXPECT_FLOAT_EQ(radius->float_value, 1.5f);
+}
+
+// Test all flags enabled on same node
+TEST_F(GraphSerializationTest, NodeAllFlagsEnabled) {
+  NodeGraph original;
+
+  int node_id = original.add_node(NodeType::Box, "AllFlags");
+  auto *node = original.get_node(node_id);
+  ASSERT_NE(node, nullptr);
+
+  // Enable all three flags
+  node->set_display_flag(true);
+  node->set_bypass(true);
+  node->set_render_flag(true);
+  node->set_position(100.0f, 200.0f);
+
+  // Serialize and deserialize
+  std::string json = GraphSerializer::serialize_to_json(original);
+  auto loaded = GraphSerializer::deserialize_from_json(json);
+  ASSERT_TRUE(loaded.has_value());
+
+  auto *loaded_node = loaded->get_node(node_id);
+  ASSERT_NE(loaded_node, nullptr);
+
+  // All flags should be preserved
+  EXPECT_TRUE(loaded_node->has_display_flag());
+  EXPECT_TRUE(loaded_node->is_bypassed());
+  EXPECT_TRUE(loaded_node->has_render_flag());
+
+  // Position should also be preserved
+  auto pos = loaded_node->get_position();
+  EXPECT_FLOAT_EQ(pos.first, 100.0f);
+  EXPECT_FLOAT_EQ(pos.second, 200.0f);
 }

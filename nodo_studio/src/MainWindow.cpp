@@ -511,14 +511,104 @@ void MainWindow::onNewScene() {
 
 void MainWindow::onOpenScene() {
   scene_file_manager_->openScene();
-  // TODO: Handle the graph loading through signals/callbacks
+
+  // Clear UI elements after loading
+  property_panel_->clearProperties();
+  viewport_widget_->clearMesh();
+  geometry_spreadsheet_->clear();
+
+  // Update status bar
+  status_bar_widget_->setNodeCount(node_graph_->get_nodes().size());
+  status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
+
+  // Update window title with filename
+  QString filename = scene_file_manager_->getCurrentFilePath();
+  if (!filename.isEmpty()) {
+    QFileInfo fileInfo(filename);
+    setWindowTitle("Nodo Studio - " + fileInfo.fileName());
+  }
+
+  // Find and execute the node with the display flag
+  if (node_graph_) {
+    // Collect nodes that need wireframe overlays restored
+    pending_wireframe_node_ids_.clear();
+    for (const auto &node : node_graph_->get_nodes()) {
+      if (node->has_render_flag()) {
+        pending_wireframe_node_ids_.append(node->get_id());
+      }
+    }
+
+    // Execute display node - wireframe overlays will be restored after
+    // execution completes
+    for (const auto &node : node_graph_->get_nodes()) {
+      if (node->has_display_flag()) {
+        executeAndDisplayNode(node->get_id());
+        break;
+      }
+    }
+  }
 }
 
-void MainWindow::onSaveScene() { scene_file_manager_->saveScene(); }
+void MainWindow::onSaveScene() {
+  bool success = scene_file_manager_->saveScene();
+  if (success) {
+    QString filename = scene_file_manager_->getCurrentFilePath();
+    QFileInfo fileInfo(filename);
+    status_bar_widget_->setStatus(
+        StatusBarWidget::Status::Ready,
+        QString("Saved: %1").arg(fileInfo.fileName()));
 
-void MainWindow::onSaveSceneAs() { scene_file_manager_->saveSceneAs(); }
+    // Update window title to remove any modified indicator
+    setWindowTitle("Nodo Studio - " + fileInfo.fileName());
+  }
+}
 
-void MainWindow::onRevertToSaved() { scene_file_manager_->revertToSaved(); }
+void MainWindow::onSaveSceneAs() {
+  bool success = scene_file_manager_->saveSceneAs();
+  if (success) {
+    QString filename = scene_file_manager_->getCurrentFilePath();
+    QFileInfo fileInfo(filename);
+    status_bar_widget_->setStatus(
+        StatusBarWidget::Status::Ready,
+        QString("Saved: %1").arg(fileInfo.fileName()));
+
+    // Update window title with new filename
+    setWindowTitle("Nodo Studio - " + fileInfo.fileName());
+  }
+}
+
+void MainWindow::onRevertToSaved() {
+  scene_file_manager_->revertToSaved();
+
+  // Clear UI elements after reverting
+  property_panel_->clearProperties();
+  viewport_widget_->clearMesh();
+  geometry_spreadsheet_->clear();
+
+  // Update status bar
+  status_bar_widget_->setNodeCount(node_graph_->get_nodes().size());
+  status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
+
+  // Find and execute the node with the display flag
+  if (node_graph_) {
+    // Collect nodes that need wireframe overlays restored
+    pending_wireframe_node_ids_.clear();
+    for (const auto &node : node_graph_->get_nodes()) {
+      if (node->has_render_flag()) {
+        pending_wireframe_node_ids_.append(node->get_id());
+      }
+    }
+
+    // Execute display node - wireframe overlays will be restored after
+    // execution completes
+    for (const auto &node : node_graph_->get_nodes()) {
+      if (node->has_display_flag()) {
+        executeAndDisplayNode(node->get_id());
+        break;
+      }
+    }
+  }
+}
 
 void MainWindow::onImportGeometry() { scene_file_manager_->importGeometry(); }
 
@@ -976,6 +1066,18 @@ void MainWindow::onExecutionFinished() {
     }
   } else {
     statusBar()->showMessage("Graph execution failed", 2000);
+  }
+
+  // Restore wireframe overlays for pending nodes (after scene load)
+  if (!pending_wireframe_node_ids_.isEmpty() && success) {
+    for (int wireframe_node_id : pending_wireframe_node_ids_) {
+      auto geometry = execution_engine_->get_node_geometry(wireframe_node_id);
+      if (geometry) {
+        viewport_widget_->addWireframeOverlay(wireframe_node_id, *geometry);
+        qDebug() << "Restored wireframe overlay for node" << wireframe_node_id;
+      }
+    }
+    pending_wireframe_node_ids_.clear();
   }
 }
 
@@ -1542,9 +1644,14 @@ void MainWindow::openRecentFile() {
       graph_parameters_panel_->set_graph(node_graph_.get());
       graph_parameters_panel_->refresh();
 
-      // Clear viewport
+      // Clear viewport and property panel
       viewport_widget_->clearMesh();
       property_panel_->clearProperties();
+      geometry_spreadsheet_->clear();
+
+      // Update status bar
+      status_bar_widget_->setNodeCount(node_graph_->get_nodes().size());
+      status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
 
       // Set current file path in SceneFileManager so Save works correctly
       scene_file_manager_->setCurrentFilePath(filename);
@@ -1559,6 +1666,23 @@ void MainWindow::openRecentFile() {
 
       // Add to recent files
       addToRecentFiles(filename);
+
+      // Collect nodes that need wireframe overlays restored
+      pending_wireframe_node_ids_.clear();
+      for (const auto &node : node_graph_->get_nodes()) {
+        if (node->has_render_flag()) {
+          pending_wireframe_node_ids_.append(node->get_id());
+        }
+      }
+
+      // Find and execute the node with the display flag
+      // Wireframe overlays will be restored after execution completes
+      for (const auto &node : node_graph_->get_nodes()) {
+        if (node->has_display_flag()) {
+          executeAndDisplayNode(node->get_id());
+          break;
+        }
+      }
 
       statusBar()->showMessage("Graph loaded successfully", 3000);
     } else {

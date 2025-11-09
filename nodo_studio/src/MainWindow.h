@@ -104,6 +104,8 @@ private:
   // Async execution tracking
   QFutureWatcher<bool> *execution_watcher_;
   int pending_display_node_id_;
+  QVector<int> pending_wireframe_node_ids_; // Nodes to restore wireframe
+                                            // overlays after execution
 
   // Undo/Redo system
   std::unique_ptr<nodo::studio::UndoStack> undo_stack_;

@@ -869,8 +869,10 @@ void NodeGraphWidget::create_node_item(int node_id) {
   auto [x, y] = node->get_position();
   item->setPos(x, y);
 
-  // Sync display flag from backend
+  // Sync flags from backend
   item->set_display_flag(node->has_display_flag());
+  item->set_bypass_flag(node->is_bypassed());
+  item->set_wireframe_flag(node->has_render_flag());
 
   // Add to scene and tracking
   scene_->addItem(item);
@@ -1655,12 +1657,28 @@ void NodeGraphWidget::on_scene_selection_changed() {
 
 void NodeGraphWidget::on_node_display_flag_changed(int node_id,
                                                    bool display_flag) {
+  // Update the backend node's display flag
+  if (graph_ != nullptr) {
+    auto *node = graph_->get_node(node_id);
+    if (node != nullptr) {
+      node->set_display_flag(display_flag);
+    }
+  }
+
   // Emit signal so MainWindow can update the viewport
   emit node_display_flag_changed(node_id, display_flag);
 }
 
 void NodeGraphWidget::on_node_wireframe_flag_changed(int node_id,
                                                      bool wireframe_flag) {
+  // Update the backend node's render flag
+  if (graph_ != nullptr) {
+    auto *node = graph_->get_node(node_id);
+    if (node != nullptr) {
+      node->set_render_flag(wireframe_flag);
+    }
+  }
+
   // Emit signal so MainWindow can update the viewport with wireframe overlay
   emit node_wireframe_flag_changed(node_id, wireframe_flag);
 }

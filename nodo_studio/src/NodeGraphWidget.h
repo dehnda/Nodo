@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDebug>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtWidgets/QGraphicsItem>

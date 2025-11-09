@@ -31,8 +31,8 @@ public:
   // Scene operations
   void newScene();
   void openScene();
-  void saveScene();
-  void saveSceneAs();
+  bool saveScene();
+  bool saveSceneAs();
   void revertToSaved();
 
   // Import/Export
