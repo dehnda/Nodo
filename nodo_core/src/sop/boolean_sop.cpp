@@ -36,25 +36,22 @@ container_to_mesh(const core::GeometryContainer &container) {
     }
 
     // Triangulate based on polygon size
-    // IMPORTANT: Reverse winding order to fix negative volume issue
-    // (GeometryContainer stores faces in clockwise order, but Manifold expects
-    // counter-clockwise)
+    // Use NORMAL winding order (counter-clockwise when viewed from outside)
     if (point_indices.size() == 3) {
-      // Already a triangle - reverse winding
-      triangle_list.emplace_back(point_indices[2], point_indices[1],
-                                 point_indices[0]);
+      // Already a triangle
+      triangle_list.emplace_back(point_indices[0], point_indices[1],
+                                 point_indices[2]);
     } else if (point_indices.size() == 4) {
-      // Quad: split into two triangles using diagonal split, with reversed
-      // winding
-      triangle_list.emplace_back(point_indices[2], point_indices[1],
-                                 point_indices[0]);
-      triangle_list.emplace_back(point_indices[3], point_indices[2],
-                                 point_indices[0]);
+      // Quad: split into two triangles using diagonal split
+      triangle_list.emplace_back(point_indices[0], point_indices[1],
+                                 point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[2],
+                                 point_indices[3]);
     } else if (point_indices.size() > 4) {
-      // N-gon: use fan triangulation from first vertex, with reversed winding
+      // N-gon: use fan triangulation from first vertex
       for (size_t i = 1; i + 1 < point_indices.size(); ++i) {
-        triangle_list.emplace_back(point_indices[i + 1], point_indices[i],
-                                   point_indices[0]);
+        triangle_list.emplace_back(point_indices[0], point_indices[i],
+                                   point_indices[i + 1]);
       }
     }
   }

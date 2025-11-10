@@ -250,6 +250,11 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
                 << mesh_b.NumTri() << " = " << result.NumTri()
                 << " triangles (raw)" << std::endl;
 
+      // Check if the result is actually manifold and has proper genus
+      std::cout << "  Raw result status: " << static_cast<int>(result.Status())
+                << ", genus: " << result.Genus()
+                << ", volume: " << result.Volume() << std::endl;
+
       // Try AsOriginal() to resolve the mesh (genus -1 indicates non-manifold
       // intermediate)
       result = result.AsOriginal();
@@ -257,7 +262,9 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
                 << std::endl;
       std::cout << "  Result genus: " << result.Genus()
                 << ", NumVert: " << result.NumVert()
-                << ", NumEdge: " << result.NumEdge() << std::endl;
+                << ", NumEdge: " << result.NumEdge()
+                << ", Status: " << static_cast<int>(result.Status())
+                << ", Volume: " << result.Volume() << std::endl;
 
       // Expected: A difference should have MORE triangles than A alone
       // because it includes interior cavity faces
@@ -267,6 +274,12 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
         std::cout << "  This suggests interior faces are missing!" << std::endl;
       } else {
         std::cout << "  ✓ Result has more triangles (includes cavity surfaces)"
+                  << std::endl;
+      }
+
+      // Check if volume is positive (correct orientation)
+      if (result.Volume() < 0) {
+        std::cout << "  ⚠️  WARNING: Result has NEGATIVE volume - inside out!"
                   << std::endl;
       }
       break;

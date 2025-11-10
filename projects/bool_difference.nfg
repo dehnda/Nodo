@@ -1,0 +1,251 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 3,
+      "target_pin": 1
+    }
+  ],
+  "graph_parameters": [],
+  "nodes": [
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 1,
+      "name": "box",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Universal",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Primitive Type",
+          "name": "primitive_type",
+          "string_options": [
+            "Polygon",
+            "Points"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Width",
+          "name": "width",
+          "type": "float",
+          "value": 1.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Height",
+          "name": "height",
+          "type": "float",
+          "value": 2.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Depth",
+          "name": "depth",
+          "type": "float",
+          "value": 2.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Width Segments",
+          "name": "width_segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Height Segments",
+          "name": "height_segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Depth Segments",
+          "name": "depth_segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -162.0,
+        -207.0
+      ],
+      "render_flag": false,
+      "type": "Box"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 2,
+      "name": "box1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Universal",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Primitive Type",
+          "name": "primitive_type",
+          "string_options": [
+            "Polygon",
+            "Points"
+          ],
+          "type": "int",
+          "value": 0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Width",
+          "name": "width",
+          "type": "float",
+          "value": 2.0,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Height",
+          "name": "height",
+          "type": "float",
+          "value": 0.5,
+          "value_mode": 0
+        },
+        {
+          "category": "Size",
+          "float_max": 100.0,
+          "float_min": 0.009999999776482582,
+          "label": "Depth",
+          "name": "depth",
+          "type": "float",
+          "value": 0.5,
+          "value_mode": 0
+        },
+        {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Width Segments",
+          "name": "width_segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Height Segments",
+          "name": "height_segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        },
+        {
+          "category": "Subdivisions",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Depth Segments",
+          "name": "depth_segments",
+          "type": "int",
+          "value": 1,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        145.0,
+        -201.0
+      ],
+      "render_flag": false,
+      "type": "Box"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": true,
+      "id": 3,
+      "name": "boolean",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "value": "",
+          "value_mode": 0
+        },
+        {
+          "category": "Boolean",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Operation",
+          "name": "operation",
+          "string_options": [
+            "Union",
+            "Intersection",
+            "Difference"
+          ],
+          "type": "int",
+          "value": 2,
+          "value_mode": 0
+        }
+      ],
+      "position": [
+        -26.0,
+        59.0
+      ],
+      "render_flag": false,
+      "type": "Boolean"
+    }
+  ],
+  "version": "1.0"
+}
