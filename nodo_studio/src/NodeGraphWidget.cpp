@@ -732,6 +732,33 @@ NodeGraphWidget::NodeGraphWidget(QWidget *parent)
           this, &NodeGraphWidget::on_node_menu_selected);
 }
 
+NodeGraphWidget::~NodeGraphWidget() {
+  // Guard so child item callbacks can early‑out
+  destroying_ = true;
+
+  // Disconnect scene selection signal explicitly (QObject parent relationship
+  // will handle others, but we are defensive due to prior assert involving
+  // stale receivers)
+  if (scene_ != nullptr) {
+    QObject::disconnect(scene_, &QGraphicsScene::selectionChanged, this,
+                        &NodeGraphWidget::on_scene_selection_changed);
+  }
+
+  // Explicitly clear items to ensure their destructors run before ours fully
+  // finishes; suppress any signals during this phase
+  if (scene_ != nullptr) {
+    scene_->blockSignals(true);
+    scene_->clear();
+    scene_->blockSignals(false);
+  }
+
+  node_items_.clear();
+  connection_items_.clear();
+  selected_nodes_.clear();
+  selection_rect_ = nullptr;
+  temp_connection_line_ = nullptr;
+}
+
 void NodeGraphWidget::set_graph(nodo::graph::NodeGraph *graph) {
   graph_ = graph;
   rebuild_from_graph();
@@ -815,9 +842,14 @@ void NodeGraphWidget::update_node_parameters(int node_id) {
 }
 
 void NodeGraphWidget::rebuild_from_graph() {
-  // Block signals during rebuild to prevent crashes from selection changed
-  // signals when items are being deleted/recreated
+  // Block and temporarily disconnect selection signals during rebuild to avoid
+  // queued signal deliveries targeting deleted QGraphicsItems or this widget.
+  if (destroying_) {
+    return; // Skip rebuild during teardown
+  }
   scene_->blockSignals(true);
+  QObject::disconnect(scene_, &QGraphicsScene::selectionChanged, this,
+                      &NodeGraphWidget::on_scene_selection_changed);
 
   // Clear existing visual items
   scene_->clear();
@@ -845,8 +877,12 @@ void NodeGraphWidget::rebuild_from_graph() {
     create_connection_item(connection.id);
   }
 
-  // Re-enable signals after rebuild is complete
-  scene_->blockSignals(false);
+  // Re-enable signals after rebuild is complete and reconnect handler
+  if (!destroying_) {
+    scene_->blockSignals(false);
+    QObject::connect(scene_, &QGraphicsScene::selectionChanged, this,
+                     &NodeGraphWidget::on_scene_selection_changed);
+  }
 }
 
 void NodeGraphWidget::create_node_item(int node_id) {

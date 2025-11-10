@@ -50,6 +50,7 @@ add_executable(nodo_tests
     test_noise_displacement.cpp
     test_wrangle_sop.cpp
     test_sop_group_filtering.cpp
+    test_bevel_sop.cpp
 
     # Import/Export
     test_obj_export.cpp

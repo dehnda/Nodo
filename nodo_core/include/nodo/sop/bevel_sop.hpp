@@ -3,6 +3,7 @@
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -22,13 +23,22 @@ public:
   static constexpr int DEFAULT_SEGMENTS = 1;
   static constexpr float DEFAULT_PROFILE = 0.5F;
 
-  enum class BevelType {
-    Vertex = 0, // Bevel vertices (corners)
-    Edge = 1,   // Bevel edges
-    Face = 2    // Bevel faces (inset)
+  enum class BevelType : std::uint8_t {
+    Vertex = 0,    // Bevel vertices (corners)
+    Edge = 1,      // Bevel edges
+    Face = 2,      // Bevel faces (inset)
+    EdgeVertex = 3 // Combined: edges + stitched vertex corners
   };
 
-  enum class LimitMethod {
+  // Corner patch topology when in Vertex mode
+  enum class CornerStyle : std::uint8_t {
+    ApexFan = 0, // Current behavior: apex vertex + fan + ring quads
+    RingStart =
+        1,   // Remove apex fan; start patch at first ring (n-gon or quads)
+    Grid = 2 // (Planned) Grid style spherical-ish patch (segments^2 like)
+  };
+
+  enum class LimitMethod : std::uint8_t {
     None = 0,  // No limit
     Angle = 1, // Limit by angle
     Weight = 2 // Limit by edge weight

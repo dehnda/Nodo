@@ -239,6 +239,7 @@ class NodeGraphWidget : public QGraphicsView {
 
 public:
   explicit NodeGraphWidget(QWidget *parent = nullptr);
+  ~NodeGraphWidget() override; // Ensure proper teardown of scene/items
 
   // Graph management
   void set_graph(nodo::graph::NodeGraph *graph);
@@ -304,6 +305,9 @@ public:
 
   // Called by NodeGraphicsItem when pass-through button is clicked
   void on_node_pass_through_flag_changed(int node_id, bool pass_through_flag);
+
+  // Lifecycle query used by child items to avoid calling back during teardown
+  bool is_being_destroyed() const { return destroying_; }
 
 signals:
   void node_selected(int node_id);
@@ -404,4 +408,7 @@ private:
   // Grid drawing
   void draw_grid(QPainter *painter, const QRectF &rect);
   void draw_watermark_logo(QPainter *painter, const QRectF &rect);
+
+  // Destruction guard flag
+  bool destroying_ = false;
 };
