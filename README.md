@@ -43,10 +43,10 @@ See **[ROADMAP.md](ROADMAP.md)** for the complete development plan including:
 - Future engine integration plans (Godot/Unity/Unreal)
 - Decision points and success metrics
 
-See **[CLAUDE.md](CLAUDE.md)** for technical documentation:
-- Architecture guide and code style
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for technical documentation:
+- Code style guide and formatting
 - How to add new SOP nodes
-- Implementation details
+- Build instructions and testing
 
 **Current Focus (October 2025)**: Backend parameter system + property panel UI for all 44 nodes.
 
@@ -181,22 +181,25 @@ tests/              # Unit tests (44 passing tests)
 
 ## 📋 Project Documentation
 
-All comprehensive documentation is consolidated in **[CLAUDE.md](CLAUDE.md)**:
+Comprehensive documentation is available:
 
-- ✅ What's actually implemented (17 SOP nodes, Qt Studio, etc.)
-- ❌ What's missing (GPU shaders, file formats, advanced features)
-- 🎯 Clear development roadmap
-- 🏗️ Architecture guide
-- 📝 Code style and contribution guidelines
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Code style, architecture, and how to contribute
+- **[ROADMAP.md](ROADMAP.md)** - Development roadmap and future plans
+- **[docs/](docs/)** - Technical documentation and guides
 
 ## 🤝 Contributing
 
-Nodo is currently proprietary software. For collaboration opportunities or feature requests, please contact the developer.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Code style guidelines
+- Development workflow
+- How to submit pull requests
+- Testing requirements
+
+For bug reports and feature requests, please use [GitHub Issues](https://github.com/dehnda/Nodo/issues).
 
 ## 📄 License
 
-Proprietary Software - All Rights Reserved
-Copyright (c) 2025 Daniel Dehne
+MIT License - Copyright (c) 2025 Daniel Dehne
 
-This is proprietary software. See LICENSE file for terms of use.
-Third-party components used under their respective licenses (see THIRD_PARTY_LICENSES.txt).
+This project is open source and free to use. See [LICENSE](LICENSE) for full details.
+Third-party components are used under their respective licenses (see [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt)).

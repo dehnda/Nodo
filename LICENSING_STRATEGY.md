@@ -85,7 +85,7 @@ All dependencies are **commercial-friendly**:
 
 ### What You CANNOT Distribute
 - Source code (.cpp, .hpp files)
-- Internal development documentation (CLAUDE.md)
+- Internal development documentation (CONTRIBUTING.md)
 - CMake build files
 - Test suite
 - Git history
@@ -158,7 +158,7 @@ Before making public:
 - [x] Add THIRD_PARTY_LICENSES.txt (done)
 - [ ] Update README to remove open-source language
 - [ ] Add copyright headers to major source files (optional)
-- [ ] Update CLAUDE.md to note proprietary status
+- [X] Updated documentation to reflect MIT License open source status
 
 ### Short Term (Before Distribution)
 - [ ] Decide on pricing model
@@ -195,7 +195,7 @@ Before making public:
 ## 📧 Contact & Questions
 
 For legal questions: Consult a software licensing attorney
-For business questions: Daniel Dehne - [danny.dehne@gmail.com]
+For project questions: https://github.com/dehnda/Nodo/issues
 
 ## 📚 Resources
 

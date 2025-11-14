@@ -99,8 +99,8 @@
 - Understanding project structure
 - Looking for code examples
 
-### [../CLAUDE.md](../CLAUDE.md)
-**Technical documentation and context**
+### [../CONTRIBUTING.md](../CONTRIBUTING.md)
+**Role**: Technical documentation for contributors and developers
 - Architecture details
 - Code style guide
 - How to add new SOP nodes
@@ -146,7 +146,7 @@
 | **Look up a node** | [Node index](README.md) |
 | **Add backend parameters** | [Implementation plan](PROPERTY_PANEL_IMPLEMENTATION_PLAN.md#phase-1-backend-parameter-audit--completion-week-1-2) |
 | **Build UI widgets** | [Implementation plan](PROPERTY_PANEL_IMPLEMENTATION_PLAN.md#phase-2-reusable-ui-component-library-week-3-4) |
-| **Understand architecture** | [CLAUDE.md](../CLAUDE.md) |
+| **Understand architecture** | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | **Set up dev environment** | [Main README](../README.md) |
 | **Universal parameters** | [universal_parameters_reference.html](universal_parameters_reference.html) |
 
@@ -158,7 +158,7 @@
 Nodo/
 ├── ROADMAP.md                    # Strategic plan (START HERE)
 ├── README.md                     # Project overview
-├── CLAUDE.md                     # Technical docs
+├── CONTRIBUTING.md               # Technical docs & code style
 ├── LICENSING_STRATEGY.md         # Business/licensing
 ├── BUILD_WINDOWS.md              # Platform-specific build
 │
@@ -179,8 +179,8 @@ Nodo/
 
 ## 🎯 Current Sprint (October 2025)
 
-**Phase:** Phase 1, Milestone M1.1  
-**Task:** Backend parameter audit and implementation  
+**Phase:** Phase 1, Milestone M1.1
+**Task:** Backend parameter audit and implementation
 **Focus:** Add universal parameters + complete parameter definitions
 
 **Active Documents:**

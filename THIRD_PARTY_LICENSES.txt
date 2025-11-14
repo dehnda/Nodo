@@ -198,7 +198,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 END OF THIRD-PARTY LICENSES
 ================================================================================
 
-For questions about these licenses or compliance, contact:
-Daniel Dehne - [danny.dehne@gmail.com]
+For questions about these licenses or compliance:
+https://github.com/dehnda/Nodo/issues
 
 Last updated: October 29, 2025

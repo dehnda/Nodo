@@ -262,7 +262,7 @@ Nodo is in active beta testing. Expect frequent updates and new features.
 
 ## License
 
-Nodo is proprietary software. See the End User License Agreement included with the software for terms and conditions.
+Nodo is open source software released under the MIT License. See the [LICENSE](https://github.com/dehnda/Nodo/blob/main/LICENSE) file for details.
 
 ---
 

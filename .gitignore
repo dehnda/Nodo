@@ -26,6 +26,9 @@ vcpkg/
 vcpkg_installed/
 .vcpkg-root
 
+# Vercel (using GitHub Pages instead)
+.vercel/
+
 # Dependencies
 _deps/
 third_party/*/
@@ -94,10 +97,24 @@ desktop.ini
 gmon.out
 bb.out
 
-
 # Backup files
 *.bak
 *.backup
+
+# Log files
+*.log
+
+# CSV data files
+*.csv
+
+# Python virtual environment
+venv/
+env/
+.venv/
+
+# Output directories
+out/
+output/
 *~
 
 # Temporary files

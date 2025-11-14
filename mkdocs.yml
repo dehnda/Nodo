@@ -65,6 +65,8 @@ nav:
       - Smooth: nodes/modifier/smooth_(laplacian).md
       - Noise Displacement: nodes/modifier/noise_displacement.md
       - Bevel: nodes/modifier/bevel.md
+      - Remesh: nodes/modifier/remesh.md
+      - Resample: nodes/modifier/resample.md
     - Transform:
       - Transform: nodes/modifier/transform.md
       - Array: nodes/array/array.md
@@ -93,6 +95,7 @@ nav:
       - Group Combine: nodes/group/group_combine.md
       - Group Expand: nodes/group/group_expand.md
       - Group Transfer: nodes/group/group_transfer.md
+      - Group Delete: nodes/group/group_delete.md
     - Deformers:
       - Bend: nodes/modifier/bend.md
       - Twist: nodes/modifier/twist.md
@@ -101,6 +104,8 @@ nav:
       - Switch: nodes/utility/switch.md
       - Null: nodes/utility/null.md
       - Output: nodes/utility/output.md
+      - Cache: nodes/utility/cache.md
+      - Time: nodes/utility/time.md
       - File: nodes/io/file.md
       - Export: nodes/io/export.md
 
