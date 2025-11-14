@@ -224,8 +224,8 @@
 **Deliverable:** Plugin-ready architecture with zero studio impact ✅ COMPLETE
 
 **Implementation Details:**
-- Created `/home/daniel/projects/Nodo/nodo_core/include/nodo_core/IHostInterface.h`
-- Created `/home/daniel/projects/Nodo/nodo_core/src/IHostInterface.cpp`
+- Created `nodo_core/include/nodo_core/IHostInterface.h`
+- Created `nodo_core/src/IHostInterface.cpp`
 - Added `set_host_interface()` and `get_host_interface()` to ExecutionEngine
 - Integrated host callbacks in `notify_progress()` and `notify_error()`
 - Zero overhead when `host_interface_` is nullptr
@@ -242,8 +242,8 @@
 **Deliverable:** Batch processing and automation support ✅ COMPLETE
 
 **Implementation Details:**
-- Created `/home/daniel/projects/Nodo/nodo_cli/main.cpp` (247 lines)
-- Created `/home/daniel/projects/Nodo/nodo_cli/CMakeLists.txt`
+- Created `nodo_cli/main.cpp` (247 lines)
+- Created `nodo_cli/CMakeLists.txt`
 - Added `NODO_BUILD_CLI` option to main CMakeLists.txt
 - `CLIHostInterface` with terminal progress bars (50-char width)
 - Successfully tested with `Simple_A.nfg` (482 points, 6ms) and `copy_to_points.nfg` (800 points, 6ms)
@@ -268,8 +268,8 @@
 - Zero redundant computations
 
 **Implementation Details:**
-- Created `/home/daniel/projects/Nodo/nodo_core/include/nodo/performance/profiler.hpp` - Profiling utilities
-- Created `/home/daniel/projects/Nodo/nodo_core/src/benchmark/performance_benchmark.cpp` - Benchmark tool
+- Created `nodo_core/include/nodo/performance/profiler.hpp` - Profiling utilities
+- Created `nodo_core/src/benchmark/performance_benchmark.cpp` - Benchmark tool
 - Validated existing cache system works excellently:
   - `ExecutionEngine::geometry_cache_` stores results per node
   - `GraphNode::needs_update_` dirty flag prevents re-execution
@@ -417,8 +417,8 @@ Implementation completed:
 - [x] Unknown symbol resolver for flexible variable support ✅
 
 **Implementation Details:**
-- Created `/home/daniel/projects/Nodo/nodo_core/include/nodo/expressions/ExpressionEvaluator.h`
-- Created `/home/daniel/projects/Nodo/nodo_core/src/expressions/ExpressionEvaluator.cpp`
+- Created `nodo_core/include/nodo/expressions/ExpressionEvaluator.h`
+- Created `nodo_core/src/expressions/ExpressionEvaluator.cpp`
 - Integrated exprtk with custom function support for geometry operations
 - Added comprehensive unit tests in `tests/test_expression_evaluator.cpp`
 - WrangleSOP refactored to use unified ExpressionEvaluator
