@@ -83,67 +83,32 @@ int main() {
 
 ## 🛠️ Build Instructions
 
-### Prerequisites
-- **CMake 3.20+**
-- **C++20 compatible compiler** (GCC 11+, Clang 12+, MSVC 2022+)
-- **Conan 2.x** for dependency management
-- **Python 3.8+** (for Conan)
-
-### Setup & Build
+### Quick Start
 
 ```bash
-# 1. Install Conan (if not already installed)
+# 1. Install Conan
 pip install "conan>=2.0"
 
-# 2. Clone the repository
+# 2. Clone and build
 git clone https://github.com/dehnda/nodo.git
 cd nodo
-
-# 3. Install dependencies with Conan
-conan install . --output-folder=build --build=missing
-
-# 4. Configure and build with CMake
+conan install . --build=missing
 cmake --preset conan-debug
-cmake --build build --parallel
+cmake --build --preset conan-debug --parallel
 
-# 5. Run tests to verify installation
-./build/tests/nodo_tests
-
-# 6. Run examples
-./build/examples/basic_union
-./build/examples/complete_node_system
-./build/examples/gpu_accelerated_demo
+# 3. Run the application
+./build/Debug/nodo_studio/nodo_studio
 ```
 
-### Dependencies (Managed by Conan)
-- **Eigen3 3.4.0** - Linear algebra operations
-- **CGAL 5.6.1** - Computational geometry algorithms
-- **GLFW 3.4** - OpenGL window management
-- **GLEW 2.2.0** - OpenGL extension loading
-- **Google Test 1.14.0** - Testing framework
-- **fmt 10.2.1** - String formatting
-- **GMP/MPFR** - Multiple precision arithmetic
+### Full Build Documentation
 
-All dependencies are automatically resolved and built by Conan.
-
-### Troubleshooting
-
-**CMakePresets.json not found:**
-```bash
-# Re-run Conan install to regenerate presets
-conan install . --output-folder=build --build=missing
-```
-
-**Dependency conflicts:**
-```bash
-# Clean and rebuild dependencies
-rm -rf build
-conan install . --output-folder=build --build=missing
-```
-
-**GPU examples require OpenGL:**
-- Ensure graphics drivers are installed
-- For headless systems, use virtual displays or Mesa software rendering
+See **[BUILD.md](BUILD.md)** for complete instructions including:
+- Platform-specific setup (Linux, macOS, Windows)
+- Debug vs Release configurations
+- Enabling tests
+- Troubleshooting common issues
+- VS Code integration
+- Windows release packaging
 
 ### VS Code Integration
 

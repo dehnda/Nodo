@@ -158,9 +158,9 @@
 Nodo/
 ├── ROADMAP.md                    # Strategic plan (START HERE)
 ├── README.md                     # Project overview
+├── BUILD.md                      # Build instructions (all platforms)
 ├── CONTRIBUTING.md               # Technical docs & code style
 ├── LICENSING_STRATEGY.md         # Business/licensing
-├── BUILD_WINDOWS.md              # Platform-specific build
 │
 └── docs/
     ├── NAVIGATION.md             # This file
