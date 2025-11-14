@@ -16,7 +16,7 @@ namespace nodo::core {
  *
  * Combines ElementTopology (structure) with AttributeSets (data) to represent
  * a complete procedural geometry. This is the main data container used
- * throughout the NodeFlux pipeline.
+ * throughout the Nodo pipeline.
  *
  * Architecture:
  * - ElementTopology: Point/Vertex/Primitive structure (who connects to whom)

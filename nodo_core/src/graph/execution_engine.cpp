@@ -1,5 +1,5 @@
 /**
- * NodeFlux Engine - Graph Execution Engine Implementation
+ * Nodo - Graph Execution Engine Implementation
  */
 
 #include "nodo/graph/execution_engine.hpp"

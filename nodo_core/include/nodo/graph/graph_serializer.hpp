@@ -1,5 +1,5 @@
 /**
- * NodeFlux Engine - Graph Serialization
+ * Nodo - Graph Serialization
  * JSON serialization/deserialization for node graphs
  */
 

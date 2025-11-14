@@ -25,7 +25,7 @@ $RepoRoot = Resolve-Path (Join-Path $ScriptDir '..' '..' '..')
 Push-Location $RepoRoot
 try {
   Write-Host "[*] Conan install ($Configuration) with tests enabled..." -ForegroundColor Cyan
-  conan install . --output-folder=build/windows -s build_type=$Configuration -o nodefluxengine/*:with_tests=True --build=missing | Out-Host
+  conan install . --output-folder=build/windows -s build_type=$Configuration -o nodo/*:with_tests=True --build=missing | Out-Host
 
   Write-Host "[*] CMake configure (preset: conan-default)..." -ForegroundColor Cyan
   cmake --preset conan-default | Out-Host
@@ -33,8 +33,8 @@ try {
   Write-Host "[*] Build and run tests (target: verify-release)..." -ForegroundColor Cyan
   cmake --build --preset "conan-$($Configuration.ToLower())" --target verify-release -- /m:1 | Out-Host
 
-  Write-Host "[*] Build Studio (nodeflux_studio)..." -ForegroundColor Cyan
-  cmake --build --preset "conan-$($Configuration.ToLower())" --target nodeflux_studio -- /m:1 | Out-Host
+  Write-Host "[*] Build Studio (nodo_studio)..." -ForegroundColor Cyan
+  cmake --build --preset "conan-$($Configuration.ToLower())" --target nodo_studio -- /m:1 | Out-Host
 
   if ($WithDeploy) {
       Write-Host "[*] Deploying and running Studio (deploy-windows + run-studio-deploy)..." -ForegroundColor Cyan

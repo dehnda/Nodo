@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
       "Fusion")); // Fusion style works best with dark themes
 
   // Set application metadata (shows in window title, about dialogs, etc.)
-  app.setApplicationName("NodeFlux Studio");
-  app.setApplicationVersion("1.0.0");
-  app.setOrganizationName("NodeFlux Labs");
+  app.setApplicationName("Nodo Studio");
+  app.setApplicationVersion("0.1.0");
+  app.setOrganizationName("Nodo");
 
   // Create and show the main window
   MainWindow window;

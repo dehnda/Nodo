@@ -37,7 +37,7 @@ std::string PerformanceBenchmark::BenchmarkSuite::generate_report() const {
   std::ostringstream report;
   report << std::fixed << std::setprecision(3);
 
-  report << "=== NodeFlux Engine Performance Benchmark Report ===\n";
+  report << "=== Nodo Performance Benchmark Report ===\n";
   auto timestamp_time_t = std::chrono::system_clock::to_time_t(timestamp);
   report << "Timestamp: "
          << std::put_time(std::localtime(&timestamp_time_t),

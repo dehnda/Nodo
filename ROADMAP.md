@@ -1,18 +1,17 @@
 # Nodo Development Roadmap
 
-**Last Updated:** October 31, 2025
 **Vision:** Professional procedural modeling tool with future engine integration capability
 
 ---
 
 ## 🎯 Strategic Goals
 
-### Short-term (2025-2026)
+### Short-term
 - Ship production-ready standalone application (Nodo Studio)
 - Establish stable core API for future extensibility
 - Build artist-friendly UI with 44+ procedural nodes
 
-### Long-term (2026+)
+### Long-term
 - Evaluate engine integration (Godot/Unity/Unreal) based on market demand
 - Potential scripting/plugin system (Python/Lua/custom)
 - Asset ecosystem and marketplace
@@ -21,13 +20,12 @@
 
 ## 📅 Development Phases
 
-## Phase 1: Foundation & Core Nodes (Q4 2025 - Q1 2026)
-**Duration:** 12-14 weeks
+## Phase 1: Foundation & Core Nodes
 **Goal:** Complete backend parameter system + property panel UI for all 44 nodes
 
 ### Milestones
 
-#### **M1.1: Backend Parameter Definitions** (Weeks 1-3)
+#### **M1.1: Backend Parameter Definitions**
 - [x] Audit all 44 nodes for complete parameter definitions ✅ (43 SOP nodes complete)
 - [x] Add universal parameters to SOPNode base class: ✅
   - [x] `group` parameter (all nodes) ✅
@@ -40,7 +38,7 @@
 
 **Deliverable:** All nodes have complete ParameterDefinition with metadata ✅ COMPLETE
 
-#### **M1.2: UI Component Library** (Weeks 4-6) ✅ COMPLETE
+#### **M1.2: UI Component Library** ✅ COMPLETE
 - [x] Create reusable Qt widgets matching HTML concepts: ✅
   - [x] `BaseParameterWidget` (base class with VS Code theme) ✅
   - [x] `FloatWidget` with value scrubbing (Shift=0.01x, Ctrl=10x, Alt=snap) ✅
@@ -61,7 +59,7 @@
 
 **Deliverable:** Reusable widget library with consistent styling ✅ COMPLETE
 
-#### **M1.3: Auto-Generation System** (Weeks 7-9) ✅ COMPLETE
+#### **M1.3: Auto-Generation System** ✅ COMPLETE
 - [x] Implement `PropertyPanel::buildFromNode()` auto-generation ✅
 - [x] Create `ParameterWidgetFactory` for type-based widget creation ✅
 - [x] Mode-based visibility system (`visible_when` conditions) ✅
@@ -72,7 +70,7 @@
 
 **Deliverable:** Property panels auto-generate from parameter definitions ✅ COMPLETE
 
-#### **M1.4: Complete All 40 Nodes** (Weeks 10-12)
+#### **M1.4: Complete All 40 Nodes**
 **Removed 4 duplicate nodes:** Join (=Merge), Displace (=Noise mode), Separate (=Blast), Group Delete node (redundant)
 
 **Implementation order by patch:**
@@ -122,7 +120,7 @@
 
 **Summary:** All 8 patches complete! 40 nodes implemented (Bevel basic, Remesh stub deferred).
 
-#### **M1.5: File Format & Serialization** (Weeks 13-14) ✅ COMPLETE
+#### **M1.5: File Format & Serialization** ✅ COMPLETE
 - ✅ Design JSON-based .nfg file format
 - ✅ Implement graph serialization (nodes, connections, parameters)
 - ✅ Implement graph deserialization with version handling
@@ -133,7 +131,7 @@
 
 ---
 
-#### **M1.6: Additional Scatter Nodes** (Week 15) ✅ COMPLETE
+#### **M1.6: Additional Scatter Nodes** ✅ COMPLETE
 **Purpose:** Complete scatter functionality with volume and point-based modes
 
 - ✅ **ScatterVolumeSOP** - Scatter points within bounding box/volume
@@ -157,7 +155,7 @@
 
 ---
 
-#### **M1.7: PMP Library Integration** (Weeks 16-21) ✅ COMPLETE
+#### **M1.7: PMP Library Integration** ✅ COMPLETE
 **Purpose:** Integrate Polygon Mesh Processing library for production-quality mesh algorithms
 
 **All PMP Nodes Implemented:**
@@ -214,7 +212,7 @@
 
 ### Milestones
 
-#### **M2.1: Host Interface System** (Week 1) ✅ COMPLETE
+#### **M2.1: Host Interface System** ✅ COMPLETE
 - [x] Create `IHostInterface` abstract class: ✅
   - Progress reporting callbacks (optional) ✅
   - Cancellation checks (optional) ✅
@@ -233,7 +231,7 @@
 - Zero overhead when `host_interface_` is nullptr
 - Example implementation in `tests/test_host_interface.cpp`
 
-#### **M2.2: Headless Execution** (Weeks 2-3) ✅ COMPLETE
+#### **M2.2: Headless Execution** ✅ COMPLETE
 - [x] Command-line tool (`nodo_cli`) ✅
 - [x] Load .nfg files and execute graphs ✅
 - [x] Export results to .obj format ✅
@@ -252,7 +250,7 @@
 - Exports valid OBJ files with vertex positions, normals, and faces
 - Usage: `nodo_cli input.nfg output.obj [--verbose] [--stats] [--help]`
 
-#### **M2.3: Performance Optimization** (Weeks 3-4) ✅ COMPLETE
+#### **M2.3: Performance Optimization** ✅ COMPLETE
 - [x] Profile critical paths (execution engine, geometry ops) ✅
 - [x] Validate existing caching system ✅
 - [x] Lazy evaluation (display node optimization) ✅
@@ -289,7 +287,7 @@
 
 ### Milestones
 
-#### **M3.0: Critical UX - Undo/Redo for Property Panel** (Week 1) ✅ COMPLETE
+#### **M3.0: Critical UX - Undo/Redo for Property Panel** ✅ COMPLETE
 **Blocker for first testers - NOW RESOLVED**
 
 Implementation completed:
@@ -313,7 +311,7 @@ Implementation completed:
 
 **Deliverable:** Complete undo/redo support for all parameter edits ✅ COMPLETE
 
-#### **M3.1: Performance Optimization** (Weeks 2-3)
+#### **M3.1: Performance Optimization**
 - [ ] Profile critical paths (geometry operations, UI updates)
 - [ ] Optimize execution engine (caching, lazy evaluation)
 - [ ] Improve viewport rendering performance
@@ -322,7 +320,7 @@ Implementation completed:
 
 **Deliverable:** Smooth performance on typical artist workloads
 
-#### **M3.2: Graph Parameters System** (Weeks 4-5) ✅ COMPLETE
+#### **M3.2: Graph Parameters System** ✅ COMPLETE
 **Purpose:** Enable per-graph parameters that can be referenced in node parameters
 
 **Deliverable:** Basic graph parameter system with string/code expression support ✅ COMPLETE
@@ -537,7 +535,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 ---
 
-#### **M3.4: User Experience Polish** (Weeks 6-7) 🔄 IN PROGRESS
+#### **M3.4: User Experience Polish** 🔄 IN PROGRESS
 **Status:** 3/4 tasks complete - Viewport toolbar, Recent Projects, Parameter serialization fix complete
 
 **Implementation Details:**
@@ -596,7 +594,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 **Deliverable:** Intuitive, artist-friendly application ✅ COMPLETE
 
-#### **M3.6: Keyboard Shortcuts & UX Polish** (Week 8 - 1-2 weeks) ✅ COMPLETE
+#### **M3.6: Keyboard Shortcuts & UX Polish** ✅ COMPLETE
 **Purpose:** Essential UX feature for professional workflows - users expect keyboard-driven interaction
 
 **Phase 1 - Core Operations:** ✅ COMPLETE
@@ -678,7 +676,7 @@ Complex:         ch("../Copy/count") * $scale + 1   // Combined reference + grap
 
 ---
 
-#### **M3.5: Data Manipulation & Group Semantics** (Week 9 - 2-3 weeks) 🔄 IN PROGRESS
+#### **M3.5: Data Manipulation & Group Semantics** 🔄 IN PROGRESS
 **Purpose:** Fix architectural issues with group widget semantics and establish robust geometry manipulation system
 
 **Context:**
@@ -904,7 +902,7 @@ float angle = @ptnum * 0.1;
 
 ---
 
-#### **M3.7: Beta Testing** (Weeks 10-12) 🔄 NEXT
+#### **M3.7: Beta Testing** 🔄 NEXT
 - [ ] Recruit 10-20 beta testers (artists, technical artists)
 - [ ] Collect feedback via surveys and interviews
 - [ ] Bug fixing and stability improvements
@@ -915,13 +913,12 @@ float angle = @ptnum * 0.1;
 
 ---
 
-## Phase 4: Launch & Market Validation (Q3 2026)
-**Duration:** 8-12 weeks
+## Phase 4: Launch & Market Validation
 **Goal:** Public release and assess market demand
 
 ### Milestones
 
-#### **M4.1: v1.0 Release** (Week 1)
+#### **M4.1: v1.0 Release**
 - [ ] Final QA pass
 - [ ] Release notes and changelog
 - [ ] Marketing website
@@ -930,7 +927,7 @@ float angle = @ptnum * 0.1;
 
 **Deliverable:** Public v1.0 release of Nodo Studio
 
-#### **M4.2: Market Assessment** (Weeks 2-8)
+#### **M4.2: Market Assessment**
 - [ ] Monitor user acquisition and feedback
 - [ ] Track feature requests and pain points
 - [ ] Identify power users and use cases
@@ -939,7 +936,7 @@ float angle = @ptnum * 0.1;
 
 **Deliverable:** Data-driven decision on Phase 5 priorities
 
-#### **M4.3: Iterative Updates** (Weeks 4-12)
+#### **M4.3: Iterative Updates**
 - [ ] Bug fixes and stability updates (v1.1, v1.2, etc.)
 - [ ] High-priority feature additions
 - [ ] Performance improvements
@@ -949,13 +946,12 @@ float angle = @ptnum * 0.1;
 
 ---
 
-## Phase 4.5: Post-Launch Features (Q4 2026 - v1.1-v1.2)
-**Duration:** 8-12 weeks
+## Phase 4.5: Post-Launch Features
 **Goal:** Add high-value features based on user feedback
 
 ### Milestones
 
-#### **M4.4: Subgraphs** (v1.1 - 3-4 weeks) 🔮
+#### **M4.4: Subgraphs** (v1.1) 🔮
 **Purpose:** Enable reusable node groups and cleaner graph organization for complex workflows
 
 **User Benefits:**
@@ -1222,7 +1218,7 @@ bool hitTestGizmo(const Ray& ray, int& axis_index);
 
 ---
 
-## Phase 5: Engine Integration (Q1 2027+) 🔮
+## Phase 5: Engine Integration 🔮
 **Status:** CONTINGENT on Phase 4 market validation
 **Goal:** Embed Nodo in game engines (if demand validated)
 
@@ -1270,7 +1266,7 @@ Proceed with engine integration only if:
 
 ---
 
-## Phase 6: Advanced Features & Ecosystem (2027+) 🌟
+## Phase 6: Advanced Features & Ecosystem 🌟
 **Status:** FUTURE - depends on Phase 4-5 success and user demand
 **Goal:** Transform Nodo into a platform with scripting, optimization, and extensibility
 
@@ -1464,7 +1460,7 @@ Proceed with engine integration only if:
 
 ---
 
-## 🎯 Current Status (November 6, 2025)
+## 🎯 Current Status
 
 ### ✅ Completed
 - **Phase 1: Foundation & Core Nodes** ✅ COMPLETE
@@ -1491,25 +1487,24 @@ Proceed with engine integration only if:
 **M3.7: Beta Testing** (2-3 weeks)
 - Ready to recruit beta testers with complete keyboard shortcuts
 - All core features implemented and polished
-- Target completion: Late November 2025
 - Deliverable: Validated product ready for v1.0 release
 
 ### 📋 Next Up
 1. **M3.7: Beta Testing** - Recruit 10-20 testers, gather feedback, iterate on bugs
-2. **Phase 4: Launch & v1.0 Release** (Q1 2027) - Public release
-3. **M4.4: Subgraphs** (v1.1 - 3-4 weeks) - Post-launch feature based on demand
+2. **Phase 4: Launch & v1.0 Release** - Public release
+3. **M4.4: Subgraphs** (v1.1) - Post-launch feature based on demand
 4. **M4.5+: Additional features** based on user feedback (curves, multithreading, GPU)
 
 ---
 
 ## 📞 Decision Points & Reviews
 
-### End of Phase 3 (Q4 2026)
+### End of Phase 3
 **Review:** Is the product ready for public launch?
 - If YES: Proceed to Phase 4 (v1.0 launch)
 - If NO: Additional polish iteration, extend beta testing
 
-### End of Phase 4 (Q1-Q2 2027)
+### End of Phase 4
 **Review:** What features should we prioritize post-launch?
 - **If strong demand for subgraphs:** Implement M4.4 (Subgraphs) in v1.1
 - **If strong demand for curves:** Implement M4.5 (Curve Toolkit) in v1.1-v1.2

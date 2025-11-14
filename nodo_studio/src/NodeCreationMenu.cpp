@@ -172,7 +172,7 @@ void NodeCreationMenu::populateAllNodes() {
 }
 
 void NodeCreationMenu::loadRecentNodes() {
-  QSettings settings("NodeFluxEngine", "Studio");
+  QSettings settings("Nodo", "Studio");
   QStringList recent_types =
       settings.value("recent_nodes", QStringList()).toStringList();
 
@@ -195,7 +195,7 @@ void NodeCreationMenu::loadRecentNodes() {
 }
 
 void NodeCreationMenu::saveRecentNode(const QString& type_id) {
-  QSettings settings("NodeFluxEngine", "Studio");
+  QSettings settings("Nodo", "Studio");
   QStringList recent_types =
       settings.value("recent_nodes", QStringList()).toStringList();
 

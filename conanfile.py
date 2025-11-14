@@ -2,8 +2,8 @@ from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 
 
-class NodeFluxEngineConan(ConanFile):
-    name = "nodefluxengine"
+class NodoConan(ConanFile):
+    name = "nodo"
     version = "1.0.0"
 
     # Project settings

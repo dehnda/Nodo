@@ -20,7 +20,7 @@ class NodeGraphWidget;
  *
  * This class handles file I/O for node graphs and geometry, including:
  * - Creating new scenes
- * - Opening and saving .nfg (NodeFlux Graph) files
+ * - Opening and saving .nfg (Nodo Graph) files
  * - Importing geometry and graphs
  * - Exporting geometry and graphs
  * - Recent files management

@@ -53,12 +53,12 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for technical documentation:
 ## Quick Start
 
 ```cpp
-#include "nodeflux/nodes/sphere_node.hpp"
-#include "nodeflux/nodes/box_node.hpp"
-#include "nodeflux/geometry/boolean_ops.hpp"
-#include "nodeflux/io/obj_exporter.hpp"
+#include "nodo/nodes/sphere_node.hpp"
+#include "nodo/nodes/box_node.hpp"
+#include "nodo/geometry/boolean_ops.hpp"
+#include "nodo/io/obj_exporter.hpp"
 
-using namespace nodeflux;
+using namespace nodo;
 
 int main() {
     // Create procedural nodes
@@ -107,7 +107,7 @@ cmake --preset conan-debug
 cmake --build build --parallel
 
 # 5. Run tests to verify installation
-./build/tests/nodeflux_tests
+./build/tests/nodo_tests
 
 # 6. Run examples
 ./build/examples/basic_union
@@ -150,7 +150,7 @@ conan install . --output-folder=build --build=missing
 For VS Code users, the project includes pre-configured tasks:
 
 - **Ctrl+Shift+P → "Tasks: Run Task"** to access all build tasks
-- **"NodeFlux Build (Debug)"** - Default build task (Ctrl+Shift+B)
+- **"Nodo Build (Debug)"** - Default build task (Ctrl+Shift+B)
 - **"Run Tests"** - Execute the full test suite
 - **"Conan Install Dependencies"** - Refresh dependencies
 - **"Full Rebuild"** - Clean and rebuild everything
@@ -161,7 +161,7 @@ The tasks handle the complete Conan workflow automatically.
 ## 📁 Architecture
 
 ```
-include/nodeflux/
+include/nodo/
 ├── core/           # Core data structures (Mesh, Point, Vector)
 ├── geometry/       # Mesh generation and boolean operations
 ├── gpu/            # GPU acceleration (OpenGL compute shaders)

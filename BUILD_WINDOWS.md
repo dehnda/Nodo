@@ -1,6 +1,6 @@
-# Building NodeFluxEngine on Windows
+# Building Nodo on Windows
 
-This guide explains how to build NodeFluxEngine natively on Windows using Visual Studio 2022 and Conan.
+This guide explains how to build Nodo natively on Windows using Visual Studio 2022 and Conan.
 
 ## Prerequisites
 
@@ -70,15 +70,15 @@ If your project is in WSL, you can access it from Windows:
 
 ```powershell
 # Navigate to WSL path from Windows
-cd \\wsl.localhost\Ubuntu\home\daniel\projects\NodeFluxEngine
+cd \\wsl.localhost\Ubuntu\home\daniel\projects\Nodo
 ```
 
 **OR** copy the project to a Windows directory for better performance:
 
 ```powershell
 # Copy to Windows (one-time)
-Copy-Item -Recurse \\wsl.localhost\Ubuntu\home\daniel\projects\NodeFluxEngine C:\Dev\NodeFluxEngine
-cd C:\Dev\NodeFluxEngine
+Copy-Item -Recurse \\wsl.localhost\Ubuntu\home\daniel\projects\Nodo C:\Dev\Nodo
+cd C:\Dev\Nodo
 ```
 
 ### Build Steps
@@ -90,7 +90,7 @@ The project now uses the Visual Studio CMake generator on Windows, so you don't 
 #### 2. Navigate to the project directory
 
 ```powershell
-cd C:\path\to\NodeFluxEngine
+cd C:\path\to\Nodo
 ```
 
 #### 3. Install dependencies with Conan
@@ -131,7 +131,7 @@ cmake --build --preset conan-release --parallel
 
 ```powershell
 # Build only the Studio application
-cmake --build --preset conan-release --target nodeflux_studio --parallel
+cmake --build --preset conan-release --target nodo_studio --parallel
 ```
 
 ### 6. Run the application (fix Qt6 DLLs)
@@ -142,10 +142,10 @@ Option A — use the generated run env scripts (recommended):
 
 ```powershell
 # Release build
-cmd /c "build\windows\build\generators\conanrun.bat && build\windows\build\nodeflux_studio\nodeflux_studio.exe"
+cmd /c "build\windows\build\generators\conanrun.bat && build\windows\build\nodo_studio\nodo_studio.exe"
 
 # Debug build
-cmd /c "build\windows\build\generators\conanrunenv-debug-x86_64.bat && build\windows\build\nodeflux_studio\nodeflux_studio.exe"
+cmd /c "build\windows\build\generators\conanrunenv-debug-x86_64.bat && build\windows\build\nodo_studio\nodo_studio.exe"
 ```
 
 If the run env scripts are missing, (re)generate them:
@@ -168,7 +168,7 @@ Option B — deploy Qt next to the exe (distribution):
 	```powershell
 	cmake --build --preset conan-release --target deploy-windows
 	```
-	Output: `build/windows/build/nodeflux_studio/Release/deploy/Release`
+	Output: `build/windows/build/nodo_studio/Release/deploy/Release`
 
 - Run the Studio via Conan RunEnv (detached, for dev):
 	```powershell
@@ -199,7 +199,7 @@ This will:
 - Or, do it manually via CMake target (after enabling tests):
 
 ```powershell
-conan install . --output-folder=build/windows -s build_type=Release -o nodefluxengine:with_tests=True --build=missing
+conan install . --output-folder=build/windows -s build_type=Release -o nodo:with_tests=True --build=missing
 cmake --preset conan-default
 cmake --build --preset conan-release --target verify-release
 ```
@@ -231,7 +231,7 @@ The script handles:
 - Conan install (enabling tests only when not using -SkipTests)
 - CMake configure (conan-default)
 - Test run via the `verify-release` target
-- Building `nodeflux_studio`
+- Building `nodo_studio`
 - Optional deploy/run/package steps
 
 ## Alternative: Using Visual Studio IDE
@@ -341,5 +341,5 @@ After building:
 3. **Qt deployment**: Use `windeployqt` to package Qt dependencies with your executable
 
 > Optional: If you ever need unit tests, enable them explicitly:
-> - Conan: `-o nodefluxengine:with_tests=True`
-> - CMake: tests are auto-toggled by the Conan toolchain; or set `-D NODEFLUX_BUILD_TESTS=ON` manually.
+> - Conan: `-o nodo:with_tests=True`
+> - CMake: tests are auto-toggled by the Conan toolchain; or set `-D NODO_BUILD_TESTS=ON` manually.

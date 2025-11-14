@@ -30,7 +30,7 @@ void SceneFileManager::openScene() {
   using nodo::graph::GraphSerializer;
 
   QString file_path = QFileDialog::getOpenFileName(
-      parent_, "Open Node Graph", "", "NodeFlux Graph (*.nfg);;All Files (*)");
+      parent_, "Open Node Graph", "", "Nodo Graph (*.nfg);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return; // User cancelled
@@ -91,9 +91,8 @@ bool SceneFileManager::saveSceneAs() {
 
   using nodo::graph::GraphSerializer;
 
-  QString file_path =
-      QFileDialog::getSaveFileName(parent_, "Save Node Graph As", "",
-                                   "NodeFlux Graph (*.nfg);;All Files (*)");
+  QString file_path = QFileDialog::getSaveFileName(
+      parent_, "Save Node Graph As", "", "Nodo Graph (*.nfg);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return false; // User cancelled

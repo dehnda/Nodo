@@ -102,7 +102,7 @@ TEST_F(ObjExportTest, ContainsFacesWithNormals) {
 
 TEST_F(ObjExportTest, ExportToFile) {
   const auto temp_path =
-      std::filesystem::temp_directory_path() / "nodeflux_test_export.obj";
+      std::filesystem::temp_directory_path() / "nodo_test_export.obj";
 
   bool success =
       io::ObjExporter::export_geometry(*test_geometry_, temp_path.string());

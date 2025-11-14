@@ -1,4 +1,4 @@
-# Release Script for NodeFluxEngine (Windows)
+# Release Script for Nodo (Windows)
 # Usage examples:
 #   pwsh -File tools/buildscripts/windows/release.ps1                    # Run tests, build Release, no deploy/package
 #   pwsh -File tools/buildscripts/windows/release.ps1 -SkipTests         # Build without tests
@@ -14,7 +14,7 @@
 #   -Run (switch)              (default: don't run)
 #   -Package (switch)          (default: don't package)
 #   -OutDir <path>             (default: ./out)
-#   -PackageName <string>      (default: NodeFluxStudio-<Config>-<yyyyMMdd-HHmm>)
+#   -PackageName <string>      (default: NodoStudio-<Config>-<yyyyMMdd-HHmm>)
 
 [CmdletBinding()]
 param(
@@ -45,7 +45,7 @@ try {
     conan install . --output-folder=build/windows -s build_type=$Configuration --build=missing | Out-Host
   } else {
     Write-Host "[*] Conan install ($Configuration) with tests ENABLED" -ForegroundColor Cyan
-    conan install . --output-folder=build/windows -s build_type=$Configuration -o nodefluxengine/*:with_tests=True --build=missing | Out-Host
+    conan install . --output-folder=build/windows -s build_type=$Configuration -o nodo/*:with_tests=True --build=missing | Out-Host
   }
 
   # 2) Configure CMake (always via preset)
@@ -61,11 +61,11 @@ try {
   }
 
   # 4) Build main app
-  Write-Host "[*] Building nodeflux_studio ($Configuration)" -ForegroundColor Cyan
-  cmake --build --preset $buildPreset --target nodeflux_studio -- /m:1 | Out-Host
+  Write-Host "[*] Building nodo_studio ($Configuration)" -ForegroundColor Cyan
+  cmake --build --preset $buildPreset --target nodo_studio -- /m:1 | Out-Host
 
   # 5) Deploy (optional)
-  $deployDir = Join-Path -Path $RepoRoot -ChildPath "build/windows/build/nodeflux_studio/$Configuration/deploy/$Configuration"
+  $deployDir = Join-Path -Path $RepoRoot -ChildPath "build/windows/build/nodo_studio/$Configuration/deploy/$Configuration"
   if ($Deploy) {
     Write-Host "[*] Deploying Qt runtime (target: deploy-windows)" -ForegroundColor Cyan
     cmake --build --preset $buildPreset --target deploy-windows -- /m:1 | Out-Host
@@ -87,7 +87,7 @@ try {
     }
     if (-not $PackageName) {
       $stamp = Get-Date -Format 'yyyyMMdd-HHmm'
-      $PackageName = "NodeFluxStudio-$Configuration-$stamp"
+      $PackageName = "NodoStudio-$Configuration-$stamp"
     }
     if (-not (Test-Path $OutDir)) {
       New-Item -ItemType Directory -Force -Path $OutDir | Out-Null

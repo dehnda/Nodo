@@ -1,5 +1,5 @@
 /**
- * NodeFlux Engine - Core Node Graph Data Model
+ * Nodo - Core Node Graph Data Model
  * Pure data representation with serialization support
  */
 

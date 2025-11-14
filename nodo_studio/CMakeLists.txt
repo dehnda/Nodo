@@ -136,15 +136,15 @@ if(WIN32)
     endif()
 
     # Deploy directory per-config (e.g., build-windows/build/nodo_studio/deploy/Release)
-    set(NODEFLUX_STUDIO_DEPLOY_DIR "$<TARGET_FILE_DIR:nodo_studio>/deploy/$<CONFIG>")
+    set(NODO_STUDIO_DEPLOY_DIR "$<TARGET_FILE_DIR:nodo_studio>/deploy/$<CONFIG>")
 
     add_custom_target(deploy-windows
-        COMMENT "Deploying Qt runtime with windeployqt to ${NODEFLUX_STUDIO_DEPLOY_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${NODEFLUX_STUDIO_DEPLOY_DIR}"
+        COMMENT "Deploying Qt runtime with windeployqt to ${NODO_STUDIO_DEPLOY_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${NODO_STUDIO_DEPLOY_DIR}"
         # Copy the exe first (windeployqt scans in-place by default, but we use --dir to deploy elsewhere)
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:nodo_studio>" "${NODEFLUX_STUDIO_DEPLOY_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:nodo_studio>" "${NODO_STUDIO_DEPLOY_DIR}"
         # Run windeployqt to gather DLLs and plugins for the copied exe
-        COMMAND "${WINDEPLOYQT_EXECUTABLE}" "${NODEFLUX_STUDIO_DEPLOY_DIR}/$<TARGET_FILE_NAME:nodo_studio>" --dir "${NODEFLUX_STUDIO_DEPLOY_DIR}" --plugindir "${NODEFLUX_STUDIO_DEPLOY_DIR}/plugins" --no-translations
+        COMMAND "${WINDEPLOYQT_EXECUTABLE}" "${NODO_STUDIO_DEPLOY_DIR}/$<TARGET_FILE_NAME:nodo_studio>" --dir "${NODO_STUDIO_DEPLOY_DIR}" --plugindir "${NODO_STUDIO_DEPLOY_DIR}/plugins" --no-translations
         DEPENDS nodo_studio
         VERBATIM
     )

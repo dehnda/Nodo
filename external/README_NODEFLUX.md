@@ -11,7 +11,7 @@ This is a git submodule containing the Iconoir icon library.
 
 ## Used in Nodo
 
-Icons from `icons/regular/` are used throughout the NodeFlux Studio UI via the `IconManager` class.
+Icons from `icons/regular/` are used throughout the Nodo Studio UI via the `IconManager` class.
 
 ## Updating Icons
 
@@ -25,4 +25,4 @@ git commit -m "chore: update iconoir icons"
 
 ## Icon Mapping
 
-See `nodeflux_studio/src/IconManager.cpp` for the complete mapping of icon names to files.
+See `nodo_studio/src/IconManager.cpp` for the complete mapping of icon names to files.

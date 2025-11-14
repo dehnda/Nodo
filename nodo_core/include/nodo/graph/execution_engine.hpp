@@ -1,5 +1,5 @@
 /**
- * NodeFlux Engine - Graph Execution Engine
+ * Nodo - Graph Execution Engine
  * Executes node graphs in correct dependency order
  */
 

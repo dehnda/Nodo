@@ -1,5 +1,5 @@
 /**
- * NodeFlux Engine - Core Node Graph Implementation
+ * Nodo - Core Node Graph Implementation
  */
 
 #include "nodo/graph/node_graph.hpp"
