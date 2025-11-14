@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/dehnda/Nodo/workflows/CI/badge.svg)](https://github.com/dehnda/Nodo/actions)
 [![codecov](https://codecov.io/gh/dehnda/Nodo/branch/main/graph/badge.svg)](https://codecov.io/gh/dehnda/Nodo)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/dehnda/Nodo)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-lightgrey)](https://github.com/dehnda/Nodo)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![Qt](https://img.shields.io/badge/Qt-6.7-green.svg)](https://www.qt.io/)
 [![CMake](https://img.shields.io/badge/CMake-3.20%2B-064F8C.svg)](https://cmake.org/)
@@ -56,37 +56,6 @@ Nodo is in **active development** with a stable core feature set.
 
 See **[ROADMAP.md](ROADMAP.md)** for upcoming features and long-term vision.
 
-## Quick Start
-
-```cpp
-#include "nodo/nodes/sphere_node.hpp"
-#include "nodo/nodes/box_node.hpp"
-#include "nodo/geometry/boolean_ops.hpp"
-#include "nodo/io/obj_exporter.hpp"
-
-using namespace nodo;
-
-int main() {
-    // Create procedural nodes
-    auto sphere = std::make_unique<nodes::SphereNode>(1.0, 32, 16);
-    auto box = std::make_unique<nodes::BoxNode>(2.0, 2.0, 2.0);
-
-    // Generate meshes
-    auto sphere_mesh = sphere->generate();
-    auto box_mesh = box->generate();
-
-    // Boolean operation with BVH acceleration
-    if (sphere_mesh && box_mesh) {
-        auto result = geometry::BooleanOperations::union_meshes(*sphere_mesh, *box_mesh);
-        if (result) {
-            io::ObjExporter::export_mesh(*result, "union_result.obj");
-        }
-    }
-
-    return 0;
-}
-```
-
 ## 🛠️ Build Instructions
 
 ### Quick Start
@@ -109,25 +78,11 @@ cmake --build --preset conan-debug --parallel
 ### Full Build Documentation
 
 See **[BUILD.md](BUILD.md)** for complete instructions including:
-- Platform-specific setup (Linux, macOS, Windows)
+- Platform-specific setup (Linux, Windows)
 - Debug vs Release configurations
 - Enabling tests
 - Troubleshooting common issues
-- VS Code integration
 - Windows release packaging
-
-### VS Code Integration
-
-For VS Code users, the project includes pre-configured tasks:
-
-- **Ctrl+Shift+P → "Tasks: Run Task"** to access all build tasks
-- **"Nodo Build (Debug)"** - Default build task (Ctrl+Shift+B)
-- **"Run Tests"** - Execute the full test suite
-- **"Conan Install Dependencies"** - Refresh dependencies
-- **"Full Rebuild"** - Clean and rebuild everything
-- **"Run GPU Accelerated Demo"** - Launch GPU examples
-
-The tasks handle the complete Conan workflow automatically.
 
 ## 📁 Architecture
 
