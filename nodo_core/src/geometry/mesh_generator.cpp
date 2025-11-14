@@ -1,9 +1,10 @@
 #include "nodo/geometry/mesh_generator.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
+
 #include <array>
 #include <cmath>
-
 
 namespace attrs = nodo::core::standard_attrs;
 
@@ -13,12 +14,12 @@ namespace nodo::geometry {
 thread_local core::Error MeshGenerator::last_error_{
     core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d &min_corner,
-                                           const Eigen::Vector3d &max_corner) {
+core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d& min_corner,
+                                           const Eigen::Vector3d& max_corner) {
   core::GeometryContainer container;
 
   // Set up topology - 8 vertices, 12 triangular faces
-  auto &topology = container.topology();
+  auto& topology = container.topology();
   topology.set_point_count(8);
 
   // Store positions
@@ -63,7 +64,7 @@ core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d &min_corner,
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -73,7 +74,7 @@ core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d &min_corner,
   // averaged normals For a box, corner vertices touch 3 faces, so we average
   // those face normals
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
 
@@ -108,7 +109,7 @@ core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d &min_corner,
 }
 
 std::optional<core::GeometryContainer>
-MeshGenerator::sphere(const Eigen::Vector3d &center, double radius,
+MeshGenerator::sphere(const Eigen::Vector3d& center, double radius,
                       int subdivisions) {
   if (!validate_sphere_params(radius, subdivisions)) {
     return std::nullopt;
@@ -125,7 +126,7 @@ MeshGenerator::sphere(const Eigen::Vector3d &center, double radius,
 
   // Translate the sphere to the desired center if needed
   if (center != Eigen::Vector3d::Zero()) {
-    auto *positions =
+    auto* positions =
         container.get_point_attribute_typed<core::Vec3f>(attrs::P);
     if (positions != nullptr) {
       auto p_span = positions->values_writable();
@@ -144,8 +145,8 @@ MeshGenerator::sphere(const Eigen::Vector3d &center, double radius,
 }
 
 std::optional<core::GeometryContainer>
-MeshGenerator::cylinder(const Eigen::Vector3d &bottom_center,
-                        const Eigen::Vector3d &top_center, double radius,
+MeshGenerator::cylinder(const Eigen::Vector3d& bottom_center,
+                        const Eigen::Vector3d& top_center, double radius,
                         int segments) {
   if (!validate_cylinder_params(radius, segments)) {
     return std::nullopt;
@@ -155,17 +156,19 @@ MeshGenerator::cylinder(const Eigen::Vector3d &bottom_center,
                                     segments);
 }
 
-const core::Error &MeshGenerator::last_error() { return last_error_; }
+const core::Error& MeshGenerator::last_error() {
+  return last_error_;
+}
 
 core::GeometryContainer
-MeshGenerator::generate_icosphere(const Eigen::Vector3d &center, double radius,
+MeshGenerator::generate_icosphere(const Eigen::Vector3d& center, double radius,
                                   [[maybe_unused]] int subdivisions) {
   // Simple octahedron approximation projected to sphere
   // This is a simplified implementation - for real icosphere use
   // SphereGenerator
 
   core::GeometryContainer container;
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Octahedron has 6 vertices
   topology.set_point_count(6);
@@ -198,7 +201,7 @@ MeshGenerator::generate_icosphere(const Eigen::Vector3d &center, double radius,
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -206,7 +209,7 @@ MeshGenerator::generate_icosphere(const Eigen::Vector3d &center, double radius,
 
   // Add N (normal) attribute - for octahedron, normals point from center
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
     const core::Vec3f center_vec{static_cast<float>(center.x()),
@@ -233,11 +236,11 @@ MeshGenerator::generate_icosphere(const Eigen::Vector3d &center, double radius,
 }
 
 core::GeometryContainer
-MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
-                                          const Eigen::Vector3d &top_center,
+MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
+                                          const Eigen::Vector3d& top_center,
                                           double radius, int segments) {
   core::GeometryContainer container;
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Vertices: 2 centers + segments for bottom ring + segments for top ring
   const int num_vertices = (segments * 2) + 2;
@@ -307,7 +310,7 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -316,7 +319,7 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d &bottom_center,
   // Add N (normal) attribute
   // Centers have normals pointing down/up, ring vertices have radial normals
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
 
@@ -388,7 +391,7 @@ bool MeshGenerator::validate_cylinder_params(double radius, int segments) {
   return true;
 }
 
-void MeshGenerator::set_last_error(const core::Error &error) {
+void MeshGenerator::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

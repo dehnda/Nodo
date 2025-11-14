@@ -1,11 +1,13 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+
 #include <array>
 #include <functional>
 
@@ -37,10 +39,10 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  Vector3Widget(const QString &label, double x, double y, double z,
+  Vector3Widget(const QString& label, double x, double y, double z,
                 double min = -1000.0, double max = 1000.0,
-                const QString &description = QString(),
-                QWidget *parent = nullptr);
+                const QString& description = QString(),
+                QWidget* parent = nullptr);
 
   // Value access
   double getX() const { return values_[0]; }
@@ -52,7 +54,7 @@ public:
   void setY(double y);
   void setZ(double z);
   void setValue(double x, double y, double z);
-  void setValue(const std::array<double, 3> &value);
+  void setValue(const std::array<double, 3>& value);
 
   // Range control
   void setRange(double min, double max);
@@ -70,17 +72,17 @@ public:
   void setExpressionMode(bool enabled);
   bool isExpressionMode() const { return is_expression_mode_; }
   QString getExpression() const { return expression_text_; }
-  void setExpression(const QString &expr);
+  void setExpression(const QString& expr);
 
   // Visual indicators (M3.3 Phase 4)
   void setResolvedValue(float x, float y, float z);
-  void setExpressionError(const QString &error);
+  void setExpressionError(const QString& error);
 
 signals:
   void valueChangedSignal(double x, double y, double z);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onSpinBoxValueChanged(int component, double value);
@@ -96,18 +98,18 @@ private:
   std::array<double, 3> max_values_{1000.0, 1000.0, 1000.0};
 
   // UI components (numeric mode)
-  std::array<QDoubleSpinBox *, 3> spinboxes_{nullptr, nullptr, nullptr};
-  std::array<QLabel *, 3> component_labels_{nullptr, nullptr, nullptr};
-  QPushButton *uniform_button_{nullptr};
+  std::array<QDoubleSpinBox*, 3> spinboxes_{nullptr, nullptr, nullptr};
+  std::array<QLabel*, 3> component_labels_{nullptr, nullptr, nullptr};
+  QPushButton* uniform_button_{nullptr};
   bool uniform_enabled_{false};
 
   // UI components (expression mode)
-  QLineEdit *expression_edit_{nullptr};
-  QPushButton *mode_toggle_button_{nullptr};
-  QWidget *numeric_container_{nullptr};
-  QWidget *expression_container_{nullptr};
-  ExpressionCompleter *expression_completer_{nullptr}; // M3.3 Phase 5
-  QTimer *validation_timer_{nullptr}; // M3.3 Phase 6: Debounced validation
+  QLineEdit* expression_edit_{nullptr};
+  QPushButton* mode_toggle_button_{nullptr};
+  QWidget* numeric_container_{nullptr};
+  QWidget* expression_container_{nullptr};
+  ExpressionCompleter* expression_completer_{nullptr}; // M3.3 Phase 5
+  QTimer* validation_timer_{nullptr}; // M3.3 Phase 6: Debounced validation
 
   // Expression mode state
   bool is_expression_mode_{false};

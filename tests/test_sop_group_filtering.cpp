@@ -3,6 +3,7 @@
 #include "nodo/sop/group_sop.hpp"
 #include "nodo/sop/sphere_sop.hpp"
 #include "nodo/sop/wrangle_sop.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo;
@@ -47,13 +48,13 @@ TEST_F(SOPGroupFilteringTest, WrangleWithGroupFilter) {
 
   // Manually create a group for the top half
   create_group(*group_result, "top_half", ElementClass::POINT);
-  auto *pos_storage = group_result->get_point_attribute_typed<Vec3f>("P");
+  auto* pos_storage = group_result->get_point_attribute_typed<Vec3f>("P");
   ASSERT_NE(pos_storage, nullptr);
 
   auto pos_span = pos_storage->values();
   size_t top_half_count = 0;
   for (size_t i = 0; i < group_result->point_count(); ++i) {
-    const auto &P = pos_span[i];
+    const auto& P = pos_span[i];
     if (P.y() > 0.0f) {
       add_to_group(*group_result, "top_half", ElementClass::POINT, i);
       top_half_count++;
@@ -74,7 +75,7 @@ TEST_F(SOPGroupFilteringTest, WrangleWithGroupFilter) {
   ASSERT_NE(wrangle_result, nullptr);
 
   // Verify that only top half points were modified
-  auto *result_pos = wrangle_result->get_point_attribute_typed<Vec3f>("P");
+  auto* result_pos = wrangle_result->get_point_attribute_typed<Vec3f>("P");
   ASSERT_NE(result_pos, nullptr);
 
   auto result_span = result_pos->values();
@@ -83,8 +84,8 @@ TEST_F(SOPGroupFilteringTest, WrangleWithGroupFilter) {
   size_t unmodified_count = 0;
 
   for (size_t i = 0; i < wrangle_result->point_count(); ++i) {
-    const auto &original_P = pos_span[i];
-    const auto &result_P = result_span[i];
+    const auto& original_P = pos_span[i];
+    const auto& result_P = result_span[i];
 
     bool was_in_group =
         is_in_group(*group_result, "top_half", ElementClass::POINT, i);
@@ -129,8 +130,8 @@ TEST_F(SOPGroupFilteringTest, WrangleWithoutGroupFilter) {
   ASSERT_NE(wrangle_result, nullptr);
 
   // Verify all points were modified
-  auto *original_pos = sphere_result->get_point_attribute_typed<Vec3f>("P");
-  auto *result_pos = wrangle_result->get_point_attribute_typed<Vec3f>("P");
+  auto* original_pos = sphere_result->get_point_attribute_typed<Vec3f>("P");
+  auto* result_pos = wrangle_result->get_point_attribute_typed<Vec3f>("P");
   ASSERT_NE(original_pos, nullptr);
   ASSERT_NE(result_pos, nullptr);
 
@@ -138,8 +139,8 @@ TEST_F(SOPGroupFilteringTest, WrangleWithoutGroupFilter) {
   auto result_span = result_pos->values();
 
   for (size_t i = 0; i < total_points; ++i) {
-    const auto &original_P = original_span[i];
-    const auto &result_P = result_span[i];
+    const auto& original_P = original_span[i];
+    const auto& result_P = result_span[i];
 
     EXPECT_NEAR(result_P.y(), original_P.y() + 1.0f, 1e-5f)
         << "Point " << i << " should have been modified but wasn't";

@@ -1,6 +1,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/sop/extrude_sop.hpp"
+
 #include <gtest/gtest.h>
 
 namespace attrs = nodo::core::standard_attrs;
@@ -11,7 +12,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   input->set_point_count(4);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -45,7 +46,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   EXPECT_GE(result->topology().primitive_count(), 6);
 
   // Verify positions exist
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 }
@@ -56,7 +57,7 @@ TEST(ExtrudeSOPTest, ExtrudeWithInset) {
   input->set_point_count(3);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
   (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);
@@ -93,7 +94,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
   input->set_point_count(4);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
   (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);

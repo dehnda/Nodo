@@ -2,6 +2,7 @@
 
 #include "nodo/graph/node_graph.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,7 +36,7 @@ public:
    * @return Shared pointer to created SOP, or nullptr if type not supported
    */
   static std::shared_ptr<SOPNode> create(graph::NodeType type,
-                                         const std::string &name = "node");
+                                         const std::string& name = "node");
 
   /**
    * @brief Get parameter definitions for a node type without instantiating

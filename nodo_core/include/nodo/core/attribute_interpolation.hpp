@@ -2,6 +2,7 @@
 
 #include "attribute_types.hpp"
 #include "geometry_container.hpp"
+
 #include <span>
 #include <vector>
 
@@ -33,14 +34,16 @@ namespace nodo::core {
  * @param mode Interpolation mode (from attribute descriptor)
  * @return Interpolated value
  */
-template <typename T> T interpolate_linear(const T &a, const T &b, float t);
+template <typename T>
+T interpolate_linear(const T& a, const T& b, float t);
 
 /**
  * @brief Interpolate between two values with cubic smoothing
  *
  * Uses Hermite interpolation for smooth transitions.
  */
-template <typename T> T interpolate_cubic(const T &a, const T &b, float t);
+template <typename T>
+T interpolate_cubic(const T& a, const T& b, float t);
 
 /**
  * @brief Weighted average of multiple values
@@ -61,7 +64,7 @@ T interpolate_weighted(std::span<const T> values,
  * @return Interpolated value at (u,v)
  */
 template <typename T>
-T interpolate_barycentric(const T &v0, const T &v1, const T &v2, float u,
+T interpolate_barycentric(const T& v0, const T& v1, const T& v2, float u,
                           float v);
 
 /**
@@ -72,7 +75,7 @@ T interpolate_barycentric(const T &v0, const T &v1, const T &v2, float u,
  * @return Bilinearly interpolated value
  */
 template <typename T>
-T interpolate_bilinear(const T &v00, const T &v10, const T &v01, const T &v11,
+T interpolate_bilinear(const T& v00, const T& v10, const T& v01, const T& v11,
                        float u, float v);
 
 /**
@@ -89,7 +92,7 @@ T interpolate_bilinear(const T &v00, const T &v10, const T &v01, const T &v11,
  * @return Interpolated attribute value
  */
 template <typename T>
-T sample_attribute_at_location(const GeometryContainer &container,
+T sample_attribute_at_location(const GeometryContainer& container,
                                std::string_view attr_name,
                                ElementClass element_class, size_t prim_index,
                                float u, float v = 0.0f);
@@ -110,11 +113,11 @@ T sample_attribute_at_location(const GeometryContainer &container,
  * @param weights Optional weights (if empty, uses equal weighting)
  */
 template <typename T>
-bool blend_attributes(GeometryContainer &container, std::string_view attr_name,
+bool blend_attributes(GeometryContainer& container, std::string_view attr_name,
                       ElementClass element_class,
-                      const std::vector<size_t> &source_indices,
+                      const std::vector<size_t>& source_indices,
                       size_t target_index,
-                      const std::vector<float> &weights = {});
+                      const std::vector<float>& weights = {});
 
 /**
  * @brief Copy and interpolate attributes from source to target
@@ -129,9 +132,9 @@ bool blend_attributes(GeometryContainer &container, std::string_view attr_name,
  * @param weights Interpolation weights
  */
 bool copy_and_interpolate_all_attributes(
-    GeometryContainer &container, ElementClass element_class,
-    const std::vector<size_t> &source_indices, size_t target_index,
-    const std::vector<float> &weights);
+    GeometryContainer& container, ElementClass element_class,
+    const std::vector<size_t>& source_indices, size_t target_index,
+    const std::vector<float>& weights);
 
 /**
  * @brief Transfer attributes from points to a new primitive
@@ -144,7 +147,7 @@ bool copy_and_interpolate_all_attributes(
  * @param prim_index Index of the primitive to populate
  */
 bool transfer_point_to_primitive_attributes(
-    GeometryContainer &container, const std::vector<int> &point_indices,
+    GeometryContainer& container, const std::vector<int>& point_indices,
     size_t prim_index);
 
 /**
@@ -160,9 +163,9 @@ bool transfer_point_to_primitive_attributes(
  * @return Interpolated value
  */
 template <typename T>
-T resample_curve_attribute(const GeometryContainer &container,
+T resample_curve_attribute(const GeometryContainer& container,
                            std::string_view attr_name,
-                           const std::vector<int> &point_indices, float t);
+                           const std::vector<int>& point_indices, float t);
 
 // ============================================================================
 // Specialized interpolation for specific types
@@ -173,21 +176,21 @@ T resample_curve_attribute(const GeometryContainer &container,
  *
  * Properly interpolates rotations without gimbal lock.
  */
-Vec4f slerp(const Vec4f &q0, const Vec4f &q1, float t);
+Vec4f slerp(const Vec4f& q0, const Vec4f& q1, float t);
 
 /**
  * @brief Normalize interpolated normals
  *
  * After interpolation, normals should be renormalized.
  */
-Vec3f interpolate_normal(const Vec3f &n0, const Vec3f &n1, float t);
+Vec3f interpolate_normal(const Vec3f& n0, const Vec3f& n1, float t);
 
 /**
  * @brief Interpolate colors in perceptually linear space
  *
  * Optional: Convert to linear RGB before interpolation, then back to sRGB.
  */
-Vec3f interpolate_color(const Vec3f &c0, const Vec3f &c1, float t,
+Vec3f interpolate_color(const Vec3f& c0, const Vec3f& c1, float t,
                         bool linearize = false);
 
 /**
@@ -196,8 +199,8 @@ Vec3f interpolate_color(const Vec3f &c0, const Vec3f &c1, float t,
  * Useful for attributes like alpha [0,1] or material IDs [integers only].
  */
 template <typename T>
-T interpolate_clamped(const T &a, const T &b, float t, const T &min_val,
-                      const T &max_val);
+T interpolate_clamped(const T& a, const T& b, float t, const T& min_val,
+                      const T& max_val);
 
 // ============================================================================
 // Helper functions
@@ -230,6 +233,8 @@ inline float smootherstep(float t) {
 /**
  * @brief Clamp value to range [0, 1]
  */
-inline float saturate(float x) { return std::max(0.0f, std::min(1.0f, x)); }
+inline float saturate(float x) {
+  return std::max(0.0f, std::min(1.0f, x));
+}
 
 } // namespace nodo::core

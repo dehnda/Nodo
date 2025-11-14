@@ -1,5 +1,7 @@
 #include "ViewportOverlay.h"
+
 #include "IconManager.h"
+
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QPainter>
@@ -10,13 +12,13 @@
 // ViewportStatsOverlay
 // ============================================================================
 
-ViewportStatsOverlay::ViewportStatsOverlay(QWidget *parent) : QWidget(parent) {
+ViewportStatsOverlay::ViewportStatsOverlay(QWidget* parent) : QWidget(parent) {
   setupUI();
 }
 
 void ViewportStatsOverlay::setupUI() {
   // Create layout
-  auto *layout = new QVBoxLayout(this);
+  auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(12, 12, 12, 12);
   layout->setSpacing(6);
 
@@ -85,7 +87,7 @@ void ViewportStatsOverlay::setTriangleCount(int count) {
   tris_label_->setText(QString("Triangles: %L1").arg(count));
 }
 
-void ViewportStatsOverlay::setMemoryUsage(const QString &memory) {
+void ViewportStatsOverlay::setMemoryUsage(const QString& memory) {
   memory_label_->setText(QString("Memory: %1").arg(memory));
 }
 
@@ -93,13 +95,13 @@ void ViewportStatsOverlay::setMemoryUsage(const QString &memory) {
 // ViewportControlsOverlay
 // ============================================================================
 
-ViewportControlsOverlay::ViewportControlsOverlay(QWidget *parent)
+ViewportControlsOverlay::ViewportControlsOverlay(QWidget* parent)
     : QWidget(parent) {
   setupUI();
 }
 
 void ViewportControlsOverlay::setupUI() {
-  auto *layout = new QVBoxLayout(this);
+  auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(8);
 
@@ -188,7 +190,7 @@ void ViewportControlsOverlay::setupUI() {
   layout->addWidget(point_numbers_btn_);
 
   // Separator (visual only)
-  auto *separator = new QWidget(this);
+  auto* separator = new QWidget(this);
   separator->setFixedHeight(1);
   separator->setStyleSheet("background: rgba(255, 255, 255, 0.1);");
   layout->addWidget(separator);
@@ -248,7 +250,7 @@ void ViewportControlsOverlay::setupUI() {
 // ViewportAxisGizmo
 // ============================================================================
 
-ViewportAxisGizmo::ViewportAxisGizmo(QWidget *parent) : QWidget(parent) {
+ViewportAxisGizmo::ViewportAxisGizmo(QWidget* parent) : QWidget(parent) {
   setupUI();
 }
 
@@ -265,7 +267,7 @@ void ViewportAxisGizmo::setupUI() {
   setToolTip("Axis Orientation");
 }
 
-void ViewportAxisGizmo::paintEvent(QPaintEvent *event) {
+void ViewportAxisGizmo::paintEvent(QPaintEvent* event) {
   QWidget::paintEvent(event);
 
   QPainter painter(this);
@@ -281,9 +283,9 @@ void ViewportAxisGizmo::paintEvent(QPaintEvent *event) {
   // Use system font stack with fallbacks for cross-platform support
   QFont axisFont;
   axisFont.setFamilies(QStringList()
-                       << "Segoe UI" << "Ubuntu" << "Roboto"
-                       << "Cantarell" << "Noto Sans" << "Liberation Sans"
-                       << "DejaVu Sans" << "sans-serif");
+                       << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell"
+                       << "Noto Sans" << "Liberation Sans" << "DejaVu Sans"
+                       << "sans-serif");
   axisFont.setWeight(QFont::Bold);
   axisFont.setPointSize(10);
   painter.setFont(axisFont);

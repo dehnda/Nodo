@@ -1,8 +1,10 @@
 #include "ViewportToolbar.h"
+
 #include "IconManager.h"
+
 #include <QHBoxLayout>
 
-ViewportToolbar::ViewportToolbar(QWidget *parent) : QToolBar(parent) {
+ViewportToolbar::ViewportToolbar(QWidget* parent) : QToolBar(parent) {
   setupUI();
   applyStyles();
 }
@@ -33,7 +35,7 @@ void ViewportToolbar::setupUI() {
   addWidget(axes_button_);
 
   // Add spacer to push viewport controls to the right
-  auto *spacer = new QWidget();
+  auto* spacer = new QWidget();
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   addWidget(spacer);
 
@@ -88,10 +90,10 @@ void ViewportToolbar::setupUI() {
           &ViewportToolbar::cameraFitToView);
 }
 
-QToolButton *ViewportToolbar::createToggleButton(const QString &icon_text,
-                                                 const QString &tooltip,
+QToolButton* ViewportToolbar::createToggleButton(const QString& icon_text,
+                                                 const QString& tooltip,
                                                  bool checked) {
-  auto *button = new QToolButton(this);
+  auto* button = new QToolButton(this);
   button->setText(icon_text);
   button->setToolTip(tooltip);
   button->setCheckable(true);
@@ -103,10 +105,10 @@ QToolButton *ViewportToolbar::createToggleButton(const QString &icon_text,
   return button;
 }
 
-QToolButton *ViewportToolbar::createIconButton(const QString &icon_name,
-                                               const QString &tooltip,
+QToolButton* ViewportToolbar::createIconButton(const QString& icon_name,
+                                               const QString& tooltip,
                                                bool checkable) {
-  auto *button = new QToolButton(this);
+  auto* button = new QToolButton(this);
 
   // Map icon names to IconManager enum values
   if (icon_name == "Wireframe") {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "attribute_types.hpp"
+
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -35,7 +36,7 @@ public:
       InterpolationMode interpolation = InterpolationMode::LINEAR);
 
   // Getters
-  const std::string &name() const { return name_; }
+  const std::string& name() const { return name_; }
   AttributeType type() const { return type_; }
   ElementClass owner() const { return owner_; }
   InterpolationMode interpolation() const { return interpolation_; }
@@ -62,7 +63,7 @@ public:
    * @brief Get default value as raw bytes
    * @return Pointer to default value data, or nullptr if no default
    */
-  const void *default_value_ptr() const {
+  const void* default_value_ptr() const {
     return has_default_ ? default_value_.data() : nullptr;
   }
 
@@ -70,19 +71,21 @@ public:
    * @brief Set default value from raw bytes
    * @param data Pointer to value data
    */
-  void set_default_value(const void *data);
+  void set_default_value(const void* data);
 
   /**
    * @brief Set default value from typed data
    */
-  template <typename T> void set_default(const T &value) {
+  template <typename T>
+  void set_default(const T& value) {
     set_default_value(&value);
   }
 
   /**
    * @brief Get default value as typed data
    */
-  template <typename T> std::optional<T> get_default() const {
+  template <typename T>
+  std::optional<T> get_default() const {
     if (!has_default_ || sizeof(T) != element_size()) {
       return std::nullopt;
     }
@@ -94,7 +97,7 @@ public:
     } else {
       // For non-trivially copyable types (like Eigen), use proper copy
       // construction
-      const T *source = reinterpret_cast<const T *>(default_value_.data());
+      const T* source = reinterpret_cast<const T*>(default_value_.data());
       result = *source;
     }
     return result;
@@ -108,33 +111,33 @@ public:
   /**
    * @brief Get human-readable type name
    */
-  const char *type_name() const { return attribute_traits::type_name(type_); }
+  const char* type_name() const { return attribute_traits::type_name(type_); }
 
   /**
    * @brief Get human-readable owner class name
    */
-  const char *owner_name() const {
+  const char* owner_name() const {
     return attribute_traits::element_class_name(owner_);
   }
 
   /**
    * @brief Get human-readable interpolation mode name
    */
-  const char *interpolation_name() const {
+  const char* interpolation_name() const {
     return attribute_traits::interpolation_mode_name(interpolation_);
   }
 
   /**
    * @brief Equality comparison (name only, for lookup)
    */
-  bool operator==(const AttributeDescriptor &other) const {
+  bool operator==(const AttributeDescriptor& other) const {
     return name_ == other.name_;
   }
 
   /**
    * @brief Full equality (all fields)
    */
-  bool equals(const AttributeDescriptor &other) const {
+  bool equals(const AttributeDescriptor& other) const {
     return name_ == other.name_ && type_ == other.type_ &&
            owner_ == other.owner_ && interpolation_ == other.interpolation_;
   }
@@ -171,14 +174,14 @@ public:
                              ElementClass owner)
       : desc_(std::move(name), type, owner) {}
 
-  AttributeDescriptorBuilder &interpolation(InterpolationMode mode) {
+  AttributeDescriptorBuilder& interpolation(InterpolationMode mode) {
     desc_ =
         AttributeDescriptor(desc_.name(), desc_.type(), desc_.owner(), mode);
     return *this;
   }
 
   template <typename T>
-  AttributeDescriptorBuilder &default_value(const T &value) {
+  AttributeDescriptorBuilder& default_value(const T& value) {
     desc_.set_default(value);
     return *this;
   }

@@ -1,7 +1,9 @@
 #include "nodo/sop/noise_displacement_sop.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/core/types.hpp"
+
 #include <cmath>
 
 namespace attrs = nodo::core::standard_attrs;
@@ -20,7 +22,7 @@ constexpr float SMOOTHSTEP_COEFF_B = 2.0F;
 // Vertex normal threshold
 constexpr double VERTEX_NORMAL_THRESHOLD = 0.1;
 
-NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string &name)
+NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string& name)
     : SOPNode(name, "NoiseDisplacement") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -90,7 +92,7 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
   const int seed = get_parameter<int>("seed", 42);
 
   // Apply noise displacement to P attribute
-  auto *p_storage = output->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = output->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!p_storage) {
     set_error("Input geometry missing position attribute");
     return nullptr;
@@ -102,7 +104,7 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
     if (!is_in_group(output, 0, i))
       continue;
 
-    const core::Vec3f &vertex = p_span[i];
+    const core::Vec3f& vertex = p_span[i];
 
     // Generate noise value at vertex position
     float noise_value = fractal_noise(

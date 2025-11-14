@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../io/obj_importer.hpp"
 #include "sop_node.hpp"
+
 #include <filesystem>
 
 namespace nodo {
@@ -21,7 +22,7 @@ class FileSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit FileSOP(const std::string &node_name = "file")
+  explicit FileSOP(const std::string& node_name = "file")
       : SOPNode(node_name, "File") {
     // No input ports - this is a source node
 
@@ -113,8 +114,8 @@ protected:
 
       // Convert Mesh to GeometryContainer
       auto container = std::make_shared<core::GeometryContainer>();
-      const auto &vertices = mesh->vertices();
-      const auto &faces = mesh->faces();
+      const auto& vertices = mesh->vertices();
+      const auto& faces = mesh->faces();
 
       // Set topology (simple 1:1 mapping: each vertex is a point)
       int num_points = vertices.rows();
@@ -134,7 +135,7 @@ protected:
 
       // Add positions
       container->add_point_attribute("P", core::AttributeType::VEC3F);
-      auto *positions =
+      auto* positions =
           container->get_point_attribute_typed<Eigen::Vector3f>("P");
 
       if (positions) {
@@ -148,10 +149,10 @@ protected:
       }
 
       // Add normals if available
-      const auto &normals = mesh->vertex_normals();
+      const auto& normals = mesh->vertex_normals();
       if (normals.rows() > 0) {
         container->add_point_attribute("N", core::AttributeType::VEC3F);
-        auto *normal_attr =
+        auto* normal_attr =
             container->get_point_attribute_typed<Eigen::Vector3f>("N");
         if (normal_attr) {
           auto norm_span = normal_attr->values_writable();
@@ -165,7 +166,7 @@ protected:
 
       return container;
 
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       set_error(std::string("File import error: ") + e.what());
       return nullptr;
     }

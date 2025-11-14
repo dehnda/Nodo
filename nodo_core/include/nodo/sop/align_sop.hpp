@@ -2,6 +2,7 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <algorithm>
 
 namespace nodo::sop {
@@ -18,7 +19,7 @@ class AlignSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit AlignSOP(const std::string &node_name = "align")
+  explicit AlignSOP(const std::string& node_name = "align")
       : SOPNode(node_name, "Align") {
     // Single geometry input
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -68,7 +69,7 @@ protected:
     auto output = std::make_shared<core::GeometryContainer>(input->clone());
 
     // Get positions
-    auto *positions = output->get_point_attribute_typed<core::Vec3f>("P");
+    auto* positions = output->get_point_attribute_typed<core::Vec3f>("P");
     if (!positions || positions->size() == 0) {
       return output;
     }
@@ -84,7 +85,7 @@ protected:
     core::Vec3f bbox_max = (*positions)[0];
 
     for (size_t i = 1; i < positions->size(); ++i) {
-      const auto &pos = (*positions)[i];
+      const auto& pos = (*positions)[i];
       bbox_min[0] = std::min(bbox_min[0], pos[0]);
       bbox_min[1] = std::min(bbox_min[1], pos[1]);
       bbox_min[2] = std::min(bbox_min[2], pos[2]);
@@ -97,17 +98,17 @@ protected:
     core::Vec3f offset(0.0F, 0.0F, 0.0F);
 
     switch (mode) {
-    case 0: { // Center to Origin
-      core::Vec3f center = (bbox_min + bbox_max) * 0.5F;
-      offset = -center;
-      break;
-    }
-    case 1: // Min to Origin
-      offset = -bbox_min;
-      break;
-    case 2: // Max to Origin
-      offset = -bbox_max;
-      break;
+      case 0: { // Center to Origin
+        core::Vec3f center = (bbox_min + bbox_max) * 0.5F;
+        offset = -center;
+        break;
+      }
+      case 1: // Min to Origin
+        offset = -bbox_min;
+        break;
+      case 2: // Max to Origin
+        offset = -bbox_max;
+        break;
     }
 
     // Apply only to selected axes

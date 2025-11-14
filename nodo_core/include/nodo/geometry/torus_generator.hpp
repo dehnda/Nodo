@@ -2,6 +2,7 @@
 
 #include "../core/error.hpp"
 #include "../core/geometry_container.hpp"
+
 #include <optional>
 
 namespace nodo::geometry {
@@ -31,7 +32,7 @@ public:
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error
-  static const core::Error &last_error();
+  static const core::Error& last_error();
 
 private:
   static thread_local core::Error last_error_;

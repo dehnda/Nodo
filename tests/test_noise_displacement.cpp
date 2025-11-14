@@ -14,11 +14,11 @@ protected:
     ASSERT_TRUE(sphere_result.has_value());
 
     // Convert GeometryContainer to Mesh for testing
-    const auto &container = sphere_result.value();
-    const auto &topology = container.topology();
+    const auto& container = sphere_result.value();
+    const auto& topology = container.topology();
 
     // Extract positions
-    auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(
+    auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(
         core::standard_attrs::P);
     ASSERT_NE(p_storage, nullptr);
 
@@ -32,7 +32,7 @@ protected:
     Eigen::MatrixXi faces(topology.primitive_count(), 3);
     for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
          ++prim_idx) {
-      const auto &verts = topology.get_primitive_vertices(prim_idx);
+      const auto& verts = topology.get_primitive_vertices(prim_idx);
       for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
         faces(prim_idx, j) = verts[j];
       }

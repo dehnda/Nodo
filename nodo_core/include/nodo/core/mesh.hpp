@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
 #include <memory>
 #include <optional>
 #include <vector>
@@ -24,29 +25,29 @@ public:
   // Constructors
   Mesh() = default;
   Mesh(Vertices vertices, Faces faces);
-  Mesh(const Mesh &) = default;
-  Mesh(Mesh &&) = default;
-  Mesh &operator=(const Mesh &) = default;
-  Mesh &operator=(Mesh &&) = default;
+  Mesh(const Mesh&) = default;
+  Mesh(Mesh&&) = default;
+  Mesh& operator=(const Mesh&) = default;
+  Mesh& operator=(Mesh&&) = default;
   ~Mesh() = default;
 
   // Const access to data
-  [[nodiscard]] const Vertices &vertices() const noexcept { return vertices_; }
-  [[nodiscard]] const Faces &faces() const noexcept { return faces_; }
+  [[nodiscard]] const Vertices& vertices() const noexcept { return vertices_; }
+  [[nodiscard]] const Faces& faces() const noexcept { return faces_; }
 
   // Mutable access (invalidates cache)
-  Vertices &vertices() {
+  Vertices& vertices() {
     invalidate_cache();
     return vertices_;
   }
-  Faces &faces() {
+  Faces& faces() {
     invalidate_cache();
     return faces_;
   }
 
   // Computed properties (cached)
-  [[nodiscard]] const Normals &face_normals() const;
-  [[nodiscard]] const Normals &vertex_normals() const;
+  [[nodiscard]] const Normals& face_normals() const;
+  [[nodiscard]] const Normals& vertex_normals() const;
   [[nodiscard]] double volume() const;
   [[nodiscard]] double surface_area() const;
 
@@ -68,16 +69,16 @@ public:
   [[nodiscard]] bool is_watertight() const;
 
   // In-place transformations
-  void transform(const Eigen::Affine3d &transform);
-  void translate(const Vector3d &translation);
+  void transform(const Eigen::Affine3d& transform);
+  void translate(const Vector3d& translation);
   void scale(double factor);
-  void scale(const Vector3d &factors);
+  void scale(const Vector3d& factors);
 
   // Mesh operations that return new meshes
-  [[nodiscard]] Mesh transformed(const Eigen::Affine3d &transform) const;
-  [[nodiscard]] Mesh translated(const Vector3d &translation) const;
+  [[nodiscard]] Mesh transformed(const Eigen::Affine3d& transform) const;
+  [[nodiscard]] Mesh translated(const Vector3d& translation) const;
   [[nodiscard]] Mesh scaled(double factor) const;
-  [[nodiscard]] Mesh scaled(const Vector3d &factors) const;
+  [[nodiscard]] Mesh scaled(const Vector3d& factors) const;
 
   // Utility methods
   void clear();
@@ -85,8 +86,8 @@ public:
   void reserve_faces(size_t count);
 
   // Equality comparison
-  bool operator==(const Mesh &other) const;
-  bool operator!=(const Mesh &other) const { return !(*this == other); }
+  bool operator==(const Mesh& other) const;
+  bool operator!=(const Mesh& other) const { return !(*this == other); }
 
 private:
   Vertices vertices_;

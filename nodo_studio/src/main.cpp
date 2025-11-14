@@ -1,10 +1,11 @@
 #include "MainWindow.h"
+
 #include <QApplication>
 #include <QPalette>
 #include <QStyleFactory>
 #include <QSurfaceFormat>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   // Set up OpenGL surface format BEFORE creating QApplication
   // This configures what version of OpenGL we want
   QSurfaceFormat format;

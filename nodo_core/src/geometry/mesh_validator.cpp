@@ -1,4 +1,5 @@
 #include "nodo/geometry/mesh_validator.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -84,7 +85,7 @@ std::string ValidationReport::detailed_report() const {
   return summary(); // For now, detailed report is the same as summary
 }
 
-ValidationReport MeshValidator::validate(const core::Mesh &mesh) {
+ValidationReport MeshValidator::validate(const core::Mesh& mesh) {
   ValidationReport report;
 
   if (mesh.vertices().rows() == 0 || mesh.faces().rows() == 0) {
@@ -128,7 +129,7 @@ ValidationReport MeshValidator::validate(const core::Mesh &mesh) {
     report.is_valid = !report.has_degenerate_faces &&
                       !report.has_duplicate_vertices && report.is_manifold;
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     report.is_valid = false;
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::Unknown,
@@ -138,7 +139,7 @@ ValidationReport MeshValidator::validate(const core::Mesh &mesh) {
   return report;
 }
 
-bool MeshValidator::is_closed(const core::Mesh &mesh) {
+bool MeshValidator::is_closed(const core::Mesh& mesh) {
   // Edge structure for tracking edge occurrences
   struct Edge {
     int vertex1, vertex2;
@@ -146,7 +147,7 @@ bool MeshValidator::is_closed(const core::Mesh &mesh) {
     Edge(int vert1, int vert2)
         : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
 
-    bool operator<(const Edge &other) const {
+    bool operator<(const Edge& other) const {
       return vertex1 < other.vertex1 ||
              (vertex1 == other.vertex1 && vertex2 < other.vertex2);
     }
@@ -168,7 +169,7 @@ bool MeshValidator::is_closed(const core::Mesh &mesh) {
 
   // In a closed mesh, every edge should appear exactly twice
   bool all_internal = true;
-  for (const auto &pair : edge_count) {
+  for (const auto& pair : edge_count) {
     if (pair.second != 2) {
       all_internal = false;
       break;
@@ -178,7 +179,7 @@ bool MeshValidator::is_closed(const core::Mesh &mesh) {
   return all_internal;
 }
 
-std::vector<int> MeshValidator::find_degenerate_faces(const core::Mesh &mesh) {
+std::vector<int> MeshValidator::find_degenerate_faces(const core::Mesh& mesh) {
   std::vector<int> degenerate_faces;
 
   for (int face_idx = 0; face_idx < mesh.faces().rows(); ++face_idx) {
@@ -212,7 +213,7 @@ std::vector<int> MeshValidator::find_degenerate_faces(const core::Mesh &mesh) {
   return degenerate_faces;
 }
 
-std::vector<int> MeshValidator::find_duplicate_vertices(const core::Mesh &mesh,
+std::vector<int> MeshValidator::find_duplicate_vertices(const core::Mesh& mesh,
                                                         double tolerance) {
   std::vector<int> duplicates;
   const double tolerance_sq = tolerance * tolerance;
@@ -230,7 +231,7 @@ std::vector<int> MeshValidator::find_duplicate_vertices(const core::Mesh &mesh,
 }
 
 std::vector<int>
-MeshValidator::find_unreferenced_vertices(const core::Mesh &mesh) {
+MeshValidator::find_unreferenced_vertices(const core::Mesh& mesh) {
   std::vector<bool> referenced(mesh.vertices().rows(), false);
 
   // Mark all referenced vertices
@@ -254,12 +255,12 @@ MeshValidator::find_unreferenced_vertices(const core::Mesh &mesh) {
   return unreferenced;
 }
 
-bool MeshValidator::is_manifold(const core::Mesh &mesh) {
+bool MeshValidator::is_manifold(const core::Mesh& mesh) {
   return find_non_manifold_edges(mesh).empty();
 }
 
 std::vector<int>
-MeshValidator::find_non_manifold_edges(const core::Mesh &mesh) {
+MeshValidator::find_non_manifold_edges(const core::Mesh& mesh) {
   // Edge structure for tracking which faces use each edge
   struct Edge {
     int vertex1, vertex2;
@@ -267,7 +268,7 @@ MeshValidator::find_non_manifold_edges(const core::Mesh &mesh) {
     Edge(int vert1, int vert2)
         : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
 
-    bool operator<(const Edge &other) const {
+    bool operator<(const Edge& other) const {
       return vertex1 < other.vertex1 ||
              (vertex1 == other.vertex1 && vertex2 < other.vertex2);
     }
@@ -288,7 +289,7 @@ MeshValidator::find_non_manifold_edges(const core::Mesh &mesh) {
   // Find faces adjacent to non-manifold edges (edges shared by more than 2
   // faces)
   std::vector<int> non_manifold_faces;
-  for (const auto &pair : edge_to_faces) {
+  for (const auto& pair : edge_to_faces) {
     if (pair.second.size() > 2) {
       // Edge is shared by more than 2 faces - non-manifold
       for (int face_idx : pair.second) {
@@ -306,8 +307,8 @@ MeshValidator::find_non_manifold_edges(const core::Mesh &mesh) {
   return non_manifold_faces;
 }
 
-void MeshValidator::calculate_statistics(const core::Mesh &mesh,
-                                         ValidationReport &report) {
+void MeshValidator::calculate_statistics(const core::Mesh& mesh,
+                                         ValidationReport& report) {
   // Edge structure for counting unique edges
   struct Edge {
     int vertex1, vertex2;
@@ -315,7 +316,7 @@ void MeshValidator::calculate_statistics(const core::Mesh &mesh,
     Edge(int vert1, int vert2)
         : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
 
-    bool operator<(const Edge &other) const {
+    bool operator<(const Edge& other) const {
       return vertex1 < other.vertex1 ||
              (vertex1 == other.vertex1 && vertex2 < other.vertex2);
     }
@@ -336,7 +337,7 @@ void MeshValidator::calculate_statistics(const core::Mesh &mesh,
 
   // Count boundary edges (appear only once)
   int boundary_edges = 0;
-  for (const auto &pair : edge_count) {
+  for (const auto& pair : edge_count) {
     if (pair.second == 1) {
       boundary_edges++;
     }
@@ -347,9 +348,11 @@ void MeshValidator::calculate_statistics(const core::Mesh &mesh,
   report.num_isolated_vertices = find_unreferenced_vertices(mesh).size();
 }
 
-const core::Error &MeshValidator::last_error() { return last_error_; }
+const core::Error& MeshValidator::last_error() {
+  return last_error_;
+}
 
-void MeshValidator::set_last_error(const core::Error &error) {
+void MeshValidator::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

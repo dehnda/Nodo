@@ -7,6 +7,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLWidget>
 #include <QVector3D>
+
 #include <memory>
 
 // Forward declarations
@@ -31,15 +32,15 @@ class ViewportWidget : public QOpenGLWidget,
   Q_OBJECT
 
 public:
-  explicit ViewportWidget(QWidget *parent = nullptr);
+  explicit ViewportWidget(QWidget* parent = nullptr);
   ~ViewportWidget() override;
 
   // Set the geometry to display
-  void setGeometry(const nodo::core::GeometryContainer &geometry);
+  void setGeometry(const nodo::core::GeometryContainer& geometry);
 
   // Wireframe overlay management
   void addWireframeOverlay(int node_id,
-                           const nodo::core::GeometryContainer &geometry);
+                           const nodo::core::GeometryContainer& geometry);
   void removeWireframeOverlay(int node_id);
   void clearWireframeOverlays();
 
@@ -64,7 +65,7 @@ public:
   void setShowAxes(bool show);
 
 signals:
-  void gpuInfoDetected(const QString &gpu_info);
+  void gpuInfoDetected(const QString& gpu_info);
   void fpsUpdated(double fps);
 
 protected:
@@ -74,11 +75,11 @@ protected:
   void paintGL() override;
 
   // Mouse events for camera control
-  void mousePressEvent(QMouseEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *event) override;
-  void mouseReleaseEvent(QMouseEvent *event) override;
-  void wheelEvent(QWheelEvent *event) override;
-  void resizeEvent(QResizeEvent *event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 
 private:
   // Overlay widgets
@@ -86,11 +87,11 @@ private:
   void updateOverlayPositions();
   void updateStats();
 
-  ViewportStatsOverlay *stats_overlay_;
-  ViewportControlsOverlay *controls_overlay_;
-  ViewportAxisGizmo *axis_gizmo_;
-  QTimer *fps_timer_;
-  QTimer *render_timer_;
+  ViewportStatsOverlay* stats_overlay_;
+  ViewportControlsOverlay* controls_overlay_;
+  ViewportAxisGizmo* axis_gizmo_;
+  QTimer* fps_timer_;
+  QTimer* render_timer_;
   int frame_count_ = 0;
   double current_fps_ = 0.0;
   // OpenGL resources
@@ -186,9 +187,9 @@ private:
   void setupGrid();
   void setupAxes();
   void updateCamera();
-  void calculateMeshBounds(const nodo::core::Mesh &mesh);
-  void extractEdgesFromGeometry(const nodo::core::GeometryContainer &geometry);
-  void extractEdgesFromMesh(const nodo::core::Mesh &mesh);
+  void calculateMeshBounds(const nodo::core::Mesh& mesh);
+  void extractEdgesFromGeometry(const nodo::core::GeometryContainer& geometry);
+  void extractEdgesFromMesh(const nodo::core::Mesh& mesh);
   void drawNormals();
   void drawVertexNormals();
   void drawFaceNormals();

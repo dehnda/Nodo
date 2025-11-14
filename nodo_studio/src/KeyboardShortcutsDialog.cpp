@@ -1,8 +1,9 @@
 #include "KeyboardShortcutsDialog.h"
+
 #include <QHeaderView>
 #include <QTableWidgetItem>
 
-KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
+KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget* parent)
     : QDialog(parent) {
   setWindowTitle("Keyboard Shortcuts");
   setModal(false);
@@ -15,12 +16,12 @@ KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 }
 
 void KeyboardShortcutsDialog::setupUI() {
-  auto *layout = new QVBoxLayout(this);
+  auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(24, 24, 24, 24);
   layout->setSpacing(16);
 
   // Title
-  auto *title = new QLabel("Keyboard Shortcuts Reference");
+  auto* title = new QLabel("Keyboard Shortcuts Reference");
   QFont title_font = title->font();
   title_font.setPointSize(16);
   title_font.setBold(true);
@@ -112,7 +113,7 @@ void KeyboardShortcutsDialog::setupUI() {
   addShortcut("Documentation", "F1");
 
   // Close button
-  auto *close_button = new QPushButton("Close");
+  auto* close_button = new QPushButton("Close");
   close_button->setDefault(true);
   close_button->setStyleSheet("QPushButton {"
                               "  background: rgba(255, 255, 255, 0.08);"
@@ -132,17 +133,17 @@ void KeyboardShortcutsDialog::setupUI() {
                               "}");
   connect(close_button, &QPushButton::clicked, this, &QDialog::accept);
 
-  auto *button_layout = new QHBoxLayout();
+  auto* button_layout = new QHBoxLayout();
   button_layout->addStretch();
   button_layout->addWidget(close_button);
   layout->addLayout(button_layout);
 }
 
-void KeyboardShortcutsDialog::addShortcutCategory(const QString &category) {
+void KeyboardShortcutsDialog::addShortcutCategory(const QString& category) {
   int row = shortcuts_table_->rowCount();
   shortcuts_table_->insertRow(row);
 
-  auto *category_item = new QTableWidgetItem(category);
+  auto* category_item = new QTableWidgetItem(category);
   QFont bold_font = category_item->font();
   bold_font.setBold(true);
   bold_font.setPointSize(bold_font.pointSize() + 1);
@@ -155,9 +156,9 @@ void KeyboardShortcutsDialog::addShortcutCategory(const QString &category) {
   shortcuts_table_->setSpan(row, 0, 1, 2); // Span across both columns
 }
 
-void KeyboardShortcutsDialog::addShortcut(const QString &action,
-                                          const QString &shortcut,
-                                          const QString &description) {
+void KeyboardShortcutsDialog::addShortcut(const QString& action,
+                                          const QString& shortcut,
+                                          const QString& description) {
   int row = shortcuts_table_->rowCount();
   shortcuts_table_->insertRow(row);
 
@@ -165,20 +166,20 @@ void KeyboardShortcutsDialog::addShortcut(const QString &action,
   if (!description.isEmpty()) {
     action_text += " ";
     // Style description with secondary text color
-    auto *action_item = new QTableWidgetItem("  " + action);
+    auto* action_item = new QTableWidgetItem("  " + action);
     action_item->setForeground(QColor("#e0e0e0"));
 
-    auto *desc_label = new QLabel(description);
+    auto* desc_label = new QLabel(description);
     desc_label->setStyleSheet("color: #808088; font-style: italic;");
     shortcuts_table_->setItem(row, 0, action_item);
     shortcuts_table_->setCellWidget(row, 0, desc_label);
   } else {
-    auto *action_item = new QTableWidgetItem("  " + action_text);
+    auto* action_item = new QTableWidgetItem("  " + action_text);
     action_item->setForeground(QColor("#e0e0e0"));
     shortcuts_table_->setItem(row, 0, action_item);
   }
 
-  auto *shortcut_item = new QTableWidgetItem(shortcut);
+  auto* shortcut_item = new QTableWidgetItem(shortcut);
 
   // Style shortcut as a "key" badge with accent color
   QFont mono_font("Monospace");

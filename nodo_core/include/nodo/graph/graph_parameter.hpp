@@ -24,7 +24,13 @@ namespace nodo::graph {
  */
 class GraphParameter {
 public:
-  enum class Type { Int, Float, String, Bool, Vector3 };
+  enum class Type {
+    Int,
+    Float,
+    String,
+    Bool,
+    Vector3
+  };
 
   // Value type - matches NodeParameter value types
   using ValueType =
@@ -32,19 +38,19 @@ public:
 
   GraphParameter() = default;
 
-  GraphParameter(const std::string &name, Type type,
-                 const std::string &description = "")
+  GraphParameter(const std::string& name, Type type,
+                 const std::string& description = "")
       : name_(name), type_(type), description_(description) {}
 
   // Getters
-  const std::string &get_name() const { return name_; }
+  const std::string& get_name() const { return name_; }
   Type get_type() const { return type_; }
-  const std::string &get_description() const { return description_; }
-  const ValueType &get_value() const { return value_; }
+  const std::string& get_description() const { return description_; }
+  const ValueType& get_value() const { return value_; }
 
   // Setters
-  void set_name(const std::string &name) { name_ = name; }
-  void set_description(const std::string &desc) { description_ = desc; }
+  void set_name(const std::string& name) { name_ = name; }
+  void set_description(const std::string& desc) { description_ = desc; }
 
   // Type-safe value setters
   void set_value(int value) {
@@ -59,7 +65,7 @@ public:
     }
   }
 
-  void set_value(const std::string &value) {
+  void set_value(const std::string& value) {
     if (type_ == Type::String) {
       value_ = value;
     }
@@ -71,14 +77,14 @@ public:
     }
   }
 
-  void set_value(const std::array<float, 3> &value) {
+  void set_value(const std::array<float, 3>& value) {
     if (type_ == Type::Vector3) {
       value_ = value;
     }
   }
 
   // Generic value setter (validates type at runtime)
-  void set_value(const ValueType &value) {
+  void set_value(const ValueType& value) {
     // Verify type matches
     if (std::holds_alternative<int>(value) && type_ == Type::Int) {
       value_ = value;
@@ -111,7 +117,7 @@ public:
     return 0.0F;
   }
 
-  const std::string &get_string_value() const {
+  const std::string& get_string_value() const {
     if (std::holds_alternative<std::string>(value_)) {
       return std::get<std::string>(value_);
     }
@@ -126,7 +132,7 @@ public:
     return false;
   }
 
-  const std::array<float, 3> &get_vector3_value() const {
+  const std::array<float, 3>& get_vector3_value() const {
     if (std::holds_alternative<std::array<float, 3>>(value_)) {
       return std::get<std::array<float, 3>>(value_);
     }
@@ -137,21 +143,21 @@ public:
   // Convert type to string for serialization
   static std::string type_to_string(Type type) {
     switch (type) {
-    case Type::Int:
-      return "int";
-    case Type::Float:
-      return "float";
-    case Type::String:
-      return "string";
-    case Type::Bool:
-      return "bool";
-    case Type::Vector3:
-      return "vector3";
+      case Type::Int:
+        return "int";
+      case Type::Float:
+        return "float";
+      case Type::String:
+        return "string";
+      case Type::Bool:
+        return "bool";
+      case Type::Vector3:
+        return "vector3";
     }
     return "unknown";
   }
 
-  static Type string_to_type(const std::string &str) {
+  static Type string_to_type(const std::string& str) {
     if (str == "int")
       return Type::Int;
     if (str == "float")

@@ -1,7 +1,9 @@
 #include "nodo/benchmarks/performance_benchmark.hpp"
+
 #include "nodo/geometry/boolean_ops.hpp"
 #include "nodo/geometry/mesh_generator.hpp"
 #include "nodo/spatial/enhanced_boolean_ops.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -11,21 +13,21 @@
 #include <sstream>
 
 #ifdef __linux__
-#include <sys/resource.h>
-#include <unistd.h>
+  #include <sys/resource.h>
+  #include <unistd.h>
 #endif
 
 namespace nodo::benchmarks {
 
 // PerformanceBenchmark Implementation
-PerformanceBenchmark::PerformanceBenchmark(const BenchmarkConfig &config)
+PerformanceBenchmark::PerformanceBenchmark(const BenchmarkConfig& config)
     : config_(config) {}
 
-const PerformanceBenchmark::BenchmarkResult *
+const PerformanceBenchmark::BenchmarkResult*
 PerformanceBenchmark::BenchmarkSuite::find_result(
-    const std::string &name) const {
+    const std::string& name) const {
   auto it = std::find_if(results.begin(), results.end(),
-                         [&name](const BenchmarkResult &result) {
+                         [&name](const BenchmarkResult& result) {
                            return result.operation_name == name;
                          });
   return (it != results.end()) ? &(*it) : nullptr;
@@ -50,7 +52,7 @@ std::string PerformanceBenchmark::BenchmarkSuite::generate_report() const {
          << std::setw(12) << "Memory (KB)" << "\n";
   report << std::string(100, '-') << "\n";
 
-  for (const auto &result : results) {
+  for (const auto& result : results) {
     report << std::setw(30) << result.operation_name << std::setw(12)
            << result.average_time_ms << std::setw(12) << result.min_time_ms
            << std::setw(12) << result.max_time_ms << std::setw(12)
@@ -66,7 +68,7 @@ std::string PerformanceBenchmark::BenchmarkSuite::generate_report() const {
 }
 
 void PerformanceBenchmark::BenchmarkSuite::export_csv(
-    const std::string &filename) const {
+    const std::string& filename) const {
   std::ofstream file(filename);
   if (!file.is_open())
     return;
@@ -76,7 +78,7 @@ void PerformanceBenchmark::BenchmarkSuite::export_csv(
           "bytes,Additional_Info\n";
 
   // Data rows
-  for (const auto &result : results) {
+  for (const auto& result : results) {
     file << result.operation_name << "," << result.average_time_ms << ","
          << result.min_time_ms << "," << result.max_time_ms << ","
          << result.std_dev_ms << "," << result.iterations << ","
@@ -96,18 +98,18 @@ PerformanceBenchmark::run_bvh_benchmarks() {
     std::string complexity_name;
 
     switch (complexity) {
-    case ComplexityLevel::Simple:
-      complexity_name = "Simple";
-      break;
-    case ComplexityLevel::Medium:
-      complexity_name = "Medium";
-      break;
-    case ComplexityLevel::Complex:
-      complexity_name = "Complex";
-      break;
-    case ComplexityLevel::VeryComplex:
-      complexity_name = "VeryComplex";
-      break;
+      case ComplexityLevel::Simple:
+        complexity_name = "Simple";
+        break;
+      case ComplexityLevel::Medium:
+        complexity_name = "Medium";
+        break;
+      case ComplexityLevel::Complex:
+        complexity_name = "Complex";
+        break;
+      case ComplexityLevel::VeryComplex:
+        complexity_name = "VeryComplex";
+        break;
     }
 
     // Benchmark BVH construction
@@ -172,18 +174,18 @@ PerformanceBenchmark::run_bvh_comparison_benchmarks() {
     std::string complexity_name;
 
     switch (complexity) {
-    case ComplexityLevel::Simple:
-      complexity_name = "Simple";
-      break;
-    case ComplexityLevel::Medium:
-      complexity_name = "Medium";
-      break;
-    case ComplexityLevel::Complex:
-      complexity_name = "Complex";
-      break;
-    case ComplexityLevel::VeryComplex:
-      complexity_name = "VeryComplex";
-      break;
+      case ComplexityLevel::Simple:
+        complexity_name = "Simple";
+        break;
+      case ComplexityLevel::Medium:
+        complexity_name = "Medium";
+        break;
+      case ComplexityLevel::Complex:
+        complexity_name = "Complex";
+        break;
+      case ComplexityLevel::VeryComplex:
+        complexity_name = "VeryComplex";
+        break;
     }
 
     // Build BVH once
@@ -273,18 +275,18 @@ PerformanceBenchmark::run_boolean_benchmarks() {
 
     std::string complexity_name;
     switch (complexity) {
-    case ComplexityLevel::Simple:
-      complexity_name = "Simple";
-      break;
-    case ComplexityLevel::Medium:
-      complexity_name = "Medium";
-      break;
-    case ComplexityLevel::Complex:
-      complexity_name = "Complex";
-      break;
-    case ComplexityLevel::VeryComplex:
-      complexity_name = "VeryComplex";
-      break;
+      case ComplexityLevel::Simple:
+        complexity_name = "Simple";
+        break;
+      case ComplexityLevel::Medium:
+        complexity_name = "Medium";
+        break;
+      case ComplexityLevel::Complex:
+        complexity_name = "Complex";
+        break;
+      case ComplexityLevel::VeryComplex:
+        complexity_name = "VeryComplex";
+        break;
     }
 
     // Benchmark enhanced boolean operations
@@ -360,16 +362,16 @@ PerformanceBenchmark::run_parameter_optimization_benchmarks() {
 
 core::Mesh PerformanceBenchmark::create_test_mesh(ComplexityLevel level) {
   switch (level) {
-  case ComplexityLevel::Simple:
-    return create_test_mesh(100);
-  case ComplexityLevel::Medium:
-    return create_test_mesh(1000);
-  case ComplexityLevel::Complex:
-    return create_test_mesh(10000);
-  case ComplexityLevel::VeryComplex:
-    return create_test_mesh(100000);
-  default:
-    return create_test_mesh(1000);
+    case ComplexityLevel::Simple:
+      return create_test_mesh(100);
+    case ComplexityLevel::Medium:
+      return create_test_mesh(1000);
+    case ComplexityLevel::Complex:
+      return create_test_mesh(10000);
+    case ComplexityLevel::VeryComplex:
+      return create_test_mesh(100000);
+    default:
+      return create_test_mesh(1000);
   }
 }
 
@@ -399,7 +401,6 @@ core::Mesh PerformanceBenchmark::create_test_mesh(size_t triangle_count) {
 std::vector<double>
 PerformanceBenchmark::time_function(std::function<void()> func,
                                     size_t iterations) {
-
   std::vector<double> timings;
   timings.reserve(iterations);
 
@@ -424,9 +425,8 @@ PerformanceBenchmark::time_function(std::function<void()> func,
 }
 
 PerformanceBenchmark::BenchmarkResult
-PerformanceBenchmark::calculate_statistics(const std::vector<double> &timings,
-                                           const std::string &operation_name) {
-
+PerformanceBenchmark::calculate_statistics(const std::vector<double>& timings,
+                                           const std::string& operation_name) {
   BenchmarkResult result;
   result.operation_name = operation_name;
   result.iterations = timings.size();
@@ -453,15 +453,14 @@ PerformanceBenchmark::calculate_statistics(const std::vector<double> &timings,
 }
 
 std::optional<spatial::BVH::RayHit>
-PerformanceBenchmark::brute_force_ray_intersect(const core::Mesh &mesh,
-                                                const spatial::BVH::Ray &ray) {
-
+PerformanceBenchmark::brute_force_ray_intersect(const core::Mesh& mesh,
+                                                const spatial::BVH::Ray& ray) {
   spatial::BVH::RayHit closest_hit;
   closest_hit.t = ray.t_max;
   bool found_hit = false;
 
   for (int tri_idx = 0; tri_idx < mesh.faces().rows(); ++tri_idx) {
-    const auto &face = mesh.faces().row(tri_idx);
+    const auto& face = mesh.faces().row(tri_idx);
     Eigen::Vector3d v0 = mesh.vertices().row(face[0]);
     Eigen::Vector3d v1 = mesh.vertices().row(face[1]);
     Eigen::Vector3d v2 = mesh.vertices().row(face[2]);
@@ -506,13 +505,12 @@ PerformanceBenchmark::brute_force_ray_intersect(const core::Mesh &mesh,
 }
 
 std::vector<int>
-PerformanceBenchmark::brute_force_aabb_query(const core::Mesh &mesh,
-                                             const spatial::AABB &aabb) {
-
+PerformanceBenchmark::brute_force_aabb_query(const core::Mesh& mesh,
+                                             const spatial::AABB& aabb) {
   std::vector<int> results;
 
   for (int tri_idx = 0; tri_idx < mesh.faces().rows(); ++tri_idx) {
-    const auto &face = mesh.faces().row(tri_idx);
+    const auto& face = mesh.faces().row(tri_idx);
 
     // Check if any vertex of the triangle is inside the AABB
     bool triangle_intersects = false;
@@ -533,7 +531,7 @@ PerformanceBenchmark::brute_force_aabb_query(const core::Mesh &mesh,
 }
 
 template <typename T>
-size_t PerformanceBenchmark::estimate_memory_usage(const T &obj) {
+size_t PerformanceBenchmark::estimate_memory_usage(const T& obj) {
   // This is a simplified estimation - in a real implementation,
   // you'd want more sophisticated memory tracking
   return sizeof(T);

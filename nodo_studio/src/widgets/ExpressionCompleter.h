@@ -27,31 +27,31 @@ class ExpressionCompleter : public QObject {
   Q_OBJECT
 
 public:
-  explicit ExpressionCompleter(QLineEdit *lineEdit, QObject *parent = nullptr);
+  explicit ExpressionCompleter(QLineEdit* lineEdit, QObject* parent = nullptr);
   ~ExpressionCompleter() override = default;
 
   // Set available parameters for completion
-  void setAvailableParameters(const QStringList &params);
+  void setAvailableParameters(const QStringList& params);
 
   // Set available node names for ch() completion
-  void setAvailableNodes(const QStringList &nodes);
+  void setAvailableNodes(const QStringList& nodes);
 
   // Enable/disable completer
   void setEnabled(bool enabled);
 
 private slots:
-  void onTextChanged(const QString &text);
-  void onCompletionActivated(const QString &completion);
+  void onTextChanged(const QString& text);
+  void onCompletionActivated(const QString& completion);
 
 private:
-  void updateCompletions(const QString &text, int cursorPos);
+  void updateCompletions(const QString& text, int cursorPos);
   QStringList getMathFunctions() const;
   QStringList getConstants() const;
-  QString getCompletionPrefix(const QString &text, int cursorPos) const;
+  QString getCompletionPrefix(const QString& text, int cursorPos) const;
 
-  QLineEdit *line_edit_;
-  QCompleter *completer_;
-  QStringListModel *model_;
+  QLineEdit* line_edit_;
+  QCompleter* completer_;
+  QStringListModel* model_;
 
   QStringList available_parameters_;
   QStringList available_nodes_;

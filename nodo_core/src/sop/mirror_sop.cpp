@@ -1,12 +1,14 @@
 #include "nodo/sop/mirror_sop.hpp"
+
 #include "nodo/core/math.hpp"
+
 #include <algorithm>
 
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-MirrorSOP::MirrorSOP(const std::string &name) : SOPNode(name, "Mirror") {
+MirrorSOP::MirrorSOP(const std::string& name) : SOPNode(name, "Mirror") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -106,44 +108,44 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
   core::Vector3 plane_normal;
 
   switch (plane_) {
-  case MirrorPlane::XY:
-    plane_point = core::Vector3::Zero();
-    plane_normal = core::Vector3::UnitZ();
-    break;
-  case MirrorPlane::XZ:
-    plane_point = core::Vector3::Zero();
-    plane_normal = core::Vector3::UnitY();
-    break;
-  case MirrorPlane::YZ:
-    plane_point = core::Vector3::Zero();
-    plane_normal = core::Vector3::UnitX();
-    break;
-  case MirrorPlane::CUSTOM:
-    plane_point = custom_point_;
-    plane_normal = custom_normal_.normalized();
-    break;
+    case MirrorPlane::XY:
+      plane_point = core::Vector3::Zero();
+      plane_normal = core::Vector3::UnitZ();
+      break;
+    case MirrorPlane::XZ:
+      plane_point = core::Vector3::Zero();
+      plane_normal = core::Vector3::UnitY();
+      break;
+    case MirrorPlane::YZ:
+      plane_point = core::Vector3::Zero();
+      plane_normal = core::Vector3::UnitX();
+      break;
+    case MirrorPlane::CUSTOM:
+      plane_point = custom_point_;
+      plane_normal = custom_normal_.normalized();
+      break;
   }
 
   // Get input positions and topology
-  auto *input_positions =
+  auto* input_positions =
       input_geo->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!input_positions) {
     set_error("Input geometry missing position attribute");
     return nullptr;
   }
 
-  const auto &input_topology = input_geo->topology();
+  const auto& input_topology = input_geo->topology();
   auto input_pos_span = input_positions->values();
 
   // Create output container
   auto output = std::make_shared<core::GeometryContainer>();
-  auto &output_topology = output->topology();
+  auto& output_topology = output->topology();
 
   // Calculate mirrored positions
   std::vector<core::Vec3f> mirrored_positions;
   mirrored_positions.reserve(input_pos_span.size());
 
-  for (const auto &pos : input_pos_span) {
+  for (const auto& pos : input_pos_span) {
     core::Vector3 vertex(pos[0], pos[1], pos[2]);
     core::Vector3 mirrored = core::math::mirror_point_across_plane(
         vertex, plane_point, plane_normal);
@@ -154,13 +156,13 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
 
   // Mirror normals if present
   std::vector<core::Vec3f> mirrored_normals;
-  auto *input_normals =
+  auto* input_normals =
       input_geo->get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (input_normals) {
     auto input_norm_span = input_normals->values();
     mirrored_normals.reserve(input_norm_span.size());
 
-    for (const auto &norm : input_norm_span) {
+    for (const auto& norm : input_norm_span) {
       core::Vector3 normal(norm[0], norm[1], norm[2]);
       // Mirror normals (reflection across plane, but don't translate)
       core::Vector3 mirrored_n =
@@ -194,7 +196,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
     // Add mirrored primitives (with flipped winding)
     const int vertex_offset = input_pos_span.size();
     for (size_t i = 0; i < input_topology.primitive_count(); ++i) {
-      const auto &orig_verts = input_topology.get_primitive_vertices(i);
+      const auto& orig_verts = input_topology.get_primitive_vertices(i);
       std::vector<int> mirrored_verts(orig_verts.size());
       // Flip winding order for correct normals
       mirrored_verts[0] = orig_verts[0] + vertex_offset;
@@ -205,7 +207,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
 
     // Add combined positions
     output->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-    auto *out_positions =
+    auto* out_positions =
         output->get_point_attribute_typed<core::Vec3f>(attrs::P);
     if (out_positions) {
       auto out_pos_span = out_positions->values_writable();
@@ -220,7 +222,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
     // Add combined normals if available
     if (!mirrored_normals.empty()) {
       output->add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-      auto *out_normals =
+      auto* out_normals =
           output->get_point_attribute_typed<core::Vec3f>(attrs::N);
       if (out_normals) {
         auto out_norm_span = out_normals->values_writable();
@@ -246,7 +248,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
 
     // Add mirrored primitives with flipped winding
     for (size_t i = 0; i < input_topology.primitive_count(); ++i) {
-      const auto &orig_verts = input_topology.get_primitive_vertices(i);
+      const auto& orig_verts = input_topology.get_primitive_vertices(i);
       std::vector<int> mirrored_verts(orig_verts.size());
       // Flip winding order
       mirrored_verts[0] = orig_verts[0];
@@ -257,7 +259,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
 
     // Add mirrored positions
     output->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-    auto *out_positions =
+    auto* out_positions =
         output->get_point_attribute_typed<core::Vec3f>(attrs::P);
     if (out_positions) {
       auto out_pos_span = out_positions->values_writable();
@@ -268,7 +270,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
     // Add mirrored normals if available
     if (!mirrored_normals.empty()) {
       output->add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-      auto *out_normals =
+      auto* out_normals =
           output->get_point_attribute_typed<core::Vec3f>(attrs::N);
       if (out_normals) {
         auto out_norm_span = out_normals->values_writable();
@@ -283,28 +285,27 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
 
 std::string MirrorSOP::plane_to_string(MirrorPlane plane) {
   switch (plane) {
-  case MirrorPlane::XY:
-    return "XY";
-  case MirrorPlane::XZ:
-    return "XZ";
-  case MirrorPlane::YZ:
-    return "YZ";
-  case MirrorPlane::CUSTOM:
-    return "Custom";
-  default:
-    return "Unknown";
+    case MirrorPlane::XY:
+      return "XY";
+    case MirrorPlane::XZ:
+      return "XZ";
+    case MirrorPlane::YZ:
+      return "YZ";
+    case MirrorPlane::CUSTOM:
+      return "Custom";
+    default:
+      return "Unknown";
   }
 }
 
 std::vector<core::Vector3>
-MirrorSOP::mirror_vertices(const std::vector<core::Vector3> &vertices,
-                           const core::Vector3 &plane_point,
-                           const core::Vector3 &plane_normal) const {
-
+MirrorSOP::mirror_vertices(const std::vector<core::Vector3>& vertices,
+                           const core::Vector3& plane_point,
+                           const core::Vector3& plane_normal) const {
   std::vector<core::Vector3> mirrored_vertices;
   mirrored_vertices.reserve(vertices.size());
 
-  for (const auto &vertex : vertices) {
+  for (const auto& vertex : vertices) {
     // Use the new math utility function
     core::Vector3 mirrored = core::math::mirror_point_across_plane(
         vertex, plane_point, plane_normal);

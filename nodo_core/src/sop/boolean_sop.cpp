@@ -1,7 +1,9 @@
 #include "nodo/sop/boolean_sop.hpp"
+
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/geometry/boolean_ops.hpp"
+
 #include <iostream>
 
 namespace attrs = nodo::core::standard_attrs;
@@ -10,10 +12,10 @@ namespace nodo::sop {
 
 // Helper to convert GeometryData to Mesh for BooleanOps (temporary bridge)
 static std::shared_ptr<core::Mesh>
-container_to_mesh(const core::GeometryContainer &container) {
-  const auto &topology = container.topology();
+container_to_mesh(const core::GeometryContainer& container) {
+  const auto& topology = container.topology();
 
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!p_storage)
     return nullptr;
 
@@ -27,7 +29,7 @@ container_to_mesh(const core::GeometryContainer &container) {
   // Triangulate: Convert quads/polygons to triangles
   std::vector<Eigen::Vector3i> triangle_list;
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
 
     // Get point indices for this primitive
     std::vector<int> point_indices;
@@ -67,10 +69,10 @@ container_to_mesh(const core::GeometryContainer &container) {
 
 // Helper to convert Mesh back to GeometryContainer
 static std::shared_ptr<core::GeometryContainer>
-mesh_to_container(const core::Mesh &mesh) {
+mesh_to_container(const core::Mesh& mesh) {
   auto container = std::make_shared<core::GeometryContainer>();
-  const auto &vertices = mesh.vertices();
-  const auto &faces = mesh.faces();
+  const auto& vertices = mesh.vertices();
+  const auto& faces = mesh.faces();
 
   container->set_point_count(vertices.rows());
 
@@ -92,7 +94,7 @@ mesh_to_container(const core::Mesh &mesh) {
 
   // Copy positions
   container->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *positions = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* positions = container->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (positions != nullptr) {
     for (int i = 0; i < vertices.rows(); ++i) {
       (*positions)[i] = vertices.row(i).cast<float>();
@@ -136,7 +138,7 @@ mesh_to_container(const core::Mesh &mesh) {
 
   // Compute vertex normals by averaging adjacent face normals
   container->add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *normals = container->get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* normals = container->get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (normals != nullptr) {
     // Initialize all normals to zero
     for (size_t i = 0; i < container->topology().point_count(); ++i) {
@@ -170,7 +172,7 @@ mesh_to_container(const core::Mesh &mesh) {
   return container;
 }
 
-BooleanSOP::BooleanSOP(const std::string &node_name)
+BooleanSOP::BooleanSOP(const std::string& node_name)
     : SOPNode(node_name, "Boolean") {
   // Add input ports (using numeric names for execution engine compatibility)
   input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -224,23 +226,23 @@ std::shared_ptr<core::GeometryContainer> BooleanSOP::execute() {
   std::optional<core::Mesh> result;
 
   switch (operation) {
-  case 0: // UNION
-    result = geometry::BooleanOps::union_meshes(*mesh_a, *mesh_b);
-    break;
-  case 1: // INTERSECTION
-    result = geometry::BooleanOps::intersect_meshes(*mesh_a, *mesh_b);
-    break;
-  case 2: // DIFFERENCE
-    result = geometry::BooleanOps::difference_meshes(*mesh_a, *mesh_b);
-    break;
-  default:
-    set_error("Invalid operation type: " + std::to_string(operation));
-    return nullptr;
+    case 0: // UNION
+      result = geometry::BooleanOps::union_meshes(*mesh_a, *mesh_b);
+      break;
+    case 1: // INTERSECTION
+      result = geometry::BooleanOps::intersect_meshes(*mesh_a, *mesh_b);
+      break;
+    case 2: // DIFFERENCE
+      result = geometry::BooleanOps::difference_meshes(*mesh_a, *mesh_b);
+      break;
+    default:
+      set_error("Invalid operation type: " + std::to_string(operation));
+      return nullptr;
   }
 
   // Check if operation succeeded
   if (!result.has_value()) {
-    const auto &error = geometry::BooleanOps::last_error();
+    const auto& error = geometry::BooleanOps::last_error();
     set_error("Boolean operation failed: " + error.message);
     return nullptr;
   }

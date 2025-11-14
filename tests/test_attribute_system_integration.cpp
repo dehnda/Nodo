@@ -1,6 +1,8 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <chrono>
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -72,7 +74,7 @@ TEST_F(AttributeSystemIntegrationTest, TriangleMesh) {
   geo.ensure_position_attribute();
 
   // Get typed access to positions
-  auto *positions = geo.positions();
+  auto* positions = geo.positions();
   ASSERT_NE(positions, nullptr);
   EXPECT_EQ(positions->size(), 3);
 
@@ -110,8 +112,8 @@ TEST_F(AttributeSystemIntegrationTest, QuadMesh) {
   ASSERT_TRUE(geo.add_point_attribute(attrs::P, AttributeType::VEC3F));
   ASSERT_TRUE(geo.add_vertex_attribute(attrs::Cd, AttributeType::VEC3F));
 
-  auto *positions = geo.positions();
-  auto *colors = geo.get_vertex_attribute_typed<Vec3f>(attrs::Cd);
+  auto* positions = geo.positions();
+  auto* colors = geo.get_vertex_attribute_typed<Vec3f>(attrs::Cd);
 
   ASSERT_NE(positions, nullptr);
   ASSERT_NE(colors, nullptr);
@@ -160,8 +162,8 @@ TEST_F(AttributeSystemIntegrationTest, CubeWithSplitNormals) {
   ASSERT_TRUE(geo.add_point_attribute(attrs::P, AttributeType::VEC3F));
   ASSERT_TRUE(geo.add_vertex_attribute(attrs::N, AttributeType::VEC3F));
 
-  auto *positions = geo.positions();
-  auto *normals = geo.get_vertex_attribute_typed<Vec3f>(attrs::N);
+  auto* positions = geo.positions();
+  auto* normals = geo.get_vertex_attribute_typed<Vec3f>(attrs::N);
 
   ASSERT_NE(positions, nullptr);
   ASSERT_NE(normals, nullptr);
@@ -292,7 +294,7 @@ TEST_F(AttributeSystemIntegrationTest, MixedPrimitives) {
 
   // Add position
   ASSERT_TRUE(geo.add_point_attribute(attrs::P, AttributeType::VEC3F));
-  auto *positions = geo.positions();
+  auto* positions = geo.positions();
   ASSERT_NE(positions, nullptr);
 
   // Set positions
@@ -337,7 +339,7 @@ TEST_F(AttributeSystemIntegrationTest, AttributeCloning) {
 
   // Add and populate position
   ASSERT_TRUE(geo1.add_point_attribute(attrs::P, AttributeType::VEC3F));
-  auto *positions1 = geo1.positions();
+  auto* positions1 = geo1.positions();
   (*positions1)[0] = Vec3f(1.0F, 2.0F, 3.0F);
   (*positions1)[1] = Vec3f(4.0F, 5.0F, 6.0F);
   (*positions1)[2] = Vec3f(7.0F, 8.0F, 9.0F);
@@ -353,7 +355,7 @@ TEST_F(AttributeSystemIntegrationTest, AttributeCloning) {
   // Verify clone has position attribute
   EXPECT_TRUE(geo2.has_point_attribute(attrs::P));
 
-  auto *positions2 = geo2.positions();
+  auto* positions2 = geo2.positions();
   ASSERT_NE(positions2, nullptr);
 
   // Verify values are copied
@@ -384,8 +386,8 @@ TEST_F(AttributeSystemIntegrationTest, CustomAttributes) {
   ASSERT_TRUE(geo.add_vertex_attribute("id", AttributeType::INT));
 
   // Get typed access
-  auto *temps = geo.get_point_attribute_typed<float>("temperature");
-  auto *ids = geo.get_vertex_attribute_typed<int>("id");
+  auto* temps = geo.get_point_attribute_typed<float>("temperature");
+  auto* ids = geo.get_vertex_attribute_typed<int>("id");
 
   ASSERT_NE(temps, nullptr);
   ASSERT_NE(ids, nullptr);
@@ -421,7 +423,7 @@ TEST_F(AttributeSystemIntegrationTest, PerformanceBaseline_1M_Positions) {
 
   // Add position attribute
   ASSERT_TRUE(geo.add_point_attribute(attrs::P, AttributeType::VEC3F));
-  auto *positions = geo.positions();
+  auto* positions = geo.positions();
   ASSERT_NE(positions, nullptr);
   ASSERT_EQ(positions->size(), COUNT);
 
@@ -481,7 +483,7 @@ TEST_F(AttributeSystemIntegrationTest, SpanBasedIteration) {
   geo.set_point_count(100);
 
   ASSERT_TRUE(geo.add_point_attribute(attrs::P, AttributeType::VEC3F));
-  auto *positions = geo.positions();
+  auto* positions = geo.positions();
   ASSERT_NE(positions, nullptr);
 
   // Get writable span
@@ -489,7 +491,7 @@ TEST_F(AttributeSystemIntegrationTest, SpanBasedIteration) {
 
   // Modern range-based for loop
   size_t index = 0;
-  for (auto &pos : pos_span) {
+  for (auto& pos : pos_span) {
     pos = Vec3f(static_cast<float>(index), 0.0F, 0.0F);
     ++index;
   }
@@ -501,7 +503,7 @@ TEST_F(AttributeSystemIntegrationTest, SpanBasedIteration) {
   // Read-only span
   auto const_span = positions->values();
   float sum = 0.0F;
-  for (const auto &pos : const_span) {
+  for (const auto& pos : const_span) {
     sum += pos.x();
   }
 
@@ -564,11 +566,11 @@ TEST_F(AttributeSystemIntegrationTest, MultipleAttributeTypes) {
   ASSERT_TRUE(geo.add_primitive_attribute("primid", AttributeType::INT));
 
   // Get typed access to all
-  auto *positions = geo.positions();
-  auto *pscales = geo.get_point_attribute_typed<float>("pscale");
-  auto *normals = geo.get_vertex_attribute_typed<Vec3f>(attrs::N);
-  auto *uvs = geo.get_vertex_attribute_typed<Vec2f>(attrs::uv);
-  auto *primids = geo.get_primitive_attribute_typed<int>("primid");
+  auto* positions = geo.positions();
+  auto* pscales = geo.get_point_attribute_typed<float>("pscale");
+  auto* normals = geo.get_vertex_attribute_typed<Vec3f>(attrs::N);
+  auto* uvs = geo.get_vertex_attribute_typed<Vec2f>(attrs::uv);
+  auto* primids = geo.get_primitive_attribute_typed<int>("primid");
 
   ASSERT_NE(positions, nullptr);
   ASSERT_NE(pscales, nullptr);
@@ -593,7 +595,7 @@ TEST_F(AttributeSystemIntegrationTest, MultipleAttributeTypes) {
 // Main
 // ============================================================================
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

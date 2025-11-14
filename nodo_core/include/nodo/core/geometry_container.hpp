@@ -3,6 +3,7 @@
 #include "attribute_set.hpp"
 #include "element_topology.hpp"
 #include "standard_attributes.hpp"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -44,19 +45,19 @@ public:
   ~GeometryContainer() = default;
 
   // Prevent copying (use clone() for explicit copy)
-  GeometryContainer(const GeometryContainer &) = delete;
-  GeometryContainer &operator=(const GeometryContainer &) = delete;
+  GeometryContainer(const GeometryContainer&) = delete;
+  GeometryContainer& operator=(const GeometryContainer&) = delete;
 
   // Allow moving
-  GeometryContainer(GeometryContainer &&) noexcept = default;
-  GeometryContainer &operator=(GeometryContainer &&) noexcept = default;
+  GeometryContainer(GeometryContainer&&) noexcept = default;
+  GeometryContainer& operator=(GeometryContainer&&) noexcept = default;
 
   // ============================================================================
   // Topology Access
   // ============================================================================
 
-  ElementTopology &topology() { return topology_; }
-  const ElementTopology &topology() const { return topology_; }
+  ElementTopology& topology() { return topology_; }
+  const ElementTopology& topology() const { return topology_; }
 
   // Element counts (delegated to topology)
   size_t point_count() const { return topology_.point_count(); }
@@ -89,7 +90,7 @@ public:
     primitive_attrs_.reserve(capacity);
   }
 
-  size_t add_primitive(const std::vector<int> &vertices) {
+  size_t add_primitive(const std::vector<int>& vertices) {
     size_t idx = topology_.add_primitive(vertices);
     primitive_attrs_.resize(primitive_count());
     return idx;
@@ -108,7 +109,7 @@ public:
    * attributes.
    */
   std::optional<GeometryContainer>
-  delete_elements(const std::string &group_name, ElementClass element_class,
+  delete_elements(const std::string& group_name, ElementClass element_class,
                   bool delete_orphaned_points = true) const;
 
   // ============================================================================
@@ -129,21 +130,21 @@ public:
     return point_attrs_.has_attribute(name);
   }
 
-  IAttributeStorage *get_point_attribute(std::string_view name) {
+  IAttributeStorage* get_point_attribute(std::string_view name) {
     return point_attrs_.get_storage(name);
   }
 
-  const IAttributeStorage *get_point_attribute(std::string_view name) const {
+  const IAttributeStorage* get_point_attribute(std::string_view name) const {
     return point_attrs_.get_storage(name);
   }
 
   template <typename T>
-  AttributeStorage<T> *get_point_attribute_typed(std::string_view name) {
+  AttributeStorage<T>* get_point_attribute_typed(std::string_view name) {
     return point_attrs_.get_storage_typed<T>(name);
   }
 
   template <typename T>
-  const AttributeStorage<T> *
+  const AttributeStorage<T>*
   get_point_attribute_typed(std::string_view name) const {
     return point_attrs_.get_storage_typed<T>(name);
   }
@@ -170,21 +171,21 @@ public:
     return vertex_attrs_.has_attribute(name);
   }
 
-  IAttributeStorage *get_vertex_attribute(std::string_view name) {
+  IAttributeStorage* get_vertex_attribute(std::string_view name) {
     return vertex_attrs_.get_storage(name);
   }
 
-  const IAttributeStorage *get_vertex_attribute(std::string_view name) const {
+  const IAttributeStorage* get_vertex_attribute(std::string_view name) const {
     return vertex_attrs_.get_storage(name);
   }
 
   template <typename T>
-  AttributeStorage<T> *get_vertex_attribute_typed(std::string_view name) {
+  AttributeStorage<T>* get_vertex_attribute_typed(std::string_view name) {
     return vertex_attrs_.get_storage_typed<T>(name);
   }
 
   template <typename T>
-  const AttributeStorage<T> *
+  const AttributeStorage<T>*
   get_vertex_attribute_typed(std::string_view name) const {
     return vertex_attrs_.get_storage_typed<T>(name);
   }
@@ -211,22 +212,22 @@ public:
     return primitive_attrs_.has_attribute(name);
   }
 
-  IAttributeStorage *get_primitive_attribute(std::string_view name) {
+  IAttributeStorage* get_primitive_attribute(std::string_view name) {
     return primitive_attrs_.get_storage(name);
   }
 
-  const IAttributeStorage *
+  const IAttributeStorage*
   get_primitive_attribute(std::string_view name) const {
     return primitive_attrs_.get_storage(name);
   }
 
   template <typename T>
-  AttributeStorage<T> *get_primitive_attribute_typed(std::string_view name) {
+  AttributeStorage<T>* get_primitive_attribute_typed(std::string_view name) {
     return primitive_attrs_.get_storage_typed<T>(name);
   }
 
   template <typename T>
-  const AttributeStorage<T> *
+  const AttributeStorage<T>*
   get_primitive_attribute_typed(std::string_view name) const {
     return primitive_attrs_.get_storage_typed<T>(name);
   }
@@ -253,21 +254,21 @@ public:
     return detail_attrs_.has_attribute(name);
   }
 
-  IAttributeStorage *get_detail_attribute(std::string_view name) {
+  IAttributeStorage* get_detail_attribute(std::string_view name) {
     return detail_attrs_.get_storage(name);
   }
 
-  const IAttributeStorage *get_detail_attribute(std::string_view name) const {
+  const IAttributeStorage* get_detail_attribute(std::string_view name) const {
     return detail_attrs_.get_storage(name);
   }
 
   template <typename T>
-  AttributeStorage<T> *get_detail_attribute_typed(std::string_view name) {
+  AttributeStorage<T>* get_detail_attribute_typed(std::string_view name) {
     return detail_attrs_.get_storage_typed<T>(name);
   }
 
   template <typename T>
-  const AttributeStorage<T> *
+  const AttributeStorage<T>*
   get_detail_attribute_typed(std::string_view name) const {
     return detail_attrs_.get_storage_typed<T>(name);
   }
@@ -284,44 +285,44 @@ public:
    * @brief Get point positions (standard "P" attribute)
    * @return Pointer to position storage, or nullptr if not present
    */
-  AttributeStorage<Vec3f> *positions() {
+  AttributeStorage<Vec3f>* positions() {
     return get_point_attribute_typed<Vec3f>(standard_attrs::P);
   }
 
-  const AttributeStorage<Vec3f> *positions() const {
+  const AttributeStorage<Vec3f>* positions() const {
     return get_point_attribute_typed<Vec3f>(standard_attrs::P);
   }
 
   /**
    * @brief Get vertex normals (standard "N" attribute)
    */
-  AttributeStorage<Vec3f> *normals() {
+  AttributeStorage<Vec3f>* normals() {
     return get_vertex_attribute_typed<Vec3f>(standard_attrs::N);
   }
 
-  const AttributeStorage<Vec3f> *normals() const {
+  const AttributeStorage<Vec3f>* normals() const {
     return get_vertex_attribute_typed<Vec3f>(standard_attrs::N);
   }
 
   /**
    * @brief Get vertex UVs (standard "uv" attribute)
    */
-  AttributeStorage<Vec2f> *uvs() {
+  AttributeStorage<Vec2f>* uvs() {
     return get_vertex_attribute_typed<Vec2f>(standard_attrs::uv);
   }
 
-  const AttributeStorage<Vec2f> *uvs() const {
+  const AttributeStorage<Vec2f>* uvs() const {
     return get_vertex_attribute_typed<Vec2f>(standard_attrs::uv);
   }
 
   /**
    * @brief Get point colors (standard "Cd" attribute)
    */
-  AttributeStorage<Vec3f> *colors() {
+  AttributeStorage<Vec3f>* colors() {
     return get_point_attribute_typed<Vec3f>(standard_attrs::Cd);
   }
 
-  const AttributeStorage<Vec3f> *colors() const {
+  const AttributeStorage<Vec3f>* colors() const {
     return get_point_attribute_typed<Vec3f>(standard_attrs::Cd);
   }
 
@@ -433,17 +434,17 @@ public:
   }
 
   // Direct access to attribute sets (for advanced use)
-  AttributeSet &point_attributes() { return point_attrs_; }
-  const AttributeSet &point_attributes() const { return point_attrs_; }
+  AttributeSet& point_attributes() { return point_attrs_; }
+  const AttributeSet& point_attributes() const { return point_attrs_; }
 
-  AttributeSet &vertex_attributes() { return vertex_attrs_; }
-  const AttributeSet &vertex_attributes() const { return vertex_attrs_; }
+  AttributeSet& vertex_attributes() { return vertex_attrs_; }
+  const AttributeSet& vertex_attributes() const { return vertex_attrs_; }
 
-  AttributeSet &primitive_attributes() { return primitive_attrs_; }
-  const AttributeSet &primitive_attributes() const { return primitive_attrs_; }
+  AttributeSet& primitive_attributes() { return primitive_attrs_; }
+  const AttributeSet& primitive_attributes() const { return primitive_attrs_; }
 
-  AttributeSet &detail_attributes() { return detail_attrs_; }
-  const AttributeSet &detail_attributes() const { return detail_attrs_; }
+  AttributeSet& detail_attributes() { return detail_attrs_; }
+  const AttributeSet& detail_attributes() const { return detail_attrs_; }
 
 private:
   ElementTopology topology_;
@@ -455,14 +456,14 @@ private:
 
   // Helper methods for delete_elements
   std::optional<GeometryContainer>
-  delete_primitives(const std::unordered_set<size_t> &delete_set,
+  delete_primitives(const std::unordered_set<size_t>& delete_set,
                     bool delete_orphaned_points) const;
 
   std::optional<GeometryContainer>
-  delete_points(const std::unordered_set<size_t> &delete_set) const;
+  delete_points(const std::unordered_set<size_t>& delete_set) const;
 
   std::optional<GeometryContainer>
-  remove_orphaned_points(const GeometryContainer &input) const;
+  remove_orphaned_points(const GeometryContainer& input) const;
 };
 
 } // namespace nodo::core

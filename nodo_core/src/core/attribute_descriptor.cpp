@@ -1,4 +1,5 @@
 #include "nodo/core/attribute_descriptor.hpp"
+
 #include <cstring>
 
 namespace nodo::core {
@@ -6,7 +7,9 @@ namespace nodo::core {
 AttributeDescriptor::AttributeDescriptor(std::string name, AttributeType type,
                                          ElementClass owner,
                                          InterpolationMode interpolation)
-    : name_(std::move(name)), type_(type), owner_(owner),
+    : name_(std::move(name)),
+      type_(type),
+      owner_(owner),
       interpolation_(interpolation) {
   // Use default interpolation if LINEAR was specified and type has a better
   // default
@@ -15,7 +18,7 @@ AttributeDescriptor::AttributeDescriptor(std::string name, AttributeType type,
   }
 }
 
-void AttributeDescriptor::set_default_value(const void *data) {
+void AttributeDescriptor::set_default_value(const void* data) {
   if (data == nullptr) {
     has_default_ = false;
     default_value_.clear();

@@ -8,6 +8,7 @@
 
 #include "nodo/expressions/ExpressionEvaluator.h"
 #include "nodo/graph/node_graph.hpp"
+
 #include <optional>
 #include <regex>
 #include <string>
@@ -33,7 +34,7 @@ namespace nodo::graph {
  */
 class ParameterExpressionResolver {
 public:
-  explicit ParameterExpressionResolver(const NodeGraph &graph)
+  explicit ParameterExpressionResolver(const NodeGraph& graph)
       : graph_(graph), node_params_(nullptr), current_node_id_(-1) {}
 
   /**
@@ -43,10 +44,11 @@ public:
    * @param current_node_id The ID of the node evaluating the expression (for
    * ch())
    */
-  ParameterExpressionResolver(const NodeGraph &graph,
-                              const std::vector<NodeParameter> *node_params,
+  ParameterExpressionResolver(const NodeGraph& graph,
+                              const std::vector<NodeParameter>* node_params,
                               int current_node_id = -1)
-      : graph_(graph), node_params_(node_params),
+      : graph_(graph),
+        node_params_(node_params),
         current_node_id_(current_node_id) {}
 
   /**
@@ -54,7 +56,7 @@ public:
    * @param expression The string to check
    * @return True if expression contains $ or @ references
    */
-  static bool has_references(const std::string &expression) {
+  static bool has_references(const std::string& expression) {
     return expression.find('$') != std::string::npos ||
            expression.find('@') != std::string::npos;
   }
@@ -67,7 +69,7 @@ public:
    *
    * M3.3 Phase 3: Now supports ch() function for cross-node references
    */
-  std::string resolve(const std::string &expression) const {
+  std::string resolve(const std::string& expression) const {
     // First resolve ch() function calls
     std::string result = resolve_ch_functions(expression);
 
@@ -124,7 +126,7 @@ public:
    *   "$count * 2" → 20 (evaluates math)
    *   "5 + 3" → 8 (pure math)
    */
-  std::optional<int> resolve_int(const std::string &expression) const {
+  std::optional<int> resolve_int(const std::string& expression) const {
     // Step 1: Resolve parameter references
     std::string resolved = resolve(expression);
 
@@ -149,7 +151,7 @@ public:
    *
    * M3.3 Phase 2: Supports mathematical expressions
    */
-  std::optional<float> resolve_float(const std::string &expression) const {
+  std::optional<float> resolve_float(const std::string& expression) const {
     // Step 1: Resolve parameter references
     std::string resolved = resolve(expression);
 
@@ -174,7 +176,7 @@ public:
    *
    * M3.3 Phase 2: Full precision math evaluation
    */
-  std::optional<double> resolve_double(const std::string &expression) const {
+  std::optional<double> resolve_double(const std::string& expression) const {
     // Step 1: Resolve parameter references
     std::string resolved = resolve(expression);
 
@@ -200,7 +202,7 @@ public:
    * @return Vector of parameter names found
    */
   static std::vector<std::string>
-  extract_references(const std::string &expression) {
+  extract_references(const std::string& expression) {
     std::vector<std::string> references;
 
     std::regex pattern(R"((\$|@)(\w+)|\$\{(\w+)\})");
@@ -220,33 +222,33 @@ public:
   }
 
 private:
-  const NodeGraph &graph_;
-  const std::vector<NodeParameter>
-      *node_params_;    // M3.3: For same-node param refs
+  const NodeGraph& graph_;
+  const std::vector<NodeParameter>*
+      node_params_;     // M3.3: For same-node param refs
   int current_node_id_; // M3.3 Phase 3: For ch() cross-node references
 
   /**
    * @brief Convert node parameter to string value
    */
-  std::string get_node_parameter_value(const NodeParameter &param) const {
+  std::string get_node_parameter_value(const NodeParameter& param) const {
     switch (param.type) {
-    case NodeParameter::Type::Float:
-      return std::to_string(param.float_value);
+      case NodeParameter::Type::Float:
+        return std::to_string(param.float_value);
 
-    case NodeParameter::Type::Int:
-      return std::to_string(param.int_value);
+      case NodeParameter::Type::Int:
+        return std::to_string(param.int_value);
 
-    case NodeParameter::Type::Bool:
-      return param.bool_value ? "1" : "0";
+      case NodeParameter::Type::Bool:
+        return param.bool_value ? "1" : "0";
 
-    case NodeParameter::Type::String:
-    case NodeParameter::Type::Code:
-      return param.string_value;
+      case NodeParameter::Type::String:
+      case NodeParameter::Type::Code:
+        return param.string_value;
 
-    case NodeParameter::Type::Vector3:
-      return std::to_string(param.vector3_value[0]) + "," +
-             std::to_string(param.vector3_value[1]) + "," +
-             std::to_string(param.vector3_value[2]);
+      case NodeParameter::Type::Vector3:
+        return std::to_string(param.vector3_value[0]) + "," +
+               std::to_string(param.vector3_value[1]) + "," +
+               std::to_string(param.vector3_value[2]);
     }
 
     return ""; // Fallback
@@ -256,10 +258,10 @@ private:
    * @brief Get parameter value as string
    * Checks node parameters first, then graph parameters
    */
-  std::string get_parameter_value(const std::string &param_name) const {
+  std::string get_parameter_value(const std::string& param_name) const {
     // M3.3: First check same-node parameters
     if (node_params_ != nullptr) {
-      for (const auto &param : *node_params_) {
+      for (const auto& param : *node_params_) {
         if (param.name == param_name) {
           // Found in node parameters - return its value
           return get_node_parameter_value(param);
@@ -268,7 +270,7 @@ private:
     }
 
     // Then check global graph parameters
-    const GraphParameter *param = graph_.get_graph_parameter(param_name);
+    const GraphParameter* param = graph_.get_graph_parameter(param_name);
 
     if (param == nullptr) {
       // Parameter not found - return the reference as-is
@@ -277,23 +279,23 @@ private:
 
     // Convert parameter value to string based on type
     switch (param->get_type()) {
-    case GraphParameter::Type::Int:
-      return std::to_string(param->get_int_value());
+      case GraphParameter::Type::Int:
+        return std::to_string(param->get_int_value());
 
-    case GraphParameter::Type::Float:
-      return std::to_string(param->get_float_value());
+      case GraphParameter::Type::Float:
+        return std::to_string(param->get_float_value());
 
-    case GraphParameter::Type::String:
-      return param->get_string_value();
+      case GraphParameter::Type::String:
+        return param->get_string_value();
 
-    case GraphParameter::Type::Bool:
-      return param->get_bool_value() ? "1" : "0";
+      case GraphParameter::Type::Bool:
+        return param->get_bool_value() ? "1" : "0";
 
-    case GraphParameter::Type::Vector3: {
-      const auto &vec = param->get_vector3_value();
-      return std::to_string(vec[0]) + "," + std::to_string(vec[1]) + "," +
-             std::to_string(vec[2]);
-    }
+      case GraphParameter::Type::Vector3: {
+        const auto& vec = param->get_vector3_value();
+        return std::to_string(vec[0]) + "," + std::to_string(vec[1]) + "," +
+               std::to_string(vec[2]);
+      }
     }
 
     return "$" + param_name; // Fallback
@@ -306,7 +308,7 @@ private:
    *
    * Matches: ch("path"), ch('path'), ch("/Node/param"), ch("../Node/param")
    */
-  std::string resolve_ch_functions(const std::string &expression) const {
+  std::string resolve_ch_functions(const std::string& expression) const {
     std::string result = expression;
 
     // Match ch("path") or ch('path')

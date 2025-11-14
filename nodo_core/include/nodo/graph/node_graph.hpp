@@ -7,6 +7,7 @@
 
 #include "nodo/core/mesh.hpp"
 #include "nodo/graph/graph_parameter.hpp"
+
 #include <array>
 #include <functional>
 #include <memory>
@@ -121,7 +122,15 @@ enum class ParameterValueMode {
  * execution time.
  */
 struct NodeParameter {
-  enum class Type { Float, Int, Bool, Vector3, String, Code, GroupSelector };
+  enum class Type {
+    Float,
+    Int,
+    Bool,
+    Vector3,
+    String,
+    Code,
+    GroupSelector
+  };
 
   Type type;
   std::string name;
@@ -163,53 +172,72 @@ struct NodeParameter {
       -1; // Value that makes this parameter visible (-1 = always visible)
 
   // Constructors for different types
-  explicit NodeParameter(const std::string &name, float value,
-                         const std::string &label = "", float min = 0.01F,
-                         float max = 100.0F, const std::string &cat = "")
-      : type(Type::Float), name(name), label(label.empty() ? name : label),
-        category(cat), float_value(value) {
+  explicit NodeParameter(const std::string& name, float value,
+                         const std::string& label = "", float min = 0.01F,
+                         float max = 100.0F, const std::string& cat = "")
+      : type(Type::Float),
+        name(name),
+        label(label.empty() ? name : label),
+        category(cat),
+        float_value(value) {
     ui_range.float_min = min;
     ui_range.float_max = max;
   }
 
-  explicit NodeParameter(const std::string &name, int value,
-                         const std::string &label = "", int min = 0,
-                         int max = 100, const std::string &cat = "")
-      : type(Type::Int), name(name), label(label.empty() ? name : label),
-        category(cat), int_value(value) {
+  explicit NodeParameter(const std::string& name, int value,
+                         const std::string& label = "", int min = 0,
+                         int max = 100, const std::string& cat = "")
+      : type(Type::Int),
+        name(name),
+        label(label.empty() ? name : label),
+        category(cat),
+        int_value(value) {
     ui_range.int_min = min;
     ui_range.int_max = max;
   }
 
-  explicit NodeParameter(const std::string &name, bool value,
-                         const std::string &label = "",
-                         const std::string &cat = "")
-      : type(Type::Bool), name(name), label(label.empty() ? name : label),
-        category(cat), bool_value(value) {}
+  explicit NodeParameter(const std::string& name, bool value,
+                         const std::string& label = "",
+                         const std::string& cat = "")
+      : type(Type::Bool),
+        name(name),
+        label(label.empty() ? name : label),
+        category(cat),
+        bool_value(value) {}
 
-  explicit NodeParameter(const std::string &name, const std::string &value,
-                         const std::string &label = "",
-                         const std::string &cat = "")
-      : type(Type::String), name(name), label(label.empty() ? name : label),
-        category(cat), string_value(value) {}
+  explicit NodeParameter(const std::string& name, const std::string& value,
+                         const std::string& label = "",
+                         const std::string& cat = "")
+      : type(Type::String),
+        name(name),
+        label(label.empty() ? name : label),
+        category(cat),
+        string_value(value) {}
 
-  explicit NodeParameter(const std::string &name,
-                         const std::array<float, 3> &value,
-                         const std::string &label = "", float min = -100.0F,
-                         float max = 100.0F, const std::string &cat = "")
-      : type(Type::Vector3), name(name), label(label.empty() ? name : label),
-        category(cat), vector3_value(value) {
+  explicit NodeParameter(const std::string& name,
+                         const std::array<float, 3>& value,
+                         const std::string& label = "", float min = -100.0F,
+                         float max = 100.0F, const std::string& cat = "")
+      : type(Type::Vector3),
+        name(name),
+        label(label.empty() ? name : label),
+        category(cat),
+        vector3_value(value) {
     ui_range.float_min = min;
     ui_range.float_max = max;
   }
 
   // Constructor for combo box (int with string options)
-  explicit NodeParameter(const std::string &name, int value,
-                         const std::vector<std::string> &options,
-                         const std::string &label = "",
-                         const std::string &cat = "")
-      : type(Type::Int), name(name), label(label.empty() ? name : label),
-        category(cat), int_value(value), string_options(options) {
+  explicit NodeParameter(const std::string& name, int value,
+                         const std::vector<std::string>& options,
+                         const std::string& label = "",
+                         const std::string& cat = "")
+      : type(Type::Int),
+        name(name),
+        label(label.empty() ? name : label),
+        category(cat),
+        int_value(value),
+        string_options(options) {
     ui_range.int_min = 0;
     ui_range.int_max = static_cast<int>(options.size()) - 1;
   }
@@ -220,7 +248,7 @@ struct NodeParameter {
    * @brief Set this parameter to use an expression instead of literal value
    * @param expr The expression string (e.g., "$radius * 2", "sin(pi/4)")
    */
-  void set_expression(const std::string &expr) {
+  void set_expression(const std::string& expr) {
     expression_string = expr;
     value_mode = ParameterValueMode::EXPRESSION;
   }
@@ -244,7 +272,7 @@ struct NodeParameter {
   /**
    * @brief Get the expression string (empty if in literal mode)
    */
-  const std::string &get_expression() const { return expression_string; }
+  const std::string& get_expression() const { return expression_string; }
 };
 
 /**
@@ -257,15 +285,24 @@ struct NodeConnection {
   int target_node_id;
   int target_pin_index;
 
-  bool operator==(const NodeConnection &other) const { return id == other.id; }
+  bool operator==(const NodeConnection& other) const { return id == other.id; }
 };
 
 /**
  * @brief Pin definition for a node
  */
 struct NodePin {
-  enum class Type { Input, Output };
-  enum class DataType { Mesh, Float, Int, Bool, Vector3 };
+  enum class Type {
+    Input,
+    Output
+  };
+  enum class DataType {
+    Mesh,
+    Float,
+    Int,
+    Bool,
+    Vector3
+  };
 
   Type type;
   DataType data_type;
@@ -284,8 +321,8 @@ public:
   // Basic properties
   int get_id() const { return id_; }
   NodeType get_type() const { return type_; }
-  const std::string &get_name() const { return name_; }
-  void set_name(const std::string &name) { name_ = name; }
+  const std::string& get_name() const { return name_; }
+  void set_name(const std::string& name) { name_ = name; }
 
   // Position (for UI layout)
   std::pair<float, float> get_position() const { return {x_, y_}; }
@@ -295,17 +332,17 @@ public:
   }
 
   // Parameters
-  void add_parameter(const NodeParameter &param);
-  void remove_parameter(const std::string &name);
-  std::optional<NodeParameter> get_parameter(const std::string &name) const;
-  void set_parameter(const std::string &name, const NodeParameter &param);
-  const std::vector<NodeParameter> &get_parameters() const {
+  void add_parameter(const NodeParameter& param);
+  void remove_parameter(const std::string& name);
+  std::optional<NodeParameter> get_parameter(const std::string& name) const;
+  void set_parameter(const std::string& name, const NodeParameter& param);
+  const std::vector<NodeParameter>& get_parameters() const {
     return parameters_;
   }
 
   // Pins
-  const std::vector<NodePin> &get_input_pins() const { return input_pins_; }
-  const std::vector<NodePin> &get_output_pins() const { return output_pins_; }
+  const std::vector<NodePin>& get_input_pins() const { return input_pins_; }
+  const std::vector<NodePin>& get_output_pins() const { return output_pins_; }
 
   // State
   bool needs_update() const { return needs_update_; }
@@ -329,11 +366,11 @@ public:
 
   // Error state
   bool has_error() const { return has_error_; }
-  void set_error(bool error, const std::string &message = "") {
+  void set_error(bool error, const std::string& message = "") {
     has_error_ = error;
     error_message_ = message;
   }
-  const std::string &get_error_message() const { return error_message_; }
+  const std::string& get_error_message() const { return error_message_; }
 
   // Result cache
   void set_output_mesh(std::shared_ptr<core::Mesh> mesh) {
@@ -383,19 +420,19 @@ public:
   ~NodeGraph() = default;
 
   // Non-copyable but movable
-  NodeGraph(const NodeGraph &) = delete;
-  NodeGraph &operator=(const NodeGraph &) = delete;
-  NodeGraph(NodeGraph &&) = default;
-  NodeGraph &operator=(NodeGraph &&) = default;
+  NodeGraph(const NodeGraph&) = delete;
+  NodeGraph& operator=(const NodeGraph&) = delete;
+  NodeGraph(NodeGraph&&) = default;
+  NodeGraph& operator=(NodeGraph&&) = default;
 
   // Node management
-  int add_node(NodeType type, const std::string &name = "");
+  int add_node(NodeType type, const std::string& name = "");
   int add_node_with_id(int node_id, NodeType type,
-                       const std::string &name = ""); // For undo/redo
+                       const std::string& name = ""); // For undo/redo
   bool remove_node(int node_id);
-  GraphNode *get_node(int node_id);
-  const GraphNode *get_node(int node_id) const;
-  const std::vector<std::unique_ptr<GraphNode>> &get_nodes() const {
+  GraphNode* get_node(int node_id);
+  const GraphNode* get_node(int node_id) const;
+  const std::vector<std::unique_ptr<GraphNode>>& get_nodes() const {
     return nodes_;
   }
 
@@ -408,7 +445,7 @@ public:
                      int target_pin);
   bool remove_connection(int connection_id);
   bool remove_connections_to_node(int node_id);
-  const std::vector<NodeConnection> &get_connections() const {
+  const std::vector<NodeConnection>& get_connections() const {
     return connections_;
   }
 
@@ -455,36 +492,36 @@ public:
    * @param parameter The graph parameter to add/update
    * @return True if added/updated successfully
    */
-  bool add_graph_parameter(const class GraphParameter &parameter);
+  bool add_graph_parameter(const class GraphParameter& parameter);
 
   /**
    * @brief Remove a graph parameter by name
    * @param name Parameter name
    * @return True if removed successfully
    */
-  bool remove_graph_parameter(const std::string &name);
+  bool remove_graph_parameter(const std::string& name);
 
   /**
    * @brief Get a graph parameter by name
    * @param name Parameter name
    * @return Pointer to parameter, or nullptr if not found
    */
-  const class GraphParameter *
-  get_graph_parameter(const std::string &name) const;
-  class GraphParameter *get_graph_parameter(const std::string &name);
+  const class GraphParameter*
+  get_graph_parameter(const std::string& name) const;
+  class GraphParameter* get_graph_parameter(const std::string& name);
 
   /**
    * @brief Get all graph parameters
    * @return Vector of all graph parameters
    */
-  const std::vector<class GraphParameter> &get_graph_parameters() const {
+  const std::vector<class GraphParameter>& get_graph_parameters() const {
     return graph_parameters_;
   }
 
   /**
    * @brief Check if a parameter name exists
    */
-  bool has_graph_parameter(const std::string &name) const;
+  bool has_graph_parameter(const std::string& name) const;
 
   /**
    * @brief Resolve a parameter path and get its value (M3.3 Phase 3)
@@ -504,7 +541,7 @@ public:
    * - ch("../Box1/width") → "2.0"
    */
   std::optional<std::string>
-  resolve_parameter_path(int current_node_id, const std::string &path) const;
+  resolve_parameter_path(int current_node_id, const std::string& path) const;
 
   /**
    * @brief Validate parameter name (for future subgraph compatibility)
@@ -515,7 +552,7 @@ public:
    * - '.' for future hierarchical scoping ($parent.param)
    * - Special prefixes: "parent", "root" (reserved for scoping)
    */
-  static bool is_valid_parameter_name(const std::string &name);
+  static bool is_valid_parameter_name(const std::string& name);
 
 private:
   std::vector<std::unique_ptr<GraphNode>> nodes_;
@@ -542,7 +579,7 @@ private:
    *
    * Ensures no naming conflicts for ch() function references
    */
-  std::string generate_unique_node_name(const std::string &base_name) const;
+  std::string generate_unique_node_name(const std::string& base_name) const;
 };
 
 } // namespace nodo::graph

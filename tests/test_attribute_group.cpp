@@ -1,6 +1,7 @@
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -14,7 +15,7 @@ protected:
 
     // Add position attribute
     geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-    auto *pos = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+    auto* pos = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
     auto pos_span = pos->values_writable();
 
     // Cube corners
@@ -49,7 +50,7 @@ TEST_F(AttributeGroupTest, CreatePointGroup) {
   EXPECT_TRUE(has_group(*geo, "test_group", ElementClass::POINT));
 
   // Check that it's created as an int attribute
-  auto *group_attr = geo->get_point_attribute("group_test_group");
+  auto* group_attr = geo->get_point_attribute("group_test_group");
   ASSERT_NE(group_attr, nullptr);
   EXPECT_EQ(group_attr->descriptor().type(), AttributeType::INT);
 }
@@ -58,7 +59,7 @@ TEST_F(AttributeGroupTest, CreatePrimitiveGroup) {
   EXPECT_TRUE(create_group(*geo, "prim_group", ElementClass::PRIMITIVE));
   EXPECT_TRUE(has_group(*geo, "prim_group", ElementClass::PRIMITIVE));
 
-  auto *group_attr = geo->get_primitive_attribute("group_prim_group");
+  auto* group_attr = geo->get_primitive_attribute("group_prim_group");
   ASSERT_NE(group_attr, nullptr);
 }
 
@@ -301,7 +302,7 @@ TEST_F(AttributeGroupTest, SelectRandom) {
 TEST_F(AttributeGroupTest, SelectByAttribute_Float) {
   // Add a height attribute
   geo->add_point_attribute("height", AttributeType::FLOAT);
-  auto *height = geo->get_point_attribute_typed<float>("height");
+  auto* height = geo->get_point_attribute_typed<float>("height");
   auto height_span = height->values_writable();
 
   for (size_t i = 0; i < 8; ++i) {
@@ -311,7 +312,7 @@ TEST_F(AttributeGroupTest, SelectByAttribute_Float) {
   // Select points with height > 3.5
   EXPECT_TRUE(
       select_by_attribute<float>(*geo, "tall", ElementClass::POINT, "height",
-                                 [](const float &h) { return h > 3.5f; }));
+                                 [](const float& h) { return h > 3.5f; }));
 
   auto tall_points = get_group_elements(*geo, "tall", ElementClass::POINT);
   std::sort(tall_points.begin(), tall_points.end());
@@ -327,7 +328,7 @@ TEST_F(AttributeGroupTest, SelectByAttribute_Vec3f) {
   // Select points on the top face (y > 0.5)
   EXPECT_TRUE(select_by_attribute<Vec3f>(
       *geo, "top_face", ElementClass::POINT, standard_attrs::P,
-      [](const Vec3f &p) { return p.y() > 0.5f; }));
+      [](const Vec3f& p) { return p.y() > 0.5f; }));
 
   auto top_points = get_group_elements(*geo, "top_face", ElementClass::POINT);
   std::sort(top_points.begin(), top_points.end());
@@ -407,12 +408,12 @@ TEST_F(AttributeGroupTest, ComplexWorkflow_SelectAndModify) {
   // 1. Create a group of top points
   EXPECT_TRUE(select_by_attribute<Vec3f>(
       *geo, "top", ElementClass::POINT, standard_attrs::P,
-      [](const Vec3f &p) { return p.y() > 0.5f; }));
+      [](const Vec3f& p) { return p.y() > 0.5f; }));
 
   // 2. Create a group of right points
   EXPECT_TRUE(select_by_attribute<Vec3f>(
       *geo, "right", ElementClass::POINT, standard_attrs::P,
-      [](const Vec3f &p) { return p.x() > 0.5f; }));
+      [](const Vec3f& p) { return p.x() > 0.5f; }));
 
   // 3. Find intersection (top-right corner points)
   EXPECT_TRUE(group_intersection(*geo, "top", "right", "top_right",

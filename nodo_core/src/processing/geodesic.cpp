@@ -1,22 +1,24 @@
 #include "nodo/processing/geodesic.hpp"
+
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
-#include <fmt/core.h>
-#include <limits>
-#include <pmp/algorithms/geodesics.h>
 
+#include <limits>
+
+#include <fmt/core.h>
+#include <pmp/algorithms/geodesics.h>
 
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing {
 
 std::optional<core::GeometryContainer>
-Geodesic::compute(const core::GeometryContainer &input,
-                  const GeodesicParams &params, std::string *error) {
+Geodesic::compute(const core::GeometryContainer& input,
+                  const GeodesicParams& params, std::string* error) {
   try {
     // Validate input
     auto validation_error = detail::PMPConverter::validate_for_pmp(input);
@@ -123,7 +125,7 @@ Geodesic::compute(const core::GeometryContainer &input,
       // Debug: Check properties before
       fmt::print("Properties BEFORE geodesics_heat:\n");
       auto vprops_before = pmp_mesh.vertex_properties();
-      for (const auto &name : vprops_before) {
+      for (const auto& name : vprops_before) {
         fmt::print("  - {}\n", name);
       }
 
@@ -134,7 +136,7 @@ Geodesic::compute(const core::GeometryContainer &input,
       // Debug: Check properties after
       fmt::print("Properties AFTER geodesics_heat:\n");
       auto vprops_after = pmp_mesh.vertex_properties();
-      for (const auto &name : vprops_after) {
+      for (const auto& name : vprops_after) {
         fmt::print("  - {}\n", name);
       }
     }
@@ -155,7 +157,7 @@ Geodesic::compute(const core::GeometryContainer &input,
       // Create distance attribute
       result.add_point_attribute(params.output_attribute,
                                  core::AttributeType::FLOAT);
-      auto *dist_attr =
+      auto* dist_attr =
           result.get_point_attribute_typed<float>(params.output_attribute);
       dist_attr->resize(n_vertices);
       auto dist_writable = dist_attr->values_writable();
@@ -179,7 +181,7 @@ Geodesic::compute(const core::GeometryContainer &input,
 
     return std::move(result);
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     if (error)
       *error = std::string("Geodesic computation failed: ") + e.what();
     return std::nullopt;

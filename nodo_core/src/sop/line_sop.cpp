@@ -1,14 +1,17 @@
 #include "nodo/sop/line_sop.hpp"
+
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/math.hpp"
+
 #include <Eigen/Dense>
+
 #include <memory>
 
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-LineSOP::LineSOP(const std::string &name) : SOPNode(name, "Line") {
+LineSOP::LineSOP(const std::string& name) : SOPNode(name, "Line") {
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
   register_parameter(define_float_parameter("start_x", 0.0F)
                          .label("Start X")
@@ -85,7 +88,7 @@ std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
   container.set_point_count(num_points);
   container.set_vertex_count(num_points);
 
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Set up 1:1 vertex-to-point mapping
   for (int i = 0; i < num_points; ++i) {
@@ -111,7 +114,7 @@ std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());

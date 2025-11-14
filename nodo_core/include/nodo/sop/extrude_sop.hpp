@@ -3,7 +3,9 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <Eigen/Dense>
+
 #include <memory>
 #include <string>
 
@@ -30,7 +32,7 @@ public:
    * @brief Construct extrude operator with name
    * @param name Unique identifier for this SOP instance
    */
-  explicit ExtrudeSOP(const std::string &name = "extrude");
+  explicit ExtrudeSOP(const std::string& name = "extrude");
 
   /**
    * @brief Set extrusion distance
@@ -49,7 +51,7 @@ public:
    * @brief Set extrusion direction for uniform mode
    * @param direction Unit vector specifying extrusion direction
    */
-  void set_direction(const Eigen::Vector3d &direction) {
+  void set_direction(const Eigen::Vector3d& direction) {
     Eigen::Vector3d normalized = direction.normalized();
     set_parameter("direction_x", static_cast<float>(normalized.x()));
     set_parameter("direction_y", static_cast<float>(normalized.y()));
@@ -101,19 +103,19 @@ protected:
 
 private:
   /// Extrude faces along their individual normals
-  core::Mesh extrude_face_normals(const core::Mesh &input);
+  core::Mesh extrude_face_normals(const core::Mesh& input);
 
   /// Extrude all faces in uniform direction
-  core::Mesh extrude_uniform_direction(const core::Mesh &input);
+  core::Mesh extrude_uniform_direction(const core::Mesh& input);
 
   /// Extrude faces along averaged region normals
-  core::Mesh extrude_region_normals(const core::Mesh &input);
+  core::Mesh extrude_region_normals(const core::Mesh& input);
 
   /// Calculate face normals for the mesh
-  Eigen::MatrixXd calculate_face_normals(const core::Mesh &mesh);
+  Eigen::MatrixXd calculate_face_normals(const core::Mesh& mesh);
 
   /// Create inset faces if inset > 0
-  void apply_inset(core::Mesh &mesh, double inset_amount);
+  void apply_inset(core::Mesh& mesh, double inset_amount);
 };
 
 } // namespace nodo::sop

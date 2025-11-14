@@ -3,6 +3,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 
@@ -26,7 +27,7 @@ public:
     POINTS = 2 ///< Extrude points (future feature)
   };
 
-  explicit PolyExtrudeSOP(const std::string &name = "polyextrude");
+  explicit PolyExtrudeSOP(const std::string& name = "polyextrude");
 
   // Parameters
   void set_distance(float distance) {

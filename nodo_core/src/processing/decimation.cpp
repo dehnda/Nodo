@@ -1,12 +1,14 @@
 #include "nodo/processing/decimation.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
+
 #include <algorithm>
+
 #include <pmp/algorithms/decimation.h>
 #include <pmp/algorithms/triangulation.h>
-
 
 namespace attrs = nodo::core::standard_attrs;
 
@@ -15,8 +17,8 @@ namespace nodo::processing {
 std::string Decimation::last_error_;
 
 std::optional<core::GeometryContainer>
-Decimation::decimate(const core::GeometryContainer &input,
-                     const DecimationParams &params) {
+Decimation::decimate(const core::GeometryContainer& input,
+                     const DecimationParams& params) {
   // Basic validation
   if (input.topology().point_count() < 4) {
     set_error("Input mesh must have at least 4 vertices for decimation");
@@ -68,13 +70,15 @@ Decimation::decimate(const core::GeometryContainer &input,
 
     return result;
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     set_error(std::string("Decimation failed: ") + e.what());
     return std::nullopt;
   }
 }
 
-const std::string &Decimation::get_last_error() { return last_error_; }
+const std::string& Decimation::get_last_error() {
+  return last_error_;
+}
 
 void Decimation::set_error(std::string error) {
   last_error_ = std::move(error);

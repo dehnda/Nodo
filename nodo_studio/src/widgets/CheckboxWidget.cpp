@@ -3,15 +3,14 @@
 namespace nodo_studio {
 namespace widgets {
 
-CheckboxWidget::CheckboxWidget(const QString &label, bool initial_value,
-                               const QString &description, QWidget *parent)
+CheckboxWidget::CheckboxWidget(const QString& label, bool initial_value,
+                               const QString& description, QWidget* parent)
     : BaseParameterWidget(label, description, parent), checked_(initial_value) {
-
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
 
-QWidget *CheckboxWidget::createControlWidget() {
+QWidget* CheckboxWidget::createControlWidget() {
   checkbox_ = new QCheckBox(this);
   checkbox_->setChecked(checked_);
   checkbox_->setStyleSheet(QString("QCheckBox { "
@@ -44,7 +43,9 @@ QWidget *CheckboxWidget::createControlWidget() {
   return checkbox_;
 }
 
-bool CheckboxWidget::isChecked() const { return checked_; }
+bool CheckboxWidget::isChecked() const {
+  return checked_;
+}
 
 void CheckboxWidget::setChecked(bool checked) {
   if (checked_ == checked)

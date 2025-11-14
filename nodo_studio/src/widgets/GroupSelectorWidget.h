@@ -1,7 +1,9 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QComboBox>
+
 #include <functional>
 #include <string>
 #include <vector>
@@ -29,36 +31,36 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  GroupSelectorWidget(const QString &label,
-                      const QString &initial_group = QString(),
-                      const QString &description = QString(),
-                      QWidget *parent = nullptr);
+  GroupSelectorWidget(const QString& label,
+                      const QString& initial_group = QString(),
+                      const QString& description = QString(),
+                      QWidget* parent = nullptr);
 
   // Value access
   QString getGroupName() const;
-  void setGroupName(const QString &group_name);
+  void setGroupName(const QString& group_name);
 
   // Populate dropdown with available groups from geometry
-  void setAvailableGroups(const std::vector<std::string> &groups);
+  void setAvailableGroups(const std::vector<std::string>& groups);
 
   // Callback support
-  void setGroupChangedCallback(std::function<void(const QString &)> callback);
+  void setGroupChangedCallback(std::function<void(const QString&)> callback);
 
 signals:
-  void groupChangedSignal(const QString &group_name);
+  void groupChangedSignal(const QString& group_name);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
-  void onCurrentTextChanged(const QString &text);
+  void onCurrentTextChanged(const QString& text);
   void onEditingFinished();
 
 private:
   QString group_name_;
-  QComboBox *combo_box_{nullptr};
+  QComboBox* combo_box_{nullptr};
 
-  std::function<void(const QString &)> group_changed_callback_;
+  std::function<void(const QString&)> group_changed_callback_;
 
   void updateComboBoxStyle();
 };

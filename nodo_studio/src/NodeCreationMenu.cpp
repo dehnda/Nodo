@@ -1,15 +1,19 @@
 #include "NodeCreationMenu.h"
-#include "IconManager.h"
+
 #include "nodo/graph/graph_serializer.hpp"
 #include "nodo/sop/sop_factory.hpp"
+
+#include "IconManager.h"
+
 #include <QApplication>
 #include <QGraphicsDropShadowEffect>
 #include <QSettings>
+
 #include <algorithm>
 
 namespace nodo_studio {
 
-NodeCreationMenu::NodeCreationMenu(QWidget *parent)
+NodeCreationMenu::NodeCreationMenu(QWidget* parent)
     : QWidget(parent, Qt::Popup | Qt::FramelessWindowHint) {
   // Set window attributes for transparency and shadow
   setAttribute(Qt::WA_TranslucentBackground);
@@ -29,7 +33,7 @@ void NodeCreationMenu::setupUI() {
   layout_->setSpacing(0);
 
   // Main container with rounded corners and shadow
-  QWidget *main_container = new QWidget(this);
+  QWidget* main_container = new QWidget(this);
   main_container->setStyleSheet(R"(
         QWidget {
             background: #2a2a30;
@@ -39,7 +43,7 @@ void NodeCreationMenu::setupUI() {
     )");
 
   // Add drop shadow effect
-  QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect();
+  QGraphicsDropShadowEffect* shadow = new QGraphicsDropShadowEffect();
   shadow->setBlurRadius(20);
   shadow->setXOffset(0);
   shadow->setYOffset(4);
@@ -49,7 +53,7 @@ void NodeCreationMenu::setupUI() {
   layout_->addWidget(main_container);
 
   // Create layout for main container
-  QVBoxLayout *container_layout = new QVBoxLayout(main_container);
+  QVBoxLayout* container_layout = new QVBoxLayout(main_container);
   container_layout->setContentsMargins(0, 0, 0, 0);
   container_layout->setSpacing(0);
 
@@ -86,7 +90,7 @@ void NodeCreationMenu::setupUI() {
             border-radius: 0px;
         }
     )");
-  QVBoxLayout *chips_layout = new QVBoxLayout(recent_chips_container_);
+  QVBoxLayout* chips_layout = new QVBoxLayout(recent_chips_container_);
   chips_layout->setContentsMargins(12, 12, 12, 12);
   chips_layout->setSpacing(8);
 
@@ -142,7 +146,7 @@ void NodeCreationMenu::populateAllNodes() {
   auto available_nodes = nodo::sop::SOPFactory::get_all_available_nodes();
 
   // Convert backend metadata to UI format
-  for (const auto &node_meta : available_nodes) {
+  for (const auto& node_meta : available_nodes) {
     // Store the NodeType directly as an integer for now
     // We'll use the enum value directly when creating nodes
     QString type_id = QString::number(static_cast<int>(node_meta.type));
@@ -155,7 +159,7 @@ void NodeCreationMenu::populateAllNodes() {
     // Add words from description as keywords
     QStringList desc_words =
         QString::fromStdString(node_meta.description).toLower().split(' ');
-    for (const QString &word : desc_words) {
+    for (const QString& word : desc_words) {
       if (word.length() > 3) { // Only meaningful words
         keywords << word;
       }
@@ -174,14 +178,14 @@ void NodeCreationMenu::loadRecentNodes() {
 
   // Load up to 5 most recent
   int count = 0;
-  for (const QString &type_id : recent_types) {
+  for (const QString& type_id : recent_types) {
     if (count >= 5)
       break;
 
     // Find node info
     auto it = std::find_if(
         all_nodes_.begin(), all_nodes_.end(),
-        [&type_id](const NodeInfo &info) { return info.type_id == type_id; });
+        [&type_id](const NodeInfo& info) { return info.type_id == type_id; });
 
     if (it != all_nodes_.end()) {
       recent_nodes_.append(*it);
@@ -190,7 +194,7 @@ void NodeCreationMenu::loadRecentNodes() {
   }
 }
 
-void NodeCreationMenu::saveRecentNode(const QString &type_id) {
+void NodeCreationMenu::saveRecentNode(const QString& type_id) {
   QSettings settings("NodeFluxEngine", "Studio");
   QStringList recent_types =
       settings.value("recent_nodes", QStringList()).toStringList();
@@ -215,9 +219,9 @@ void NodeCreationMenu::saveRecentNode(const QString &type_id) {
 
 void NodeCreationMenu::updateRecentChips() {
   // Clear existing chips
-  QLayout *chips_layout = recent_chips_container_->layout();
+  QLayout* chips_layout = recent_chips_container_->layout();
   if (chips_layout) {
-    QLayoutItem *item;
+    QLayoutItem* item;
     while ((item = chips_layout->takeAt(0)) != nullptr) {
       delete item->widget();
       delete item;
@@ -233,7 +237,7 @@ void NodeCreationMenu::updateRecentChips() {
   recent_chips_container_->show();
 
   // Add header
-  QLabel *header = new QLabel("RECENTLY USED", recent_chips_container_);
+  QLabel* header = new QLabel("RECENTLY USED", recent_chips_container_);
   header->setStyleSheet(R"(
         QLabel {
             font-size: 10px;
@@ -248,20 +252,20 @@ void NodeCreationMenu::updateRecentChips() {
   chips_layout->addWidget(header);
 
   // Create horizontal layout for chips
-  QWidget *chips_row = new QWidget(recent_chips_container_);
+  QWidget* chips_row = new QWidget(recent_chips_container_);
   chips_row->setStyleSheet("background: transparent; border: none;");
-  QHBoxLayout *row_layout = new QHBoxLayout(chips_row);
+  QHBoxLayout* row_layout = new QHBoxLayout(chips_row);
   row_layout->setContentsMargins(0, 0, 0, 0);
   row_layout->setSpacing(8);
 
   // Add chips for recent nodes (max 4 visible)
   int chip_count = 0;
-  for (const NodeInfo &node : recent_nodes_) {
+  for (const NodeInfo& node : recent_nodes_) {
     if (chip_count >= 4)
       break;
 
     // Create chip with icon widget + text
-    QPushButton *chip = new QPushButton(chips_row);
+    QPushButton* chip = new QPushButton(chips_row);
     chip->setProperty("node_type_id", node.type_id);
     chip->setCursor(Qt::PointingHandCursor);
 
@@ -303,7 +307,7 @@ void NodeCreationMenu::updateRecentChips() {
   chips_layout->addWidget(chips_row);
 }
 
-void NodeCreationMenu::showAtPosition(const QPoint &position) {
+void NodeCreationMenu::showAtPosition(const QPoint& position) {
   // Clear search and show all/recent nodes
   search_box_->clear();
   filterResults("");
@@ -312,7 +316,7 @@ void NodeCreationMenu::showAtPosition(const QPoint &position) {
   adjustSize();
 
   // Get screen geometry
-  QScreen *screen = QGuiApplication::screenAt(position);
+  QScreen* screen = QGuiApplication::screenAt(position);
   if (!screen) {
     screen = QGuiApplication::primaryScreen();
   }
@@ -369,17 +373,17 @@ void NodeCreationMenu::showAtPosition(const QPoint &position) {
   activateWindow();
 }
 
-void NodeCreationMenu::filterResults(const QString &query) {
+void NodeCreationMenu::filterResults(const QString& query) {
   results_list_->clear();
 
   if (query.isEmpty()) {
     // Show all nodes grouped by category (recent nodes are shown as chips
     // above)
     QString last_category;
-    for (const NodeInfo &node : all_nodes_) {
+    for (const NodeInfo& node : all_nodes_) {
       // Add category header
       if (node.category != last_category) {
-        QListWidgetItem *header =
+        QListWidgetItem* header =
             new QListWidgetItem(QString("%1").arg(node.category));
         header->setFlags(Qt::NoItemFlags);
         header->setForeground(QBrush(QColor("#808080")));
@@ -391,21 +395,20 @@ void NodeCreationMenu::filterResults(const QString &query) {
         last_category = node.category;
       }
 
-      QListWidgetItem *item =
+      QListWidgetItem* item =
           new QListWidgetItem(getNodeIcon(node.type_id), node.name);
       item->setData(Qt::UserRole, node.type_id);
       results_list_->addItem(item);
     }
   } else {
     // Filter with fuzzy matching
-    for (const NodeInfo &node : all_nodes_) {
+    for (const NodeInfo& node : all_nodes_) {
       if (fuzzyMatch(query, node.name) || fuzzyMatch(query, node.type_id) ||
           std::any_of(node.tags.begin(), node.tags.end(),
-                      [this, &query](const QString &tag) {
+                      [this, &query](const QString& tag) {
                         return fuzzyMatch(query, tag);
                       })) {
-
-        QListWidgetItem *item =
+        QListWidgetItem* item =
             new QListWidgetItem(getNodeIcon(node.type_id), node.name);
         item->setData(Qt::UserRole, node.type_id);
         results_list_->addItem(item);
@@ -419,8 +422,8 @@ void NodeCreationMenu::filterResults(const QString &query) {
   }
 }
 
-bool NodeCreationMenu::fuzzyMatch(const QString &query,
-                                  const QString &target) const {
+bool NodeCreationMenu::fuzzyMatch(const QString& query,
+                                  const QString& target) const {
   if (query.isEmpty())
     return true;
 
@@ -440,7 +443,7 @@ bool NodeCreationMenu::fuzzyMatch(const QString &query,
   return query_idx == q.length();
 }
 
-QIcon NodeCreationMenu::getNodeIcon(const QString &type_id) const {
+QIcon NodeCreationMenu::getNodeIcon(const QString& type_id) const {
   using Icon = IconManager::Icon;
 
   // Map node type_id to IconManager icons
@@ -506,11 +509,11 @@ QIcon NodeCreationMenu::getNodeIcon(const QString &type_id) const {
   return Icons::get(Icon::Settings);
 }
 
-void NodeCreationMenu::onSearchTextChanged(const QString &text) {
+void NodeCreationMenu::onSearchTextChanged(const QString& text) {
   filterResults(text);
 }
 
-void NodeCreationMenu::onItemClicked(QListWidgetItem *item) {
+void NodeCreationMenu::onItemClicked(QListWidgetItem* item) {
   // Don't create if it's a header/separator
   if (!(item->flags() & Qt::ItemIsSelectable)) {
     return;
@@ -519,13 +522,13 @@ void NodeCreationMenu::onItemClicked(QListWidgetItem *item) {
   createSelectedNode();
 }
 
-void NodeCreationMenu::onItemDoubleClicked(QListWidgetItem *item) {
+void NodeCreationMenu::onItemDoubleClicked(QListWidgetItem* item) {
   // Double-click same as single click
   onItemClicked(item);
 }
 
 void NodeCreationMenu::createSelectedNode() {
-  QListWidgetItem *item = results_list_->currentItem();
+  QListWidgetItem* item = results_list_->currentItem();
   if (!item || !(item->flags() & Qt::ItemIsSelectable)) {
     return;
   }
@@ -539,7 +542,7 @@ void NodeCreationMenu::createSelectedNode() {
   }
 }
 
-void NodeCreationMenu::keyPressEvent(QKeyEvent *event) {
+void NodeCreationMenu::keyPressEvent(QKeyEvent* event) {
   if (event->key() == Qt::Key_Escape) {
     emit cancelled();
     close();
@@ -561,7 +564,7 @@ void NodeCreationMenu::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
 }
 
-bool NodeCreationMenu::eventFilter(QObject *obj, QEvent *event) {
+bool NodeCreationMenu::eventFilter(QObject* obj, QEvent* event) {
   if (event->type() == QEvent::FocusOut) {
     // Close menu when focus is lost (clicked outside)
     close();
@@ -570,7 +573,7 @@ bool NodeCreationMenu::eventFilter(QObject *obj, QEvent *event) {
   return QWidget::eventFilter(obj, event);
 }
 
-void NodeCreationMenu::focusOutEvent(QFocusEvent *event) {
+void NodeCreationMenu::focusOutEvent(QFocusEvent* event) {
   // Close when focus is lost
   close();
   QWidget::focusOutEvent(event);

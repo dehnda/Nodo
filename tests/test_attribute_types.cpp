@@ -1,5 +1,6 @@
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;

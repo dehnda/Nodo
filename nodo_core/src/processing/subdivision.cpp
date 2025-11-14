@@ -1,18 +1,18 @@
 #include "nodo/processing/subdivision.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
+
 #include <fmt/core.h>
 #include <pmp/algorithms/subdivision.h>
 #include <pmp/algorithms/triangulation.h>
 
-
 namespace nodo::processing {
 
 std::optional<core::GeometryContainer>
-Subdivision::subdivide(const core::GeometryContainer &container,
-                       const SubdivisionParams &params, std::string *error) {
-
+Subdivision::subdivide(const core::GeometryContainer& container,
+                       const SubdivisionParams& params, std::string* error) {
   // Validate input
   if (container.point_count() < 3) {
     if (error)
@@ -56,17 +56,17 @@ Subdivision::subdivide(const core::GeometryContainer &container,
     // Perform subdivision for the specified number of levels
     for (unsigned int i = 0; i < params.levels; ++i) {
       switch (params.type) {
-      case SubdivisionType::CATMULL_CLARK:
-        pmp::catmull_clark_subdivision(pmp_mesh);
-        break;
+        case SubdivisionType::CATMULL_CLARK:
+          pmp::catmull_clark_subdivision(pmp_mesh);
+          break;
 
-      case SubdivisionType::LOOP:
-        pmp::loop_subdivision(pmp_mesh);
-        break;
+        case SubdivisionType::LOOP:
+          pmp::loop_subdivision(pmp_mesh);
+          break;
 
-      case SubdivisionType::QUAD_TRI:
-        pmp::quad_tri_subdivision(pmp_mesh);
-        break;
+        case SubdivisionType::QUAD_TRI:
+          pmp::quad_tri_subdivision(pmp_mesh);
+          break;
       }
       fmt::print("After subdivision level {}: {} vertices, {} faces\n", i + 1,
                  pmp_mesh.n_vertices(), pmp_mesh.n_faces());
@@ -75,7 +75,7 @@ Subdivision::subdivide(const core::GeometryContainer &container,
     // Convert back to GeometryContainer
     return detail::PMPConverter::from_pmp_container(pmp_mesh);
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     if (error)
       *error = std::string("Subdivision failed: ") + e.what();
     return std::nullopt;

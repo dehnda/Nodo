@@ -1,4 +1,5 @@
 #include "MultiLineTextWidget.h"
+
 #include <QFontDatabase>
 #include <QFontMetrics>
 #include <QVBoxLayout>
@@ -6,25 +7,28 @@
 namespace nodo_studio {
 namespace widgets {
 
-MultiLineTextWidget::MultiLineTextWidget(const QString &label,
-                                         const QString &initial_text,
-                                         const QString &placeholder,
-                                         const QString &description,
-                                         QWidget *parent)
-    : BaseParameterWidget(label, description, parent), text_(initial_text),
+MultiLineTextWidget::MultiLineTextWidget(const QString& label,
+                                         const QString& initial_text,
+                                         const QString& placeholder,
+                                         const QString& description,
+                                         QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      text_(initial_text),
       placeholder_(placeholder) {
   // For multi-line widget, add directly to main_layout instead of grid_layout
   // This allows it to span full width and expand vertically
-  auto *text_widget = createControlWidget();
+  auto* text_widget = createControlWidget();
 
   if (main_layout_ != nullptr) {
     main_layout_->addWidget(text_widget);
   }
 }
 
-QString MultiLineTextWidget::getText() const { return text_; }
+QString MultiLineTextWidget::getText() const {
+  return text_;
+}
 
-void MultiLineTextWidget::setText(const QString &text) {
+void MultiLineTextWidget::setText(const QString& text) {
   if (text_ != text) {
     text_ = text;
     if (text_edit_ != nullptr) {
@@ -35,7 +39,7 @@ void MultiLineTextWidget::setText(const QString &text) {
   }
 }
 
-void MultiLineTextWidget::setPlaceholder(const QString &placeholder) {
+void MultiLineTextWidget::setPlaceholder(const QString& placeholder) {
   placeholder_ = placeholder;
   if (text_edit_ != nullptr) {
     text_edit_->setPlaceholderText(placeholder);
@@ -58,11 +62,11 @@ void MultiLineTextWidget::setTabStopWidth(int pixels) {
 }
 
 void MultiLineTextWidget::setTextChangedCallback(
-    std::function<void(const QString &)> callback) {
+    std::function<void(const QString&)> callback) {
   text_changed_callback_ = std::move(callback);
 }
 
-QWidget *MultiLineTextWidget::createControlWidget() {
+QWidget* MultiLineTextWidget::createControlWidget() {
   // Don't wrap in a widget - return the text edit directly
   // Create multi-line text editor
   text_edit_ = new QPlainTextEdit();

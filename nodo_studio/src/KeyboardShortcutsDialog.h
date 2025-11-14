@@ -13,13 +13,13 @@ class KeyboardShortcutsDialog : public QDialog {
   Q_OBJECT
 
 public:
-  explicit KeyboardShortcutsDialog(QWidget *parent = nullptr);
+  explicit KeyboardShortcutsDialog(QWidget* parent = nullptr);
 
 private:
   void setupUI();
-  void addShortcutCategory(const QString &category);
-  void addShortcut(const QString &action, const QString &shortcut,
-                   const QString &description = "");
+  void addShortcutCategory(const QString& category);
+  void addShortcut(const QString& action, const QString& shortcut,
+                   const QString& description = "");
 
-  QTableWidget *shortcuts_table_;
+  QTableWidget* shortcuts_table_;
 };

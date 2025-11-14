@@ -1,9 +1,11 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSlider>
+
 #include <functional>
 
 namespace nodo_studio {
@@ -28,9 +30,9 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  SliderWidget(const QString &label, double value = 0.0, double min = 0.0,
-               double max = 1.0, const QString &description = QString(),
-               QWidget *parent = nullptr);
+  SliderWidget(const QString& label, double value = 0.0, double min = 0.0,
+               double max = 1.0, const QString& description = QString(),
+               QWidget* parent = nullptr);
 
   // Value access
   double getValue() const;
@@ -40,7 +42,7 @@ public:
 
   // Display options
   void setShowValue(bool show);
-  void setValueSuffix(const QString &suffix); // e.g., "%" or "°"
+  void setValueSuffix(const QString& suffix); // e.g., "%" or "°"
 
   // Callback support
   void setValueChangedCallback(std::function<void(double)> callback);
@@ -52,7 +54,7 @@ signals:
   void valueChangedSignal(double value);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onSliderValueChanged(int int_value);
@@ -68,9 +70,9 @@ private:
   bool show_value_{true};
   QString value_suffix_;
 
-  QSlider *slider_{nullptr};
-  QLabel *value_label_{nullptr};
-  QTimer *slider_update_timer_{nullptr}; // Periodic updates during slider drag
+  QSlider* slider_{nullptr};
+  QLabel* value_label_{nullptr};
+  QTimer* slider_update_timer_{nullptr}; // Periodic updates during slider drag
 
   static constexpr int SLIDER_RESOLUTION = 1000; // Internal slider precision
 

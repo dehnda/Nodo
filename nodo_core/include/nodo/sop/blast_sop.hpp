@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -15,7 +16,7 @@ class BlastSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit BlastSOP(const std::string &name = "blast")
+  explicit BlastSOP(const std::string& name = "blast")
       : SOPNode(name, "Blast") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

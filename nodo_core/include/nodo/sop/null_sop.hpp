@@ -18,7 +18,7 @@ class NullSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit NullSOP(const std::string &node_name = "null")
+  explicit NullSOP(const std::string& node_name = "null")
       : SOPNode(node_name, "Null") {
     // Single geometry input
     input_ports_.add_port("0", NodePort::Type::INPUT,

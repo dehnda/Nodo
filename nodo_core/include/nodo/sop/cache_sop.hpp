@@ -2,6 +2,7 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -23,7 +24,7 @@ class CacheSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit CacheSOP(const std::string &node_name = "cache")
+  explicit CacheSOP(const std::string& node_name = "cache")
       : SOPNode(node_name, "Cache") {
     // Single geometry input
     input_ports_.add_port("0", NodePort::Type::INPUT,

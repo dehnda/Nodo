@@ -1,7 +1,9 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QPlainTextEdit>
+
 #include <functional>
 
 namespace nodo_studio {
@@ -25,31 +27,31 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  MultiLineTextWidget(const QString &label,
-                      const QString &initial_text = QString(),
-                      const QString &placeholder = QString(),
-                      const QString &description = QString(),
-                      QWidget *parent = nullptr);
+  MultiLineTextWidget(const QString& label,
+                      const QString& initial_text = QString(),
+                      const QString& placeholder = QString(),
+                      const QString& description = QString(),
+                      QWidget* parent = nullptr);
 
   // Value access
   QString getText() const;
-  void setText(const QString &text);
+  void setText(const QString& text);
 
   // Placeholder
-  void setPlaceholder(const QString &placeholder);
+  void setPlaceholder(const QString& placeholder);
 
   // Editor settings
   void setMinimumLines(int lines);
   void setTabStopWidth(int pixels);
 
   // Callback support
-  void setTextChangedCallback(std::function<void(const QString &)> callback);
+  void setTextChangedCallback(std::function<void(const QString&)> callback);
 
 signals:
-  void textChangedSignal(const QString &text);
+  void textChangedSignal(const QString& text);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onTextChanged();
@@ -59,9 +61,9 @@ private:
   QString placeholder_;
   int minimum_lines_{5}; // Default minimum height
 
-  QPlainTextEdit *text_edit_{nullptr};
+  QPlainTextEdit* text_edit_{nullptr};
 
-  std::function<void(const QString &)> text_changed_callback_;
+  std::function<void(const QString&)> text_changed_callback_;
 };
 
 } // namespace widgets

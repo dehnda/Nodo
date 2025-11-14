@@ -1,10 +1,11 @@
 #include "GeometrySpreadsheet.h"
+
 #include <QHBoxLayout>
 #include <QHeaderView>
 
 namespace nodo::studio {
 
-GeometrySpreadsheet::GeometrySpreadsheet(QWidget *parent) : QWidget(parent) {
+GeometrySpreadsheet::GeometrySpreadsheet(QWidget* parent) : QWidget(parent) {
   // Create models
   pointModel_ = new PointAttributeTableModel(this);
   vertexModel_ = new VertexAttributeTableModel(this);
@@ -32,13 +33,13 @@ GeometrySpreadsheet::GeometrySpreadsheet(QWidget *parent) : QWidget(parent) {
 }
 
 void GeometrySpreadsheet::setupUI() {
-  auto *mainLayout = new QVBoxLayout(this);
+  auto* mainLayout = new QVBoxLayout(this);
   mainLayout->setContentsMargins(0, 0, 0, 0);
   mainLayout->setSpacing(0);
 
   // Search bar with styling
-  auto *searchContainer = new QWidget(this);
-  auto *searchLayout = new QHBoxLayout(searchContainer);
+  auto* searchContainer = new QWidget(this);
+  auto* searchLayout = new QHBoxLayout(searchContainer);
   searchLayout->setContentsMargins(12, 8, 12, 8);
   searchLayout->setSpacing(8);
 
@@ -46,7 +47,7 @@ void GeometrySpreadsheet::setupUI() {
       "QWidget { background: #2e2e34; border-bottom: 1px solid rgba(255, 255, "
       "255, 0.06); }");
 
-  auto *searchLabel = new QLabel("Search:", this);
+  auto* searchLabel = new QLabel("Search:", this);
   searchLabel->setStyleSheet(
       "QLabel { color: #808088; background: transparent; border: none; }");
   searchLayout->addWidget(searchLabel);
@@ -135,8 +136,8 @@ void GeometrySpreadsheet::setupUI() {
           &GeometrySpreadsheet::updateStatusLabel);
 }
 
-QTableView *GeometrySpreadsheet::createTableView(GeometryTableModel *model) {
-  auto *table = new QTableView(this);
+QTableView* GeometrySpreadsheet::createTableView(GeometryTableModel* model) {
+  auto* table = new QTableView(this);
   table->setAlternatingRowColors(true);
   table->setSelectionBehavior(QAbstractItemView::SelectRows);
   table->setSortingEnabled(true); // Enable column sorting!
@@ -245,7 +246,7 @@ void GeometrySpreadsheet::clear() {
   statusLabel_->setText("No geometry");
 }
 
-void GeometrySpreadsheet::onSearchTextChanged(const QString &text) {
+void GeometrySpreadsheet::onSearchTextChanged(const QString& text) {
   pointProxy_->setFilterWildcard(text);
   vertexProxy_->setFilterWildcard(text);
   primitiveProxy_->setFilterWildcard(text);
@@ -262,21 +263,21 @@ void GeometrySpreadsheet::updateStatusLabel() {
   QString text;
 
   switch (currentTab) {
-  case 0: // Points
-    text = QString("%1 points").arg(geometry_->point_count());
-    break;
-  case 1: // Vertices
-    text = QString("%1 vertices").arg(geometry_->vertex_count());
-    break;
-  case 2: // Primitives
-    text = QString("%1 primitives").arg(geometry_->primitive_count());
-    break;
-  case 3: // Detail
-    text = QString("Detail attributes");
-    break;
-  default:
-    text = "Unknown";
-    break;
+    case 0: // Points
+      text = QString("%1 points").arg(geometry_->point_count());
+      break;
+    case 1: // Vertices
+      text = QString("%1 vertices").arg(geometry_->vertex_count());
+      break;
+    case 2: // Primitives
+      text = QString("%1 primitives").arg(geometry_->primitive_count());
+      break;
+    case 3: // Detail
+      text = QString("Detail attributes");
+      break;
+    default:
+      text = "Unknown";
+      break;
   }
 
   statusLabel_->setText(text);

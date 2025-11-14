@@ -2,6 +2,7 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <cmath>
 
 namespace nodo::sop {
@@ -20,7 +21,7 @@ private:
   static constexpr float EPSILON = 0.0001F;
 
 public:
-  explicit BendSOP(const std::string &name = "bend") : SOPNode(name, "Bend") {
+  explicit BendSOP(const std::string& name = "bend") : SOPNode(name, "Bend") {
     // Create input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -92,7 +93,7 @@ protected:
 
     // Get group filtering - groups are stored as INT attributes
     const std::string group_name = get_parameter<std::string>("group", "");
-    core::AttributeStorage<int> *group_attr = nullptr;
+    core::AttributeStorage<int>* group_attr = nullptr;
     const bool use_group = !group_name.empty();
 
     if (use_group && result->has_point_attribute(group_name)) {
@@ -100,7 +101,7 @@ protected:
     }
 
     // Get position attribute
-    auto *positions = result->get_point_attribute_typed<core::Vec3f>("P");
+    auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
       set_error("BendSOP requires position attribute 'P'");
       return nullptr;
@@ -130,7 +131,7 @@ protected:
         continue;
       }
 
-      auto &pos = (*positions)[i];
+      auto& pos = (*positions)[i];
 
       // Get position along primary axis (direction of bend)
       const float dist = pos[primary_axis] - capture_origin;

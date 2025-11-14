@@ -1,5 +1,6 @@
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/io/obj_exporter.hpp"
+
 #include <iostream>
 
 using namespace nodo;

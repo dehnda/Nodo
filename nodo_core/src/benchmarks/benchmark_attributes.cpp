@@ -14,6 +14,7 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <chrono>
 #include <fstream>
 #include <iomanip>
@@ -69,7 +70,7 @@ struct BenchmarkResult {
 
 std::vector<BenchmarkResult> g_results;
 
-void record_result(const std::string &name, size_t count, double time_ms,
+void record_result(const std::string& name, size_t count, double time_ms,
                    size_t memory_bytes = 0) {
   double throughput = (count / 1000000.0) / (time_ms / 1000.0);
   g_results.push_back({name, count, time_ms, throughput, memory_bytes});
@@ -149,7 +150,7 @@ void benchmark_sequential_write() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
 
     Timer timer;
     timer.start();
@@ -172,7 +173,7 @@ void benchmark_sequential_read() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
       (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
                               static_cast<float>(i));
@@ -210,7 +211,7 @@ void benchmark_random_write() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
 
     // Generate random indices
     std::vector<size_t> indices(count);
@@ -244,7 +245,7 @@ void benchmark_random_read() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
       (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
                               static_cast<float>(i));
@@ -287,7 +288,7 @@ void benchmark_indexed_iteration() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
 
     Timer timer;
     timer.start();
@@ -309,14 +310,14 @@ void benchmark_span_iteration() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
 
     Timer timer;
     timer.start();
 
     auto span = positions->values_writable();
     float val = 0.0F;
-    for (auto &pos : span) {
+    for (auto& pos : span) {
       pos = Vec3f(val, 0.0F, 0.0F);
       val += 1.0F;
     }
@@ -334,12 +335,12 @@ void benchmark_raw_pointer_iteration() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
 
     Timer timer;
     timer.start();
 
-    Vec3f *data = positions->get_vector_writable().data();
+    Vec3f* data = positions->get_vector_writable().data();
     for (size_t i = 0; i < count; ++i) {
       data[i] = Vec3f(static_cast<float>(i), 0.0F, 0.0F);
     }
@@ -381,7 +382,7 @@ void benchmark_attribute_clone() {
     geo.add_point_attribute(attrs::N, AttributeType::VEC3F);
     geo.add_point_attribute(attrs::Cd, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
       (*positions)[i] = Vec3f(static_cast<float>(i), 0.0F, 0.0F);
     }
@@ -409,7 +410,7 @@ void benchmark_transform_positions() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
       (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
                               static_cast<float>(i));
@@ -437,7 +438,7 @@ void benchmark_compute_normals() {
     geo.set_point_count(count);
     geo.add_point_attribute(attrs::P, AttributeType::VEC3F);
 
-    auto *positions = geo.positions();
+    auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
       (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
                               static_cast<float>(i));
@@ -472,9 +473,9 @@ void benchmark_attribute_blending() {
     geo.add_point_attribute("attr_b", AttributeType::VEC3F);
     geo.add_point_attribute("result", AttributeType::VEC3F);
 
-    auto *attr_a = geo.get_point_attribute_typed<Vec3f>("attr_a");
-    auto *attr_b = geo.get_point_attribute_typed<Vec3f>("attr_b");
-    auto *result = geo.get_point_attribute_typed<Vec3f>("result");
+    auto* attr_a = geo.get_point_attribute_typed<Vec3f>("attr_a");
+    auto* attr_b = geo.get_point_attribute_typed<Vec3f>("attr_b");
+    auto* result = geo.get_point_attribute_typed<Vec3f>("result");
 
     for (size_t i = 0; i < count; ++i) {
       (*attr_a)[i] = Vec3f(0.0F, 0.0F, 0.0F);
@@ -531,38 +532,37 @@ void benchmark_memory_usage() {
         {"id", AttributeType::INT}}},
   };
 
-  for (const auto &config : configs) {
+  for (const auto& config : configs) {
     GeometryContainer geo;
     geo.set_point_count(config.count);
 
     size_t expected_memory = 0;
 
-    for (const auto &[name, type] : config.attributes) {
+    for (const auto& [name, type] : config.attributes) {
       geo.add_point_attribute(name, type);
 
       switch (type) {
-      case AttributeType::FLOAT:
-      case AttributeType::INT:
-        expected_memory += config.count * 4;
-        break;
-      case AttributeType::VEC2F:
-        expected_memory += config.count * 8;
-        break;
-      case AttributeType::VEC3F:
-        expected_memory += config.count * 12;
-        break;
-      case AttributeType::VEC4F:
-        expected_memory += config.count * 16;
-        break;
-      default:
-        break;
+        case AttributeType::FLOAT:
+        case AttributeType::INT:
+          expected_memory += config.count * 4;
+          break;
+        case AttributeType::VEC2F:
+          expected_memory += config.count * 8;
+          break;
+        case AttributeType::VEC3F:
+          expected_memory += config.count * 12;
+          break;
+        case AttributeType::VEC4F:
+          expected_memory += config.count * 16;
+          break;
+        default:
+          break;
       }
     }
 
     std::cout << std::left << std::setw(50) << config.name << std::right
               << std::setw(10) << config.count << " elements, " << std::setw(8)
-              << (expected_memory / 1024 / 1024) << " MB"
-              << " (estimated)\n";
+              << (expected_memory / 1024 / 1024) << " MB" << " (estimated)\n";
   }
 }
 
@@ -570,12 +570,12 @@ void benchmark_memory_usage() {
 // Export Results to CSV
 // ============================================================================
 
-void export_results_to_csv(const std::string &filename) {
+void export_results_to_csv(const std::string& filename) {
   std::ofstream csv(filename);
 
   csv << "Benchmark,ElementCount,TimeMS,ThroughputMopsPerSec,MemoryBytes\n";
 
-  for (const auto &result : g_results) {
+  for (const auto& result : g_results) {
     csv << result.name << "," << result.element_count << "," << std::fixed
         << std::setprecision(3) << result.time_ms << ","
         << result.throughput_million_ops_per_sec << "," << result.memory_bytes

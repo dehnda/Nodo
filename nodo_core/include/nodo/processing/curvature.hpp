@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 
 namespace nodo::processing {
@@ -39,8 +40,8 @@ public:
   /// @param params Curvature computation parameters
   /// @return Geometry with curvature attributes, or nullopt on error
   static std::optional<core::GeometryContainer>
-  compute(const core::GeometryContainer &input,
-          const CurvatureParams &params = CurvatureParams{});
+  compute(const core::GeometryContainer& input,
+          const CurvatureParams& params = CurvatureParams{});
 };
 
 } // namespace nodo::processing

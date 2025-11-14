@@ -1,22 +1,22 @@
 #include "GroupSelectorWidget.h"
+
 #include <QCompleter>
 #include <QLineEdit>
 
 namespace nodo_studio {
 namespace widgets {
 
-GroupSelectorWidget::GroupSelectorWidget(const QString &label,
-                                         const QString &initial_group,
-                                         const QString &description,
-                                         QWidget *parent)
+GroupSelectorWidget::GroupSelectorWidget(const QString& label,
+                                         const QString& initial_group,
+                                         const QString& description,
+                                         QWidget* parent)
     : BaseParameterWidget(label, description, parent),
       group_name_(initial_group) {
-
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
 
-QWidget *GroupSelectorWidget::createControlWidget() {
+QWidget* GroupSelectorWidget::createControlWidget() {
   combo_box_ = new QComboBox(this);
 
   // Make it editable so users can type custom group names
@@ -34,7 +34,7 @@ QWidget *GroupSelectorWidget::createControlWidget() {
 
   // Enable auto-completion
   combo_box_->setInsertPolicy(QComboBox::NoInsert);
-  auto *completer = new QCompleter(combo_box_->model(), this);
+  auto* completer = new QCompleter(combo_box_->model(), this);
   completer->setCaseSensitivity(Qt::CaseInsensitive);
   completer->setFilterMode(Qt::MatchContains);
   combo_box_->setCompleter(completer);
@@ -104,7 +104,7 @@ QString GroupSelectorWidget::getGroupName() const {
   return group_name_;
 }
 
-void GroupSelectorWidget::setGroupName(const QString &group_name) {
+void GroupSelectorWidget::setGroupName(const QString& group_name) {
   if (group_name_ == group_name)
     return;
 
@@ -122,7 +122,7 @@ void GroupSelectorWidget::setGroupName(const QString &group_name) {
 }
 
 void GroupSelectorWidget::setAvailableGroups(
-    const std::vector<std::string> &groups) {
+    const std::vector<std::string>& groups) {
   if (!combo_box_)
     return;
 
@@ -137,7 +137,7 @@ void GroupSelectorWidget::setAvailableGroups(
   combo_box_->addItem("(all)", "");
 
   // Add all available groups
-  for (const auto &group : groups) {
+  for (const auto& group : groups) {
     QString group_name = QString::fromStdString(group);
     // Don't add if it's the same as "(all)" or empty
     if (!group_name.isEmpty() && group_name != "(all)") {
@@ -158,18 +158,18 @@ void GroupSelectorWidget::setAvailableGroups(
   combo_box_->blockSignals(false);
 
   // Update completer with new items
-  auto *completer = combo_box_->completer();
+  auto* completer = combo_box_->completer();
   if (completer) {
     completer->setModel(combo_box_->model());
   }
 }
 
 void GroupSelectorWidget::setGroupChangedCallback(
-    std::function<void(const QString &)> callback) {
+    std::function<void(const QString&)> callback) {
   group_changed_callback_ = callback;
 }
 
-void GroupSelectorWidget::onCurrentTextChanged(const QString &text) {
+void GroupSelectorWidget::onCurrentTextChanged(const QString& text) {
   // Handle "(all)" selection specially
   if (text == "(all)") {
     group_name_ = QString();

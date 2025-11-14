@@ -4,7 +4,7 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-PolyExtrudeSOP::PolyExtrudeSOP(const std::string &name)
+PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name)
     : SOPNode(name, "PolyExtrude") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -116,14 +116,14 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   const bool individual_faces = get_parameter<bool>("individual_faces", true);
 
   // Get input positions
-  const auto *input_positions =
+  const auto* input_positions =
       input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
   }
 
-  const auto &input_topology = input->topology();
+  const auto& input_topology = input->topology();
   const size_t input_prim_count = input_topology.primitive_count();
 
   if (input_prim_count == 0) {
@@ -142,7 +142,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   size_t total_vertices = 0;
 
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 3) {
@@ -180,7 +180,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
@@ -200,7 +200,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
 
   // Process each primitive
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 3) {
@@ -364,14 +364,14 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   }
 
   // Get input positions
-  const auto *input_positions =
+  const auto* input_positions =
       input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
   }
 
-  const auto &input_topology = input->topology();
+  const auto& input_topology = input->topology();
   const size_t input_prim_count = input_topology.primitive_count();
 
   if (input_prim_count == 0) {
@@ -385,7 +385,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   // Count edge primitives (2 vertices)
   size_t edge_count = 0;
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     if (vert_indices.size() == 2) {
       edge_count++;
     }
@@ -415,7 +415,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   // Add position attribute
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
 
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
@@ -427,8 +427,8 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   size_t vertex_offset = 0;
 
   // Helper: Calculate edge extrusion direction
-  auto calculate_edge_normal = [&](const core::Vec3f &p0,
-                                   const core::Vec3f &p1) -> core::Vec3f {
+  auto calculate_edge_normal = [&](const core::Vec3f& p0,
+                                   const core::Vec3f& p1) -> core::Vec3f {
     // Mode 1: Custom Direction
     if (direction_mode == 1) {
       // Use custom direction directly (ignore edge orientation)
@@ -463,7 +463,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   if (individual) {
     // Individual mode: Each edge gets its own 4 points
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto &vert_indices =
+      const auto& vert_indices =
           input_topology.get_primitive_vertices(prim_idx);
 
       // Skip non-edge primitives
@@ -532,7 +532,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
 
     // First pass: Accumulate extrusion directions for each point
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto &vert_indices =
+      const auto& vert_indices =
           input_topology.get_primitive_vertices(prim_idx);
 
       if (vert_indices.size() != 2) {
@@ -573,7 +573,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
 
     // Second pass: Create quad primitives using shared points
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto &vert_indices =
+      const auto& vert_indices =
           input_topology.get_primitive_vertices(prim_idx);
 
       if (vert_indices.size() != 2) {
@@ -636,14 +636,14 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   }
 
   // Get input positions
-  const auto *input_positions =
+  const auto* input_positions =
       input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
   }
 
-  const auto &input_topology = input->topology();
+  const auto& input_topology = input->topology();
   const size_t input_point_count = input_topology.point_count();
 
   if (input_point_count == 0) {
@@ -666,7 +666,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   // Add position attribute
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
 
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {

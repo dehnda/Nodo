@@ -1,19 +1,23 @@
 #include "SceneFileManager.h"
-#include "NodeGraphWidget.h"
 
-#include <nodo/graph/execution_engine.hpp>
-#include <nodo/graph/graph_serializer.hpp>
-#include <nodo/graph/node_graph.hpp>
-#include <nodo/io/obj_exporter.hpp>
+#include "NodeGraphWidget.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QSettings>
 
-SceneFileManager::SceneFileManager(QWidget *parent)
-    : parent_(parent), node_graph_(nullptr), execution_engine_(nullptr),
-      node_graph_widget_(nullptr), is_modified_(false) {}
+#include <nodo/graph/execution_engine.hpp>
+#include <nodo/graph/graph_serializer.hpp>
+#include <nodo/graph/node_graph.hpp>
+#include <nodo/io/obj_exporter.hpp>
+
+SceneFileManager::SceneFileManager(QWidget* parent)
+    : parent_(parent),
+      node_graph_(nullptr),
+      execution_engine_(nullptr),
+      node_graph_widget_(nullptr),
+      is_modified_(false) {}
 
 void SceneFileManager::newScene() {
   // This method signals MainWindow to handle the full new scene creation
@@ -248,12 +252,12 @@ QStringList SceneFileManager::getRecentFiles() const {
   return settings.value("recentFiles").toStringList();
 }
 
-void SceneFileManager::setRecentFiles(const QStringList &files) {
+void SceneFileManager::setRecentFiles(const QStringList& files) {
   QSettings settings("Nodo", "NodoStudio");
   settings.setValue("recentFiles", files);
 }
 
-void SceneFileManager::addToRecentFiles(const QString &filename) {
+void SceneFileManager::addToRecentFiles(const QString& filename) {
   static constexpr int MaxRecentFiles = 10;
 
   QStringList files = getRecentFiles();

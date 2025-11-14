@@ -1,9 +1,11 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QColor>
 #include <QColorDialog>
 #include <QPushButton>
+
 #include <functional>
 
 namespace nodo_studio {
@@ -27,14 +29,14 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  ColorWidget(const QString &label,
-              const QColor &initial_color = QColor(255, 255, 255),
-              bool enable_alpha = false, const QString &description = QString(),
-              QWidget *parent = nullptr);
+  ColorWidget(const QString& label,
+              const QColor& initial_color = QColor(255, 255, 255),
+              bool enable_alpha = false, const QString& description = QString(),
+              QWidget* parent = nullptr);
 
   // Value access
   QColor getColor() const { return color_; }
-  void setColor(const QColor &color);
+  void setColor(const QColor& color);
 
   // Get components (0-1 range)
   float getRed() const { return color_.redF(); }
@@ -45,17 +47,17 @@ public:
   void setEnableAlpha(bool enable);
 
   // Callback support
-  void setColorChangedCallback(std::function<void(const QColor &)> callback);
+  void setColorChangedCallback(std::function<void(const QColor&)> callback);
 
 signals:
-  void colorChangedSignal(const QColor &color);
+  void colorChangedSignal(const QColor& color);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onButtonClicked();
-  void onColorSelected(const QColor &color);
+  void onColorSelected(const QColor& color);
 
 private:
   void updateButtonColor();
@@ -63,9 +65,9 @@ private:
   QColor color_{255, 255, 255};
   bool enable_alpha_{false};
 
-  QPushButton *color_button_{nullptr};
+  QPushButton* color_button_{nullptr};
 
-  std::function<void(const QColor &)> color_changed_callback_;
+  std::function<void(const QColor&)> color_changed_callback_;
 };
 
 } // namespace widgets

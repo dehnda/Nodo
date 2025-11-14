@@ -7,6 +7,7 @@
 #include "nodo/graph/graph_serializer.hpp"
 #include "nodo/graph/node_graph.hpp"
 #include "nodo/performance/profiler.hpp"
+
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -38,7 +39,7 @@ struct BenchmarkResult {
 
 class PerformanceBenchmark {
 public:
-  void run_benchmark(const BenchmarkConfig &config) {
+  void run_benchmark(const BenchmarkConfig& config) {
     std::cout
         << "\n╔════════════════════════════════════════════════════════╗\n";
     std::cout << "║  Running Benchmark: " << std::left << std::setw(32)
@@ -52,7 +53,7 @@ public:
       return;
     }
 
-    NodeGraph &graph = *graph_opt;
+    NodeGraph& graph = *graph_opt;
     ExecutionEngine engine;
 
     std::vector<double> execution_times;
@@ -166,14 +167,14 @@ public:
     // Print per-node cook times
     std::cout << "\nPer-Node Cook Times:\n";
     std::cout << "────────────────────\n";
-    for (const auto &node_ptr : graph.get_nodes()) {
+    for (const auto& node_ptr : graph.get_nodes()) {
       std::cout << "  Node " << node_ptr->get_id() << " ("
                 << node_ptr->get_name() << "): " << node_ptr->get_cook_time()
                 << " ms\n";
     }
   }
 
-  void run_cache_comparison(const std::string &graph_file) {
+  void run_cache_comparison(const std::string& graph_file) {
     std::cout
         << "\n╔═══════════════════════════════════════════════════════╗\n";
     std::cout << "║           CACHE PERFORMANCE COMPARISON                ║\n";
@@ -200,7 +201,7 @@ public:
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cout << "Nodo Performance Benchmark\n\n";
     std::cout << "Usage:\n";

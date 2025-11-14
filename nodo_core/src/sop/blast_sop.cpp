@@ -1,5 +1,7 @@
 #include "nodo/sop/blast_sop.hpp"
+
 #include "nodo/core/attribute_group.hpp"
+
 #include <iostream>
 #include <unordered_set>
 

@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../core/standard_attributes.hpp"
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -26,7 +27,7 @@ class TimeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit TimeSOP(const std::string &node_name = "time")
+  explicit TimeSOP(const std::string& node_name = "time")
       : SOPNode(node_name, "Time") {
     // No input ports - this is a source node
 
@@ -92,24 +93,24 @@ protected:
 
     // Add position attribute (standard practice)
     output->add_point_attribute("P", core::AttributeType::VEC3F);
-    auto *positions = output->get_point_attribute_typed<core::Vec3f>("P");
+    auto* positions = output->get_point_attribute_typed<core::Vec3f>("P");
     (*positions)[0] = core::Vec3f(0.0F, 0.0F, 0.0F);
 
     // Create time-related point attributes
     output->add_point_attribute("time", core::AttributeType::FLOAT);
-    auto *time_attr = output->get_point_attribute_typed<float>("time");
+    auto* time_attr = output->get_point_attribute_typed<float>("time");
     (*time_attr)[0] = time;
 
     output->add_point_attribute("fps", core::AttributeType::FLOAT);
-    auto *fps_attr = output->get_point_attribute_typed<float>("fps");
+    auto* fps_attr = output->get_point_attribute_typed<float>("fps");
     (*fps_attr)[0] = fps;
 
     output->add_point_attribute("frame", core::AttributeType::INT);
-    auto *frame_attr = output->get_point_attribute_typed<int>("frame");
+    auto* frame_attr = output->get_point_attribute_typed<int>("frame");
     (*frame_attr)[0] = frame;
 
     output->add_point_attribute("normalized_time", core::AttributeType::FLOAT);
-    auto *norm_time_attr =
+    auto* norm_time_attr =
         output->get_point_attribute_typed<float>("normalized_time");
     (*norm_time_attr)[0] = normalized_time;
 

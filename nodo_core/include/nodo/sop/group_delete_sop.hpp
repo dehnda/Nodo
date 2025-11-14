@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -16,7 +17,7 @@ class GroupDeleteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupDeleteSOP(const std::string &name = "group_delete")
+  explicit GroupDeleteSOP(const std::string& name = "group_delete")
       : SOPNode(name, "GroupDelete") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -83,7 +84,7 @@ protected:
       // Get attribute names based on element class
       if (ec == core::ElementClass::POINT) {
         auto attr_names = result->get_point_attribute_names();
-        for (const auto &name : attr_names) {
+        for (const auto& name : attr_names) {
           if (std::regex_match(name, pattern_regex)) {
             // Check if it's actually a group (int attribute)
             auto attr_typed = result->get_point_attribute_typed<int>(name);
@@ -94,7 +95,7 @@ protected:
         }
       } else if (ec == core::ElementClass::PRIMITIVE) {
         auto attr_names = result->get_primitive_attribute_names();
-        for (const auto &name : attr_names) {
+        for (const auto& name : attr_names) {
           if (std::regex_match(name, pattern_regex)) {
             auto attr_typed = result->get_primitive_attribute_typed<int>(name);
             if (attr_typed) {
@@ -105,7 +106,7 @@ protected:
       }
 
       // Delete matched groups
-      for (const auto &group_name : groups_to_delete) {
+      for (const auto& group_name : groups_to_delete) {
         if (ec == core::ElementClass::POINT) {
           result->remove_point_attribute(group_name);
         } else if (ec == core::ElementClass::PRIMITIVE) {

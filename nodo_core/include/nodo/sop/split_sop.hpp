@@ -2,7 +2,9 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <queue>
+
 #include <unordered_set>
 #include <vector>
 
@@ -21,7 +23,7 @@ class SplitSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SplitSOP(const std::string &node_name = "split")
+  explicit SplitSOP(const std::string& node_name = "split")
       : SOPNode(node_name, "Split") {
     // Single geometry input
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -98,7 +100,7 @@ protected:
   }
 
 private:
-  void split_by_connectivity(std::shared_ptr<core::GeometryContainer> &geo,
+  void split_by_connectivity(std::shared_ptr<core::GeometryContainer>& geo,
                              bool create_groups, bool add_piece_attr) {
     const size_t prim_count = geo->topology().primitive_count();
     if (prim_count == 0)
@@ -108,10 +110,10 @@ private:
     std::vector<std::unordered_set<size_t>> prim_neighbors(prim_count);
 
     for (size_t prim_i = 0; prim_i < prim_count; ++prim_i) {
-      const auto &verts_i = geo->topology().get_primitive_vertices(prim_i);
+      const auto& verts_i = geo->topology().get_primitive_vertices(prim_i);
 
       for (size_t prim_j = prim_i + 1; prim_j < prim_count; ++prim_j) {
-        const auto &verts_j = geo->topology().get_primitive_vertices(prim_j);
+        const auto& verts_j = geo->topology().get_primitive_vertices(prim_j);
 
         // Check if they share any vertex
         bool share_vertex = false;
@@ -168,8 +170,8 @@ private:
                         add_piece_attr);
   }
 
-  void split_by_attribute(std::shared_ptr<core::GeometryContainer> &geo,
-                          const std::string &attr_name, bool create_groups,
+  void split_by_attribute(std::shared_ptr<core::GeometryContainer>& geo,
+                          const std::string& attr_name, bool create_groups,
                           bool add_piece_attr) {
     // Check if attribute exists
     if (!geo->has_primitive_attribute(attr_name)) {
@@ -178,7 +180,7 @@ private:
     }
 
     // Get attribute (assuming integer for now)
-    auto *attr = geo->get_primitive_attribute_typed<int>(attr_name);
+    auto* attr = geo->get_primitive_attribute_typed<int>(attr_name);
     if (!attr) {
       set_error("Attribute '" + attr_name +
                 "' must be integer type for splitting");
@@ -203,15 +205,15 @@ private:
                         add_piece_attr);
   }
 
-  void apply_piece_results(std::shared_ptr<core::GeometryContainer> &geo,
-                           const std::vector<int> &piece_ids, int num_pieces,
+  void apply_piece_results(std::shared_ptr<core::GeometryContainer>& geo,
+                           const std::vector<int>& piece_ids, int num_pieces,
                            bool create_groups, bool add_piece_attr) {
     // Add piece attribute
     if (add_piece_attr) {
       if (!geo->has_primitive_attribute("piece")) {
         geo->add_primitive_attribute("piece", core::AttributeType::INT);
       }
-      auto *piece_attr = geo->get_primitive_attribute_typed<int>("piece");
+      auto* piece_attr = geo->get_primitive_attribute_typed<int>("piece");
       if (piece_attr) {
         for (size_t i = 0; i < piece_ids.size(); ++i) {
           (*piece_attr)[i] = piece_ids[i];

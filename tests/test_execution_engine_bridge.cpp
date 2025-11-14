@@ -2,6 +2,7 @@
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/graph/execution_engine.hpp"
 #include "nodo/graph/node_graph.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo;
@@ -71,15 +72,15 @@ TEST_F(ExecutionEngineBridgeTest, MeshToContainerPreservesTopology) {
   EXPECT_GT(result->primitive_count(), 0);
 
   // Verify P attribute exists
-  auto *positions =
+  auto* positions =
       result->get_point_attribute_typed<Eigen::Vector3f>(standard_attrs::P);
   ASSERT_NE(positions, nullptr);
   EXPECT_EQ(positions->size(), result->point_count());
 
   // Verify all primitives reference valid vertices
-  const auto &topo = result->topology();
+  const auto& topo = result->topology();
   for (size_t i = 0; i < result->primitive_count(); ++i) {
-    const auto &prim_verts = topo.get_primitive_vertices(static_cast<int>(i));
+    const auto& prim_verts = topo.get_primitive_vertices(static_cast<int>(i));
     for (int vert_idx : prim_verts) {
       EXPECT_GE(vert_idx, 0);
       EXPECT_LT(static_cast<size_t>(vert_idx), result->vertex_count());

@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../processing/hole_filling.hpp"
 #include "sop_node.hpp"
+
 #include <fmt/core.h>
 
 namespace nodo::sop {
@@ -23,9 +24,8 @@ class RepairMeshSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit RepairMeshSOP(const std::string &node_name = "repair_mesh")
+  explicit RepairMeshSOP(const std::string& node_name = "repair_mesh")
       : SOPNode(node_name, "RepairMesh") {
-
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

@@ -61,6 +61,7 @@
 #include "nodo/geometry/plane_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/geometry/torus_generator.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -68,136 +69,136 @@ namespace nodo::sop {
 using namespace graph;
 
 std::shared_ptr<SOPNode> SOPFactory::create(NodeType type,
-                                            const std::string &name) {
+                                            const std::string& name) {
   switch (type) {
-  // Transform & Modifiers
-  case NodeType::Transform:
-    return std::make_shared<TransformSOP>();
-  case NodeType::Extrude:
-    return std::make_shared<ExtrudeSOP>();
-  case NodeType::PolyExtrude:
-    return std::make_shared<PolyExtrudeSOP>();
-  case NodeType::Smooth:
-    return std::make_shared<SmoothSOP>();
-  case NodeType::Subdivide:
-    return std::make_shared<SubdivisionSOP>();
-  case NodeType::Mirror:
-    return std::make_shared<MirrorSOP>();
-  case NodeType::Resample:
-    return std::make_shared<ResampleSOP>();
-  case NodeType::NoiseDisplacement:
-    return std::make_shared<NoiseDisplacementSOP>();
-  case NodeType::Normal:
-    return std::make_shared<NormalSOP>();
-  case NodeType::Bevel:
-    return std::make_shared<BevelSOP>();
-  case NodeType::Remesh:
-    return std::make_shared<RemeshSOP>();
-  case NodeType::Decimate:
-    return std::make_shared<DecimationSOP>();
-  case NodeType::RepairMesh:
-    return std::make_shared<RepairMeshSOP>();
-  case NodeType::Curvature:
-    return std::make_shared<CurvatureSOP>();
-  case NodeType::Align:
-    return std::make_shared<AlignSOP>();
-  case NodeType::Split:
-    return std::make_shared<SplitSOP>();
+    // Transform & Modifiers
+    case NodeType::Transform:
+      return std::make_shared<TransformSOP>();
+    case NodeType::Extrude:
+      return std::make_shared<ExtrudeSOP>();
+    case NodeType::PolyExtrude:
+      return std::make_shared<PolyExtrudeSOP>();
+    case NodeType::Smooth:
+      return std::make_shared<SmoothSOP>();
+    case NodeType::Subdivide:
+      return std::make_shared<SubdivisionSOP>();
+    case NodeType::Mirror:
+      return std::make_shared<MirrorSOP>();
+    case NodeType::Resample:
+      return std::make_shared<ResampleSOP>();
+    case NodeType::NoiseDisplacement:
+      return std::make_shared<NoiseDisplacementSOP>();
+    case NodeType::Normal:
+      return std::make_shared<NormalSOP>();
+    case NodeType::Bevel:
+      return std::make_shared<BevelSOP>();
+    case NodeType::Remesh:
+      return std::make_shared<RemeshSOP>();
+    case NodeType::Decimate:
+      return std::make_shared<DecimationSOP>();
+    case NodeType::RepairMesh:
+      return std::make_shared<RepairMeshSOP>();
+    case NodeType::Curvature:
+      return std::make_shared<CurvatureSOP>();
+    case NodeType::Align:
+      return std::make_shared<AlignSOP>();
+    case NodeType::Split:
+      return std::make_shared<SplitSOP>();
 
-  // Arrays & Duplication
-  case NodeType::Array:
-    return std::make_shared<ArraySOP>();
-  case NodeType::Scatter:
-    return std::make_shared<ScatterSOP>();
-  case NodeType::ScatterVolume:
-    return std::make_shared<ScatterVolumeSOP>();
-  case NodeType::CopyToPoints:
-    return std::make_shared<CopyToPointsSOP>();
+    // Arrays & Duplication
+    case NodeType::Array:
+      return std::make_shared<ArraySOP>();
+    case NodeType::Scatter:
+      return std::make_shared<ScatterSOP>();
+    case NodeType::ScatterVolume:
+      return std::make_shared<ScatterVolumeSOP>();
+    case NodeType::CopyToPoints:
+      return std::make_shared<CopyToPointsSOP>();
 
-  // Boolean
-  case NodeType::Boolean:
-    return std::make_shared<BooleanSOP>();
+    // Boolean
+    case NodeType::Boolean:
+      return std::make_shared<BooleanSOP>();
 
-  // Line generator (has SOP)
-  case NodeType::Line:
-    return std::make_shared<LineSOP>();
+    // Line generator (has SOP)
+    case NodeType::Line:
+      return std::make_shared<LineSOP>();
 
-  // IO
-  case NodeType::File:
-    return std::make_shared<FileSOP>();
-  case NodeType::Export:
-    return std::make_shared<ExportSOP>();
+    // IO
+    case NodeType::File:
+      return std::make_shared<FileSOP>();
+    case NodeType::Export:
+      return std::make_shared<ExportSOP>();
 
-  // Basic Primitives SOPs
-  case NodeType::Sphere:
-    return std::make_shared<SphereSOP>();
-  case NodeType::Box:
-    return std::make_shared<BoxSOP>();
-  case NodeType::Cylinder:
-    return std::make_shared<CylinderSOP>();
-  case NodeType::Grid:
-    return std::make_shared<GridSOP>();
-  case NodeType::Torus:
-    return std::make_shared<TorusSOP>();
-  case NodeType::Merge:
-    return std::make_shared<MergeSOP>();
-  case NodeType::Group:
-    return std::make_shared<GroupSOP>();
-  case NodeType::Switch:
-    return std::make_shared<SwitchSOP>();
-  case NodeType::Null:
-    return std::make_shared<NullSOP>();
-  case NodeType::Cache:
-    return std::make_shared<CacheSOP>();
-  case NodeType::Time:
-    return std::make_shared<TimeSOP>();
-  case NodeType::Output:
-    return std::make_shared<OutputSOP>();
-  case NodeType::UVUnwrap:
-    return std::make_shared<UVUnwrapSOP>();
-  case NodeType::Parameterize:
-    return std::make_shared<ParameterizeSOP>();
-  case NodeType::Geodesic:
-    return std::make_shared<GeodesicSOP>();
-  case NodeType::Wrangle:
-    return std::make_shared<WrangleSOP>();
+    // Basic Primitives SOPs
+    case NodeType::Sphere:
+      return std::make_shared<SphereSOP>();
+    case NodeType::Box:
+      return std::make_shared<BoxSOP>();
+    case NodeType::Cylinder:
+      return std::make_shared<CylinderSOP>();
+    case NodeType::Grid:
+      return std::make_shared<GridSOP>();
+    case NodeType::Torus:
+      return std::make_shared<TorusSOP>();
+    case NodeType::Merge:
+      return std::make_shared<MergeSOP>();
+    case NodeType::Group:
+      return std::make_shared<GroupSOP>();
+    case NodeType::Switch:
+      return std::make_shared<SwitchSOP>();
+    case NodeType::Null:
+      return std::make_shared<NullSOP>();
+    case NodeType::Cache:
+      return std::make_shared<CacheSOP>();
+    case NodeType::Time:
+      return std::make_shared<TimeSOP>();
+    case NodeType::Output:
+      return std::make_shared<OutputSOP>();
+    case NodeType::UVUnwrap:
+      return std::make_shared<UVUnwrapSOP>();
+    case NodeType::Parameterize:
+      return std::make_shared<ParameterizeSOP>();
+    case NodeType::Geodesic:
+      return std::make_shared<GeodesicSOP>();
+    case NodeType::Wrangle:
+      return std::make_shared<WrangleSOP>();
 
-  // Attributes
-  case NodeType::AttributeCreate:
-    return std::make_shared<AttributeCreateSOP>();
-  case NodeType::AttributeDelete:
-    return std::make_shared<AttributeDeleteSOP>();
-  case NodeType::Color:
-    return std::make_shared<ColorSOP>();
+    // Attributes
+    case NodeType::AttributeCreate:
+      return std::make_shared<AttributeCreateSOP>();
+    case NodeType::AttributeDelete:
+      return std::make_shared<AttributeDeleteSOP>();
+    case NodeType::Color:
+      return std::make_shared<ColorSOP>();
 
-  // Group Operations
-  case NodeType::GroupDelete:
-    return std::make_shared<GroupDeleteSOP>();
-  case NodeType::GroupPromote:
-    return std::make_shared<GroupPromoteSOP>();
-  case NodeType::GroupCombine:
-    return std::make_shared<GroupCombineSOP>();
-  case NodeType::GroupExpand:
-    return std::make_shared<GroupExpandSOP>();
-  case NodeType::GroupTransfer:
-    return std::make_shared<GroupTransferSOP>();
+    // Group Operations
+    case NodeType::GroupDelete:
+      return std::make_shared<GroupDeleteSOP>();
+    case NodeType::GroupPromote:
+      return std::make_shared<GroupPromoteSOP>();
+    case NodeType::GroupCombine:
+      return std::make_shared<GroupCombineSOP>();
+    case NodeType::GroupExpand:
+      return std::make_shared<GroupExpandSOP>();
+    case NodeType::GroupTransfer:
+      return std::make_shared<GroupTransferSOP>();
 
-  // Utility Operations
-  case NodeType::Blast:
-    return std::make_shared<BlastSOP>();
-  case NodeType::Sort:
-    return std::make_shared<SortSOP>();
+    // Utility Operations
+    case NodeType::Blast:
+      return std::make_shared<BlastSOP>();
+    case NodeType::Sort:
+      return std::make_shared<SortSOP>();
 
-  // Deformation
-  case NodeType::Bend:
-    return std::make_shared<BendSOP>();
-  case NodeType::Twist:
-    return std::make_shared<TwistSOP>();
-  case NodeType::Lattice:
-    return std::make_shared<LatticeSOP>();
+    // Deformation
+    case NodeType::Bend:
+      return std::make_shared<BendSOP>();
+    case NodeType::Twist:
+      return std::make_shared<TwistSOP>();
+    case NodeType::Lattice:
+      return std::make_shared<LatticeSOP>();
 
-  default:
-    return nullptr;
+    default:
+      return nullptr;
   }
 }
 

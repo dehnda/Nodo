@@ -1,11 +1,14 @@
 #include "nodo/sop/uv_unwrap_sop.hpp"
+
 #include "nodo/core/standard_attributes.hpp"
+
 #include <iostream>
+
 #include <xatlas.h>
 
 namespace nodo::sop {
 
-UVUnwrapSOP::UVUnwrapSOP(const std::string &name) : SOPNode(name, "UVUnwrap") {
+UVUnwrapSOP::UVUnwrapSOP(const std::string& name) : SOPNode(name, "UVUnwrap") {
   // Single geometry input
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -113,15 +116,15 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
             << " points, " << result->primitive_count() << " primitives\n";
 
   // Create xatlas atlas
-  xatlas::Atlas *atlas = xatlas::Create();
+  xatlas::Atlas* atlas = xatlas::Create();
 
-  const auto &topo = result->topology();
+  const auto& topo = result->topology();
 
   // Build index and position arrays
   std::vector<uint32_t> indices;
   std::vector<float> positions;
 
-  auto *pos_attr = result->get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* pos_attr = result->get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!pos_attr) {
     std::cerr << "UVUnwrapSOP: No P attribute found\n";
     xatlas::Destroy(atlas);
@@ -131,7 +134,7 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
   // Build positions array (one per point)
   positions.reserve(result->point_count() * 3);
   for (size_t i = 0; i < result->point_count(); ++i) {
-    const auto &p = (*pos_attr)[i];
+    const auto& p = (*pos_attr)[i];
     positions.push_back(p.x());
     positions.push_back(p.y());
     positions.push_back(p.z());
@@ -140,7 +143,7 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
   // Build indices array - we need to convert primitives to triangles
   // For each primitive, get its vertices and their point indices
   for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
-    const auto &verts = topo.get_primitive_vertices(prim_idx);
+    const auto& verts = topo.get_primitive_vertices(prim_idx);
 
     // Triangulate the primitive (simple fan triangulation for quads/n-gons)
     if (verts.size() >= 3) {
@@ -204,7 +207,7 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
 
   // Extract UVs back to geometry with proper seam handling
   if (atlas->meshCount > 0) {
-    const xatlas::Mesh &output_mesh = atlas->meshes[0];
+    const xatlas::Mesh& output_mesh = atlas->meshes[0];
 
     std::cerr << "UVUnwrapSOP: xatlas created " << output_mesh.vertexCount
               << " vertices (input had " << result->vertex_count()
@@ -220,51 +223,53 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
     new_geo->set_vertex_count(output_mesh.vertexCount);
 
     // Copy point attributes from original geometry
-    for (const auto &attr_name : result->get_point_attribute_names()) {
-      auto *src_attr = result->get_point_attribute(attr_name);
+    for (const auto& attr_name : result->get_point_attribute_names()) {
+      auto* src_attr = result->get_point_attribute(attr_name);
       if (src_attr != nullptr) {
         // Add attribute with same type
         new_geo->add_point_attribute(attr_name, src_attr->descriptor().type());
-        auto *dst_attr = new_geo->get_point_attribute(attr_name);
+        auto* dst_attr = new_geo->get_point_attribute(attr_name);
 
         // Copy values element by element (both have same point count)
         // Use type-specific copying based on attribute type
-        const auto &desc = src_attr->descriptor();
+        const auto& desc = src_attr->descriptor();
         switch (desc.type()) {
-        case core::AttributeType::VEC3F: {
-          auto *src_typed =
-              dynamic_cast<core::AttributeStorage<Eigen::Vector3f> *>(src_attr);
-          auto *dst_typed =
-              dynamic_cast<core::AttributeStorage<Eigen::Vector3f> *>(dst_attr);
-          if (src_typed != nullptr && dst_typed != nullptr) {
-            for (size_t i = 0; i < result->point_count(); ++i) {
-              (*dst_typed)[i] = (*src_typed)[i];
+          case core::AttributeType::VEC3F: {
+            auto* src_typed =
+                dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(
+                    src_attr);
+            auto* dst_typed =
+                dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(
+                    dst_attr);
+            if (src_typed != nullptr && dst_typed != nullptr) {
+              for (size_t i = 0; i < result->point_count(); ++i) {
+                (*dst_typed)[i] = (*src_typed)[i];
+              }
             }
+            break;
           }
-          break;
-        }
-        case core::AttributeType::FLOAT:
-        case core::AttributeType::INT:
-        case core::AttributeType::VEC2F:
-        case core::AttributeType::VEC4F:
-        case core::AttributeType::MATRIX3:
-        case core::AttributeType::MATRIX4:
-        case core::AttributeType::QUATERNION:
-        case core::AttributeType::STRING:
-          // Skip other types for now (can be extended)
-          break;
+          case core::AttributeType::FLOAT:
+          case core::AttributeType::INT:
+          case core::AttributeType::VEC2F:
+          case core::AttributeType::VEC4F:
+          case core::AttributeType::MATRIX3:
+          case core::AttributeType::MATRIX4:
+          case core::AttributeType::QUATERNION:
+          case core::AttributeType::STRING:
+            // Skip other types for now (can be extended)
+            break;
         }
       }
     }
 
     // Add UV attribute (vertex attribute)
     new_geo->add_vertex_attribute("uv", core::AttributeType::VEC2F);
-    auto *uv_attr = new_geo->get_vertex_attribute_typed<Eigen::Vector2f>("uv");
+    auto* uv_attr = new_geo->get_vertex_attribute_typed<Eigen::Vector2f>("uv");
 
     if (uv_attr != nullptr) {
       // Set UVs for all xatlas vertices
       for (uint32_t i = 0; i < output_mesh.vertexCount; ++i) {
-        const xatlas::Vertex &xatlas_vert = output_mesh.vertexArray[i];
+        const xatlas::Vertex& xatlas_vert = output_mesh.vertexArray[i];
         float u_coord = xatlas_vert.uv[0] / static_cast<float>(atlas->width);
         float v_coord = xatlas_vert.uv[1] / static_cast<float>(atlas->height);
         (*uv_attr)[i] = Eigen::Vector2f(u_coord, v_coord);

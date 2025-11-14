@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -21,7 +22,7 @@ class GroupTransferSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupTransferSOP(const std::string &name = "group_transfer")
+  explicit GroupTransferSOP(const std::string& name = "group_transfer")
       : SOPNode(name, "GroupTransfer") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -107,7 +108,7 @@ protected:
       auto src_attr_names = source->get_point_attribute_names();
       std::vector<std::string> groups_to_transfer;
 
-      for (const auto &name : src_attr_names) {
+      for (const auto& name : src_attr_names) {
         if (std::regex_match(name, pattern_regex)) {
           auto attr_typed = source->get_point_attribute_typed<int>(name);
           if (attr_typed) {
@@ -117,12 +118,12 @@ protected:
       }
 
       // Transfer each group
-      for (const auto &group_name : groups_to_transfer) {
-        auto *src_group = source->get_point_attribute_typed<int>(group_name);
+      for (const auto& group_name : groups_to_transfer) {
+        auto* src_group = source->get_point_attribute_typed<int>(group_name);
 
         // Create group on result
         result->add_point_attribute(group_name, core::AttributeType::INT);
-        auto *dst_group = result->get_point_attribute_typed<int>(group_name);
+        auto* dst_group = result->get_point_attribute_typed<int>(group_name);
 
         if (method == 0) { // By Index
           // Direct index matching
@@ -132,8 +133,8 @@ protected:
           }
         } else { // By Position
           // Get position attributes
-          auto *src_pos = source->get_point_attribute_typed<core::Vec3f>("P");
-          auto *dst_pos = result->get_point_attribute_typed<core::Vec3f>("P");
+          auto* src_pos = source->get_point_attribute_typed<core::Vec3f>("P");
+          auto* dst_pos = result->get_point_attribute_typed<core::Vec3f>("P");
 
           if (!src_pos || !dst_pos) {
             continue;
@@ -141,13 +142,13 @@ protected:
 
           // For each destination point, find closest source point
           for (size_t dst_idx = 0; dst_idx < dst_pos->size(); ++dst_idx) {
-            const auto &dst_p = (*dst_pos)[dst_idx];
+            const auto& dst_p = (*dst_pos)[dst_idx];
 
             float min_dist = std::numeric_limits<float>::max();
             size_t closest_idx = 0;
 
             for (size_t src_idx = 0; src_idx < src_pos->size(); ++src_idx) {
-              const auto &src_p = (*src_pos)[src_idx];
+              const auto& src_p = (*src_pos)[src_idx];
               float dist = (dst_p - src_p).norm();
 
               if (dist < min_dist) {
@@ -170,7 +171,7 @@ protected:
       auto src_attr_names = source->get_primitive_attribute_names();
       std::vector<std::string> groups_to_transfer;
 
-      for (const auto &name : src_attr_names) {
+      for (const auto& name : src_attr_names) {
         if (std::regex_match(name, pattern_regex)) {
           auto attr_typed = source->get_primitive_attribute_typed<int>(name);
           if (attr_typed) {
@@ -180,13 +181,13 @@ protected:
       }
 
       // Transfer each group
-      for (const auto &group_name : groups_to_transfer) {
-        auto *src_group =
+      for (const auto& group_name : groups_to_transfer) {
+        auto* src_group =
             source->get_primitive_attribute_typed<int>(group_name);
 
         // Create group on result
         result->add_primitive_attribute(group_name, core::AttributeType::INT);
-        auto *dst_group =
+        auto* dst_group =
             result->get_primitive_attribute_typed<int>(group_name);
 
         if (method == 0) { // By Index
@@ -196,8 +197,8 @@ protected:
             (*dst_group)[i] = (*src_group)[i];
           }
         } else { // By Position (use primitive centroids)
-          auto *src_pos = source->get_point_attribute_typed<core::Vec3f>("P");
-          auto *dst_pos = result->get_point_attribute_typed<core::Vec3f>("P");
+          auto* src_pos = source->get_point_attribute_typed<core::Vec3f>("P");
+          auto* dst_pos = result->get_point_attribute_typed<core::Vec3f>("P");
 
           if (!src_pos || !dst_pos) {
             continue;
@@ -206,7 +207,7 @@ protected:
           // Calculate centroids for destination primitives
           for (size_t dst_prim = 0; dst_prim < result->primitive_count();
                ++dst_prim) {
-            const auto &dst_verts =
+            const auto& dst_verts =
                 result->topology().get_primitive_vertices(dst_prim);
 
             core::Vec3f dst_centroid(0.0F, 0.0F, 0.0F);
@@ -227,7 +228,7 @@ protected:
 
             for (size_t src_prim = 0; src_prim < source->primitive_count();
                  ++src_prim) {
-              const auto &src_verts =
+              const auto& src_verts =
                   source->topology().get_primitive_vertices(src_prim);
 
               core::Vec3f src_centroid(0.0F, 0.0F, 0.0F);

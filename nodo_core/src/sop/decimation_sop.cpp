@@ -1,10 +1,11 @@
 #include "nodo/sop/decimation_sop.hpp"
+
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/decimation.hpp"
 
 namespace nodo::sop {
 
-DecimationSOP::DecimationSOP(const std::string &name)
+DecimationSOP::DecimationSOP(const std::string& name)
     : SOPNode(name, "Decimate") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,

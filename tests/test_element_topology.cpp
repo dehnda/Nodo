@@ -1,4 +1,5 @@
 #include "nodo/core/element_topology.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -74,7 +75,7 @@ TEST_F(ElementTopologyTest, PrimitiveVertexMapping) {
   std::vector<int> quad_verts = {0, 1, 2, 3};
   topo_.set_primitive_vertices(0, quad_verts);
 
-  const auto &verts = topo_.get_primitive_vertices(0);
+  const auto& verts = topo_.get_primitive_vertices(0);
   EXPECT_EQ(verts.size(), 4);
   EXPECT_EQ(verts[0], 0);
   EXPECT_EQ(verts[1], 1);
@@ -98,7 +99,7 @@ TEST_F(ElementTopologyTest, AddPrimitive) {
   EXPECT_EQ(prim_idx, 0);
   EXPECT_EQ(topo_.primitive_count(), 1);
 
-  const auto &verts = topo_.get_primitive_vertices(0);
+  const auto& verts = topo_.get_primitive_vertices(0);
   EXPECT_EQ(verts.size(), 3);
   EXPECT_EQ(verts[0], 0);
   EXPECT_EQ(verts[1], 1);
@@ -281,12 +282,10 @@ TEST_F(ElementTopologyTest, OutOfRangeExceptions) {
 
   // Out of range primitive index
   EXPECT_THROW(topo_.get_primitive_vertices(10), std::out_of_range);
-  EXPECT_THROW(topo_.set_primitive_vertices(10, {0, 1, 2}),
-               std::out_of_range);
+  EXPECT_THROW(topo_.set_primitive_vertices(10, {0, 1, 2}), std::out_of_range);
 
   // Invalid vertex in primitive
-  EXPECT_THROW(topo_.set_primitive_vertices(0, {0, 1, 10}),
-               std::out_of_range);
+  EXPECT_THROW(topo_.set_primitive_vertices(0, {0, 1, 10}), std::out_of_range);
   EXPECT_THROW(topo_.add_primitive({0, 1, 10}), std::out_of_range);
 }
 

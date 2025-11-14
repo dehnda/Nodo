@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../processing/parameterization.hpp"
 #include "sop_node.hpp"
+
 #include <fmt/core.h>
 
 namespace nodo::sop {
@@ -37,9 +38,8 @@ class ParameterizeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ParameterizeSOP(const std::string &node_name = "parameterize")
+  explicit ParameterizeSOP(const std::string& node_name = "parameterize")
       : SOPNode(node_name, "Parameterize") {
-
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -86,17 +86,17 @@ protected:
 
     int method_index = get_parameter<int>("method", 0);
     switch (method_index) {
-    case 0:
-      params.method = processing::ParameterizationMethod::Harmonic;
-      params.use_uniform_weights =
-          get_parameter<bool>("use_uniform_weights", false);
-      break;
-    case 1:
-      params.method = processing::ParameterizationMethod::LSCM;
-      break;
-    default:
-      params.method = processing::ParameterizationMethod::Harmonic;
-      break;
+      case 0:
+        params.method = processing::ParameterizationMethod::Harmonic;
+        params.use_uniform_weights =
+            get_parameter<bool>("use_uniform_weights", false);
+        break;
+      case 1:
+        params.method = processing::ParameterizationMethod::LSCM;
+        break;
+      default:
+        params.method = processing::ParameterizationMethod::Harmonic;
+        break;
     }
 
     params.uv_attribute_name = get_parameter<std::string>("uv_attribute", "uv");

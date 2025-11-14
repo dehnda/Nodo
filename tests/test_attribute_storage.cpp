@@ -1,6 +1,7 @@
 #include "nodo/core/attribute_descriptor.hpp"
 #include "nodo/core/attribute_set.hpp"
 #include "nodo/core/attribute_storage.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -28,40 +29,38 @@ TEST_F(AttributeDescriptorTest, DefaultInterpolation) {
 
   // QUATERNION should default to QUATERNION_SLERP
   AttributeDescriptor orient_desc("orient", AttributeType::QUATERNION,
-                                   ElementClass::POINT);
+                                  ElementClass::POINT);
   EXPECT_EQ(orient_desc.interpolation(), InterpolationMode::QUATERNION_SLERP);
 
   // VEC3F should default to LINEAR
   AttributeDescriptor normal_desc("N", AttributeType::VEC3F,
-                                   ElementClass::VERTEX);
+                                  ElementClass::VERTEX);
   EXPECT_EQ(normal_desc.interpolation(), InterpolationMode::LINEAR);
 }
 
 TEST_F(AttributeDescriptorTest, ElementSize) {
   AttributeDescriptor float_desc("f", AttributeType::FLOAT,
-                                  ElementClass::POINT);
+                                 ElementClass::POINT);
   EXPECT_EQ(float_desc.element_size(), sizeof(float));
 
-  AttributeDescriptor vec3_desc("P", AttributeType::VEC3F,
-                                 ElementClass::POINT);
+  AttributeDescriptor vec3_desc("P", AttributeType::VEC3F, ElementClass::POINT);
   EXPECT_EQ(vec3_desc.element_size(), sizeof(Vec3f));
 
   AttributeDescriptor mat4_desc("transform", AttributeType::MATRIX4,
-                                 ElementClass::POINT);
+                                ElementClass::POINT);
   EXPECT_EQ(mat4_desc.element_size(), sizeof(Matrix4f));
 }
 
 TEST_F(AttributeDescriptorTest, ComponentCount) {
   AttributeDescriptor float_desc("f", AttributeType::FLOAT,
-                                  ElementClass::POINT);
+                                 ElementClass::POINT);
   EXPECT_EQ(float_desc.component_count(), 1);
 
-  AttributeDescriptor vec3_desc("P", AttributeType::VEC3F,
-                                 ElementClass::POINT);
+  AttributeDescriptor vec3_desc("P", AttributeType::VEC3F, ElementClass::POINT);
   EXPECT_EQ(vec3_desc.component_count(), 3);
 
   AttributeDescriptor vec4_desc("color", AttributeType::VEC4F,
-                                 ElementClass::POINT);
+                                ElementClass::POINT);
   EXPECT_EQ(vec4_desc.component_count(), 4);
 }
 
@@ -84,7 +83,7 @@ TEST_F(AttributeDescriptorTest, DefaultValue) {
 
 TEST_F(AttributeDescriptorTest, Builder) {
   auto desc = AttributeDescriptorBuilder("Cd", AttributeType::VEC3F,
-                                          ElementClass::POINT)
+                                         ElementClass::POINT)
                   .interpolation(InterpolationMode::LINEAR)
                   .default_value(Vec3f(1.0F, 1.0F, 1.0F))
                   .build();
@@ -136,7 +135,7 @@ class AttributeStorageTest : public ::testing::Test {};
 
 TEST_F(AttributeStorageTest, FloatStorage) {
   AttributeDescriptor desc("temperature", AttributeType::FLOAT,
-                            ElementClass::POINT);
+                           ElementClass::POINT);
   AttributeStorage<float> storage(desc);
 
   EXPECT_EQ(storage.size(), 0);
@@ -238,7 +237,7 @@ TEST_F(AttributeStorageTest, Clone) {
   auto cloned = storage.clone();
   ASSERT_NE(cloned, nullptr);
 
-  auto *typed_clone = dynamic_cast<AttributeStorage<Vec3f> *>(cloned.get());
+  auto* typed_clone = dynamic_cast<AttributeStorage<Vec3f>*>(cloned.get());
   ASSERT_NE(typed_clone, nullptr);
 
   EXPECT_EQ(typed_clone->size(), 3);
@@ -282,7 +281,7 @@ TEST_F(AttributeStorageTest, SwapElements) {
 
 TEST_F(AttributeStorageTest, FactoryCreation) {
   AttributeDescriptor float_desc("f", AttributeType::FLOAT,
-                                  ElementClass::POINT);
+                                 ElementClass::POINT);
   auto float_storage = create_attribute_storage(float_desc);
   EXPECT_NE(float_storage, nullptr);
   EXPECT_EQ(float_storage->descriptor().type(), AttributeType::FLOAT);
@@ -293,7 +292,7 @@ TEST_F(AttributeStorageTest, FactoryCreation) {
   EXPECT_EQ(vec3_storage->descriptor().type(), AttributeType::VEC3F);
 
   AttributeDescriptor string_desc("name", AttributeType::STRING,
-                                   ElementClass::DETAIL);
+                                  ElementClass::DETAIL);
   auto string_storage = create_attribute_storage(string_desc);
   EXPECT_NE(string_storage, nullptr);
   EXPECT_EQ(string_storage->descriptor().type(), AttributeType::STRING);
@@ -331,7 +330,8 @@ TEST_F(AttributeSetTest, AddDuplicateAttribute) {
   AttributeSet point_attrs(ElementClass::POINT);
 
   EXPECT_TRUE(point_attrs.add_attribute("P", AttributeType::VEC3F));
-  EXPECT_FALSE(point_attrs.add_attribute("P", AttributeType::VEC3F)); // Duplicate
+  EXPECT_FALSE(
+      point_attrs.add_attribute("P", AttributeType::VEC3F)); // Duplicate
 
   EXPECT_EQ(point_attrs.attribute_count(), 1);
 }
@@ -361,9 +361,9 @@ TEST_F(AttributeSetTest, ResizeAllAttributes) {
   EXPECT_EQ(point_attrs.size(), 100);
 
   // All attributes should have the same size
-  auto *pos_storage = point_attrs.get_storage("P");
-  auto *color_storage = point_attrs.get_storage("Cd");
-  auto *id_storage = point_attrs.get_storage("id");
+  auto* pos_storage = point_attrs.get_storage("P");
+  auto* color_storage = point_attrs.get_storage("Cd");
+  auto* id_storage = point_attrs.get_storage("id");
 
   EXPECT_EQ(pos_storage->size(), 100);
   EXPECT_EQ(color_storage->size(), 100);
@@ -376,7 +376,7 @@ TEST_F(AttributeSetTest, TypedAccess) {
   point_attrs.add_attribute("P", AttributeType::VEC3F);
   point_attrs.resize(10);
 
-  auto *positions = point_attrs.get_storage_typed<Vec3f>("P");
+  auto* positions = point_attrs.get_storage_typed<Vec3f>("P");
   ASSERT_NE(positions, nullptr);
 
   (*positions)[0] = Vec3f(1.0F, 2.0F, 3.0F);
@@ -392,7 +392,7 @@ TEST_F(AttributeSetTest, TypedAccessWrongType) {
   point_attrs.add_attribute("P", AttributeType::VEC3F);
 
   // Try to access as wrong type
-  auto *wrong_type = point_attrs.get_storage_typed<float>("P");
+  auto* wrong_type = point_attrs.get_storage_typed<float>("P");
   EXPECT_EQ(wrong_type, nullptr);
 }
 
@@ -430,7 +430,7 @@ TEST_F(AttributeSetTest, Clone) {
   point_attrs.add_attribute("P", AttributeType::VEC3F);
   point_attrs.resize(3);
 
-  auto *positions = point_attrs.get_storage_typed<Vec3f>("P");
+  auto* positions = point_attrs.get_storage_typed<Vec3f>("P");
   (*positions)[0] = Vec3f(1.0F, 2.0F, 3.0F);
   (*positions)[1] = Vec3f(4.0F, 5.0F, 6.0F);
 
@@ -440,7 +440,7 @@ TEST_F(AttributeSetTest, Clone) {
   EXPECT_EQ(cloned.attribute_count(), 1);
   EXPECT_TRUE(cloned.has_attribute("P"));
 
-  auto *cloned_positions = cloned.get_storage_typed<Vec3f>("P");
+  auto* cloned_positions = cloned.get_storage_typed<Vec3f>("P");
   EXPECT_FLOAT_EQ((*cloned_positions)[0].x(), 1.0F);
   EXPECT_FLOAT_EQ((*cloned_positions)[1].x(), 4.0F);
 }
@@ -497,7 +497,7 @@ TEST_F(AttributeSetTest, Clear) {
   EXPECT_EQ(point_attrs.size(), 0);
   EXPECT_EQ(point_attrs.attribute_count(), 1); // Attributes still exist
 
-  auto *storage = point_attrs.get_storage("P");
+  auto* storage = point_attrs.get_storage("P");
   EXPECT_EQ(storage->size(), 0);
 }
 

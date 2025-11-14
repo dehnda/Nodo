@@ -1,17 +1,19 @@
 #include "nodo/processing/pmp_converter.hpp"
+
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/processing_common.hpp"
-#include <pmp/algorithms/normals.h>
+
 #include <unordered_map>
 
+#include <pmp/algorithms/normals.h>
 
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing::detail {
 
-pmp::SurfaceMesh PMPConverter::to_pmp(const core::Mesh &mesh) {
+pmp::SurfaceMesh PMPConverter::to_pmp(const core::Mesh& mesh) {
   pmp::SurfaceMesh result;
 
   // Validate input
@@ -45,11 +47,11 @@ pmp::SurfaceMesh PMPConverter::to_pmp(const core::Mesh &mesh) {
 }
 
 pmp::SurfaceMesh
-PMPConverter::to_pmp(const core::GeometryContainer &container) {
+PMPConverter::to_pmp(const core::GeometryContainer& container) {
   pmp::SurfaceMesh result;
 
   // Extract positions
-  const auto *positions =
+  const auto* positions =
       container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (positions == nullptr) {
     throw std::runtime_error(
@@ -63,18 +65,18 @@ PMPConverter::to_pmp(const core::GeometryContainer &container) {
   vertices.reserve(pos_span.size());
 
   for (size_t i = 0; i < pos_span.size(); ++i) {
-    const auto &pos = pos_span[i];
+    const auto& pos = pos_span[i];
     vertices.push_back(result.add_vertex(pmp::Point(pos(0), pos(1), pos(2))));
   }
 
   // Add faces from primitives
   // Note: primitives reference vertex indices, which we need to map to point
   // indices
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   size_t skipped_degenerate = 0;
 
   for (size_t i = 0; i < topology.primitive_count(); ++i) {
-    const auto &prim_verts = topology.get_primitive_vertices(i);
+    const auto& prim_verts = topology.get_primitive_vertices(i);
 
     // PMP SurfaceMesh can handle any polygon (not just triangles)
     // Map vertex indices to point indices first
@@ -125,7 +127,7 @@ PMPConverter::to_pmp(const core::GeometryContainer &container) {
   return result;
 }
 
-core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh &pmp_mesh) {
+core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh& pmp_mesh) {
   core::Mesh result;
 
   const size_t num_vertices = pmp_mesh.n_vertices();
@@ -138,7 +140,7 @@ core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh &pmp_mesh) {
 
   size_t vert_idx = 0;
   for (auto vert : pmp_mesh.vertices()) {
-    const auto &point = points[vert];
+    const auto& point = points[vert];
     vertices_matrix(vert_idx, 0) = static_cast<double>(point[0]);
     vertices_matrix(vert_idx, 1) = static_cast<double>(point[1]);
     vertices_matrix(vert_idx, 2) = static_cast<double>(point[2]);
@@ -166,9 +168,8 @@ core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh &pmp_mesh) {
 }
 
 core::GeometryContainer
-PMPConverter::from_pmp_container(const pmp::SurfaceMesh &pmp_mesh,
+PMPConverter::from_pmp_container(const pmp::SurfaceMesh& pmp_mesh,
                                  bool preserve_attributes) {
-
   core::GeometryContainer result;
 
   // Create mapping from PMP vertex indices to sequential indices
@@ -182,7 +183,7 @@ PMPConverter::from_pmp_container(const pmp::SurfaceMesh &pmp_mesh,
   int seq_idx = 0;
   for (auto vert : pmp_mesh.vertices()) {
     pmp_to_seq[vert.idx()] = seq_idx++;
-    const auto &point = points_prop[vert];
+    const auto& point = points_prop[vert];
     positions.push_back({point[0], point[1], point[2]});
   }
 
@@ -201,7 +202,7 @@ PMPConverter::from_pmp_container(const pmp::SurfaceMesh &pmp_mesh,
   }
 
   result.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *pos_attr = result.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* pos_attr = result.get_point_attribute_typed<core::Vec3f>(attrs::P);
   pos_attr->resize(num_vertices);
   auto pos_span = pos_attr->values_writable();
   for (size_t i = 0; i < num_vertices; ++i) {
@@ -216,12 +217,12 @@ PMPConverter::from_pmp_container(const pmp::SurfaceMesh &pmp_mesh,
       normals.reserve(num_vertices);
 
       for (auto vert : pmp_mesh.vertices()) {
-        const auto &normal = normals_prop[vert];
+        const auto& normal = normals_prop[vert];
         normals.push_back({normal[0], normal[1], normal[2]});
       }
 
       result.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-      auto *norm_attr = result.get_point_attribute_typed<core::Vec3f>(attrs::N);
+      auto* norm_attr = result.get_point_attribute_typed<core::Vec3f>(attrs::N);
       norm_attr->resize(num_vertices);
       auto norm_span = norm_attr->values_writable();
       for (size_t i = 0; i < num_vertices; ++i) {
@@ -253,7 +254,7 @@ PMPConverter::from_pmp_container(const pmp::SurfaceMesh &pmp_mesh,
 
   return result;
 }
-std::string PMPConverter::validate_for_pmp(const core::Mesh &mesh) {
+std::string PMPConverter::validate_for_pmp(const core::Mesh& mesh) {
   if (mesh.vertices().rows() < 3) {
     return "Mesh must have at least 3 vertices";
   }
@@ -277,7 +278,7 @@ std::string PMPConverter::validate_for_pmp(const core::Mesh &mesh) {
 }
 
 std::string
-PMPConverter::validate_for_pmp(const core::GeometryContainer &container) {
+PMPConverter::validate_for_pmp(const core::GeometryContainer& container) {
   if (container.topology().point_count() < 3) {
     return "Container must have at least 3 points";
   }
@@ -297,7 +298,7 @@ PMPConverter::validate_for_pmp(const core::GeometryContainer &container) {
   return ""; // Valid
 }
 
-void PMPConverter::compute_normals(pmp::SurfaceMesh &mesh) {
+void PMPConverter::compute_normals(pmp::SurfaceMesh& mesh) {
   if (!mesh.has_vertex_property("v:normal")) {
     pmp::vertex_normals(mesh);
   }

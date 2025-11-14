@@ -22,7 +22,7 @@ private:
   static constexpr float DEFAULT_UNIFORM_SCALE = 1.0F;
 
 public:
-  explicit CopyToPointsSOP(const std::string &node_name = "copy_to_points");
+  explicit CopyToPointsSOP(const std::string& node_name = "copy_to_points");
 
   // Dual-input node - requires exactly 2 inputs
   InputConfig get_input_config() const override {

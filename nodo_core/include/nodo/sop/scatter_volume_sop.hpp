@@ -2,6 +2,7 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <random>
 
 namespace nodo::sop {
@@ -21,9 +22,8 @@ class ScatterVolumeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ScatterVolumeSOP(const std::string &node_name = "scatter_volume")
+  explicit ScatterVolumeSOP(const std::string& node_name = "scatter_volume")
       : SOPNode(node_name, "Scatter Volume") {
-
     // Required input: use input geometry bounding box
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -93,7 +93,7 @@ protected:
     const int volume_mode = get_parameter<int>("volume_mode", 0);
 
     // Compute bounding box from input geometry
-    auto *P = input->get_point_attribute_typed<Eigen::Vector3f>("P");
+    auto* P = input->get_point_attribute_typed<Eigen::Vector3f>("P");
     if (!P) {
       set_error("Scatter Volume: Input geometry has no P attribute");
       return nullptr;
@@ -107,7 +107,7 @@ protected:
                                std::numeric_limits<float>::lowest());
 
     for (size_t i = 0; i < input->point_count(); ++i) {
-      const auto &pos = (*P)[i];
+      const auto& pos = (*P)[i];
       min_bounds = min_bounds.cwiseMin(pos);
       max_bounds = max_bounds.cwiseMax(pos);
     }
@@ -116,7 +116,7 @@ protected:
     auto output = std::make_shared<core::GeometryContainer>();
     output->set_point_count(count);
     output->add_point_attribute("P", core::AttributeType::VEC3F);
-    auto *P_out = output->get_point_attribute_typed<Eigen::Vector3f>("P");
+    auto* P_out = output->get_point_attribute_typed<Eigen::Vector3f>("P");
 
     // Random number generator
     std::mt19937 rng(static_cast<unsigned int>(seed));
@@ -150,11 +150,11 @@ protected:
 
 private:
   // Helper: Test if a point is inside a mesh using ray casting
-  bool is_point_inside_mesh(const Eigen::Vector3f &point,
-                            const core::GeometryContainer *geometry) const {
+  bool is_point_inside_mesh(const Eigen::Vector3f& point,
+                            const core::GeometryContainer* geometry) const {
     // Get mesh topology and positions
-    const auto &topo = geometry->topology();
-    auto *positions = geometry->get_point_attribute_typed<Eigen::Vector3f>("P");
+    const auto& topo = geometry->topology();
+    auto* positions = geometry->get_point_attribute_typed<Eigen::Vector3f>("P");
     if (!positions) {
       return false;
     }
@@ -165,7 +165,7 @@ private:
 
     // Check each triangle in the mesh
     for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-      const auto &vert_indices = topo.get_primitive_vertices(prim_idx);
+      const auto& vert_indices = topo.get_primitive_vertices(prim_idx);
 
       // For each primitive, triangulate and test
       std::vector<int> point_indices;
@@ -175,9 +175,9 @@ private:
 
       // Test triangles (fan triangulation for n-gons)
       for (size_t i = 1; i + 1 < point_indices.size(); ++i) {
-        const Eigen::Vector3f &v0 = (*positions)[point_indices[0]];
-        const Eigen::Vector3f &v1 = (*positions)[point_indices[i]];
-        const Eigen::Vector3f &v2 = (*positions)[point_indices[i + 1]];
+        const Eigen::Vector3f& v0 = (*positions)[point_indices[0]];
+        const Eigen::Vector3f& v1 = (*positions)[point_indices[i]];
+        const Eigen::Vector3f& v2 = (*positions)[point_indices[i + 1]];
 
         if (ray_intersects_triangle(point, ray_dir, v0, v1, v2)) {
           intersection_count++;
@@ -190,11 +190,11 @@ private:
   }
 
   // Helper: Ray-triangle intersection test (Möller-Trumbore algorithm)
-  bool ray_intersects_triangle(const Eigen::Vector3f &ray_origin,
-                               const Eigen::Vector3f &ray_dir,
-                               const Eigen::Vector3f &v0,
-                               const Eigen::Vector3f &v1,
-                               const Eigen::Vector3f &v2) const {
+  bool ray_intersects_triangle(const Eigen::Vector3f& ray_origin,
+                               const Eigen::Vector3f& ray_dir,
+                               const Eigen::Vector3f& v0,
+                               const Eigen::Vector3f& v1,
+                               const Eigen::Vector3f& v2) const {
     const float EPSILON = 0.0000001f;
 
     Eigen::Vector3f edge1 = v1 - v0;
@@ -229,15 +229,15 @@ private:
   // Helper: Filter points to keep only those inside the mesh
   // Returns the number of points remaining after filtering
   size_t
-  filter_inside_mesh(const std::shared_ptr<core::GeometryContainer> &geometry,
-                     core::AttributeStorage<Eigen::Vector3f> *positions) {
+  filter_inside_mesh(const std::shared_ptr<core::GeometryContainer>& geometry,
+                     core::AttributeStorage<Eigen::Vector3f>* positions) {
     if (!positions || !geometry) {
       return positions ? positions->size() : 0;
     }
 
     std::vector<Eigen::Vector3f> filtered_points;
     for (size_t i = 0; i < positions->size(); ++i) {
-      const Eigen::Vector3f &point = (*positions)[i];
+      const Eigen::Vector3f& point = (*positions)[i];
       if (is_point_inside_mesh(point, geometry.get())) {
         filtered_points.push_back(point);
       }
@@ -252,11 +252,11 @@ private:
     return filtered_points.size();
   }
 
-  void scatter_in_box(std::mt19937 &rng,
-                      std::uniform_real_distribution<float> &dist, int count,
-                      const Eigen::Vector3f &min_bounds,
-                      const Eigen::Vector3f &max_bounds,
-                      core::AttributeStorage<Eigen::Vector3f> *P) {
+  void scatter_in_box(std::mt19937& rng,
+                      std::uniform_real_distribution<float>& dist, int count,
+                      const Eigen::Vector3f& min_bounds,
+                      const Eigen::Vector3f& max_bounds,
+                      core::AttributeStorage<Eigen::Vector3f>* P) {
     for (int i = 0; i < count; ++i) {
       Eigen::Vector3f pos;
       pos.x() = min_bounds.x() + dist(rng) * (max_bounds.x() - min_bounds.x());
@@ -266,9 +266,9 @@ private:
     }
   }
 
-  void scatter_uniform_grid(int count, const Eigen::Vector3f &min_bounds,
-                            const Eigen::Vector3f &max_bounds,
-                            core::AttributeStorage<Eigen::Vector3f> *P) {
+  void scatter_uniform_grid(int count, const Eigen::Vector3f& min_bounds,
+                            const Eigen::Vector3f& max_bounds,
+                            core::AttributeStorage<Eigen::Vector3f>* P) {
     // Create roughly cubic grid
     int points_per_axis = static_cast<int>(std::cbrt(count)) + 1;
     Eigen::Vector3f size = max_bounds - min_bounds;
@@ -294,11 +294,11 @@ private:
     }
   }
 
-  void scatter_poisson_disk(std::mt19937 &rng, int count,
-                            const Eigen::Vector3f &min_bounds,
-                            const Eigen::Vector3f &max_bounds,
+  void scatter_poisson_disk(std::mt19937& rng, int count,
+                            const Eigen::Vector3f& min_bounds,
+                            const Eigen::Vector3f& max_bounds,
                             float min_distance,
-                            core::AttributeStorage<Eigen::Vector3f> *P) {
+                            core::AttributeStorage<Eigen::Vector3f>* P) {
     // Simplified Poisson disk sampling
     // Use dart throwing with limited attempts
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
@@ -318,7 +318,7 @@ private:
 
       // Check distance to all existing points
       bool valid = true;
-      for (const auto &existing : points) {
+      for (const auto& existing : points) {
         if ((candidate - existing).norm() < min_distance) {
           valid = false;
           break;

@@ -2,6 +2,7 @@
 
 #include "attribute_types.hpp"
 #include "geometry_container.hpp"
+
 #include <stdexcept>
 
 namespace nodo::core {
@@ -30,7 +31,7 @@ namespace nodo::core {
  * @param output_name Name for the new vertex attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool promote_point_to_vertex(GeometryContainer &container,
+bool promote_point_to_vertex(GeometryContainer& container,
                              std::string_view attr_name,
                              std::string_view output_name = "");
 
@@ -47,7 +48,7 @@ bool promote_point_to_vertex(GeometryContainer &container,
  * @param output_name Name for the new point attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool demote_vertex_to_point(GeometryContainer &container,
+bool demote_vertex_to_point(GeometryContainer& container,
                             std::string_view attr_name,
                             std::string_view output_name = "");
 
@@ -65,7 +66,7 @@ bool demote_vertex_to_point(GeometryContainer &container,
  * name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool promote_point_to_primitive(GeometryContainer &container,
+bool promote_point_to_primitive(GeometryContainer& container,
                                 std::string_view attr_name,
                                 std::string_view output_name = "");
 
@@ -82,7 +83,7 @@ bool promote_point_to_primitive(GeometryContainer &container,
  * @param output_name Name for the new point attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool demote_primitive_to_point(GeometryContainer &container,
+bool demote_primitive_to_point(GeometryContainer& container,
                                std::string_view attr_name,
                                std::string_view output_name = "");
 
@@ -99,7 +100,7 @@ bool demote_primitive_to_point(GeometryContainer &container,
  * name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool promote_vertex_to_primitive(GeometryContainer &container,
+bool promote_vertex_to_primitive(GeometryContainer& container,
                                  std::string_view attr_name,
                                  std::string_view output_name = "");
 
@@ -115,7 +116,7 @@ bool promote_vertex_to_primitive(GeometryContainer &container,
  * @param output_name Name for the new vertex attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool demote_primitive_to_vertex(GeometryContainer &container,
+bool demote_primitive_to_vertex(GeometryContainer& container,
                                 std::string_view attr_name,
                                 std::string_view output_name = "");
 
@@ -128,7 +129,8 @@ namespace detail {
 /**
  * @brief Helper to average values (supports float, Vec2f, Vec3f, Vec4f)
  */
-template <typename T> T average_values(const std::vector<T> &values) {
+template <typename T>
+T average_values(const std::vector<T>& values) {
   if (values.empty()) {
     return T{}; // Zero/default
   }
@@ -150,7 +152,8 @@ template <typename T> T average_values(const std::vector<T> &values) {
 /**
  * @brief Specialization for int (use majority vote or first value)
  */
-template <> inline int average_values<int>(const std::vector<int> &values) {
+template <>
+inline int average_values<int>(const std::vector<int>& values) {
   if (values.empty()) {
     return 0;
   }
@@ -166,27 +169,27 @@ template <> inline int average_values<int>(const std::vector<int> &values) {
 
 // Template function declarations for typed promotion/demotion
 template <typename T>
-bool promote_point_to_vertex_typed(GeometryContainer &container,
+bool promote_point_to_vertex_typed(GeometryContainer& container,
                                    std::string_view attr_name,
                                    std::string_view output_name);
 
 template <typename T>
-bool demote_vertex_to_point_typed(GeometryContainer &container,
+bool demote_vertex_to_point_typed(GeometryContainer& container,
                                   std::string_view attr_name,
                                   std::string_view output_name);
 
 template <typename T>
-bool promote_point_to_primitive_typed(GeometryContainer &container,
+bool promote_point_to_primitive_typed(GeometryContainer& container,
                                       std::string_view attr_name,
                                       std::string_view output_name);
 
 template <typename T>
-bool demote_primitive_to_point_typed(GeometryContainer &container,
+bool demote_primitive_to_point_typed(GeometryContainer& container,
                                      std::string_view attr_name,
                                      std::string_view output_name);
 
 template <typename T>
-bool promote_vertex_to_primitive_typed(GeometryContainer &container,
+bool promote_vertex_to_primitive_typed(GeometryContainer& container,
                                        std::string_view attr_name,
                                        std::string_view output_name);
 

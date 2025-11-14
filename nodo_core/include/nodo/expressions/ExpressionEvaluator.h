@@ -57,7 +57,7 @@ public:
 
     static Result Success(double val) { return Result{true, val, ""}; }
 
-    static Result Error(const std::string &msg) {
+    static Result Error(const std::string& msg) {
       return Result{false, 0.0, msg};
     }
   };
@@ -77,8 +77,8 @@ public:
    *     std::cerr << "Error: " << result.error << std::endl;
    *   }
    */
-  Result evaluate(const std::string &expression,
-                  const VariableMap &variables = {}) const;
+  Result evaluate(const std::string& expression,
+                  const VariableMap& variables = {}) const;
 
   /**
    * @brief Evaluate an expression and update variables with modified values
@@ -91,7 +91,7 @@ public:
 
    * @return Result containing either the computed value or error message
    */
-  Result evaluate(const std::string &expression, VariableMap &variables);
+  Result evaluate(const std::string& expression, VariableMap& variables);
 
   /**
    * @brief Check if an expression has valid syntax without evaluating
@@ -99,7 +99,7 @@ public:
    * @param expression The expression to validate
    * @return Error message if invalid, empty string if valid
    */
-  std::string validate(const std::string &expression) const;
+  std::string validate(const std::string& expression) const;
 
   /**
    * @brief Parse and extract variable names from expression
@@ -110,7 +110,7 @@ public:
    * Example:
    *   getVariables("x * 2 + sin(y)") -> {"x", "y"}
    */
-  std::vector<std::string> getVariables(const std::string &expression) const;
+  std::vector<std::string> getVariables(const std::string& expression) const;
 
   /**
    * @brief Register a custom function with 1 argument
@@ -122,17 +122,17 @@ public:
    *   evaluator.registerFunction("double", [](double x) { return x * 2; });
    *   evaluate("double(5)") -> 10.0
    */
-  void registerFunction(const std::string &name, CustomFunction1 func);
+  void registerFunction(const std::string& name, CustomFunction1 func);
 
   /**
    * @brief Register a custom function with 2 arguments
    */
-  void registerFunction(const std::string &name, CustomFunction2 func);
+  void registerFunction(const std::string& name, CustomFunction2 func);
 
   /**
    * @brief Register a custom function with 3 arguments
    */
-  void registerFunction(const std::string &name, CustomFunction3 func);
+  void registerFunction(const std::string& name, CustomFunction3 func);
 
   /**
    * @brief Register common geometry-related functions
@@ -166,7 +166,7 @@ public:
   /**
    * @brief Check if a custom function is registered
    */
-  bool hasFunction(const std::string &name) const;
+  bool hasFunction(const std::string& name) const;
 
 private:
   // Forward declaration for exprtk types to avoid header pollution

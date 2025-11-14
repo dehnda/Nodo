@@ -11,7 +11,6 @@ thread_local core::Error PlaneGenerator::last_error_{
 std::optional<core::GeometryContainer>
 PlaneGenerator::generate(double width, double height, int width_segments,
                          int height_segments) {
-
   if (width <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::InvalidFormat,
@@ -50,7 +49,7 @@ PlaneGenerator::generate(double width, double height, int width_segments,
   container.set_point_count(total_vertices);
   container.set_vertex_count(total_vertices); // 1:1 mapping for plane
 
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Set up 1:1 vertex→point mapping
   for (size_t i = 0; i < static_cast<size_t>(total_vertices); ++i) {
@@ -97,7 +96,7 @@ PlaneGenerator::generate(double width, double height, int width_segments,
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -105,7 +104,7 @@ PlaneGenerator::generate(double width, double height, int width_segments,
 
   // Add N (normal) attribute - plane has uniform normal pointing up (Y+)
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
     const core::Vec3f up_normal{0.0F, 1.0F, 0.0F};
@@ -117,9 +116,11 @@ PlaneGenerator::generate(double width, double height, int width_segments,
   return container;
 }
 
-const core::Error &PlaneGenerator::last_error() { return last_error_; }
+const core::Error& PlaneGenerator::last_error() {
+  return last_error_;
+}
 
-void PlaneGenerator::set_last_error(const core::Error &error) {
+void PlaneGenerator::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

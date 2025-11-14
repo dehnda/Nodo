@@ -11,7 +11,8 @@ namespace nodo::core {
  *
  * Represents the fundamental topology structure of geometry with three levels:
  * - Points: Unique positions in space (shared by vertices)
- * - Vertices: Corners of primitives, reference points, can have unique attributes
+ * - Vertices: Corners of primitives, reference points, can have unique
+ * attributes
  * - Primitives: Faces/polygons defined by ordered vertex lists
  *
  * This separation allows:
@@ -54,15 +55,16 @@ public:
   std::span<int> get_vertex_points_writable();
 
   // Primitive → Vertex mapping (which vertices form this primitive?)
-  const std::vector<int> &get_primitive_vertices(size_t prim_idx) const;
-  void set_primitive_vertices(size_t prim_idx, const std::vector<int> &vertices);
+  const std::vector<int>& get_primitive_vertices(size_t prim_idx) const;
+  void set_primitive_vertices(size_t prim_idx,
+                              const std::vector<int>& vertices);
 
   /**
    * @brief Add a new primitive with the given vertices
    * @param vertices Ordered list of vertex indices forming this primitive
    * @return Index of the newly added primitive
    */
-  size_t add_primitive(const std::vector<int> &vertices);
+  size_t add_primitive(const std::vector<int>& vertices);
 
   /**
    * @brief Get vertex count for a specific primitive

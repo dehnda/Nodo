@@ -2,6 +2,7 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <algorithm>
 
 namespace nodo::sop {
@@ -23,7 +24,7 @@ private:
   static constexpr int NODE_VERSION = 1;
 
 public:
-  explicit LatticeSOP(const std::string &name = "lattice")
+  explicit LatticeSOP(const std::string& name = "lattice")
       : SOPNode(name, "Lattice") {
     // Create input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -90,7 +91,7 @@ protected:
     auto result = std::make_shared<core::GeometryContainer>(input_geo->clone());
 
     // Get positions
-    auto *positions = result->get_point_attribute_typed<core::Vec3f>("P");
+    auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
       set_error("LatticeSOP requires position attribute 'P'");
       return nullptr;
@@ -105,7 +106,7 @@ protected:
       max_bound = (*positions)[0];
 
       for (size_t i = 1; i < positions->size(); ++i) {
-        const auto &pos = (*positions)[i];
+        const auto& pos = (*positions)[i];
         min_bound.x() = std::min(min_bound.x(), pos.x());
         min_bound.y() = std::min(min_bound.y(), pos.y());
         min_bound.z() = std::min(min_bound.z(), pos.z());

@@ -1,6 +1,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/sop/bevel_sop.hpp"
+
 #include <gtest/gtest.h>
 
 namespace attrs = nodo::core::standard_attrs;
@@ -9,7 +10,7 @@ static std::shared_ptr<nodo::core::GeometryContainer> make_cube() {
   auto geo = std::make_shared<nodo::core::GeometryContainer>();
   geo->set_point_count(8);
   geo->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *P = geo->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* P = geo->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   // Cube from (-1,-1,-1) to (1,1,1)
   (*P)[0] = nodo::core::Vec3f(-1, -1, -1);
   (*P)[1] = nodo::core::Vec3f(1, -1, -1);

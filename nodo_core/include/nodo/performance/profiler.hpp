@@ -18,8 +18,9 @@ namespace nodo::performance {
  */
 class ScopedTimer {
 public:
-  ScopedTimer(const std::string &name, bool print_on_destroy = true)
-      : name_(name), print_(print_on_destroy),
+  ScopedTimer(const std::string& name, bool print_on_destroy = true)
+      : name_(name),
+        print_(print_on_destroy),
         start_(std::chrono::high_resolution_clock::now()) {}
 
   ~ScopedTimer() {
@@ -67,7 +68,7 @@ public:
   double min_time() const { return min_time_ms_; }
   double max_time() const { return max_time_ms_; }
 
-  const std::vector<double> &get_samples() const { return samples_; }
+  const std::vector<double>& get_samples() const { return samples_; }
 
 private:
   std::vector<double> samples_;
@@ -81,12 +82,12 @@ private:
  */
 class Profiler {
 public:
-  static Profiler &instance() {
+  static Profiler& instance() {
     static Profiler inst;
     return inst;
   }
 
-  void record(const std::string &section_name, double duration_ms) {
+  void record(const std::string& section_name, double duration_ms) {
     sections_[section_name].add_sample(duration_ms);
   }
 
@@ -111,21 +112,21 @@ public:
 
     // Calculate total time
     double total_time = 0.0;
-    for (const auto &[name, section] : sections_) {
+    for (const auto& [name, section] : sections_) {
       total_time += section.total_time();
     }
 
     // Sort by total time (descending)
-    std::vector<std::pair<std::string, const ProfilerSection *>> sorted;
-    for (const auto &[name, section] : sections_) {
+    std::vector<std::pair<std::string, const ProfilerSection*>> sorted;
+    for (const auto& [name, section] : sections_) {
       sorted.push_back({name, &section});
     }
-    std::sort(sorted.begin(), sorted.end(), [](const auto &a, const auto &b) {
+    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) {
       return a.second->total_time() > b.second->total_time();
     });
 
     // Print each section
-    for (const auto &[name, section] : sorted) {
+    for (const auto& [name, section] : sorted) {
       double percent = (section->total_time() / total_time) * 100.0;
 
       char line[200];
@@ -147,7 +148,7 @@ public:
         << "╚═══════════════════════════════════════════════════════════╝\n\n";
   }
 
-  const std::map<std::string, ProfilerSection> &get_sections() const {
+  const std::map<std::string, ProfilerSection>& get_sections() const {
     return sections_;
   }
 
@@ -161,9 +162,9 @@ private:
  */
 class AutoProfiler {
 public:
-  AutoProfiler(const std::string &section_name)
-      : name_(section_name), start_(std::chrono::high_resolution_clock::now()) {
-  }
+  AutoProfiler(const std::string& section_name)
+      : name_(section_name),
+        start_(std::chrono::high_resolution_clock::now()) {}
 
   ~AutoProfiler() {
     auto end = std::chrono::high_resolution_clock::now();
@@ -184,9 +185,9 @@ private:
 
 // Conditional profiling (only when enabled)
 #ifdef NODO_ENABLE_PROFILING
-#define NODO_PROFILE_OPTIONAL(name) NODO_PROFILE(name)
+  #define NODO_PROFILE_OPTIONAL(name) NODO_PROFILE(name)
 #else
-#define NODO_PROFILE_OPTIONAL(name)
+  #define NODO_PROFILE_OPTIONAL(name)
 #endif
 
 } // namespace nodo::performance

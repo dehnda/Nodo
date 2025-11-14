@@ -1,11 +1,12 @@
 #include "nodo/sop/merge_sop.hpp"
+
 #include <iostream>
 
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-MergeSOP::MergeSOP(const std::string &name) : SOPNode(name, "Merge") {
+MergeSOP::MergeSOP(const std::string& name) : SOPNode(name, "Merge") {
   // Add multiple input ports (up to 4 for now)
   for (int i = 0; i < 4; ++i) {
     input_ports_.add_port(std::to_string(i), NodePort::Type::INPUT,
@@ -56,7 +57,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
   size_t total_points = 0;
   size_t total_vertices = 0;
 
-  for (const auto &input : inputs) {
+  for (const auto& input : inputs) {
     total_points += input->topology().point_count();
     total_vertices += input->topology().vertex_count();
   }
@@ -83,7 +84,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
   std::cerr << "  Added position attribute\n";
 
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
@@ -98,10 +99,10 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
   size_t point_offset = 0;
   size_t vertex_offset = 0;
 
-  for (const auto &input : inputs) {
+  for (const auto& input : inputs) {
     std::cerr << "  Processing input at offset " << point_offset << "\n";
 
-    const auto *input_positions =
+    const auto* input_positions =
         input->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
     if (input_positions == nullptr) {
@@ -109,7 +110,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
       continue; // Skip inputs without positions
     }
 
-    const auto &input_topology = input->topology();
+    const auto& input_topology = input->topology();
     const size_t input_point_count = input_topology.point_count();
     const size_t input_vertex_count = input_topology.vertex_count();
     const size_t input_prim_count = input_topology.primitive_count();
@@ -135,7 +136,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
                   << input_prim_count << "\n";
       }
 
-      const auto &input_verts = input_topology.get_primitive_vertices(prim_idx);
+      const auto& input_verts = input_topology.get_primitive_vertices(prim_idx);
       std::vector<int> result_prim_verts;
       result_prim_verts.reserve(input_verts.size());
 
@@ -153,7 +154,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
 
       try {
         result->add_primitive(result_prim_verts);
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         std::cerr << "      ERROR adding primitive " << prim_idx << ": "
                   << e.what() << "\n";
         set_error(std::string("Failed to add primitive: ") + e.what());

@@ -2,7 +2,9 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <Eigen/Dense>
+
 #include <memory>
 #include <string>
 
@@ -19,7 +21,7 @@ class NoiseDisplacementSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit NoiseDisplacementSOP(const std::string &name = "noise_displacement");
+  explicit NoiseDisplacementSOP(const std::string& name = "noise_displacement");
 
 protected:
   /**

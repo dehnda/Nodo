@@ -1,21 +1,22 @@
 #include "widgets/ButtonWidget.h"
+
 #include <QHBoxLayout>
 
 namespace nodo_studio {
 namespace widgets {
 
-ButtonWidget::ButtonWidget(const QString &label, const QString &description,
-                           QWidget *parent)
-    : BaseParameterWidget(label, description, parent), button_(nullptr),
+ButtonWidget::ButtonWidget(const QString& label, const QString& description,
+                           QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      button_(nullptr),
       clicked_callback_(nullptr) {
-
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
 
-QWidget *ButtonWidget::createControlWidget() {
-  auto *container = new QWidget();
-  auto *layout = new QHBoxLayout(container);
+QWidget* ButtonWidget::createControlWidget() {
+  auto* container = new QWidget();
+  auto* layout = new QHBoxLayout(container);
   layout->setContentsMargins(0, 0, 0, 0);
 
   button_ = new QPushButton(getLabel(), container);

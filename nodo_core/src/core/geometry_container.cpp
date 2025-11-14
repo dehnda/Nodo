@@ -1,15 +1,16 @@
 #include "nodo/core/geometry_container.hpp"
+
 #include "nodo/core/attribute_group.hpp"
+
 #include <iostream>
 #include <unordered_set>
 
 namespace nodo::core {
 
 std::optional<GeometryContainer>
-GeometryContainer::delete_elements(const std::string &group_name,
+GeometryContainer::delete_elements(const std::string& group_name,
                                    ElementClass element_class,
                                    bool delete_orphaned_points) const {
-
   // Check if group exists
   if (!has_group(*this, group_name, element_class)) {
     std::cerr << "GeometryContainer::delete_elements - Group '" << group_name
@@ -43,9 +44,8 @@ GeometryContainer::delete_elements(const std::string &group_name,
 }
 
 std::optional<GeometryContainer> GeometryContainer::delete_primitives(
-    const std::unordered_set<size_t> &delete_set,
+    const std::unordered_set<size_t>& delete_set,
     bool delete_orphaned_points) const {
-
   GeometryContainer result;
 
   // Step 1: Copy all points first
@@ -70,7 +70,7 @@ std::optional<GeometryContainer> GeometryContainer::delete_primitives(
   for (size_t prim_idx = 0; prim_idx < primitive_count(); ++prim_idx) {
     if (delete_set.find(prim_idx) == delete_set.end()) {
       // Keep this primitive
-      const auto &src_verts = topology_.get_primitive_vertices(prim_idx);
+      const auto& src_verts = topology_.get_primitive_vertices(prim_idx);
 
       // Set up vertices for this primitive
       result.set_vertex_count(vertex_offset + src_verts.size());
@@ -96,8 +96,7 @@ std::optional<GeometryContainer> GeometryContainer::delete_primitives(
 }
 
 std::optional<GeometryContainer> GeometryContainer::delete_points(
-    const std::unordered_set<size_t> &delete_set) const {
-
+    const std::unordered_set<size_t>& delete_set) const {
   GeometryContainer result;
 
   // Step 1: Build point index mapping (old -> new)
@@ -132,7 +131,7 @@ std::optional<GeometryContainer> GeometryContainer::delete_points(
   size_t vertex_offset = 0;
 
   for (size_t prim_idx = 0; prim_idx < primitive_count(); ++prim_idx) {
-    const auto &src_verts = topology_.get_primitive_vertices(prim_idx);
+    const auto& src_verts = topology_.get_primitive_vertices(prim_idx);
 
     // Check if any vertex references a deleted point
     bool has_deleted_point = false;
@@ -166,12 +165,11 @@ std::optional<GeometryContainer> GeometryContainer::delete_points(
 }
 
 std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(
-    const GeometryContainer &input) const {
-
+    const GeometryContainer& input) const {
   // Build set of used points
   std::unordered_set<size_t> used_points;
   for (size_t prim_idx = 0; prim_idx < input.primitive_count(); ++prim_idx) {
-    const auto &vert_indices =
+    const auto& vert_indices =
         input.topology().get_primitive_vertices(prim_idx);
     for (int vert_idx : vert_indices) {
       int point_idx = input.topology().get_vertex_point(vert_idx);
@@ -215,7 +213,7 @@ std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(
   size_t vertex_offset = 0;
 
   for (size_t prim_idx = 0; prim_idx < input.primitive_count(); ++prim_idx) {
-    const auto &src_verts = input.topology().get_primitive_vertices(prim_idx);
+    const auto& src_verts = input.topology().get_primitive_vertices(prim_idx);
 
     result.set_vertex_count(vertex_offset + src_verts.size());
 

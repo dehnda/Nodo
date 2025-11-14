@@ -3,11 +3,14 @@
  */
 
 #include "nodo/graph/node_graph.hpp"
+
 #include "nodo/sop/sop_factory.hpp"
+
+#include <queue>
+
 #include <algorithm>
 #include <functional>
 #include <iostream>
-#include <queue>
 #include <unordered_set>
 #include <variant>
 
@@ -23,71 +26,71 @@ namespace {
  * @brief Convert SOP ParameterDefinition to GraphNode NodeParameter
  */
 NodeParameter
-convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
+convert_parameter_definition(const sop::SOPNode::ParameterDefinition& def) {
   using ParamType = sop::SOPNode::ParameterDefinition::Type;
 
   NodeParameter param(def.name, 0.0F); // Temporary, will be overwritten
 
   switch (def.type) {
-  case ParamType::Float: {
-    float default_val = std::get<float>(def.default_value);
-    param = NodeParameter(def.name, default_val, def.label,
-                          static_cast<float>(def.float_min),
-                          static_cast<float>(def.float_max), def.category);
-    break;
-  }
-
-  case ParamType::Int: {
-    int default_val = std::get<int>(def.default_value);
-    if (!def.options.empty()) {
-      // Combo box
-      param = NodeParameter(def.name, default_val, def.options, def.label,
-                            def.category);
-    } else {
-      // Regular int
-      param = NodeParameter(def.name, default_val, def.label, def.int_min,
-                            def.int_max, def.category);
+    case ParamType::Float: {
+      float default_val = std::get<float>(def.default_value);
+      param = NodeParameter(def.name, default_val, def.label,
+                            static_cast<float>(def.float_min),
+                            static_cast<float>(def.float_max), def.category);
+      break;
     }
-    break;
-  }
 
-  case ParamType::Bool: {
-    bool default_val = std::get<bool>(def.default_value);
-    param = NodeParameter(def.name, default_val, def.label, def.category);
-    break;
-  }
+    case ParamType::Int: {
+      int default_val = std::get<int>(def.default_value);
+      if (!def.options.empty()) {
+        // Combo box
+        param = NodeParameter(def.name, default_val, def.options, def.label,
+                              def.category);
+      } else {
+        // Regular int
+        param = NodeParameter(def.name, default_val, def.label, def.int_min,
+                              def.int_max, def.category);
+      }
+      break;
+    }
 
-  case ParamType::String: {
-    std::string default_val = std::get<std::string>(def.default_value);
-    param = NodeParameter(def.name, default_val, def.label, def.category);
-    break;
-  }
+    case ParamType::Bool: {
+      bool default_val = std::get<bool>(def.default_value);
+      param = NodeParameter(def.name, default_val, def.label, def.category);
+      break;
+    }
 
-  case ParamType::Code: {
-    std::string default_val = std::get<std::string>(def.default_value);
-    param = NodeParameter(def.name, default_val, def.label, def.category);
-    // Override type to Code after construction
-    param.type = nodo::graph::NodeParameter::Type::Code;
-    break;
-  }
+    case ParamType::String: {
+      std::string default_val = std::get<std::string>(def.default_value);
+      param = NodeParameter(def.name, default_val, def.label, def.category);
+      break;
+    }
 
-  case ParamType::Vector3: {
-    auto vec3_eigen = std::get<Eigen::Vector3f>(def.default_value);
-    std::array<float, 3> vec3_array = {vec3_eigen.x(), vec3_eigen.y(),
-                                       vec3_eigen.z()};
-    param = NodeParameter(def.name, vec3_array, def.label,
-                          static_cast<float>(def.float_min),
-                          static_cast<float>(def.float_max), def.category);
-    break;
-  }
+    case ParamType::Code: {
+      std::string default_val = std::get<std::string>(def.default_value);
+      param = NodeParameter(def.name, default_val, def.label, def.category);
+      // Override type to Code after construction
+      param.type = nodo::graph::NodeParameter::Type::Code;
+      break;
+    }
 
-  case ParamType::GroupSelector: {
-    std::string default_val = std::get<std::string>(def.default_value);
-    param = NodeParameter(def.name, default_val, def.label, def.category);
-    // Override type to GroupSelector after construction
-    param.type = nodo::graph::NodeParameter::Type::GroupSelector;
-    break;
-  }
+    case ParamType::Vector3: {
+      auto vec3_eigen = std::get<Eigen::Vector3f>(def.default_value);
+      std::array<float, 3> vec3_array = {vec3_eigen.x(), vec3_eigen.y(),
+                                         vec3_eigen.z()};
+      param = NodeParameter(def.name, vec3_array, def.label,
+                            static_cast<float>(def.float_min),
+                            static_cast<float>(def.float_max), def.category);
+      break;
+    }
+
+    case ParamType::GroupSelector: {
+      std::string default_val = std::get<std::string>(def.default_value);
+      param = NodeParameter(def.name, default_val, def.label, def.category);
+      // Override type to GroupSelector after construction
+      param.type = nodo::graph::NodeParameter::Type::GroupSelector;
+      break;
+    }
   }
 
   // Copy visibility control metadata
@@ -103,7 +106,7 @@ convert_parameter_definition(const sop::SOPNode::ParameterDefinition &def) {
 /**
  * @brief Initialize GraphNode parameters from SOPNode parameter definitions
  */
-void initialize_node_parameters_from_sop(GraphNode &node) {
+void initialize_node_parameters_from_sop(GraphNode& node) {
   // Create a temporary SOP instance to get its parameter definitions
   auto sop = sop::SOPFactory::create(node.get_type(), node.get_name());
 
@@ -113,7 +116,7 @@ void initialize_node_parameters_from_sop(GraphNode &node) {
   }
 
   // Get parameter definitions from the SOP
-  const auto &param_defs = sop->get_parameter_definitions();
+  const auto& param_defs = sop->get_parameter_definitions();
 
   if (param_defs.empty()) {
     // warning if not parameters defined
@@ -122,7 +125,7 @@ void initialize_node_parameters_from_sop(GraphNode &node) {
   }
 
   // Convert and add parameters to GraphNode
-  for (const auto &def : param_defs) {
+  for (const auto& def : param_defs) {
     NodeParameter param = convert_parameter_definition(def);
     node.add_parameter(param);
   }
@@ -146,39 +149,39 @@ void GraphNode::setup_pins_for_type() {
 
   // Create input pins based on configuration type
   switch (config.type) {
-  case sop::SOPNode::InputType::NONE:
-    // Generator node - no inputs
-    break;
+    case sop::SOPNode::InputType::NONE:
+      // Generator node - no inputs
+      break;
 
-  case sop::SOPNode::InputType::SINGLE:
-    // Standard single input node (Transform, Subdivide, etc.)
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
-    break;
+    case sop::SOPNode::InputType::SINGLE:
+      // Standard single input node (Transform, Subdivide, etc.)
+      input_pins_.push_back(
+          {NodePin::Type::Input, NodePin::DataType::Mesh, "Input", 0});
+      break;
 
-  case sop::SOPNode::InputType::DUAL:
-    // Dual input node (Boolean, CopyToPoints, etc.)
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input A", 0});
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Input B", 1});
-    break;
+    case sop::SOPNode::InputType::DUAL:
+      // Dual input node (Boolean, CopyToPoints, etc.)
+      input_pins_.push_back(
+          {NodePin::Type::Input, NodePin::DataType::Mesh, "Input A", 0});
+      input_pins_.push_back(
+          {NodePin::Type::Input, NodePin::DataType::Mesh, "Input B", 1});
+      break;
 
-  case sop::SOPNode::InputType::MULTI_DYNAMIC:
-    // Dynamic multi-input node (Merge, etc.)
-    // Single wide input pin that accepts multiple connections
-    input_pins_.push_back(
-        {NodePin::Type::Input, NodePin::DataType::Mesh, "Inputs", 0});
-    break;
+    case sop::SOPNode::InputType::MULTI_DYNAMIC:
+      // Dynamic multi-input node (Merge, etc.)
+      // Single wide input pin that accepts multiple connections
+      input_pins_.push_back(
+          {NodePin::Type::Input, NodePin::DataType::Mesh, "Inputs", 0});
+      break;
 
-  case sop::SOPNode::InputType::MULTI_FIXED:
-    // Fixed multi-input node (Switch, etc.)
-    // Multiple separate pins, start with initial_pins
-    for (int i = 0; i < config.initial_pins; ++i) {
-      input_pins_.push_back({NodePin::Type::Input, NodePin::DataType::Mesh,
-                             "Input " + std::to_string(i + 1), i});
-    }
-    break;
+    case sop::SOPNode::InputType::MULTI_FIXED:
+      // Fixed multi-input node (Switch, etc.)
+      // Multiple separate pins, start with initial_pins
+      for (int i = 0; i < config.initial_pins; ++i) {
+        input_pins_.push_back({NodePin::Type::Input, NodePin::DataType::Mesh,
+                               "Input " + std::to_string(i + 1), i});
+      }
+      break;
   }
 
   // All nodes have one output (for now)
@@ -186,9 +189,9 @@ void GraphNode::setup_pins_for_type() {
       {NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
 }
 
-void GraphNode::add_parameter(const NodeParameter &param) {
+void GraphNode::add_parameter(const NodeParameter& param) {
   auto iterator = std::find_if(parameters_.begin(), parameters_.end(),
-                               [&param](const NodeParameter &parameter) {
+                               [&param](const NodeParameter& parameter) {
                                  return parameter.name == param.name;
                                });
 
@@ -200,9 +203,9 @@ void GraphNode::add_parameter(const NodeParameter &param) {
   needs_update_ = true;
 }
 
-void GraphNode::remove_parameter(const std::string &name) {
+void GraphNode::remove_parameter(const std::string& name) {
   parameters_.erase(std::remove_if(parameters_.begin(), parameters_.end(),
-                                   [&name](const NodeParameter &p) {
+                                   [&name](const NodeParameter& p) {
                                      return p.name == name;
                                    }),
                     parameters_.end());
@@ -210,26 +213,26 @@ void GraphNode::remove_parameter(const std::string &name) {
 }
 
 std::optional<NodeParameter>
-GraphNode::get_parameter(const std::string &name) const {
+GraphNode::get_parameter(const std::string& name) const {
   auto it =
       std::find_if(parameters_.begin(), parameters_.end(),
-                   [&name](const NodeParameter &p) { return p.name == name; });
+                   [&name](const NodeParameter& p) { return p.name == name; });
 
   return (it != parameters_.end()) ? std::make_optional(*it) : std::nullopt;
 }
 
-void GraphNode::set_parameter([[maybe_unused]] const std::string &name,
-                              const NodeParameter &param) {
+void GraphNode::set_parameter([[maybe_unused]] const std::string& name,
+                              const NodeParameter& param) {
   add_parameter(param);
 }
 
-int NodeGraph::add_node(NodeType type, const std::string &name) {
+int NodeGraph::add_node(NodeType type, const std::string& name) {
   int id = next_node_id_++;
   return add_node_with_id(id, type, name);
 }
 
 int NodeGraph::add_node_with_id(int node_id, NodeType type,
-                                const std::string &name) {
+                                const std::string& name) {
   // Use provided name or generate one from the type
   std::string base_name = name.empty() ? get_node_type_name(type) : name;
 
@@ -254,7 +257,7 @@ bool NodeGraph::remove_node(int node_id) {
 
   // Remove the node
   auto it = std::find_if(nodes_.begin(), nodes_.end(),
-                         [node_id](const std::unique_ptr<GraphNode> &node) {
+                         [node_id](const std::unique_ptr<GraphNode>& node) {
                            return node->get_id() == node_id;
                          });
 
@@ -267,18 +270,18 @@ bool NodeGraph::remove_node(int node_id) {
   return false;
 }
 
-GraphNode *NodeGraph::get_node(int node_id) {
+GraphNode* NodeGraph::get_node(int node_id) {
   auto it = std::find_if(nodes_.begin(), nodes_.end(),
-                         [node_id](const std::unique_ptr<GraphNode> &node) {
+                         [node_id](const std::unique_ptr<GraphNode>& node) {
                            return node->get_id() == node_id;
                          });
 
   return (it != nodes_.end()) ? it->get() : nullptr;
 }
 
-const GraphNode *NodeGraph::get_node(int node_id) const {
+const GraphNode* NodeGraph::get_node(int node_id) const {
   auto it = std::find_if(nodes_.begin(), nodes_.end(),
-                         [node_id](const std::unique_ptr<GraphNode> &node) {
+                         [node_id](const std::unique_ptr<GraphNode>& node) {
                            return node->get_id() == node_id;
                          });
 
@@ -293,7 +296,7 @@ int NodeGraph::add_connection(int source_node_id, int source_pin,
   }
 
   // Get target node's input configuration
-  auto *target_node = get_node(target_node_id);
+  auto* target_node = get_node(target_node_id);
   if (!target_node) {
     return -1;
   }
@@ -303,7 +306,7 @@ int NodeGraph::add_connection(int source_node_id, int source_pin,
   // Check for existing connection to target pin
   auto existing =
       std::find_if(connections_.begin(), connections_.end(),
-                   [target_node_id, target_pin](const NodeConnection &conn) {
+                   [target_node_id, target_pin](const NodeConnection& conn) {
                      return conn.target_node_id == target_node_id &&
                             conn.target_pin_index == target_pin;
                    });
@@ -338,13 +341,13 @@ int NodeGraph::add_connection(int source_node_id, int source_pin,
 
 bool NodeGraph::remove_connection(int connection_id) {
   auto it = std::find_if(connections_.begin(), connections_.end(),
-                         [connection_id](const NodeConnection &conn) {
+                         [connection_id](const NodeConnection& conn) {
                            return conn.id == connection_id;
                          });
 
   if (it != connections_.end()) {
     // Mark target node for update
-    if (auto *target_node = get_node(it->target_node_id)) {
+    if (auto* target_node = get_node(it->target_node_id)) {
       target_node->mark_for_update();
     }
 
@@ -377,7 +380,7 @@ bool NodeGraph::remove_connections_to_node(int node_id) {
 std::vector<int> NodeGraph::get_input_nodes(int node_id) const {
   std::vector<int> input_nodes;
 
-  for (const auto &conn : connections_) {
+  for (const auto& conn : connections_) {
     if (conn.target_node_id == node_id) {
       input_nodes.push_back(conn.source_node_id);
     }
@@ -389,7 +392,7 @@ std::vector<int> NodeGraph::get_input_nodes(int node_id) const {
 std::vector<int> NodeGraph::get_output_nodes(int node_id) const {
   std::vector<int> output_nodes;
 
-  for (const auto &conn : connections_) {
+  for (const auto& conn : connections_) {
     if (conn.source_node_id == node_id) {
       output_nodes.push_back(conn.target_node_id);
     }
@@ -430,7 +433,7 @@ std::vector<int> NodeGraph::get_execution_order() const {
   };
 
   // Visit all nodes
-  for (const auto &node : nodes_) {
+  for (const auto& node : nodes_) {
     if (!visited.count(node->get_id())) {
       if (!visit(node->get_id())) {
         // Cycle detected, return empty result
@@ -444,7 +447,7 @@ std::vector<int> NodeGraph::get_execution_order() const {
 
 std::vector<int> NodeGraph::get_upstream_dependencies(int node_id) const {
   // Verify node exists
-  const auto *target_node = get_node(node_id);
+  const auto* target_node = get_node(node_id);
   if (target_node == nullptr) {
     return {}; // Node doesn't exist
   }
@@ -488,7 +491,9 @@ void NodeGraph::clear() {
   next_connection_id_ = 1;
 }
 
-bool NodeGraph::is_valid() const { return !has_cycles(); }
+bool NodeGraph::is_valid() const {
+  return !has_cycles();
+}
 
 bool NodeGraph::has_cycles() const {
   const auto execution_order = get_execution_order();
@@ -514,10 +519,10 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
 
 // M3.3 Phase 3: Generate unique node names for ch() function
 std::string
-NodeGraph::generate_unique_node_name(const std::string &base_name) const {
+NodeGraph::generate_unique_node_name(const std::string& base_name) const {
   // Check if base name is already unique
   bool name_exists = false;
-  for (const auto &node : nodes_) {
+  for (const auto& node : nodes_) {
     if (node->get_name() == base_name) {
       name_exists = true;
       break;
@@ -535,7 +540,7 @@ NodeGraph::generate_unique_node_name(const std::string &base_name) const {
     std::string candidate = base_name + std::to_string(suffix);
 
     bool exists = false;
-    for (const auto &node : nodes_) {
+    for (const auto& node : nodes_) {
       if (node->get_name() == candidate) {
         exists = true;
         break;
@@ -552,12 +557,12 @@ NodeGraph::generate_unique_node_name(const std::string &base_name) const {
 
 void NodeGraph::set_display_node(int node_id) {
   // Clear display flag from all nodes
-  for (auto &node : nodes_) {
+  for (auto& node : nodes_) {
     node->set_display_flag(false);
   }
 
   // Set display flag on the specified node
-  auto *node = get_node(node_id);
+  auto* node = get_node(node_id);
   if (node != nullptr) {
     node->set_display_flag(true);
     notify_node_changed(node_id);
@@ -565,7 +570,7 @@ void NodeGraph::set_display_node(int node_id) {
 }
 
 int NodeGraph::get_display_node() const {
-  for (const auto &node : nodes_) {
+  for (const auto& node : nodes_) {
     if (node->has_display_flag()) {
       return node->get_id();
     }
@@ -575,8 +580,8 @@ int NodeGraph::get_display_node() const {
 
 // Graph Parameters (M3.2)
 
-bool NodeGraph::add_graph_parameter(const GraphParameter &parameter) {
-  const std::string &name = parameter.get_name();
+bool NodeGraph::add_graph_parameter(const GraphParameter& parameter) {
+  const std::string& name = parameter.get_name();
 
   // Validate parameter name (future-proof for subgraphs)
   if (!is_valid_parameter_name(name)) {
@@ -588,7 +593,7 @@ bool NodeGraph::add_graph_parameter(const GraphParameter &parameter) {
   // Check if parameter with this name already exists
   auto it = std::find_if(
       graph_parameters_.begin(), graph_parameters_.end(),
-      [&name](const GraphParameter &p) { return p.get_name() == name; });
+      [&name](const GraphParameter& p) { return p.get_name() == name; });
 
   if (it != graph_parameters_.end()) {
     // Update existing parameter
@@ -601,10 +606,10 @@ bool NodeGraph::add_graph_parameter(const GraphParameter &parameter) {
   return true;
 }
 
-bool NodeGraph::remove_graph_parameter(const std::string &name) {
+bool NodeGraph::remove_graph_parameter(const std::string& name) {
   auto it = std::find_if(
       graph_parameters_.begin(), graph_parameters_.end(),
-      [&name](const GraphParameter &p) { return p.get_name() == name; });
+      [&name](const GraphParameter& p) { return p.get_name() == name; });
 
   if (it != graph_parameters_.end()) {
     graph_parameters_.erase(it);
@@ -614,11 +619,11 @@ bool NodeGraph::remove_graph_parameter(const std::string &name) {
   return false;
 }
 
-const GraphParameter *
-NodeGraph::get_graph_parameter(const std::string &name) const {
+const GraphParameter*
+NodeGraph::get_graph_parameter(const std::string& name) const {
   auto it = std::find_if(
       graph_parameters_.begin(), graph_parameters_.end(),
-      [&name](const GraphParameter &p) { return p.get_name() == name; });
+      [&name](const GraphParameter& p) { return p.get_name() == name; });
 
   if (it != graph_parameters_.end()) {
     return &(*it);
@@ -627,10 +632,10 @@ NodeGraph::get_graph_parameter(const std::string &name) const {
   return nullptr;
 }
 
-GraphParameter *NodeGraph::get_graph_parameter(const std::string &name) {
+GraphParameter* NodeGraph::get_graph_parameter(const std::string& name) {
   auto it = std::find_if(
       graph_parameters_.begin(), graph_parameters_.end(),
-      [&name](const GraphParameter &p) { return p.get_name() == name; });
+      [&name](const GraphParameter& p) { return p.get_name() == name; });
 
   if (it != graph_parameters_.end()) {
     return &(*it);
@@ -639,11 +644,11 @@ GraphParameter *NodeGraph::get_graph_parameter(const std::string &name) {
   return nullptr;
 }
 
-bool NodeGraph::has_graph_parameter(const std::string &name) const {
+bool NodeGraph::has_graph_parameter(const std::string& name) const {
   return get_graph_parameter(name) != nullptr;
 }
 
-bool NodeGraph::is_valid_parameter_name(const std::string &name) {
+bool NodeGraph::is_valid_parameter_name(const std::string& name) {
   // Empty names not allowed
   if (name.empty()) {
     return false;
@@ -678,7 +683,7 @@ bool NodeGraph::is_valid_parameter_name(const std::string &name) {
 // M3.3 Phase 3: Cross-node parameter path resolution
 std::optional<std::string>
 NodeGraph::resolve_parameter_path(int current_node_id,
-                                  const std::string &path) const {
+                                  const std::string& path) const {
   // Parse the path into node name and parameter name
   // Supported formats:
   // - "/NodeName/param" (absolute)
@@ -713,8 +718,8 @@ NodeGraph::resolve_parameter_path(int current_node_id,
   }
 
   // Find the target node by name
-  const GraphNode *target_node = nullptr;
-  for (const auto &node : nodes_) {
+  const GraphNode* target_node = nullptr;
+  for (const auto& node : nodes_) {
     if (node->get_name() == node_name) {
       target_node = node.get();
       break;
@@ -733,28 +738,28 @@ NodeGraph::resolve_parameter_path(int current_node_id,
     return std::nullopt;
   }
 
-  const NodeParameter &param = param_opt.value();
+  const NodeParameter& param = param_opt.value();
 
   // Convert parameter value to string based on type
   switch (param.type) {
-  case NodeParameter::Type::Float:
-    return std::to_string(param.float_value);
+    case NodeParameter::Type::Float:
+      return std::to_string(param.float_value);
 
-  case NodeParameter::Type::Int:
-    return std::to_string(param.int_value);
+    case NodeParameter::Type::Int:
+      return std::to_string(param.int_value);
 
-  case NodeParameter::Type::Bool:
-    return param.bool_value ? "1" : "0";
+    case NodeParameter::Type::Bool:
+      return param.bool_value ? "1" : "0";
 
-  case NodeParameter::Type::String:
-  case NodeParameter::Type::Code:
-  case NodeParameter::Type::GroupSelector:
-    return param.string_value;
+    case NodeParameter::Type::String:
+    case NodeParameter::Type::Code:
+    case NodeParameter::Type::GroupSelector:
+      return param.string_value;
 
-  case NodeParameter::Type::Vector3:
-    return std::to_string(param.vector3_value[0]) + "," +
-           std::to_string(param.vector3_value[1]) + "," +
-           std::to_string(param.vector3_value[2]);
+    case NodeParameter::Type::Vector3:
+      return std::to_string(param.vector3_value[0]) + "," +
+             std::to_string(param.vector3_value[1]) + "," +
+             std::to_string(param.vector3_value[2]);
   }
 
   return std::nullopt;

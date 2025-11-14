@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../io/obj_exporter.hpp"
 #include "sop_node.hpp"
+
 #include <filesystem>
 
 namespace nodo {
@@ -21,7 +22,7 @@ class ExportSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ExportSOP(const std::string &node_name = "export")
+  explicit ExportSOP(const std::string& node_name = "export")
       : SOPNode(node_name, "Export") {
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -95,14 +96,14 @@ protected:
         // Export based on file format
         if (extension == ".obj") {
           // Convert GeometryContainer to Mesh for export
-          auto *positions =
+          auto* positions =
               input->get_point_attribute_typed<Eigen::Vector3f>("P");
           if (!positions) {
             set_error("Input geometry missing position attribute");
             return input;
           }
 
-          const auto &topology = input->topology();
+          const auto& topology = input->topology();
           auto pos_span = positions->values();
 
           // Build Mesh
@@ -125,7 +126,7 @@ protected:
 
         // Success! (errors are cleared automatically by not calling set_error)
 
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         set_error(std::string("Export error: ") + e.what());
         return input; // Still pass through input even on error
       }

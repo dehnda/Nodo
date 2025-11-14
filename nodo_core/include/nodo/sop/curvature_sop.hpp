@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../processing/curvature.hpp"
 #include "sop_node.hpp"
+
 #include <fmt/core.h>
 
 namespace nodo::sop {
@@ -29,9 +30,8 @@ class CurvatureSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit CurvatureSOP(const std::string &node_name = "curvature")
+  explicit CurvatureSOP(const std::string& node_name = "curvature")
       : SOPNode(node_name, "Curvature") {
-
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -88,23 +88,23 @@ protected:
 
     int type_index = get_parameter<int>("curvature_type", 0);
     switch (type_index) {
-    case 0:
-      params.type = processing::CurvatureType::MEAN;
-      break;
-    case 1:
-      params.type = processing::CurvatureType::GAUSSIAN;
-      break;
-    case 2:
-      params.type = processing::CurvatureType::MIN;
-      break;
-    case 3:
-      params.type = processing::CurvatureType::MAX;
-      break;
-    case 4:
-      params.type = processing::CurvatureType::ALL;
-      break;
-    default:
-      params.type = processing::CurvatureType::MEAN;
+      case 0:
+        params.type = processing::CurvatureType::MEAN;
+        break;
+      case 1:
+        params.type = processing::CurvatureType::GAUSSIAN;
+        break;
+      case 2:
+        params.type = processing::CurvatureType::MIN;
+        break;
+      case 3:
+        params.type = processing::CurvatureType::MAX;
+        break;
+      case 4:
+        params.type = processing::CurvatureType::ALL;
+        break;
+      default:
+        params.type = processing::CurvatureType::MEAN;
     }
 
     params.use_absolute = get_parameter<bool>("use_absolute", false);

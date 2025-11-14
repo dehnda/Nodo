@@ -1,4 +1,5 @@
 #include <QMap>
+
 #include <gtest/gtest.h>
 #include <widgets/ExpressionValidator.h>
 

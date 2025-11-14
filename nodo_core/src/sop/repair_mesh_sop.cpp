@@ -2,4 +2,4 @@
 
 namespace nodo::sop {
 // Header-only implementation
-}
+} // namespace nodo::sop

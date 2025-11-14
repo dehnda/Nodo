@@ -34,7 +34,7 @@ public:
    * Host can display progress bar, update UI, or cancel operation.
    */
   virtual bool report_progress(int current, int total,
-                               const std::string &message = "") {
+                               const std::string& message = "") {
     return true; // Default: continue without displaying progress
   }
 
@@ -56,7 +56,7 @@ public:
    *
    * Host can display in console, file, or custom logging system.
    */
-  virtual void log(const std::string &level, const std::string &message) {
+  virtual void log(const std::string& level, const std::string& message) {
     // Default: no-op (silent)
   }
 
@@ -68,7 +68,7 @@ public:
    * Useful for loading assets (textures, OBJ files) in engine contexts
    * where project paths differ from filesystem paths.
    */
-  virtual std::string resolve_path(const std::string &relative_path) const {
+  virtual std::string resolve_path(const std::string& relative_path) const {
     return relative_path; // Default: pass-through (no resolution)
   }
 
@@ -92,7 +92,7 @@ public:
  */
 class DefaultHostInterface : public IHostInterface {
 public:
-  void log(const std::string &level, const std::string &message) override;
+  void log(const std::string& level, const std::string& message) override;
   std::string get_host_info() const override;
 };
 

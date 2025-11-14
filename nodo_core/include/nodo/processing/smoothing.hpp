@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 #include <string>
 
@@ -40,8 +41,8 @@ public:
    * @return Smoothed geometry or nullopt on failure
    */
   static std::optional<core::GeometryContainer>
-  smooth(const core::GeometryContainer &container,
-         const SmoothingParams &params, std::string *error = nullptr);
+  smooth(const core::GeometryContainer& container,
+         const SmoothingParams& params, std::string* error = nullptr);
 };
 
 } // namespace nodo::processing

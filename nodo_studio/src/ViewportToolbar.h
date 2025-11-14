@@ -18,7 +18,7 @@ class ViewportToolbar : public QToolBar {
   Q_OBJECT
 
 public:
-  explicit ViewportToolbar(QWidget *parent = nullptr);
+  explicit ViewportToolbar(QWidget* parent = nullptr);
 
   // Getters for button states
   bool isVerticesEnabled() const;
@@ -47,7 +47,7 @@ signals:
 
   // Viewport controls (from ViewportControlsOverlay)
   void wireframeToggled(bool enabled);
-  void shadingModeChanged(const QString &mode);
+  void shadingModeChanged(const QString& mode);
   void pointNumbersToggled(bool enabled);
   void primitiveNumbersToggled(bool enabled);
   void cameraReset();
@@ -56,24 +56,24 @@ signals:
 private:
   void setupUI();
   void applyStyles();
-  QToolButton *createToggleButton(const QString &icon_text,
-                                  const QString &tooltip, bool checked = true);
-  QToolButton *createIconButton(const QString &icon_name,
-                                const QString &tooltip, bool checkable);
+  QToolButton* createToggleButton(const QString& icon_text,
+                                  const QString& tooltip, bool checked = true);
+  QToolButton* createIconButton(const QString& icon_name,
+                                const QString& tooltip, bool checkable);
 
   // Display toggle buttons (text icons)
-  QToolButton *vertices_button_;
-  QToolButton *edges_button_;
-  QToolButton *vertex_normals_button_;
-  QToolButton *face_normals_button_;
-  QToolButton *grid_button_;
-  QToolButton *axes_button_;
+  QToolButton* vertices_button_;
+  QToolButton* edges_button_;
+  QToolButton* vertex_normals_button_;
+  QToolButton* face_normals_button_;
+  QToolButton* grid_button_;
+  QToolButton* axes_button_;
 
   // Viewport control buttons (icon buttons)
-  QToolButton *wireframe_button_;
-  QToolButton *shading_button_;
-  QToolButton *point_numbers_button_;
-  QToolButton *primitive_numbers_button_;
-  QToolButton *reset_camera_button_;
-  QToolButton *fit_view_button_;
+  QToolButton* wireframe_button_;
+  QToolButton* shading_button_;
+  QToolButton* point_numbers_button_;
+  QToolButton* primitive_numbers_button_;
+  QToolButton* reset_camera_button_;
+  QToolButton* fit_view_button_;
 };

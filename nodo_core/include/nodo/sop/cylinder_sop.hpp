@@ -18,12 +18,14 @@ private:
   static constexpr int DEFAULT_RADIAL_SEGMENTS = 32;
   static constexpr int DEFAULT_HEIGHT_SEGMENTS = 1;
 
-  enum class PrimitiveType { Polygon = 0, Points = 1 };
+  enum class PrimitiveType {
+    Polygon = 0,
+    Points = 1
+  };
 
 public:
-  explicit CylinderSOP(const std::string &node_name = "cylinder")
+  explicit CylinderSOP(const std::string& node_name = "cylinder")
       : SOPNode(node_name, "Cylinder") {
-
     // Universal: Primitive Type
     register_parameter(define_int_parameter("primitive_type", 0)
                            .label("Primitive Type")
@@ -128,13 +130,13 @@ protected:
           std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
-        auto &topology = container->topology();
+        auto& topology = container->topology();
         topology.set_primitive_count(0);
       }
 
       return container;
 
-    } catch (const std::exception &exception) {
+    } catch (const std::exception& exception) {
       set_error("Exception during cylinder generation: " +
                 std::string(exception.what()));
       return nullptr;

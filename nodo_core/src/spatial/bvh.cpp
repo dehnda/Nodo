@@ -1,4 +1,5 @@
 #include "nodo/spatial/bvh.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <limits>
@@ -7,10 +8,10 @@
 namespace nodo::spatial {
 
 // AABB Implementation
-AABB::AABB(const Eigen::Vector3d &min_pt, const Eigen::Vector3d &max_pt)
+AABB::AABB(const Eigen::Vector3d& min_pt, const Eigen::Vector3d& max_pt)
     : min_point(min_pt), max_point(max_pt) {}
 
-AABB AABB::from_points(const std::vector<Eigen::Vector3d> &points) {
+AABB AABB::from_points(const std::vector<Eigen::Vector3d>& points) {
   if (points.empty()) {
     return AABB{Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()};
   }
@@ -18,7 +19,7 @@ AABB AABB::from_points(const std::vector<Eigen::Vector3d> &points) {
   Eigen::Vector3d min_pt = points[0];
   Eigen::Vector3d max_pt = points[0];
 
-  for (const auto &point : points) {
+  for (const auto& point : points) {
     min_pt = min_pt.cwiseMin(point);
     max_pt = max_pt.cwiseMax(point);
   }
@@ -26,7 +27,7 @@ AABB AABB::from_points(const std::vector<Eigen::Vector3d> &points) {
   return AABB{min_pt, max_pt};
 }
 
-AABB AABB::from_mesh(const core::Mesh &mesh) {
+AABB AABB::from_mesh(const core::Mesh& mesh) {
   if (mesh.vertices().rows() == 0) {
     return AABB{Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()};
   }
@@ -43,7 +44,7 @@ AABB AABB::from_mesh(const core::Mesh &mesh) {
   return AABB{min_pt, max_pt};
 }
 
-bool AABB::intersects(const AABB &other) const {
+bool AABB::intersects(const AABB& other) const {
   return (min_point.x() <= other.max_point.x() &&
           max_point.x() >= other.min_point.x()) &&
          (min_point.y() <= other.max_point.y() &&
@@ -52,25 +53,29 @@ bool AABB::intersects(const AABB &other) const {
           max_point.z() >= other.min_point.z());
 }
 
-bool AABB::contains(const Eigen::Vector3d &point) const {
+bool AABB::contains(const Eigen::Vector3d& point) const {
   return point.x() >= min_point.x() && point.x() <= max_point.x() &&
          point.y() >= min_point.y() && point.y() <= max_point.y() &&
          point.z() >= min_point.z() && point.z() <= max_point.z();
 }
 
-void AABB::expand(const AABB &other) {
+void AABB::expand(const AABB& other) {
   min_point = min_point.cwiseMin(other.min_point);
   max_point = max_point.cwiseMax(other.max_point);
 }
 
-void AABB::expand(const Eigen::Vector3d &point) {
+void AABB::expand(const Eigen::Vector3d& point) {
   min_point = min_point.cwiseMin(point);
   max_point = max_point.cwiseMax(point);
 }
 
-Eigen::Vector3d AABB::center() const { return (min_point + max_point) * 0.5; }
+Eigen::Vector3d AABB::center() const {
+  return (min_point + max_point) * 0.5;
+}
 
-Eigen::Vector3d AABB::size() const { return max_point - min_point; }
+Eigen::Vector3d AABB::size() const {
+  return max_point - min_point;
+}
 
 double AABB::surface_area() const {
   const Eigen::Vector3d extent = size();
@@ -89,7 +94,7 @@ bool AABB::is_valid() const {
 }
 
 // BVH Implementation
-bool BVH::build(const core::Mesh &mesh, const BuildParams &params) {
+bool BVH::build(const core::Mesh& mesh, const BuildParams& params) {
   auto start_time = std::chrono::high_resolution_clock::now();
 
   mesh_ = &mesh;
@@ -119,8 +124,8 @@ bool BVH::build(const core::Mesh &mesh, const BuildParams &params) {
 }
 
 std::unique_ptr<BVHNode>
-BVH::build_recursive(const std::vector<int> &triangle_indices,
-                     const AABB &node_bounds, int depth) {
+BVH::build_recursive(const std::vector<int>& triangle_indices,
+                     const AABB& node_bounds, int depth) {
   auto node = std::make_unique<BVHNode>(node_bounds);
   stats_.total_nodes++;
   stats_.max_depth = std::max(stats_.max_depth, depth);
@@ -129,7 +134,6 @@ BVH::build_recursive(const std::vector<int> &triangle_indices,
   if (triangle_indices.size() <=
           static_cast<size_t>(params_.max_triangles_per_leaf) ||
       depth >= params_.max_depth) {
-
     node->is_leaf = true;
     node->triangle_indices = triangle_indices;
     stats_.leaf_nodes++;
@@ -160,7 +164,7 @@ BVH::build_recursive(const std::vector<int> &triangle_indices,
 }
 
 AABB BVH::calculate_triangle_bounds(
-    const std::vector<int> &triangle_indices) const {
+    const std::vector<int>& triangle_indices) const {
   if (triangle_indices.empty()) {
     return AABB{Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()};
   }
@@ -185,8 +189,8 @@ AABB BVH::calculate_triangle_bounds(
 }
 
 std::pair<std::vector<int>, std::vector<int>>
-BVH::split_triangles_sah(const std::vector<int> &triangle_indices,
-                         [[maybe_unused]] const AABB &node_bounds) const {
+BVH::split_triangles_sah(const std::vector<int>& triangle_indices,
+                         [[maybe_unused]] const AABB& node_bounds) const {
   const int num_buckets = 12;
   double best_cost = std::numeric_limits<double>::infinity();
   int best_split_axis = 0;
@@ -264,8 +268,8 @@ BVH::split_triangles_sah(const std::vector<int> &triangle_indices,
 }
 
 std::pair<std::vector<int>, std::vector<int>>
-BVH::split_triangles_midpoint(const std::vector<int> &triangle_indices,
-                              const AABB &node_bounds) const {
+BVH::split_triangles_midpoint(const std::vector<int>& triangle_indices,
+                              const AABB& node_bounds) const {
   // Find longest axis
   Eigen::Vector3d extent = node_bounds.size();
   int longest_axis = 0;
@@ -297,7 +301,7 @@ BVH::split_triangles_midpoint(const std::vector<int> &triangle_indices,
   return {left_triangles, right_triangles};
 }
 
-std::optional<BVH::RayHit> BVH::intersect_ray(const Ray &ray) const {
+std::optional<BVH::RayHit> BVH::intersect_ray(const Ray& ray) const {
   if (!root_)
     return std::nullopt;
 
@@ -309,8 +313,8 @@ std::optional<BVH::RayHit> BVH::intersect_ray(const Ray &ray) const {
   return std::nullopt;
 }
 
-bool BVH::ray_aabb_intersect(const Ray &ray, const AABB &aabb, double &t_near,
-                             double &t_far) const {
+bool BVH::ray_aabb_intersect(const Ray& ray, const AABB& aabb, double& t_near,
+                             double& t_far) const {
   t_near = ray.t_min;
   t_far = ray.t_max;
 
@@ -340,10 +344,10 @@ bool BVH::ray_aabb_intersect(const Ray &ray, const AABB &aabb, double &t_near,
   return t_far >= 0.0;
 }
 
-bool BVH::ray_triangle_intersect(const Ray &ray, int triangle_index,
-                                 RayHit &hit) const {
+bool BVH::ray_triangle_intersect(const Ray& ray, int triangle_index,
+                                 RayHit& hit) const {
   // Get triangle vertices
-  const auto &face = mesh_->faces().row(triangle_index);
+  const auto& face = mesh_->faces().row(triangle_index);
   Eigen::Vector3d v0 = mesh_->vertices().row(face[0]);
   Eigen::Vector3d v1 = mesh_->vertices().row(face[1]);
   Eigen::Vector3d v2 = mesh_->vertices().row(face[2]);
@@ -385,8 +389,8 @@ bool BVH::ray_triangle_intersect(const Ray &ray, int triangle_index,
   return false;
 }
 
-bool BVH::intersect_ray_recursive(const BVHNode *node, const Ray &ray,
-                                  RayHit &closest_hit) const {
+bool BVH::intersect_ray_recursive(const BVHNode* node, const Ray& ray,
+                                  RayHit& closest_hit) const {
   if (!node)
     return false;
 
@@ -413,7 +417,7 @@ bool BVH::intersect_ray_recursive(const BVHNode *node, const Ray &ray,
   return hit_left || hit_right;
 }
 
-std::vector<int> BVH::query_aabb(const AABB &aabb) const {
+std::vector<int> BVH::query_aabb(const AABB& aabb) const {
   std::vector<int> results;
   if (root_) {
     query_aabb_recursive(root_.get(), aabb, results);
@@ -421,8 +425,8 @@ std::vector<int> BVH::query_aabb(const AABB &aabb) const {
   return results;
 }
 
-void BVH::query_aabb_recursive(const BVHNode *node, const AABB &query_aabb,
-                               std::vector<int> &results) const {
+void BVH::query_aabb_recursive(const BVHNode* node, const AABB& query_aabb,
+                               std::vector<int>& results) const {
   if (!node || !node->bounding_box.intersects(query_aabb)) {
     return;
   }
@@ -438,7 +442,7 @@ void BVH::query_aabb_recursive(const BVHNode *node, const AABB &query_aabb,
 }
 
 std::optional<std::pair<Eigen::Vector3d, int>>
-BVH::closest_point(const Eigen::Vector3d &point) const {
+BVH::closest_point(const Eigen::Vector3d& point) const {
   // This is a simplified implementation - could be optimized further
   if (!root_ || mesh_->faces().rows() == 0) {
     return std::nullopt;
@@ -450,7 +454,7 @@ BVH::closest_point(const Eigen::Vector3d &point) const {
 
   // Query all triangles (could be optimized with spatial search)
   for (int tri_idx = 0; tri_idx < mesh_->faces().rows(); ++tri_idx) {
-    const auto &face = mesh_->faces().row(tri_idx);
+    const auto& face = mesh_->faces().row(tri_idx);
     Eigen::Vector3d v0 = mesh_->vertices().row(face[0]);
     Eigen::Vector3d v1 = mesh_->vertices().row(face[1]);
     Eigen::Vector3d v2 = mesh_->vertices().row(face[2]);

@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -67,26 +68,26 @@ namespace attribute_traits {
  */
 constexpr size_t size_of(AttributeType type) {
   switch (type) {
-  case AttributeType::FLOAT:
-    return sizeof(float);
-  case AttributeType::INT:
-    return sizeof(int);
-  case AttributeType::VEC2F:
-    return sizeof(Eigen::Vector2f);
-  case AttributeType::VEC3F:
-    return sizeof(Eigen::Vector3f);
-  case AttributeType::VEC4F:
-    return sizeof(Eigen::Vector4f);
-  case AttributeType::MATRIX3:
-    return sizeof(Eigen::Matrix3f);
-  case AttributeType::MATRIX4:
-    return sizeof(Eigen::Matrix4f);
-  case AttributeType::QUATERNION:
-    return sizeof(Eigen::Quaternionf);
-  case AttributeType::STRING:
-    return sizeof(std::string);
-  default:
-    return 0;
+    case AttributeType::FLOAT:
+      return sizeof(float);
+    case AttributeType::INT:
+      return sizeof(int);
+    case AttributeType::VEC2F:
+      return sizeof(Eigen::Vector2f);
+    case AttributeType::VEC3F:
+      return sizeof(Eigen::Vector3f);
+    case AttributeType::VEC4F:
+      return sizeof(Eigen::Vector4f);
+    case AttributeType::MATRIX3:
+      return sizeof(Eigen::Matrix3f);
+    case AttributeType::MATRIX4:
+      return sizeof(Eigen::Matrix4f);
+    case AttributeType::QUATERNION:
+      return sizeof(Eigen::Quaternionf);
+    case AttributeType::STRING:
+      return sizeof(std::string);
+    default:
+      return 0;
   }
 }
 
@@ -95,24 +96,24 @@ constexpr size_t size_of(AttributeType type) {
  */
 constexpr size_t component_count(AttributeType type) {
   switch (type) {
-  case AttributeType::FLOAT:
-  case AttributeType::INT:
-    return 1;
-  case AttributeType::VEC2F:
-    return 2;
-  case AttributeType::VEC3F:
-    return 3;
-  case AttributeType::VEC4F:
-  case AttributeType::QUATERNION:
-    return 4;
-  case AttributeType::MATRIX3:
-    return 9;
-  case AttributeType::MATRIX4:
-    return 16;
-  case AttributeType::STRING:
-    return 0; // N/A for strings
-  default:
-    return 0;
+    case AttributeType::FLOAT:
+    case AttributeType::INT:
+      return 1;
+    case AttributeType::VEC2F:
+      return 2;
+    case AttributeType::VEC3F:
+      return 3;
+    case AttributeType::VEC4F:
+    case AttributeType::QUATERNION:
+      return 4;
+    case AttributeType::MATRIX3:
+      return 9;
+    case AttributeType::MATRIX4:
+      return 16;
+    case AttributeType::STRING:
+      return 0; // N/A for strings
+    default:
+      return 0;
   }
 }
 
@@ -121,18 +122,18 @@ constexpr size_t component_count(AttributeType type) {
  */
 constexpr InterpolationMode default_interpolation(AttributeType type) {
   switch (type) {
-  case AttributeType::QUATERNION:
-    return InterpolationMode::QUATERNION_SLERP;
-  case AttributeType::INT:
-  case AttributeType::STRING:
-    return InterpolationMode::DISCRETE;
-  case AttributeType::FLOAT:
-  case AttributeType::VEC2F:
-  case AttributeType::VEC3F:
-  case AttributeType::VEC4F:
-  case AttributeType::MATRIX3:
-  case AttributeType::MATRIX4:
-    return InterpolationMode::LINEAR;
+    case AttributeType::QUATERNION:
+      return InterpolationMode::QUATERNION_SLERP;
+    case AttributeType::INT:
+    case AttributeType::STRING:
+      return InterpolationMode::DISCRETE;
+    case AttributeType::FLOAT:
+    case AttributeType::VEC2F:
+    case AttributeType::VEC3F:
+    case AttributeType::VEC4F:
+    case AttributeType::MATRIX3:
+    case AttributeType::MATRIX4:
+      return InterpolationMode::LINEAR;
   }
   return InterpolationMode::LINEAR; // Default case
 }
@@ -162,64 +163,64 @@ constexpr bool is_matrix(AttributeType type) {
 /**
  * @brief Get type name as string (for debugging/serialization)
  */
-constexpr const char *type_name(AttributeType type) {
+constexpr const char* type_name(AttributeType type) {
   switch (type) {
-  case AttributeType::FLOAT:
-    return "float";
-  case AttributeType::INT:
-    return "int";
-  case AttributeType::VEC2F:
-    return "vec2f";
-  case AttributeType::VEC3F:
-    return "vec3f";
-  case AttributeType::VEC4F:
-    return "vec4f";
-  case AttributeType::MATRIX3:
-    return "matrix3";
-  case AttributeType::MATRIX4:
-    return "matrix4";
-  case AttributeType::QUATERNION:
-    return "quaternion";
-  case AttributeType::STRING:
-    return "string";
-  default:
-    return "unknown";
+    case AttributeType::FLOAT:
+      return "float";
+    case AttributeType::INT:
+      return "int";
+    case AttributeType::VEC2F:
+      return "vec2f";
+    case AttributeType::VEC3F:
+      return "vec3f";
+    case AttributeType::VEC4F:
+      return "vec4f";
+    case AttributeType::MATRIX3:
+      return "matrix3";
+    case AttributeType::MATRIX4:
+      return "matrix4";
+    case AttributeType::QUATERNION:
+      return "quaternion";
+    case AttributeType::STRING:
+      return "string";
+    default:
+      return "unknown";
   }
 }
 
 /**
  * @brief Get element class name as string
  */
-constexpr const char *element_class_name(ElementClass cls) {
+constexpr const char* element_class_name(ElementClass cls) {
   switch (cls) {
-  case ElementClass::POINT:
-    return "point";
-  case ElementClass::VERTEX:
-    return "vertex";
-  case ElementClass::PRIMITIVE:
-    return "primitive";
-  case ElementClass::DETAIL:
-    return "detail";
-  default:
-    return "unknown";
+    case ElementClass::POINT:
+      return "point";
+    case ElementClass::VERTEX:
+      return "vertex";
+    case ElementClass::PRIMITIVE:
+      return "primitive";
+    case ElementClass::DETAIL:
+      return "detail";
+    default:
+      return "unknown";
   }
 }
 
 /**
  * @brief Get interpolation mode name as string
  */
-constexpr const char *interpolation_mode_name(InterpolationMode mode) {
+constexpr const char* interpolation_mode_name(InterpolationMode mode) {
   switch (mode) {
-  case InterpolationMode::LINEAR:
-    return "linear";
-  case InterpolationMode::DISCRETE:
-    return "discrete";
-  case InterpolationMode::QUATERNION_SLERP:
-    return "quaternion_slerp";
-  case InterpolationMode::SMOOTH:
-    return "smooth";
-  default:
-    return "unknown";
+    case InterpolationMode::LINEAR:
+      return "linear";
+    case InterpolationMode::DISCRETE:
+      return "discrete";
+    case InterpolationMode::QUATERNION_SLERP:
+      return "quaternion_slerp";
+    case InterpolationMode::SMOOTH:
+      return "smooth";
+    default:
+      return "unknown";
   }
 }
 

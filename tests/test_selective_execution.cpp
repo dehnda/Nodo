@@ -1,5 +1,6 @@
 #include "nodo/graph/execution_engine.hpp"
 #include "nodo/graph/node_graph.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::graph;

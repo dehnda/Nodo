@@ -7,7 +7,9 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/graph/node_graph.hpp"
+
 #include "nodo_core/IHostInterface.h"
+
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -15,7 +17,7 @@
 // Forward declarations
 namespace nodo::sop {
 class SOPNode;
-}
+} // namespace nodo::sop
 
 namespace nodo::graph {
 
@@ -23,7 +25,7 @@ namespace nodo::graph {
  * @brief Execution context for a single node
  */
 struct ExecutionContext {
-  GraphNode *node;
+  GraphNode* node;
   std::vector<std::shared_ptr<core::GeometryContainer>> input_geometries;
   std::shared_ptr<core::GeometryContainer> output_geometry;
   bool success = false;
@@ -38,7 +40,7 @@ public:
   using ProgressCallback =
       std::function<void(int completed_nodes, int total_nodes)>;
   using ErrorCallback =
-      std::function<void(const std::string &error, int node_id)>;
+      std::function<void(const std::string& error, int node_id)>;
 
   ExecutionEngine() = default;
   ~ExecutionEngine() = default;
@@ -48,7 +50,7 @@ public:
    * @param graph The graph to execute
    * @return True if execution completed successfully
    */
-  bool execute_graph(NodeGraph &graph);
+  bool execute_graph(NodeGraph& graph);
 
   /**
    * @brief Get cached geometry for a node
@@ -68,7 +70,7 @@ public:
    * @param graph The node graph
    * @param node_id Node ID that was modified
    */
-  void invalidate_node(NodeGraph &graph, int node_id);
+  void invalidate_node(NodeGraph& graph, int node_id);
 
   /**
    * @brief Set progress callback
@@ -94,7 +96,7 @@ public:
    *
    * @since M2.1
    */
-  void set_host_interface(IHostInterface *host_interface) {
+  void set_host_interface(IHostInterface* host_interface) {
     host_interface_ = host_interface;
   }
 
@@ -102,7 +104,7 @@ public:
    * @brief Get current host interface
    * @return Host interface or nullptr if not set
    */
-  IHostInterface *get_host_interface() const { return host_interface_; }
+  IHostInterface* get_host_interface() const { return host_interface_; }
 
 private:
   // Result cache: node_id -> geometry_container (new system)
@@ -114,13 +116,13 @@ private:
   ErrorCallback error_callback_;
 
   // Host interface (optional, nullptr if not set)
-  IHostInterface *host_interface_ = nullptr;
+  IHostInterface* host_interface_ = nullptr;
 
   // Helper methods
   std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
-  gather_input_geometries(const NodeGraph &graph, int node_id);
+  gather_input_geometries(const NodeGraph& graph, int node_id);
   void notify_progress(int completed, int total);
-  void notify_error(const std::string &error, int node_id);
+  void notify_error(const std::string& error, int node_id);
 
   /**
    * @brief Transfer parameters from GraphNode to SOPNode
@@ -130,15 +132,15 @@ private:
    * @param sop_node Target SOP node
    * @param graph Node graph for parameter resolution
    */
-  void transfer_parameters(const GraphNode &graph_node, sop::SOPNode &sop_node,
-                           const NodeGraph &graph);
+  void transfer_parameters(const GraphNode& graph_node, sop::SOPNode& sop_node,
+                           const NodeGraph& graph);
 
   /**
    * @brief Sync parameters from SOPNode back to GraphNode
    * Handles dynamically added parameters (e.g., Wrangle ch() params)
    */
-  void sync_parameters_from_sop(const sop::SOPNode &sop_node,
-                                GraphNode &graph_node);
+  void sync_parameters_from_sop(const sop::SOPNode& sop_node,
+                                GraphNode& graph_node);
 };
 
 } // namespace nodo::graph

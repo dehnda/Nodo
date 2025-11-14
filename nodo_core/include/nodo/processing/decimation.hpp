@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 
 namespace nodo::processing {
@@ -53,13 +54,13 @@ public:
    * @return Decimated geometry, or std::nullopt on error
    */
   static std::optional<core::GeometryContainer>
-  decimate(const core::GeometryContainer &input,
-           const DecimationParams &params);
+  decimate(const core::GeometryContainer& input,
+           const DecimationParams& params);
 
   /**
    * @brief Get last error message
    */
-  static const std::string &get_last_error();
+  static const std::string& get_last_error();
 
 private:
   static void set_error(std::string error);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 #include <string>
 
@@ -80,8 +81,8 @@ public:
    * @note Distance values stored as float point attribute
    */
   static std::optional<core::GeometryContainer>
-  compute(const core::GeometryContainer &input, const GeodesicParams &params,
-          std::string *error);
+  compute(const core::GeometryContainer& input, const GeodesicParams& params,
+          std::string* error);
 };
 
 } // namespace nodo::processing

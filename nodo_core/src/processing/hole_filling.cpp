@@ -1,17 +1,19 @@
 #include "nodo/processing/hole_filling.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
-#include <fmt/core.h>
-#include <pmp/algorithms/hole_filling.h>
+
 #include <set>
 
+#include <fmt/core.h>
+#include <pmp/algorithms/hole_filling.h>
 
 namespace nodo::processing {
 
 std::optional<core::GeometryContainer>
-HoleFilling::fill_holes(const core::GeometryContainer &input,
-                        const HoleFillingParams &params) {
+HoleFilling::fill_holes(const core::GeometryContainer& input,
+                        const HoleFillingParams& params) {
   // Validate input
   auto validation_error = detail::PMPConverter::validate_for_pmp(input);
   if (!validation_error.empty()) {
@@ -74,7 +76,7 @@ HoleFilling::fill_holes(const core::GeometryContainer &input,
     try {
       pmp::fill_hole(pmp_mesh, h);
       filled_count++;
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       fmt::print("  Warning: Failed to fill hole: {}\n", e.what());
     }
   }

@@ -2,6 +2,7 @@
 
 #include "../core/geometry_container.hpp"
 #include "sop_node.hpp"
+
 #include <regex>
 
 namespace nodo::sop {
@@ -19,7 +20,7 @@ class AttributeDeleteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit AttributeDeleteSOP(const std::string &node_name = "attribdelete")
+  explicit AttributeDeleteSOP(const std::string& node_name = "attribdelete")
       : SOPNode(node_name, "AttributeDelete") {
     // Single geometry input
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -83,7 +84,7 @@ protected:
     // Helper function to delete matching attributes
     auto delete_from_class = [&](auto get_names_func, auto remove_func) {
       auto names = get_names_func();
-      for (const auto &name : names) {
+      for (const auto& name : names) {
         bool matches = std::regex_match(name, pattern_regex);
         // Delete if: (matches && !invert) || (!matches && invert)
         if (matches != invert) {
@@ -94,54 +95,58 @@ protected:
 
     // Delete based on class
     switch (attr_class) {
-    case 0: // Point
-      delete_from_class([&]() { return output->get_point_attribute_names(); },
-                        [&](const std::string &name) {
-                          output->remove_point_attribute(name);
-                        });
-      break;
+      case 0: // Point
+        delete_from_class([&]() { return output->get_point_attribute_names(); },
+                          [&](const std::string& name) {
+                            output->remove_point_attribute(name);
+                          });
+        break;
 
-    case 1: // Primitive
-      delete_from_class(
-          [&]() { return output->get_primitive_attribute_names(); },
-          [&](const std::string &name) {
-            output->remove_primitive_attribute(name);
-          });
-      break;
+      case 1: // Primitive
+        delete_from_class(
+            [&]() { return output->get_primitive_attribute_names(); },
+            [&](const std::string& name) {
+              output->remove_primitive_attribute(name);
+            });
+        break;
 
-    case 2: // Vertex
-      delete_from_class([&]() { return output->get_vertex_attribute_names(); },
-                        [&](const std::string &name) {
-                          output->remove_vertex_attribute(name);
-                        });
-      break;
+      case 2: // Vertex
+        delete_from_class(
+            [&]() { return output->get_vertex_attribute_names(); },
+            [&](const std::string& name) {
+              output->remove_vertex_attribute(name);
+            });
+        break;
 
-    case 3: // Detail
-      delete_from_class([&]() { return output->get_detail_attribute_names(); },
-                        [&](const std::string &name) {
-                          output->remove_detail_attribute(name);
-                        });
-      break;
+      case 3: // Detail
+        delete_from_class(
+            [&]() { return output->get_detail_attribute_names(); },
+            [&](const std::string& name) {
+              output->remove_detail_attribute(name);
+            });
+        break;
 
-    case 4: // All classes
-      delete_from_class([&]() { return output->get_point_attribute_names(); },
-                        [&](const std::string &name) {
-                          output->remove_point_attribute(name);
-                        });
-      delete_from_class(
-          [&]() { return output->get_primitive_attribute_names(); },
-          [&](const std::string &name) {
-            output->remove_primitive_attribute(name);
-          });
-      delete_from_class([&]() { return output->get_vertex_attribute_names(); },
-                        [&](const std::string &name) {
-                          output->remove_vertex_attribute(name);
-                        });
-      delete_from_class([&]() { return output->get_detail_attribute_names(); },
-                        [&](const std::string &name) {
-                          output->remove_detail_attribute(name);
-                        });
-      break;
+      case 4: // All classes
+        delete_from_class([&]() { return output->get_point_attribute_names(); },
+                          [&](const std::string& name) {
+                            output->remove_point_attribute(name);
+                          });
+        delete_from_class(
+            [&]() { return output->get_primitive_attribute_names(); },
+            [&](const std::string& name) {
+              output->remove_primitive_attribute(name);
+            });
+        delete_from_class(
+            [&]() { return output->get_vertex_attribute_names(); },
+            [&](const std::string& name) {
+              output->remove_vertex_attribute(name);
+            });
+        delete_from_class(
+            [&]() { return output->get_detail_attribute_names(); },
+            [&](const std::string& name) {
+              output->remove_detail_attribute(name);
+            });
+        break;
     }
 
     return output;

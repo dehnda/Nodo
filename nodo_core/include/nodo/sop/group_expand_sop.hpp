@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 #include <set>
 
@@ -21,7 +22,7 @@ class GroupExpandSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupExpandSOP(const std::string &name = "group_expand")
+  explicit GroupExpandSOP(const std::string& name = "group_expand")
       : SOPNode(name, "GroupExpand") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -79,7 +80,7 @@ protected:
     }
 
     if (elem_class == 0) { // Point groups
-      auto *group_attr = result->get_point_attribute_typed<int>(group_name);
+      auto* group_attr = result->get_point_attribute_typed<int>(group_name);
       if (!group_attr) {
         set_error("Group '" + group_name + "' does not exist");
         return nullptr;
@@ -92,7 +93,7 @@ protected:
 
           for (size_t prim_idx = 0; prim_idx < result->primitive_count();
                ++prim_idx) {
-            const auto &prim_verts =
+            const auto& prim_verts =
                 result->topology().get_primitive_vertices(prim_idx);
 
             // Check if any vertex of this primitive is in the group
@@ -131,7 +132,7 @@ protected:
 
           for (size_t prim_idx = 0; prim_idx < result->primitive_count();
                ++prim_idx) {
-            const auto &prim_verts =
+            const auto& prim_verts =
                 result->topology().get_primitive_vertices(prim_idx);
 
             bool has_group_point = false;
@@ -173,7 +174,7 @@ protected:
         }
       }
     } else { // Primitive groups
-      auto *group_attr = result->get_primitive_attribute_typed<int>(group_name);
+      auto* group_attr = result->get_primitive_attribute_typed<int>(group_name);
       if (!group_attr) {
         set_error("Group '" + group_name + "' does not exist");
         return nullptr;
@@ -187,7 +188,7 @@ protected:
           for (size_t prim_idx = 0; prim_idx < result->primitive_count();
                ++prim_idx) {
             if ((*group_attr)[prim_idx] == 0) {
-              const auto &prim_verts =
+              const auto& prim_verts =
                   result->topology().get_primitive_vertices(prim_idx);
 
               // Check if any of its points are used by a grouped primitive
@@ -199,7 +200,7 @@ protected:
                 for (size_t other_prim = 0;
                      other_prim < result->primitive_count(); ++other_prim) {
                   if ((*group_attr)[other_prim] != 0) {
-                    const auto &other_verts =
+                    const auto& other_verts =
                         result->topology().get_primitive_vertices(other_prim);
                     for (int other_vert : other_verts) {
                       if (result->topology().get_vertex_point(other_vert) ==
@@ -233,7 +234,7 @@ protected:
           for (size_t prim_idx = 0; prim_idx < result->primitive_count();
                ++prim_idx) {
             if ((*group_attr)[prim_idx] != 0) {
-              const auto &prim_verts =
+              const auto& prim_verts =
                   result->topology().get_primitive_vertices(prim_idx);
 
               // Check if adjacent to any non-group primitive
@@ -244,7 +245,7 @@ protected:
                 for (size_t other_prim = 0;
                      other_prim < result->primitive_count(); ++other_prim) {
                   if ((*group_attr)[other_prim] == 0) {
-                    const auto &other_verts =
+                    const auto& other_verts =
                         result->topology().get_primitive_vertices(other_prim);
                     for (int other_vert : other_verts) {
                       if (result->topology().get_vertex_point(other_vert) ==

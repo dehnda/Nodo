@@ -12,7 +12,7 @@ class SwitchSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SwitchSOP(const std::string &node_name = "switch")
+  explicit SwitchSOP(const std::string& node_name = "switch")
       : SOPNode(node_name, "Switch") {
     // Multiple geometry inputs (up to 10)
     for (int i = 0; i < 10; ++i) {

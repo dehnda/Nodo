@@ -1,4 +1,5 @@
 #include "nodo/geometry/sphere_generator.hpp"
+
 #include <cmath>
 #include <map>
 #include <numbers>
@@ -20,7 +21,6 @@ constexpr int MAX_SUBDIVISIONS = 6;
 std::optional<core::GeometryContainer>
 SphereGenerator::generate_uv_sphere(double radius, int u_segments,
                                     int v_segments) {
-
   if (radius <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::InvalidFormat,
@@ -46,7 +46,7 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
   container.set_point_count(num_vertices);
   container.set_vertex_count(num_vertices); // 1:1 mapping for UV sphere
 
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Build primitive vertex lists (3 vertices per triangle)
   std::vector<std::vector<int>> primitive_vertices;
@@ -124,13 +124,13 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
   }
 
   // Set topology primitives
-  for (const auto &prim_verts : primitive_vertices) {
+  for (const auto& prim_verts : primitive_vertices) {
     topology.add_primitive(prim_verts);
   }
 
   // Create P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -138,7 +138,7 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
 
   // Create N (normal) attribute - for spheres, normals point from center
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
     for (size_t i = 0; i < positions.size(); ++i) {
@@ -161,7 +161,6 @@ SphereGenerator::generate_uv_sphere(double radius, int u_segments,
 
 std::optional<core::GeometryContainer>
 SphereGenerator::generate_icosphere(double radius, int subdivisions) {
-
   if (radius <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::InvalidFormat,
@@ -203,7 +202,7 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
       {4, 9, 5},  {2, 4, 11}, {6, 2, 10},  {8, 6, 7},  {9, 8, 1}};
 
   // Normalize initial vertices to unit sphere
-  for (auto &vertex : vertices) {
+  for (auto& vertex : vertices) {
     vertex = normalize_vertex(vertex, 1.0);
   }
 
@@ -214,7 +213,7 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
 
     std::map<std::pair<int, int>, int> edge_vertex_map;
 
-    for (const auto &face : faces) {
+    for (const auto& face : faces) {
       // Get or create midpoint vertices
       auto get_midpoint = [&](int vertex1, int vertex2) -> int {
         if (vertex1 > vertex2)
@@ -256,7 +255,7 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
   container.set_point_count(vertices.size());
   container.set_vertex_count(vertices.size()); // 1:1 mapping for icosphere
 
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Set up 1:1 vertex→point mapping
   for (size_t i = 0; i < vertices.size(); ++i) {
@@ -264,13 +263,13 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
   }
 
   // Add primitives
-  for (const auto &face : faces) {
+  for (const auto& face : faces) {
     topology.add_primitive({face[0], face[1], face[2]});
   }
 
   // Create position attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     for (size_t i = 0; i < vertices.size(); ++i) {
@@ -283,7 +282,7 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
 
   // Create normal attribute (for icosphere, normals are normalized positions)
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
     for (size_t i = 0; i < vertices.size(); ++i) {
@@ -297,13 +296,15 @@ SphereGenerator::generate_icosphere(double radius, int subdivisions) {
   return container;
 }
 
-const core::Error &SphereGenerator::last_error() { return last_error_; }
+const core::Error& SphereGenerator::last_error() {
+  return last_error_;
+}
 
-void SphereGenerator::set_last_error(const core::Error &error) {
+void SphereGenerator::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 
-Eigen::Vector3d SphereGenerator::normalize_vertex(const Eigen::Vector3d &vertex,
+Eigen::Vector3d SphereGenerator::normalize_vertex(const Eigen::Vector3d& vertex,
                                                   double radius) {
   return vertex.normalized() * radius;
 }

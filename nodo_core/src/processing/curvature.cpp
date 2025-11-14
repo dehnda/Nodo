@@ -1,18 +1,20 @@
 #include "nodo/processing/curvature.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
+
 #include <cmath>
+
 #include <fmt/core.h>
 #include <pmp/algorithms/curvature.h>
 #include <pmp/algorithms/normals.h>
 
-
 namespace nodo::processing {
 
 std::optional<core::GeometryContainer>
-Curvature::compute(const core::GeometryContainer &input,
-                   const CurvatureParams &params) {
+Curvature::compute(const core::GeometryContainer& input,
+                   const CurvatureParams& params) {
   // Validate input
   auto validation_error = detail::PMPConverter::validate_for_pmp(input);
   if (!validation_error.empty()) {
@@ -107,7 +109,7 @@ Curvature::compute(const core::GeometryContainer &input,
     if (compute_mean) {
       fmt::print("  Adding mean_curvature attribute...\n");
       result.add_point_attribute("mean_curvature", core::AttributeType::FLOAT);
-      auto *attr = result.get_point_attribute_typed<float>("mean_curvature");
+      auto* attr = result.get_point_attribute_typed<float>("mean_curvature");
       if (!attr) {
         fmt::print("  ERROR: Failed to get mean_curvature attribute!\n");
         return std::nullopt;
@@ -129,7 +131,7 @@ Curvature::compute(const core::GeometryContainer &input,
     if (compute_gaussian) {
       result.add_point_attribute("gaussian_curvature",
                                  core::AttributeType::FLOAT);
-      auto *attr =
+      auto* attr =
           result.get_point_attribute_typed<float>("gaussian_curvature");
       attr->resize(n_verts);
 
@@ -145,7 +147,7 @@ Curvature::compute(const core::GeometryContainer &input,
 
     if (compute_min) {
       result.add_point_attribute("min_curvature", core::AttributeType::FLOAT);
-      auto *attr = result.get_point_attribute_typed<float>("min_curvature");
+      auto* attr = result.get_point_attribute_typed<float>("min_curvature");
       attr->resize(n_verts);
 
       auto attr_span = attr->values_writable();
@@ -160,7 +162,7 @@ Curvature::compute(const core::GeometryContainer &input,
 
     if (compute_max) {
       result.add_point_attribute("max_curvature", core::AttributeType::FLOAT);
-      auto *attr = result.get_point_attribute_typed<float>("max_curvature");
+      auto* attr = result.get_point_attribute_typed<float>("max_curvature");
       attr->resize(n_verts);
 
       auto attr_span = attr->values_writable();
@@ -179,14 +181,14 @@ Curvature::compute(const core::GeometryContainer &input,
     // Debug: Print all attribute names and verify they're accessible
     auto attr_names = result.get_point_attribute_names();
     fmt::print("Curvature: Point attribute names ({}): ", attr_names.size());
-    for (const auto &name : attr_names) {
+    for (const auto& name : attr_names) {
       fmt::print("'{}', ", name);
     }
     fmt::print("\n");
 
     // Verify attributes can be retrieved
     if (compute_mean) {
-      auto *attr = result.get_point_attribute_typed<float>("mean_curvature");
+      auto* attr = result.get_point_attribute_typed<float>("mean_curvature");
       if (attr) {
         fmt::print("  mean_curvature: size={}, first value={}\n", attr->size(),
                    attr->size() > 0 ? (*attr)[0] : 0.0f);
@@ -196,7 +198,7 @@ Curvature::compute(const core::GeometryContainer &input,
     }
 
     return result;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     fmt::print("Curvature: Failed to compute: {}\n", e.what());
     return std::nullopt;
   }

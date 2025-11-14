@@ -17,7 +17,7 @@ class RemeshingSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit RemeshingSOP(const std::string &node_name = "remesh")
+  explicit RemeshingSOP(const std::string& node_name = "remesh")
       : SOPNode(node_name, "Remesh") {
     // Single input
     // Output is defined in base class

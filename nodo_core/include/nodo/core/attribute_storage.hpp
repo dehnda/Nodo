@@ -2,6 +2,7 @@
 
 #include "attribute_descriptor.hpp"
 #include "attribute_types.hpp"
+
 #include <cstring>
 #include <memory>
 #include <span>
@@ -22,7 +23,7 @@ public:
   /**
    * @brief Get the descriptor for this attribute
    */
-  virtual const AttributeDescriptor &descriptor() const = 0;
+  virtual const AttributeDescriptor& descriptor() const = 0;
 
   /**
    * @brief Get number of elements stored
@@ -52,8 +53,8 @@ public:
   /**
    * @brief Get raw pointer to data (for memcpy/serialization)
    */
-  virtual void *data_ptr() = 0;
-  virtual const void *data_ptr() const = 0;
+  virtual void* data_ptr() = 0;
+  virtual const void* data_ptr() const = 0;
 
   /**
    * @brief Clone this storage (deep copy)
@@ -67,7 +68,7 @@ public:
    * @param src Source storage (must have same type)
    */
   virtual void copy_element(size_t from_index, size_t to_index,
-                            const IAttributeStorage &src) = 0;
+                            const IAttributeStorage& src) = 0;
 
   /**
    * @brief Swap two elements within this storage
@@ -92,7 +93,8 @@ public:
  * - Quaternionf
  * - std::string
  */
-template <typename T> class AttributeStorage : public IAttributeStorage {
+template <typename T>
+class AttributeStorage : public IAttributeStorage {
 public:
   explicit AttributeStorage(AttributeDescriptor desc)
       : descriptor_(std::move(desc)) {
@@ -107,7 +109,7 @@ public:
   }
 
   // IAttributeStorage interface
-  const AttributeDescriptor &descriptor() const override { return descriptor_; }
+  const AttributeDescriptor& descriptor() const override { return descriptor_; }
 
   size_t size() const override { return data_.size(); }
 
@@ -125,9 +127,9 @@ public:
 
   void clear() override { data_.clear(); }
 
-  void *data_ptr() override { return data_.data(); }
+  void* data_ptr() override { return data_.data(); }
 
-  const void *data_ptr() const override { return data_.data(); }
+  const void* data_ptr() const override { return data_.data(); }
 
   std::unique_ptr<IAttributeStorage> clone() const override {
     auto cloned = std::make_unique<AttributeStorage<T>>(descriptor_);
@@ -138,8 +140,8 @@ public:
   }
 
   void copy_element(size_t from_index, size_t to_index,
-                    const IAttributeStorage &src) override {
-    const auto *typed_src = dynamic_cast<const AttributeStorage<T> *>(&src);
+                    const IAttributeStorage& src) override {
+    const auto* typed_src = dynamic_cast<const AttributeStorage<T>*>(&src);
     if (!typed_src) {
       throw std::runtime_error("Type mismatch in copy_element");
     }
@@ -162,19 +164,19 @@ public:
    * @brief Get element by index (read-only)
    * Inline for maximum performance in tight loops
    */
-  inline const T &operator[](size_t index) const { return data_[index]; }
+  inline const T& operator[](size_t index) const { return data_[index]; }
 
   /**
    * @brief Get element by index (writable)
    * Inline for maximum performance in tight loops
    */
-  inline T &operator[](size_t index) { return data_[index]; }
+  inline T& operator[](size_t index) { return data_[index]; }
 
   /**
    * @brief Get element with bounds checking
    */
-  inline const T &at(size_t index) const { return data_.at(index); }
-  inline T &at(size_t index) { return data_.at(index); }
+  inline const T& at(size_t index) const { return data_.at(index); }
+  inline T& at(size_t index) { return data_.at(index); }
 
   /**
    * @brief Get all values as a span (zero-cost view)
@@ -186,7 +188,7 @@ public:
   /**
    * @brief Set value at index
    */
-  void set(size_t index, const T &value) {
+  void set(size_t index, const T& value) {
     if (index >= size()) {
       throw std::out_of_range("Index out of range");
     }
@@ -196,20 +198,21 @@ public:
   /**
    * @brief Push back a new element
    */
-  void push_back(const T &value) { data_.push_back(value); }
+  void push_back(const T& value) { data_.push_back(value); }
 
   /**
    * @brief Emplace back a new element
    */
-  template <typename... Args> void emplace_back(Args &&...args) {
+  template <typename... Args>
+  void emplace_back(Args&&... args) {
     data_.emplace_back(std::forward<Args>(args)...);
   }
 
   /**
    * @brief Get underlying vector (for advanced use)
    */
-  const std::vector<T> &get_vector() const { return data_; }
-  std::vector<T> &get_vector_writable() { return data_; }
+  const std::vector<T>& get_vector() const { return data_; }
+  std::vector<T>& get_vector_writable() { return data_; }
 
 private:
   AttributeDescriptor descriptor_;
@@ -219,20 +222,21 @@ private:
 };
 
 // Specialization for string (slightly different default handling)
-template <> class AttributeStorage<std::string> : public IAttributeStorage {
+template <>
+class AttributeStorage<std::string> : public IAttributeStorage {
 public:
   explicit AttributeStorage(AttributeDescriptor desc)
       : descriptor_(std::move(desc)) {}
 
-  const AttributeDescriptor &descriptor() const override { return descriptor_; }
+  const AttributeDescriptor& descriptor() const override { return descriptor_; }
   size_t size() const override { return data_.size(); }
   void resize(size_t count) override { data_.resize(count); }
   void reserve(size_t capacity) override { data_.reserve(capacity); }
   size_t capacity() const override { return data_.capacity(); }
   void clear() override { data_.clear(); }
 
-  void *data_ptr() override { return data_.data(); }
-  const void *data_ptr() const override { return data_.data(); }
+  void* data_ptr() override { return data_.data(); }
+  const void* data_ptr() const override { return data_.data(); }
 
   std::unique_ptr<IAttributeStorage> clone() const override {
     auto cloned = std::make_unique<AttributeStorage<std::string>>(descriptor_);
@@ -241,9 +245,9 @@ public:
   }
 
   void copy_element(size_t from_index, size_t to_index,
-                    const IAttributeStorage &src) override {
-    const auto *typed_src =
-        dynamic_cast<const AttributeStorage<std::string> *>(&src);
+                    const IAttributeStorage& src) override {
+    const auto* typed_src =
+        dynamic_cast<const AttributeStorage<std::string>*>(&src);
     if (!typed_src) {
       throw std::runtime_error("Type mismatch in copy_element");
     }
@@ -261,25 +265,25 @@ public:
   }
 
   // Typed accessors
-  const std::string &operator[](size_t index) const { return data_[index]; }
-  std::string &operator[](size_t index) { return data_[index]; }
-  const std::string &at(size_t index) const { return data_.at(index); }
-  std::string &at(size_t index) { return data_.at(index); }
+  const std::string& operator[](size_t index) const { return data_[index]; }
+  std::string& operator[](size_t index) { return data_[index]; }
+  const std::string& at(size_t index) const { return data_.at(index); }
+  std::string& at(size_t index) { return data_.at(index); }
 
   std::span<const std::string> values() const { return data_; }
   std::span<std::string> values_writable() { return data_; }
 
-  void set(size_t index, const std::string &value) {
+  void set(size_t index, const std::string& value) {
     if (index >= size()) {
       throw std::out_of_range("Index out of range");
     }
     data_[index] = value;
   }
 
-  void push_back(const std::string &value) { data_.push_back(value); }
+  void push_back(const std::string& value) { data_.push_back(value); }
 
-  const std::vector<std::string> &get_vector() const { return data_; }
-  std::vector<std::string> &get_vector_writable() { return data_; }
+  const std::vector<std::string>& get_vector() const { return data_; }
+  std::vector<std::string>& get_vector_writable() { return data_; }
 
 private:
   AttributeDescriptor descriptor_;
@@ -290,28 +294,28 @@ private:
  * @brief Factory to create typed AttributeStorage from descriptor
  */
 inline std::unique_ptr<IAttributeStorage>
-create_attribute_storage(const AttributeDescriptor &desc) {
+create_attribute_storage(const AttributeDescriptor& desc) {
   switch (desc.type()) {
-  case AttributeType::FLOAT:
-    return std::make_unique<AttributeStorage<float>>(desc);
-  case AttributeType::INT:
-    return std::make_unique<AttributeStorage<int>>(desc);
-  case AttributeType::VEC2F:
-    return std::make_unique<AttributeStorage<Vec2f>>(desc);
-  case AttributeType::VEC3F:
-    return std::make_unique<AttributeStorage<Vec3f>>(desc);
-  case AttributeType::VEC4F:
-    return std::make_unique<AttributeStorage<Vec4f>>(desc);
-  case AttributeType::MATRIX3:
-    return std::make_unique<AttributeStorage<Matrix3f>>(desc);
-  case AttributeType::MATRIX4:
-    return std::make_unique<AttributeStorage<Matrix4f>>(desc);
-  case AttributeType::QUATERNION:
-    return std::make_unique<AttributeStorage<Quaternionf>>(desc);
-  case AttributeType::STRING:
-    return std::make_unique<AttributeStorage<std::string>>(desc);
-  default:
-    throw std::runtime_error("Unknown attribute type");
+    case AttributeType::FLOAT:
+      return std::make_unique<AttributeStorage<float>>(desc);
+    case AttributeType::INT:
+      return std::make_unique<AttributeStorage<int>>(desc);
+    case AttributeType::VEC2F:
+      return std::make_unique<AttributeStorage<Vec2f>>(desc);
+    case AttributeType::VEC3F:
+      return std::make_unique<AttributeStorage<Vec3f>>(desc);
+    case AttributeType::VEC4F:
+      return std::make_unique<AttributeStorage<Vec4f>>(desc);
+    case AttributeType::MATRIX3:
+      return std::make_unique<AttributeStorage<Matrix3f>>(desc);
+    case AttributeType::MATRIX4:
+      return std::make_unique<AttributeStorage<Matrix4f>>(desc);
+    case AttributeType::QUATERNION:
+      return std::make_unique<AttributeStorage<Quaternionf>>(desc);
+    case AttributeType::STRING:
+      return std::make_unique<AttributeStorage<std::string>>(desc);
+    default:
+      throw std::runtime_error("Unknown attribute type");
   }
 }
 

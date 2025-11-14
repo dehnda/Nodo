@@ -96,7 +96,7 @@ public:
   /**
    * @brief Get the singleton instance
    */
-  static IconManager &instance();
+  static IconManager& instance();
 
   /**
    * @brief Get a QIcon for the specified icon type
@@ -104,7 +104,7 @@ public:
    * @param color Optional color override (uses theme default if not specified)
    * @return QIcon that can be used in Qt widgets
    */
-  QIcon getIcon(Icon icon, const QColor &color = QColor());
+  QIcon getIcon(Icon icon, const QColor& color = QColor());
 
   /**
    * @brief Get a QPixmap for the specified icon type
@@ -113,7 +113,7 @@ public:
    * @param color Optional color override
    * @return QPixmap that can be used in Qt widgets
    */
-  QPixmap getPixmap(Icon icon, int size = 24, const QColor &color = QColor());
+  QPixmap getPixmap(Icon icon, int size = 24, const QColor& color = QColor());
 
   /**
    * @brief Get the Unicode fallback character for an icon
@@ -127,7 +127,7 @@ public:
    * @brief Set the default icon color for the current theme
    * @param color The color to use for icons
    */
-  void setDefaultColor(const QColor &color);
+  void setDefaultColor(const QColor& color);
 
   /**
    * @brief Clear the icon cache (useful when theme changes)
@@ -137,8 +137,8 @@ public:
 private:
   IconManager();
   ~IconManager() = default;
-  IconManager(const IconManager &) = delete;
-  IconManager &operator=(const IconManager &) = delete;
+  IconManager(const IconManager&) = delete;
+  IconManager& operator=(const IconManager&) = delete;
 
   /**
    * @brief Load an SVG icon from resources
@@ -147,7 +147,7 @@ private:
    * @param size The size to render
    * @return QPixmap of the rendered icon
    */
-  QPixmap loadSvgIcon(const QString &iconName, const QColor &color, int size);
+  QPixmap loadSvgIcon(const QString& iconName, const QColor& color, int size);
 
   /**
    * @brief Get the icon filename for an icon enum
@@ -165,12 +165,12 @@ private:
 
 // Convenience functions for easy icon access
 namespace Icons {
-inline QIcon get(IconManager::Icon icon, const QColor &color = QColor()) {
+inline QIcon get(IconManager::Icon icon, const QColor& color = QColor()) {
   return IconManager::instance().getIcon(icon, color);
 }
 
 inline QPixmap getPixmap(IconManager::Icon icon, int size = 24,
-                         const QColor &color = QColor()) {
+                         const QColor& color = QColor()) {
   return IconManager::instance().getPixmap(icon, size, color);
 }
 

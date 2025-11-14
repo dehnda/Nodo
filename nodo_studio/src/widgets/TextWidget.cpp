@@ -3,17 +3,17 @@
 namespace nodo_studio {
 namespace widgets {
 
-TextWidget::TextWidget(const QString &label, const QString &initial_text,
-                       const QString &placeholder, const QString &description,
-                       QWidget *parent)
-    : BaseParameterWidget(label, description, parent), text_(initial_text),
+TextWidget::TextWidget(const QString& label, const QString& initial_text,
+                       const QString& placeholder, const QString& description,
+                       QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      text_(initial_text),
       placeholder_(placeholder) {
-
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
 
-QWidget *TextWidget::createControlWidget() {
+QWidget* TextWidget::createControlWidget() {
   line_edit_ = new QLineEdit(this);
   line_edit_->setText(text_);
   line_edit_->setPlaceholderText(placeholder_);
@@ -47,9 +47,11 @@ QWidget *TextWidget::createControlWidget() {
   return line_edit_;
 }
 
-QString TextWidget::getText() const { return text_; }
+QString TextWidget::getText() const {
+  return text_;
+}
 
-void TextWidget::setText(const QString &text) {
+void TextWidget::setText(const QString& text) {
   if (text_ == text)
     return;
 
@@ -62,7 +64,7 @@ void TextWidget::setText(const QString &text) {
   }
 }
 
-void TextWidget::setPlaceholder(const QString &placeholder) {
+void TextWidget::setPlaceholder(const QString& placeholder) {
   placeholder_ = placeholder;
   if (line_edit_) {
     line_edit_->setPlaceholderText(placeholder);
@@ -70,16 +72,16 @@ void TextWidget::setPlaceholder(const QString &placeholder) {
 }
 
 void TextWidget::setTextChangedCallback(
-    std::function<void(const QString &)> callback) {
+    std::function<void(const QString&)> callback) {
   text_changed_callback_ = callback;
 }
 
 void TextWidget::setTextEditingFinishedCallback(
-    std::function<void(const QString &)> callback) {
+    std::function<void(const QString&)> callback) {
   editing_finished_callback_ = callback;
 }
 
-void TextWidget::onTextChanged(const QString &text) {
+void TextWidget::onTextChanged(const QString& text) {
   text_ = text;
 
   emit textChangedSignal(text_);

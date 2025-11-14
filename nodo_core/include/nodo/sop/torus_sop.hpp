@@ -17,12 +17,14 @@ private:
   static constexpr int DEFAULT_MAJOR_SEGMENTS = 48;
   static constexpr int DEFAULT_MINOR_SEGMENTS = 12;
 
-  enum class PrimitiveType { Polygon = 0, Points = 1 };
+  enum class PrimitiveType {
+    Polygon = 0,
+    Points = 1
+  };
 
 public:
-  explicit TorusSOP(const std::string &node_name = "torus")
+  explicit TorusSOP(const std::string& node_name = "torus")
       : SOPNode(node_name, "Torus") {
-
     // Universal: Primitive Type
     register_parameter(define_int_parameter("primitive_type", 0)
                            .label("Primitive Type")
@@ -107,13 +109,13 @@ protected:
           std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
-        auto &topology = container->topology();
+        auto& topology = container->topology();
         topology.set_primitive_count(0);
       }
 
       return container;
 
-    } catch (const std::exception &exception) {
+    } catch (const std::exception& exception) {
       set_error("Exception during torus generation: " +
                 std::string(exception.what()));
       return nullptr;

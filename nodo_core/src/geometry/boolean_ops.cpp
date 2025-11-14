@@ -1,9 +1,11 @@
 #include "nodo/geometry/boolean_ops.hpp"
+
 #include <array>
 #include <fstream>
 #include <iostream>
-#include <manifold/manifold.h>
 #include <vector>
+
+#include <manifold/manifold.h>
 
 using namespace manifold;
 
@@ -13,8 +15,8 @@ namespace nodo::geometry {
 thread_local core::Error BooleanOps::last_error_{
     core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-std::optional<core::Mesh> BooleanOps::union_meshes(const core::Mesh &a,
-                                                   const core::Mesh &b) {
+std::optional<core::Mesh> BooleanOps::union_meshes(const core::Mesh& a,
+                                                   const core::Mesh& b) {
   if (!are_compatible(a, b)) {
     set_last_error(core::Error{
         core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
@@ -25,8 +27,8 @@ std::optional<core::Mesh> BooleanOps::union_meshes(const core::Mesh &a,
   return manifold_boolean_operation(a, b, 0); // 0 = union
 }
 
-std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh &a,
-                                                       const core::Mesh &b) {
+std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh& a,
+                                                       const core::Mesh& b) {
   if (!are_compatible(a, b)) {
     set_last_error(core::Error{
         core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
@@ -37,8 +39,8 @@ std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh &a,
   return manifold_boolean_operation(a, b, 1); // 1 = intersection
 }
 
-std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh &a,
-                                                        const core::Mesh &b) {
+std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh& a,
+                                                        const core::Mesh& b) {
   if (!are_compatible(a, b)) {
     set_last_error(core::Error{
         core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
@@ -49,14 +51,16 @@ std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh &a,
   return manifold_boolean_operation(a, b, 2); // 2 = difference
 }
 
-const core::Error &BooleanOps::last_error() { return last_error_; }
+const core::Error& BooleanOps::last_error() {
+  return last_error_;
+}
 
-bool BooleanOps::are_compatible(const core::Mesh &a,
-                                const core::Mesh &b) noexcept {
+bool BooleanOps::are_compatible(const core::Mesh& a,
+                                const core::Mesh& b) noexcept {
   return validate_mesh(a) && validate_mesh(b);
 }
 
-bool BooleanOps::validate_mesh(const core::Mesh &mesh) {
+bool BooleanOps::validate_mesh(const core::Mesh& mesh) {
   if (mesh.vertices().rows() < 3 || mesh.faces().rows() < 1) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::EmptyMesh,
@@ -81,7 +85,7 @@ bool BooleanOps::validate_mesh(const core::Mesh &mesh) {
 }
 
 // Helper: Convert Eigen mesh to Manifold format
-static Manifold eigen_to_manifold(const core::Mesh &mesh) {
+static Manifold eigen_to_manifold(const core::Mesh& mesh) {
   MeshGL manifold_mesh;
 
   // Convert vertices - MeshGL uses flat float array
@@ -125,7 +129,7 @@ static Manifold eigen_to_manifold(const core::Mesh &mesh) {
 }
 
 // Helper: Convert Manifold back to Eigen mesh
-static core::Mesh manifold_to_eigen(const Manifold &manifold) {
+static core::Mesh manifold_to_eigen(const Manifold& manifold) {
   MeshGL manifold_mesh = manifold.GetMeshGL();
 
   core::Mesh result;
@@ -158,7 +162,7 @@ static core::Mesh manifold_to_eigen(const Manifold &manifold) {
 }
 
 std::optional<core::Mesh>
-BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
+BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
                                        int operation_type) {
   try {
     // Convert to Manifold format
@@ -232,62 +236,65 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
     // Perform boolean operation
     manifold::Manifold result;
     switch (operation_type) {
-    case 0: // Union
-      result = mesh_a + mesh_b;
-      std::cout << "Boolean UNION: " << mesh_a.NumTri() << " + "
-                << mesh_b.NumTri() << " = " << result.NumTri() << " triangles"
-                << std::endl;
-      break;
-    case 1: // Intersection
-      result = mesh_a ^ mesh_b;
-      std::cout << "Boolean INTERSECTION: " << mesh_a.NumTri() << " ^ "
-                << mesh_b.NumTri() << " = " << result.NumTri() << " triangles"
-                << std::endl;
-      break;
-    case 2: // Difference
-      result = mesh_a - mesh_b;
-      std::cout << "Boolean DIFFERENCE: " << mesh_a.NumTri() << " - "
-                << mesh_b.NumTri() << " = " << result.NumTri()
-                << " triangles (raw)" << std::endl;
-
-      // Check if the result is actually manifold and has proper genus
-      std::cout << "  Raw result status: " << static_cast<int>(result.Status())
-                << ", genus: " << result.Genus()
-                << ", volume: " << result.Volume() << std::endl;
-
-      // Try AsOriginal() to resolve the mesh (genus -1 indicates non-manifold
-      // intermediate)
-      result = result.AsOriginal();
-      std::cout << "  After AsOriginal(): " << result.NumTri() << " triangles"
-                << std::endl;
-      std::cout << "  Result genus: " << result.Genus()
-                << ", NumVert: " << result.NumVert()
-                << ", NumEdge: " << result.NumEdge()
-                << ", Status: " << static_cast<int>(result.Status())
-                << ", Volume: " << result.Volume() << std::endl;
-
-      // Expected: A difference should have MORE triangles than A alone
-      // because it includes interior cavity faces
-      if (result.NumTri() < mesh_a.NumTri()) {
-        std::cout << "  ⚠️  WARNING: Result has FEWER triangles than input A!"
+      case 0: // Union
+        result = mesh_a + mesh_b;
+        std::cout << "Boolean UNION: " << mesh_a.NumTri() << " + "
+                  << mesh_b.NumTri() << " = " << result.NumTri() << " triangles"
                   << std::endl;
-        std::cout << "  This suggests interior faces are missing!" << std::endl;
-      } else {
-        std::cout << "  ✓ Result has more triangles (includes cavity surfaces)"
+        break;
+      case 1: // Intersection
+        result = mesh_a ^ mesh_b;
+        std::cout << "Boolean INTERSECTION: " << mesh_a.NumTri() << " ^ "
+                  << mesh_b.NumTri() << " = " << result.NumTri() << " triangles"
                   << std::endl;
-      }
+        break;
+      case 2: // Difference
+        result = mesh_a - mesh_b;
+        std::cout << "Boolean DIFFERENCE: " << mesh_a.NumTri() << " - "
+                  << mesh_b.NumTri() << " = " << result.NumTri()
+                  << " triangles (raw)" << std::endl;
 
-      // Check if volume is positive (correct orientation)
-      if (result.Volume() < 0) {
-        std::cout << "  ⚠️  WARNING: Result has NEGATIVE volume - inside out!"
+        // Check if the result is actually manifold and has proper genus
+        std::cout << "  Raw result status: "
+                  << static_cast<int>(result.Status())
+                  << ", genus: " << result.Genus()
+                  << ", volume: " << result.Volume() << std::endl;
+
+        // Try AsOriginal() to resolve the mesh (genus -1 indicates non-manifold
+        // intermediate)
+        result = result.AsOriginal();
+        std::cout << "  After AsOriginal(): " << result.NumTri() << " triangles"
                   << std::endl;
-      }
-      break;
-    default:
-      set_last_error(core::Error{core::ErrorCategory::Geometry,
-                                 core::ErrorCode::Unknown,
-                                 "Unknown boolean operation type"});
-      return std::nullopt;
+        std::cout << "  Result genus: " << result.Genus()
+                  << ", NumVert: " << result.NumVert()
+                  << ", NumEdge: " << result.NumEdge()
+                  << ", Status: " << static_cast<int>(result.Status())
+                  << ", Volume: " << result.Volume() << std::endl;
+
+        // Expected: A difference should have MORE triangles than A alone
+        // because it includes interior cavity faces
+        if (result.NumTri() < mesh_a.NumTri()) {
+          std::cout << "  ⚠️  WARNING: Result has FEWER triangles than input A!"
+                    << std::endl;
+          std::cout << "  This suggests interior faces are missing!"
+                    << std::endl;
+        } else {
+          std::cout
+              << "  ✓ Result has more triangles (includes cavity surfaces)"
+              << std::endl;
+        }
+
+        // Check if volume is positive (correct orientation)
+        if (result.Volume() < 0) {
+          std::cout << "  ⚠️  WARNING: Result has NEGATIVE volume - inside out!"
+                    << std::endl;
+        }
+        break;
+      default:
+        set_last_error(core::Error{core::ErrorCategory::Geometry,
+                                   core::ErrorCode::Unknown,
+                                   "Unknown boolean operation type"});
+        return std::nullopt;
     }
 
     // Check result
@@ -342,8 +349,8 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
       std::ofstream obj_out("/tmp/boolean_result.obj");
       if (obj_out.is_open()) {
         // Write vertices
-        const auto &V = debug_mesh.vertices();
-        const auto &F = debug_mesh.faces();
+        const auto& V = debug_mesh.vertices();
+        const auto& F = debug_mesh.faces();
         for (int i = 0; i < static_cast<int>(V.rows()); ++i) {
           obj_out << "v " << V(i, 0) << " " << V(i, 1) << " " << V(i, 2)
                   << "\n";
@@ -360,14 +367,14 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
         std::cout << "Failed to open /tmp/boolean_result.obj for writing"
                   << std::endl;
       }
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       std::cout << "Failed to export diagnostic OBJ: " << e.what() << std::endl;
     }
 
     // Convert back to Eigen format
     return manifold_to_eigen(result);
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     set_last_error(core::Error{core::ErrorCategory::Geometry,
                                core::ErrorCode::Unknown,
                                std::string("Manifold exception: ") + e.what()});
@@ -375,7 +382,7 @@ BooleanOps::manifold_boolean_operation(const core::Mesh &a, const core::Mesh &b,
   }
 }
 
-void BooleanOps::set_last_error(const core::Error &error) {
+void BooleanOps::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

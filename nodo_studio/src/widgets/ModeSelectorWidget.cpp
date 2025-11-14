@@ -1,24 +1,25 @@
 #include "ModeSelectorWidget.h"
+
 #include <QButtonGroup>
 
 namespace nodo_studio {
 namespace widgets {
 
-ModeSelectorWidget::ModeSelectorWidget(const QString &label,
-                                       const std::vector<QString> &options,
+ModeSelectorWidget::ModeSelectorWidget(const QString& label,
+                                       const std::vector<QString>& options,
                                        int initial_index,
-                                       const QString &description,
-                                       QWidget *parent)
-    : BaseParameterWidget(label, description, parent), options_(options),
+                                       const QString& description,
+                                       QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      options_(options),
       selected_index_(initial_index) {
-
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
 
-QWidget *ModeSelectorWidget::createControlWidget() {
-  auto *container = new QWidget(this);
-  auto *layout = new QHBoxLayout(container);
+QWidget* ModeSelectorWidget::createControlWidget() {
+  auto* container = new QWidget(this);
+  auto* layout = new QHBoxLayout(container);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0); // No spacing for segmented look
 
@@ -26,7 +27,7 @@ QWidget *ModeSelectorWidget::createControlWidget() {
   button_group_->setExclusive(true);
 
   for (size_t i = 0; i < options_.size(); ++i) {
-    auto *button = new QPushButton(options_[i], container);
+    auto* button = new QPushButton(options_[i], container);
     button->setCheckable(true);
     button->setChecked(static_cast<int>(i) == selected_index_);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -105,7 +106,7 @@ void ModeSelectorWidget::setSelectedIndex(int index) {
   }
 }
 
-void ModeSelectorWidget::setSelectedOption(const QString &option) {
+void ModeSelectorWidget::setSelectedOption(const QString& option) {
   for (size_t i = 0; i < options_.size(); ++i) {
     if (options_[i] == option) {
       setSelectedIndex(i);
@@ -114,7 +115,7 @@ void ModeSelectorWidget::setSelectedOption(const QString &option) {
   }
 }
 
-void ModeSelectorWidget::setOptions(const std::vector<QString> &options,
+void ModeSelectorWidget::setOptions(const std::vector<QString>& options,
                                     int selected_index) {
   options_ = options;
   selected_index_ =
@@ -130,7 +131,7 @@ void ModeSelectorWidget::setOptions(const std::vector<QString> &options,
 }
 
 void ModeSelectorWidget::setSelectionChangedCallback(
-    std::function<void(int, const QString &)> callback) {
+    std::function<void(int, const QString&)> callback) {
   selection_changed_callback_ = callback;
 }
 

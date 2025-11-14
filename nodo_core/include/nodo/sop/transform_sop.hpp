@@ -2,7 +2,9 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <Eigen/Dense>
+
 #include <memory>
 #include <string>
 
@@ -22,7 +24,7 @@ public:
    * @brief Construct transform operator with name
    * @param name Unique identifier for this SOP instance
    */
-  explicit TransformSOP(const std::string &name = "transform");
+  explicit TransformSOP(const std::string& name = "transform");
 
   /**
    * @brief Set translation

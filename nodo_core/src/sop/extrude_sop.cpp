@@ -4,7 +4,7 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-ExtrudeSOP::ExtrudeSOP(const std::string &name) : SOPNode(name, "Extrude") {
+ExtrudeSOP::ExtrudeSOP(const std::string& name) : SOPNode(name, "Extrude") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -79,14 +79,14 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   const float dir_z = get_parameter<float>("direction_z", 1.0F);
 
   // Get input positions
-  const auto *input_positions =
+  const auto* input_positions =
       input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
   }
 
-  const auto &input_topology = input->topology();
+  const auto& input_topology = input->topology();
   const size_t input_point_count = input_topology.point_count();
   const size_t input_prim_count = input_topology.primitive_count();
 
@@ -109,7 +109,7 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   std::vector<core::Vec3f> face_centroids(input_prim_count);
 
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     if (vert_indices.size() < 3) {
       continue; // Skip degenerate primitives
     }
@@ -152,7 +152,7 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   size_t total_vertices = 0;
 
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 3) {
@@ -173,7 +173,7 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   result->set_point_count(total_new_points);
   result->set_vertex_count(total_vertices);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
@@ -192,7 +192,7 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   size_t vertex_offset = 0;
 
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 3) {

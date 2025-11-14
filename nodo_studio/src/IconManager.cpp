@@ -1,4 +1,5 @@
 #include "IconManager.h"
+
 #include <QDebug>
 #include <QFile>
 #include <QPainter>
@@ -6,7 +7,7 @@
 
 namespace nodo_studio {
 
-IconManager &IconManager::instance() {
+IconManager& IconManager::instance() {
   static IconManager instance;
   return instance;
 }
@@ -16,7 +17,7 @@ IconManager::IconManager()
           QColor(224, 224, 224)) { // Default light gray for dark theme
 }
 
-QIcon IconManager::getIcon(Icon icon, const QColor &color) {
+QIcon IconManager::getIcon(Icon icon, const QColor& color) {
   QColor icon_color = color.isValid() ? color : default_color_;
 
   // Create icon with multiple sizes for better scaling
@@ -29,7 +30,7 @@ QIcon IconManager::getIcon(Icon icon, const QColor &color) {
   return qicon;
 }
 
-QPixmap IconManager::getPixmap(Icon icon, int size, const QColor &color) {
+QPixmap IconManager::getPixmap(Icon icon, int size, const QColor& color) {
   QColor icon_color = color.isValid() ? color : default_color_;
 
   // Create cache key
@@ -67,134 +68,134 @@ QPixmap IconManager::getPixmap(Icon icon, int size, const QColor &color) {
 QString IconManager::getUnicodeFallback(Icon icon) const {
   // Fallback Unicode characters (same as currently used)
   switch (icon) {
-  // File operations
-  case Icon::FileNew:
-    return "📄";
-  case Icon::FileSave:
-    return "💾";
-  case Icon::FileOpen:
-    return "📂";
-  case Icon::FileExport:
-    return "📤";
+    // File operations
+    case Icon::FileNew:
+      return "📄";
+    case Icon::FileSave:
+      return "💾";
+    case Icon::FileOpen:
+      return "📂";
+    case Icon::FileExport:
+      return "📤";
 
-  // Edit operations
-  case Icon::Undo:
-    return "↶";
-  case Icon::Redo:
-    return "↷";
-  case Icon::Delete:
-    return "⌫";
-  case Icon::Copy:
-    return "⎘";
+    // Edit operations
+    case Icon::Undo:
+      return "↶";
+    case Icon::Redo:
+      return "↷";
+    case Icon::Delete:
+      return "⌫";
+    case Icon::Copy:
+      return "⎘";
 
-  // View operations
-  case Icon::Wireframe:
-    return "◫";
-  case Icon::Shaded:
-    return "●";
-  case Icon::ResetCamera:
-    return "⟲";
-  case Icon::FitView:
-    return "⊡";
-  case Icon::Eye:
-    return "👁";
-  case Icon::EyeClosed:
-    return "✕";
-  case Icon::PointNumbers:
-    return "№";
-  case Icon::PrimitiveNumbers:
-    return "▣";
-  case Icon::ForwardArrow:
-    return "⊘"; // Pass-through/bypass icon - circle with slash
+    // View operations
+    case Icon::Wireframe:
+      return "◫";
+    case Icon::Shaded:
+      return "●";
+    case Icon::ResetCamera:
+      return "⟲";
+    case Icon::FitView:
+      return "⊡";
+    case Icon::Eye:
+      return "👁";
+    case Icon::EyeClosed:
+      return "✕";
+    case Icon::PointNumbers:
+      return "№";
+    case Icon::PrimitiveNumbers:
+      return "▣";
+    case Icon::ForwardArrow:
+      return "⊘"; // Pass-through/bypass icon - circle with slash
 
-  // Node generators
-  case Icon::Sphere:
-    return "●";
-  case Icon::Box:
-    return "■";
-  case Icon::Cylinder:
-    return "▮";
-  case Icon::Plane:
-    return "▬";
-  case Icon::Torus:
-    return "◯";
-  case Icon::Line:
-    return "─";
+    // Node generators
+    case Icon::Sphere:
+      return "●";
+    case Icon::Box:
+      return "■";
+    case Icon::Cylinder:
+      return "▮";
+    case Icon::Plane:
+      return "▬";
+    case Icon::Torus:
+      return "◯";
+    case Icon::Line:
+      return "─";
 
-  // Node modifiers
-  case Icon::Smooth:
-    return "⚙";
-  case Icon::Subdivide:
-    return "◇";
-  case Icon::Resample:
-    return "◈";
-  case Icon::Extrude:
-    return "↑";
-  case Icon::PolyExtrude:
-    return "⇈";
-  case Icon::Normal:
-    return "⟂";
+    // Node modifiers
+    case Icon::Smooth:
+      return "⚙";
+    case Icon::Subdivide:
+      return "◇";
+    case Icon::Resample:
+      return "◈";
+    case Icon::Extrude:
+      return "↑";
+    case Icon::PolyExtrude:
+      return "⇈";
+    case Icon::Normal:
+      return "⟂";
 
-  // Node arrays
-  case Icon::Array:
-    return "⋮";
-  case Icon::Scatter:
-    return "∴";
-  case Icon::CopyToPoints:
-    return "⊕";
+    // Node arrays
+    case Icon::Array:
+      return "⋮";
+    case Icon::Scatter:
+      return "∴";
+    case Icon::CopyToPoints:
+      return "⊕";
 
-  // Node boolean & transform
-  case Icon::BooleanUnion:
-    return "∪";
-  case Icon::Transform:
-    return "↔";
-  case Icon::Mirror:
-    return "⇄";
-  case Icon::NoiseDisplacement:
-    return "≈";
+    // Node boolean & transform
+    case Icon::BooleanUnion:
+      return "∪";
+    case Icon::Transform:
+      return "↔";
+    case Icon::Mirror:
+      return "⇄";
+    case Icon::NoiseDisplacement:
+      return "≈";
 
-  // Node utilities
-  case Icon::Merge:
-    return "⊞";
-  case Icon::Group:
-    return "◉";
-  case Icon::Wrangle:
-    return "✎";
-  case Icon::UVUnwrap:
-    return "▦";
+    // Node utilities
+    case Icon::Merge:
+      return "⊞";
+    case Icon::Group:
+      return "◉";
+    case Icon::Wrangle:
+      return "✎";
+    case Icon::UVUnwrap:
+      return "▦";
 
-  // UI elements
-  case Icon::Add:
-    return "➕";
-  case Icon::Edit:
-    return "✏";
-  case Icon::Remove:
-    return "➖";
-  case Icon::Search:
-    return "🔍";
-  case Icon::Settings:
-    return "⚙";
-  case Icon::Info:
-    return "ℹ";
-  case Icon::Warning:
-    return "⚠";
-  case Icon::Error:
-    return "✗";
-  case Icon::Success:
-    return "✓";
+    // UI elements
+    case Icon::Add:
+      return "➕";
+    case Icon::Edit:
+      return "✏";
+    case Icon::Remove:
+      return "➖";
+    case Icon::Search:
+      return "🔍";
+    case Icon::Settings:
+      return "⚙";
+    case Icon::Info:
+      return "ℹ";
+    case Icon::Warning:
+      return "⚠";
+    case Icon::Error:
+      return "✗";
+    case Icon::Success:
+      return "✓";
 
-  // Misc
-  case Icon::GPU:
-    return "⚡";
-  case Icon::Play:
-    return "▶";
-  case Icon::Pause:
-    return "⏸";
-  case Icon::Stop:
-    return "⏹";
+    // Misc
+    case Icon::GPU:
+      return "⚡";
+    case Icon::Play:
+      return "▶";
+    case Icon::Pause:
+      return "⏸";
+    case Icon::Stop:
+      return "⏹";
 
-  default:
-    return "?";
+    default:
+      return "?";
   }
 }
 
@@ -202,138 +203,138 @@ QString IconManager::getIconFileName(Icon icon) const {
   // Map to Iconoir icon names
   // See: https://iconoir.com/
   switch (icon) {
-  // File operations
-  case Icon::FileNew:
-    return "page-plus";
-  case Icon::FileSave:
-    return "floppy-disk";
-  case Icon::FileOpen:
-    return "folder";
-  case Icon::FileExport:
-    return "export";
+    // File operations
+    case Icon::FileNew:
+      return "page-plus";
+    case Icon::FileSave:
+      return "floppy-disk";
+    case Icon::FileOpen:
+      return "folder";
+    case Icon::FileExport:
+      return "export";
 
-  // Edit operations
-  case Icon::Undo:
-    return "undo";
-  case Icon::Redo:
-    return "redo";
-  case Icon::Delete:
-    return "bin";
-  case Icon::Copy:
-    return "copy";
+    // Edit operations
+    case Icon::Undo:
+      return "undo";
+    case Icon::Redo:
+      return "redo";
+    case Icon::Delete:
+      return "bin";
+    case Icon::Copy:
+      return "copy";
 
-  // View operations
-  case Icon::Wireframe:
-    return "view-grid";
-  case Icon::Shaded:
-    return "sphere";
-  case Icon::ResetCamera:
-    return "refresh-circle";
-  case Icon::FitView:
-    return "frame-simple";
-  case Icon::Eye:
-    return "eye";
-  case Icon::EyeClosed:
-    return "eye-closed";
-  case Icon::PointNumbers:
-    return "numbered-list-left";
-  case Icon::PrimitiveNumbers:
-    return "numbered-list-right";
-  case Icon::ForwardArrow:
-    return "pass-through";
+    // View operations
+    case Icon::Wireframe:
+      return "view-grid";
+    case Icon::Shaded:
+      return "sphere";
+    case Icon::ResetCamera:
+      return "refresh-circle";
+    case Icon::FitView:
+      return "frame-simple";
+    case Icon::Eye:
+      return "eye";
+    case Icon::EyeClosed:
+      return "eye-closed";
+    case Icon::PointNumbers:
+      return "numbered-list-left";
+    case Icon::PrimitiveNumbers:
+      return "numbered-list-right";
+    case Icon::ForwardArrow:
+      return "pass-through";
 
-  // Node generators
-  case Icon::Sphere:
-    return "sphere";
-  case Icon::Box:
-    return "cube";
-  case Icon::Cylinder:
-    return "cylinder";
-  case Icon::Plane:
-    return "square";
-  case Icon::Torus:
-    return "circle";
-  case Icon::Line:
-    return "line";
+    // Node generators
+    case Icon::Sphere:
+      return "sphere";
+    case Icon::Box:
+      return "cube";
+    case Icon::Cylinder:
+      return "cylinder";
+    case Icon::Plane:
+      return "square";
+    case Icon::Torus:
+      return "circle";
+    case Icon::Line:
+      return "line";
 
-  // Node modifiers
-  case Icon::Smooth:
-    return "settings";
-  case Icon::Subdivide:
-    return "grid";
-  case Icon::Resample:
-    return "refresh-double";
-  case Icon::Extrude:
-    return "arrow-up";
-  case Icon::PolyExtrude:
-    return "arrow-up-circle";
-  case Icon::Normal:
-    return "arrow-separate-vertical";
+    // Node modifiers
+    case Icon::Smooth:
+      return "settings";
+    case Icon::Subdivide:
+      return "grid";
+    case Icon::Resample:
+      return "refresh-double";
+    case Icon::Extrude:
+      return "arrow-up";
+    case Icon::PolyExtrude:
+      return "arrow-up-circle";
+    case Icon::Normal:
+      return "arrow-separate-vertical";
 
-  // Node arrays
-  case Icon::Array:
-    return "align-bottom-box";
-  case Icon::Scatter:
-    return "selection";
-  case Icon::CopyToPoints:
-    return "copy-plus";
+    // Node arrays
+    case Icon::Array:
+      return "align-bottom-box";
+    case Icon::Scatter:
+      return "selection";
+    case Icon::CopyToPoints:
+      return "copy-plus";
 
-  // Node boolean & transform
-  case Icon::BooleanUnion:
-    return "union";
-  case Icon::Transform:
-    return "move";
-  case Icon::Mirror:
-    return "flip";
-  case Icon::NoiseDisplacement:
-    return "signal";
+    // Node boolean & transform
+    case Icon::BooleanUnion:
+      return "union";
+    case Icon::Transform:
+      return "move";
+    case Icon::Mirror:
+      return "flip";
+    case Icon::NoiseDisplacement:
+      return "signal";
 
-  // Node utilities
-  case Icon::Merge:
-    return "merge";
-  case Icon::Group:
-    return "multi-bubble";
-  case Icon::Wrangle:
-    return "code";
-  case Icon::UVUnwrap:
-    return "grid-remove";
+    // Node utilities
+    case Icon::Merge:
+      return "merge";
+    case Icon::Group:
+      return "multi-bubble";
+    case Icon::Wrangle:
+      return "code";
+    case Icon::UVUnwrap:
+      return "grid-remove";
 
-  // UI elements
-  case Icon::Add:
-    return "plus";
-  case Icon::Edit:
-    return "edit-pencil";
-  case Icon::Remove:
-    return "minus";
-  case Icon::Search:
-    return "search";
-  case Icon::Settings:
-    return "settings";
-  case Icon::Info:
-    return "info-circle";
-  case Icon::Warning:
-    return "warning-triangle";
-  case Icon::Error:
-    return "cancel";
-  case Icon::Success:
-    return "check";
+    // UI elements
+    case Icon::Add:
+      return "plus";
+    case Icon::Edit:
+      return "edit-pencil";
+    case Icon::Remove:
+      return "minus";
+    case Icon::Search:
+      return "search";
+    case Icon::Settings:
+      return "settings";
+    case Icon::Info:
+      return "info-circle";
+    case Icon::Warning:
+      return "warning-triangle";
+    case Icon::Error:
+      return "cancel";
+    case Icon::Success:
+      return "check";
 
-  // Misc
-  case Icon::GPU:
-    return "flash";
-  case Icon::Play:
-    return "play";
-  case Icon::Pause:
-    return "pause";
-  case Icon::Stop:
-    return "square";
+    // Misc
+    case Icon::GPU:
+      return "flash";
+    case Icon::Play:
+      return "play";
+    case Icon::Pause:
+      return "pause";
+    case Icon::Stop:
+      return "square";
 
-  default:
-    return "circle";
+    default:
+      return "circle";
   }
 }
 
-QPixmap IconManager::loadSvgIcon(const QString &iconName, const QColor &color,
+QPixmap IconManager::loadSvgIcon(const QString& iconName, const QColor& color,
                                  int size) {
   // Try to load from Qt resources first
   QString resource_path = QString(":/icons/iconoir/%1.svg").arg(iconName);
@@ -387,13 +388,15 @@ QPixmap IconManager::loadSvgIcon(const QString &iconName, const QColor &color,
   return pixmap;
 }
 
-void IconManager::setDefaultColor(const QColor &color) {
+void IconManager::setDefaultColor(const QColor& color) {
   if (default_color_ != color) {
     default_color_ = color;
     clearCache();
   }
 }
 
-void IconManager::clearCache() { cache_.clear(); }
+void IconManager::clearCache() {
+  cache_.clear();
+}
 
 } // namespace nodo_studio

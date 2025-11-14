@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/geometry_container.hpp"
+
 #include <optional>
 #include <string>
 
@@ -48,8 +49,8 @@ public:
    * @return Remeshed geometry, or nullopt on failure
    */
   static std::optional<core::GeometryContainer>
-  remesh(const core::GeometryContainer &container,
-         const RemeshingParams &params, std::string *error = nullptr);
+  remesh(const core::GeometryContainer& container,
+         const RemeshingParams& params, std::string* error = nullptr);
 };
 
 } // namespace nodo::processing

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -20,7 +21,7 @@ class GroupCombineSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupCombineSOP(const std::string &name = "group_combine")
+  explicit GroupCombineSOP(const std::string& name = "group_combine")
       : SOPNode(name, "GroupCombine") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -86,13 +87,13 @@ protected:
     }
 
     // Get source groups
-    const int *group_a = nullptr;
-    const int *group_b = nullptr;
+    const int* group_a = nullptr;
+    const int* group_b = nullptr;
     size_t elem_count = 0;
 
     if (elem_class == 0) { // Points
-      auto *attr_a = result->get_point_attribute_typed<int>(group_a_name);
-      auto *attr_b = result->get_point_attribute_typed<int>(group_b_name);
+      auto* attr_a = result->get_point_attribute_typed<int>(group_a_name);
+      auto* attr_b = result->get_point_attribute_typed<int>(group_b_name);
 
       if (!attr_a || !attr_b) {
         set_error("One or both groups do not exist");
@@ -105,7 +106,7 @@ protected:
 
       // Create output group
       result->add_point_attribute(output_name, core::AttributeType::INT);
-      auto *output_attr = result->get_point_attribute_typed<int>(output_name);
+      auto* output_attr = result->get_point_attribute_typed<int>(output_name);
 
       // Perform operation
       for (size_t i = 0; i < elem_count; ++i) {
@@ -114,25 +115,25 @@ protected:
         bool result_val = false;
 
         switch (operation) {
-        case 0: // Union
-          result_val = in_a || in_b;
-          break;
-        case 1: // Intersect
-          result_val = in_a && in_b;
-          break;
-        case 2: // Subtract
-          result_val = in_a && !in_b;
-          break;
-        case 3: // Symmetric Difference
-          result_val = in_a != in_b;
-          break;
+          case 0: // Union
+            result_val = in_a || in_b;
+            break;
+          case 1: // Intersect
+            result_val = in_a && in_b;
+            break;
+          case 2: // Subtract
+            result_val = in_a && !in_b;
+            break;
+          case 3: // Symmetric Difference
+            result_val = in_a != in_b;
+            break;
         }
 
         (*output_attr)[i] = result_val ? 1 : 0;
       }
     } else { // Primitives
-      auto *attr_a = result->get_primitive_attribute_typed<int>(group_a_name);
-      auto *attr_b = result->get_primitive_attribute_typed<int>(group_b_name);
+      auto* attr_a = result->get_primitive_attribute_typed<int>(group_a_name);
+      auto* attr_b = result->get_primitive_attribute_typed<int>(group_b_name);
 
       if (!attr_a || !attr_b) {
         set_error("One or both groups do not exist");
@@ -145,7 +146,7 @@ protected:
 
       // Create output group
       result->add_primitive_attribute(output_name, core::AttributeType::INT);
-      auto *output_attr =
+      auto* output_attr =
           result->get_primitive_attribute_typed<int>(output_name);
 
       // Perform operation
@@ -155,18 +156,18 @@ protected:
         bool result_val = false;
 
         switch (operation) {
-        case 0: // Union
-          result_val = in_a || in_b;
-          break;
-        case 1: // Intersect
-          result_val = in_a && in_b;
-          break;
-        case 2: // Subtract
-          result_val = in_a && !in_b;
-          break;
-        case 3: // Symmetric Difference
-          result_val = in_a != in_b;
-          break;
+          case 0: // Union
+            result_val = in_a || in_b;
+            break;
+          case 1: // Intersect
+            result_val = in_a && in_b;
+            break;
+          case 2: // Subtract
+            result_val = in_a && !in_b;
+            break;
+          case 3: // Symmetric Difference
+            result_val = in_a != in_b;
+            break;
         }
 
         (*output_attr)[i] = result_val ? 1 : 0;

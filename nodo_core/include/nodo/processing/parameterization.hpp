@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 #include <string>
 
@@ -72,8 +73,8 @@ public:
    * @note UV coordinates are stored as Vec2f point attribute
    */
   static std::optional<core::GeometryContainer>
-  parameterize(const core::GeometryContainer &input,
-               const ParameterizationParams &params, std::string *error);
+  parameterize(const core::GeometryContainer& input,
+               const ParameterizationParams& params, std::string* error);
 };
 
 } // namespace nodo::processing

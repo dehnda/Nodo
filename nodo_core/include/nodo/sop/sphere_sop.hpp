@@ -19,12 +19,14 @@ private:
   static constexpr int DEFAULT_SEGMENTS = 32;
   static constexpr int DEFAULT_RINGS = 16;
 
-  enum class PrimitiveType { Polygon = 0, Points = 1 };
+  enum class PrimitiveType {
+    Polygon = 0,
+    Points = 1
+  };
 
 public:
-  explicit SphereSOP(const std::string &node_name = "sphere")
+  explicit SphereSOP(const std::string& node_name = "sphere")
       : SOPNode(node_name, "Sphere") {
-
     // Universal: Primitive Type
     register_parameter(define_int_parameter("primitive_type", 0)
                            .label("Primitive Type")
@@ -96,13 +98,13 @@ protected:
           std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
-        auto &topology = container->topology();
+        auto& topology = container->topology();
         topology.set_primitive_count(0);
       }
 
       return container;
 
-    } catch (const std::exception &exception) {
+    } catch (const std::exception& exception) {
       set_error("Exception during sphere generation: " +
                 std::string(exception.what()));
       return nullptr;

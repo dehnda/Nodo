@@ -2,6 +2,7 @@
 
 #include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 
@@ -23,7 +24,7 @@ public:
     BY_LENGTH = 1 ///< Resample with target segment length
   };
 
-  explicit ResampleSOP(const std::string &name = "resample");
+  explicit ResampleSOP(const std::string& name = "resample");
 
 protected:
   /**

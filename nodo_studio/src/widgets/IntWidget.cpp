@@ -1,22 +1,28 @@
 #include "IntWidget.h"
+
 #include "ExpressionCompleter.h"
 #include "ExpressionValidator.h"
+
 #include <QApplication>
 #include <QCursor>
 #include <QRegularExpression>
 #include <QTimer>
+
 #include <algorithm>
+
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/graph/parameter_expression_resolver.hpp>
 
 namespace nodo_studio {
 namespace widgets {
 
-IntWidget::IntWidget(const QString &label, int value, int min, int max,
-                     const QString &description, QWidget *parent)
-    : BaseParameterWidget(label, description, parent), min_(min), max_(max),
-      current_value_(value), is_slider_dragging_(false) {
-
+IntWidget::IntWidget(const QString& label, int value, int min, int max,
+                     const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      min_(min),
+      max_(max),
+      current_value_(value),
+      is_slider_dragging_(false) {
   // Create timer for periodic live updates during slider drag
   slider_update_timer_ = new QTimer(this);
   slider_update_timer_->setInterval(100); // Update every 100ms during drag
@@ -30,15 +36,15 @@ IntWidget::IntWidget(const QString &label, int value, int min, int max,
   addControlWidget(createControlWidget());
 }
 
-QWidget *IntWidget::createControlWidget() {
-  auto *main_container = new QWidget(this);
-  auto *main_layout = new QHBoxLayout(main_container);
+QWidget* IntWidget::createControlWidget() {
+  auto* main_container = new QWidget(this);
+  auto* main_layout = new QHBoxLayout(main_container);
   main_layout->setContentsMargins(0, 0, 0, 0);
   main_layout->setSpacing(8);
 
   // === Numeric mode container (spinbox + slider) ===
   numeric_container_ = new QWidget(main_container);
-  auto *numeric_layout = new QHBoxLayout(numeric_container_);
+  auto* numeric_layout = new QHBoxLayout(numeric_container_);
   numeric_layout->setContentsMargins(0, 0, 0, 0);
   numeric_layout->setSpacing(8);
 
@@ -123,7 +129,7 @@ QWidget *IntWidget::createControlWidget() {
 
   // === Expression mode container (text input) ===
   expression_container_ = new QWidget(main_container);
-  auto *expr_layout = new QHBoxLayout(expression_container_);
+  auto* expr_layout = new QHBoxLayout(expression_container_);
   expr_layout->setContentsMargins(0, 0, 0, 0);
   expr_layout->setSpacing(8);
 
@@ -213,7 +219,9 @@ QWidget *IntWidget::createControlWidget() {
   return main_container;
 }
 
-int IntWidget::getValue() const { return current_value_; }
+int IntWidget::getValue() const {
+  return current_value_;
+}
 
 void IntWidget::setValue(int value) {
   value = std::clamp(value, min_, max_);
@@ -242,7 +250,9 @@ void IntWidget::setRange(int min, int max) {
   setValue(std::clamp(current_value_, min, max));
 }
 
-void IntWidget::setSliderVisible(bool visible) { slider_->setVisible(visible); }
+void IntWidget::setSliderVisible(bool visible) {
+  slider_->setVisible(visible);
+}
 
 void IntWidget::setValueChangedCallback(std::function<void(int)> callback) {
   value_changed_callback_ = callback;
@@ -327,7 +337,7 @@ void IntWidget::setExpressionMode(bool enabled) {
   }
 }
 
-void IntWidget::setExpression(const QString &expr) {
+void IntWidget::setExpression(const QString& expr) {
   expression_text_ = expr;
   if (is_expression_mode_) {
     expression_edit_->setText(expr);
@@ -448,7 +458,7 @@ void IntWidget::setResolvedValue(int resolved) {
   updateExpressionVisuals();
 }
 
-void IntWidget::setExpressionError(const QString &error) {
+void IntWidget::setExpressionError(const QString& error) {
   if (!is_expression_mode_) {
     return;
   }

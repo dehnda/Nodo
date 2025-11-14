@@ -6,11 +6,11 @@
 using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
-static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
-  const auto &topology = container.topology();
+static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
+  const auto& topology = container.topology();
 
   // Extract positions
-  auto *p_storage =
+  auto* p_storage =
       container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
@@ -24,7 +24,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
   // Extract faces - convert vertex indices to point indices
   Eigen::MatrixXi faces(topology.primitive_count(), 3);
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
     for (size_t j = 0; j < 3 && j < vert_indices.size(); ++j) {
       // Convert vertex index to point index
       faces(prim_idx, j) = topology.get_vertex_point(vert_indices[j]);
@@ -92,7 +92,7 @@ TEST_F(BVHTest, BVHConstruction) {
   EXPECT_TRUE(bvh.is_built());
 
   // Check statistics
-  const auto &stats = bvh.stats();
+  const auto& stats = bvh.stats();
   EXPECT_GT(stats.total_nodes, 0);
   EXPECT_GT(stats.leaf_nodes, 0);
   EXPECT_GE(stats.max_depth, 0);
@@ -190,6 +190,6 @@ TEST_F(BVHTest, BuildParameters) {
   bool success = bvh.build(sphere_mesh_, params);
   EXPECT_TRUE(success);
 
-  const auto &stats = bvh.stats();
+  const auto& stats = bvh.stats();
   EXPECT_LE(stats.max_depth, 10);
 }

@@ -1,13 +1,13 @@
 #include "ExpressionCompleter.h"
+
 #include <QAbstractItemView>
 #include <QKeyEvent>
 
 namespace nodo_studio {
 namespace widgets {
 
-ExpressionCompleter::ExpressionCompleter(QLineEdit *lineEdit, QObject *parent)
+ExpressionCompleter::ExpressionCompleter(QLineEdit* lineEdit, QObject* parent)
     : QObject(parent), line_edit_(lineEdit) {
-
   // Create model and completer
   model_ = new QStringListModel(this);
   completer_ = new QCompleter(model_, this);
@@ -41,15 +41,15 @@ ExpressionCompleter::ExpressionCompleter(QLineEdit *lineEdit, QObject *parent)
   // Connect signals
   connect(line_edit_, &QLineEdit::textChanged, this,
           &ExpressionCompleter::onTextChanged);
-  connect(completer_, QOverload<const QString &>::of(&QCompleter::activated),
+  connect(completer_, QOverload<const QString&>::of(&QCompleter::activated),
           this, &ExpressionCompleter::onCompletionActivated);
 }
 
-void ExpressionCompleter::setAvailableParameters(const QStringList &params) {
+void ExpressionCompleter::setAvailableParameters(const QStringList& params) {
   available_parameters_ = params;
 }
 
-void ExpressionCompleter::setAvailableNodes(const QStringList &nodes) {
+void ExpressionCompleter::setAvailableNodes(const QStringList& nodes) {
   available_nodes_ = nodes;
 }
 
@@ -60,7 +60,7 @@ void ExpressionCompleter::setEnabled(bool enabled) {
   }
 }
 
-void ExpressionCompleter::onTextChanged(const QString &text) {
+void ExpressionCompleter::onTextChanged(const QString& text) {
   if (!enabled_) {
     return;
   }
@@ -69,7 +69,7 @@ void ExpressionCompleter::onTextChanged(const QString &text) {
   updateCompletions(text, cursor_pos);
 }
 
-void ExpressionCompleter::onCompletionActivated(const QString &completion) {
+void ExpressionCompleter::onCompletionActivated(const QString& completion) {
   QString text = line_edit_->text();
   int cursor_pos = line_edit_->cursorPosition();
 
@@ -82,7 +82,7 @@ void ExpressionCompleter::onCompletionActivated(const QString &completion) {
   }
 }
 
-void ExpressionCompleter::updateCompletions(const QString &text,
+void ExpressionCompleter::updateCompletions(const QString& text,
                                             int cursor_pos) {
   if (text.isEmpty() || cursor_pos == 0) {
     completer_->popup()->hide();
@@ -103,7 +103,7 @@ void ExpressionCompleter::updateCompletions(const QString &text,
   if (prefix.startsWith('$')) {
     // Parameter reference completion
     QString param_prefix = prefix.mid(1); // Remove the $
-    for (const QString &param : available_parameters_) {
+    for (const QString& param : available_parameters_) {
       if (param.startsWith(param_prefix, Qt::CaseInsensitive)) {
         completions << param;
       }
@@ -112,7 +112,7 @@ void ExpressionCompleter::updateCompletions(const QString &text,
 
   } else if (text.left(cursor_pos).endsWith("ch(\"")) {
     // ch() node path completion - show available nodes
-    for (const QString &node : available_nodes_) {
+    for (const QString& node : available_nodes_) {
       completions << "/" + node;
     }
     completion_start_pos_ = cursor_pos;
@@ -121,7 +121,7 @@ void ExpressionCompleter::updateCompletions(const QString &text,
     // General completion - math functions and constants
     QStringList all_completions = getMathFunctions() + getConstants();
 
-    for (const QString &item : all_completions) {
+    for (const QString& item : all_completions) {
       if (item.startsWith(prefix, Qt::CaseInsensitive)) {
         completions << item;
       }
@@ -142,7 +142,7 @@ void ExpressionCompleter::updateCompletions(const QString &text,
   completer_->complete();
 }
 
-QString ExpressionCompleter::getCompletionPrefix(const QString &text,
+QString ExpressionCompleter::getCompletionPrefix(const QString& text,
                                                  int cursor_pos) const {
   if (cursor_pos > text.length()) {
     return QString();
@@ -173,38 +173,25 @@ QString ExpressionCompleter::getCompletionPrefix(const QString &text,
 QStringList ExpressionCompleter::getMathFunctions() const {
   return {
       // Trigonometric
-      "sin(",
-      "cos(",
-      "tan(",
-      "asin(",
-      "acos(",
-      "atan(",
-      "atan2(",
+      "sin(", "cos(", "tan(", "asin(", "acos(", "atan(", "atan2(",
 
       // Exponential and logarithmic
-      "sqrt(",
-      "exp(",
-      "log(",
-      "log10(",
-      "pow(",
+      "sqrt(", "exp(", "log(", "log10(", "pow(",
 
       // Rounding and absolute
-      "abs(",
-      "floor(",
-      "ceil(",
-      "round(",
+      "abs(", "floor(", "ceil(", "round(",
 
       // Min/Max/Clamp
-      "min(",
-      "max(",
-      "clamp(",
+      "min(", "max(", "clamp(",
 
       // Utility
       "ch(", // Parameter reference function
   };
 }
 
-QStringList ExpressionCompleter::getConstants() const { return {"pi", "e"}; }
+QStringList ExpressionCompleter::getConstants() const {
+  return {"pi", "e"};
+}
 
 } // namespace widgets
 } // namespace nodo_studio

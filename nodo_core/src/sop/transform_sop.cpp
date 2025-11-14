@@ -1,5 +1,7 @@
 #include "nodo/sop/transform_sop.hpp"
+
 #include "nodo/core/standard_attributes.hpp"
+
 #include <cmath>
 #include <numbers>
 
@@ -7,7 +9,7 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-TransformSOP::TransformSOP(const std::string &name)
+TransformSOP::TransformSOP(const std::string& name)
     : SOPNode(name, "Transform") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -54,7 +56,7 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
     return nullptr;
   }
 
-  auto *p_attr =
+  auto* p_attr =
       output_container->get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!p_attr) {
     set_error("Position attribute has wrong type");
@@ -123,7 +125,7 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
 
   // Transform N attribute if present (rotation only, no scale or translation)
   if (output_container->has_point_attribute("N")) {
-    auto *n_attr =
+    auto* n_attr =
         output_container->get_point_attribute_typed<Eigen::Vector3f>("N");
     if (n_attr) {
       auto normals_span = n_attr->values_writable();

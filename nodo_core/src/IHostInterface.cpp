@@ -1,10 +1,11 @@
 #include "nodo_core/IHostInterface.h"
+
 #include <iostream>
 
 namespace nodo {
 
-void DefaultHostInterface::log(const std::string &level,
-                               const std::string &message) {
+void DefaultHostInterface::log(const std::string& level,
+                               const std::string& message) {
   // Simple console output with level prefix
   std::cout << "[" << level << "] " << message << '\n';
 }

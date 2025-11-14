@@ -2,6 +2,7 @@
 
 #include "attribute_descriptor.hpp"
 #include "attribute_storage.hpp"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,12 +39,12 @@ public:
       : element_class_(element_class) {}
 
   // Prevent copying (use clone() for explicit copy)
-  AttributeSet(const AttributeSet &) = delete;
-  AttributeSet &operator=(const AttributeSet &) = delete;
+  AttributeSet(const AttributeSet&) = delete;
+  AttributeSet& operator=(const AttributeSet&) = delete;
 
   // Allow moving
-  AttributeSet(AttributeSet &&) noexcept = default;
-  AttributeSet &operator=(AttributeSet &&) noexcept = default;
+  AttributeSet(AttributeSet&&) noexcept = default;
+  AttributeSet& operator=(AttributeSet&&) noexcept = default;
 
   /**
    * @brief Get the element class this set belongs to
@@ -82,13 +83,14 @@ public:
    * @param interpolation Interpolation mode (defaults to type's default)
    * @return true if added, false if already exists
    */
-  bool add_attribute(std::string_view name, AttributeType type,
-                     InterpolationMode interpolation = InterpolationMode::LINEAR);
+  bool
+  add_attribute(std::string_view name, AttributeType type,
+                InterpolationMode interpolation = InterpolationMode::LINEAR);
 
   /**
    * @brief Add attribute from descriptor
    */
-  bool add_attribute(const AttributeDescriptor &desc);
+  bool add_attribute(const AttributeDescriptor& desc);
 
   /**
    * @brief Remove an attribute by name
@@ -104,7 +106,8 @@ public:
   /**
    * @brief Get attribute descriptor
    */
-  std::optional<AttributeDescriptor> get_descriptor(std::string_view name) const;
+  std::optional<AttributeDescriptor>
+  get_descriptor(std::string_view name) const;
 
   /**
    * @brief Get number of attributes
@@ -119,29 +122,29 @@ public:
   /**
    * @brief Get type-erased storage (for generic operations)
    */
-  IAttributeStorage *get_storage(std::string_view name);
-  const IAttributeStorage *get_storage(std::string_view name) const;
+  IAttributeStorage* get_storage(std::string_view name);
+  const IAttributeStorage* get_storage(std::string_view name) const;
 
   /**
    * @brief Get typed storage (fast, zero-cost access)
    * @return Pointer to typed storage, or nullptr if not found or wrong type
    */
   template <typename T>
-  AttributeStorage<T> *get_storage_typed(std::string_view name) {
-    auto *storage = get_storage(name);
+  AttributeStorage<T>* get_storage_typed(std::string_view name) {
+    auto* storage = get_storage(name);
     if (!storage) {
       return nullptr;
     }
-    return dynamic_cast<AttributeStorage<T> *>(storage);
+    return dynamic_cast<AttributeStorage<T>*>(storage);
   }
 
   template <typename T>
-  const AttributeStorage<T> *get_storage_typed(std::string_view name) const {
-    auto *storage = get_storage(name);
+  const AttributeStorage<T>* get_storage_typed(std::string_view name) const {
+    auto* storage = get_storage(name);
     if (!storage) {
       return nullptr;
     }
-    return dynamic_cast<const AttributeStorage<T> *>(storage);
+    return dynamic_cast<const AttributeStorage<T>*>(storage);
   }
 
   /**
@@ -154,7 +157,7 @@ public:
    * @param other Source attribute set
    * @param overwrite If true, overwrite existing attributes
    */
-  void merge(const AttributeSet &other, bool overwrite = false);
+  void merge(const AttributeSet& other, bool overwrite = false);
 
   /**
    * @brief Get element count for validation

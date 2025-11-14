@@ -2,6 +2,7 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 
@@ -17,7 +18,7 @@ class LineSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit LineSOP(const std::string &name = "line");
+  explicit LineSOP(const std::string& name = "line");
 
   // Generator node - no inputs required
   InputConfig get_input_config() const override {

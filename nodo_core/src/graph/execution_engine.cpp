@@ -3,6 +3,7 @@
  */
 
 #include "nodo/graph/execution_engine.hpp"
+
 #include "nodo/core/mesh.hpp"
 #include "nodo/geometry/mesh_generator.hpp"
 #include "nodo/geometry/plane_generator.hpp"
@@ -22,6 +23,7 @@
 #include "nodo/sop/sop_factory.hpp"
 #include "nodo/sop/subdivisions_sop.hpp"
 #include "nodo/sop/transform_sop.hpp"
+
 #include <chrono>
 #include <iostream>
 #include <map>
@@ -39,9 +41,9 @@ namespace nodo::graph {
 // Temporary helper to convert GeometryContainer to core::Mesh
 // TODO: Remove this once all execution pipeline migrated to GeometryContainer
 static std::shared_ptr<core::Mesh>
-convert_container_to_mesh(const core::GeometryContainer &container) {
+convert_container_to_mesh(const core::GeometryContainer& container) {
   // Get positions from container
-  auto *positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (positions == nullptr) {
     return std::make_shared<core::Mesh>(); // Empty mesh
   }
@@ -55,7 +57,7 @@ convert_container_to_mesh(const core::GeometryContainer &container) {
 
   // Copy positions
   for (size_t i = 0; i < point_count; ++i) {
-    const auto &pos = (*positions)[i];
+    const auto& pos = (*positions)[i];
     vertices(i, 0) = pos.x();
     vertices(i, 1) = pos.y();
     vertices(i, 2) = pos.z();
@@ -74,7 +76,7 @@ convert_container_to_mesh(const core::GeometryContainer &container) {
   return std::make_shared<core::Mesh>(vertices, faces);
 }
 
-bool ExecutionEngine::execute_graph(NodeGraph &graph) {
+bool ExecutionEngine::execute_graph(NodeGraph& graph) {
   // Get display node (if set, only execute its dependencies)
   int display_node_id = graph.get_display_node();
 
@@ -93,7 +95,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
   // geometry_cache_.clear();  // OLD: cleared everything
 
   // Clear error flags from all nodes
-  for (const auto &node_ptr : graph.get_nodes()) {
+  for (const auto& node_ptr : graph.get_nodes()) {
     node_ptr->set_error(false);
   }
 
@@ -106,7 +108,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
     // Report progress before executing each node
     notify_progress(completed_nodes, total_nodes);
 
-    auto *node = graph.get_node(node_id);
+    auto* node = graph.get_node(node_id);
     if (!node) {
       std::cout << "❌ Node " << node_id << " not found" << std::endl;
       return false;
@@ -147,7 +149,7 @@ bool ExecutionEngine::execute_graph(NodeGraph &graph) {
 
     // Gather input geometries and set them on the SOP
     auto input_geometries = gather_input_geometries(graph, node_id);
-    for (const auto &[port_index, geometry] : input_geometries) {
+    for (const auto& [port_index, geometry] : input_geometries) {
       sop->set_input_data(port_index, geometry);
     }
 
@@ -208,15 +210,17 @@ ExecutionEngine::get_node_geometry(int node_id) const {
   return it != geometry_cache_.end() ? it->second : nullptr;
 }
 
-void ExecutionEngine::clear_cache() { geometry_cache_.clear(); }
+void ExecutionEngine::clear_cache() {
+  geometry_cache_.clear();
+}
 
-void ExecutionEngine::invalidate_node(NodeGraph &graph, int node_id) {
+void ExecutionEngine::invalidate_node(NodeGraph& graph, int node_id) {
   // Remove this node from cache
   geometry_cache_.erase(node_id);
 
   // Find all downstream nodes (nodes that depend on this one)
-  const auto &all_nodes = graph.get_nodes();
-  for (const auto &node_ptr : all_nodes) {
+  const auto& all_nodes = graph.get_nodes();
+  for (const auto& node_ptr : all_nodes) {
     int other_id = node_ptr->get_id();
     if (other_id == node_id) {
       continue;
@@ -232,176 +236,176 @@ void ExecutionEngine::invalidate_node(NodeGraph &graph, int node_id) {
   }
 }
 
-void ExecutionEngine::transfer_parameters(const GraphNode &graph_node,
-                                          sop::SOPNode &sop_node,
-                                          const NodeGraph &graph) {
+void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
+                                          sop::SOPNode& sop_node,
+                                          const NodeGraph& graph) {
   // M3.3 Phase 3: Create expression resolver with access to:
   // - Global graph parameters
   // - Same-node parameters
   // - Cross-node parameters via ch() function
-  const auto &node_params = graph_node.get_parameters();
+  const auto& node_params = graph_node.get_parameters();
   ParameterExpressionResolver resolver(graph, &node_params,
                                        graph_node.get_id());
 
   // Iterate over all parameters in GraphNode and transfer to SOPNode
-  for (const auto &param : node_params) {
+  for (const auto& param : node_params) {
     switch (param.type) {
-    case NodeParameter::Type::Float: {
-      // M3.3 Phase 2: Check if parameter uses an expression
-      if (param.has_expression()) {
-        // Evaluate expression
-        auto result = resolver.resolve_float(param.get_expression());
-        if (result.has_value()) {
-          sop_node.set_parameter(param.name, result.value());
-        } else {
-          // Fallback to literal value if expression evaluation fails
-          sop_node.set_parameter(param.name, param.float_value);
-        }
-      } else {
-        // Use literal value
-        sop_node.set_parameter(param.name, param.float_value);
-      }
-      break;
-    }
-
-    case NodeParameter::Type::Int: {
-      // M3.3 Phase 2: Check if parameter uses an expression
-      if (param.has_expression()) {
-        // Evaluate expression
-        auto result = resolver.resolve_int(param.get_expression());
-        if (result.has_value()) {
-          sop_node.set_parameter(param.name, result.value());
-        } else {
-          // Fallback to literal value if expression evaluation fails
-          sop_node.set_parameter(param.name, param.int_value);
-        }
-      } else {
-        // Use literal value
-        sop_node.set_parameter(param.name, param.int_value);
-      }
-      break;
-    }
-
-    case NodeParameter::Type::Bool:
-      sop_node.set_parameter(param.name, param.bool_value);
-      break;
-
-    case NodeParameter::Type::String:
-    case NodeParameter::Type::Code:
-    case NodeParameter::Type::GroupSelector: {
-      // For Code type, pass through directly without resolution
-      // (@ symbols are VEX attribute syntax, not parameter references)
-      // For GroupSelector, treat similarly to String
-      if (param.type == NodeParameter::Type::Code) {
-        sop_node.set_parameter(param.name, param.string_value);
-      } else {
-        // For String and GroupSelector types, resolve any graph parameter
-        // references
-        if (resolver.has_references(param.string_value)) {
-          std::string resolved = resolver.resolve(param.string_value);
-          sop_node.set_parameter(param.name, resolved);
-        } else {
-          sop_node.set_parameter(param.name, param.string_value);
-        }
-      }
-      break;
-    }
-
-    case NodeParameter::Type::Vector3: {
-      // M3.3 Phase 2: Check if parameter uses an expression
-      Eigen::Vector3f vec3;
-
-      if (param.has_expression()) {
-        // For Vector3, expression could be:
-        // 1. Three comma-separated expressions: "1.0, 2.0, 3.0"
-        // 2. Single expression for all components: "$offset"
-        // 3. Math per component: "$x + 1, $y * 2, $z"
-
-        const std::string &expr = param.get_expression();
-
-        // Try to parse as comma-separated values
-        size_t comma1 = expr.find(',');
-        if (comma1 != std::string::npos) {
-          size_t comma2 = expr.find(',', comma1 + 1);
-          if (comma2 != std::string::npos) {
-            // Three components
-            std::string x_expr = expr.substr(0, comma1);
-            std::string y_expr = expr.substr(comma1 + 1, comma2 - comma1 - 1);
-            std::string z_expr = expr.substr(comma2 + 1);
-
-            // Trim whitespace
-            auto trim = [](std::string &s) {
-              s.erase(0, s.find_first_not_of(" \t"));
-              s.erase(s.find_last_not_of(" \t") + 1);
-            };
-            trim(x_expr);
-            trim(y_expr);
-            trim(z_expr);
-
-            // Evaluate each component
-            auto x_val = resolver.resolve_float(x_expr);
-            auto y_val = resolver.resolve_float(y_expr);
-            auto z_val = resolver.resolve_float(z_expr);
-
-            vec3[0] = x_val.value_or(param.vector3_value[0]);
-            vec3[1] = y_val.value_or(param.vector3_value[1]);
-            vec3[2] = z_val.value_or(param.vector3_value[2]);
+      case NodeParameter::Type::Float: {
+        // M3.3 Phase 2: Check if parameter uses an expression
+        if (param.has_expression()) {
+          // Evaluate expression
+          auto result = resolver.resolve_float(param.get_expression());
+          if (result.has_value()) {
+            sop_node.set_parameter(param.name, result.value());
           } else {
-            // Fallback to literal
-            vec3 =
-                Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1],
-                                param.vector3_value[2]);
+            // Fallback to literal value if expression evaluation fails
+            sop_node.set_parameter(param.name, param.float_value);
           }
         } else {
-          // Single expression - use for all components
-          auto result = resolver.resolve_float(expr);
-          float val = result.value_or(0.0f);
-          vec3 = Eigen::Vector3f(val, val, val);
+          // Use literal value
+          sop_node.set_parameter(param.name, param.float_value);
         }
-      } else {
-        // Use literal value
-        vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1],
-                               param.vector3_value[2]);
+        break;
       }
 
-      sop_node.set_parameter(param.name, vec3);
-      break;
-    }
+      case NodeParameter::Type::Int: {
+        // M3.3 Phase 2: Check if parameter uses an expression
+        if (param.has_expression()) {
+          // Evaluate expression
+          auto result = resolver.resolve_int(param.get_expression());
+          if (result.has_value()) {
+            sop_node.set_parameter(param.name, result.value());
+          } else {
+            // Fallback to literal value if expression evaluation fails
+            sop_node.set_parameter(param.name, param.int_value);
+          }
+        } else {
+          // Use literal value
+          sop_node.set_parameter(param.name, param.int_value);
+        }
+        break;
+      }
+
+      case NodeParameter::Type::Bool:
+        sop_node.set_parameter(param.name, param.bool_value);
+        break;
+
+      case NodeParameter::Type::String:
+      case NodeParameter::Type::Code:
+      case NodeParameter::Type::GroupSelector: {
+        // For Code type, pass through directly without resolution
+        // (@ symbols are VEX attribute syntax, not parameter references)
+        // For GroupSelector, treat similarly to String
+        if (param.type == NodeParameter::Type::Code) {
+          sop_node.set_parameter(param.name, param.string_value);
+        } else {
+          // For String and GroupSelector types, resolve any graph parameter
+          // references
+          if (resolver.has_references(param.string_value)) {
+            std::string resolved = resolver.resolve(param.string_value);
+            sop_node.set_parameter(param.name, resolved);
+          } else {
+            sop_node.set_parameter(param.name, param.string_value);
+          }
+        }
+        break;
+      }
+
+      case NodeParameter::Type::Vector3: {
+        // M3.3 Phase 2: Check if parameter uses an expression
+        Eigen::Vector3f vec3;
+
+        if (param.has_expression()) {
+          // For Vector3, expression could be:
+          // 1. Three comma-separated expressions: "1.0, 2.0, 3.0"
+          // 2. Single expression for all components: "$offset"
+          // 3. Math per component: "$x + 1, $y * 2, $z"
+
+          const std::string& expr = param.get_expression();
+
+          // Try to parse as comma-separated values
+          size_t comma1 = expr.find(',');
+          if (comma1 != std::string::npos) {
+            size_t comma2 = expr.find(',', comma1 + 1);
+            if (comma2 != std::string::npos) {
+              // Three components
+              std::string x_expr = expr.substr(0, comma1);
+              std::string y_expr = expr.substr(comma1 + 1, comma2 - comma1 - 1);
+              std::string z_expr = expr.substr(comma2 + 1);
+
+              // Trim whitespace
+              auto trim = [](std::string& s) {
+                s.erase(0, s.find_first_not_of(" \t"));
+                s.erase(s.find_last_not_of(" \t") + 1);
+              };
+              trim(x_expr);
+              trim(y_expr);
+              trim(z_expr);
+
+              // Evaluate each component
+              auto x_val = resolver.resolve_float(x_expr);
+              auto y_val = resolver.resolve_float(y_expr);
+              auto z_val = resolver.resolve_float(z_expr);
+
+              vec3[0] = x_val.value_or(param.vector3_value[0]);
+              vec3[1] = y_val.value_or(param.vector3_value[1]);
+              vec3[2] = z_val.value_or(param.vector3_value[2]);
+            } else {
+              // Fallback to literal
+              vec3 = Eigen::Vector3f(param.vector3_value[0],
+                                     param.vector3_value[1],
+                                     param.vector3_value[2]);
+            }
+          } else {
+            // Single expression - use for all components
+            auto result = resolver.resolve_float(expr);
+            float val = result.value_or(0.0f);
+            vec3 = Eigen::Vector3f(val, val, val);
+          }
+        } else {
+          // Use literal value
+          vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1],
+                                 param.vector3_value[2]);
+        }
+
+        sop_node.set_parameter(param.name, vec3);
+        break;
+      }
     }
   }
 }
 
-void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode &sop_node,
-                                               GraphNode &graph_node) {
+void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode& sop_node,
+                                               GraphNode& graph_node) {
   // Completely rebuild GraphNode parameters from SOP definitions
   // This handles both adding new parameters and removing obsolete ones
 
-  const auto &sop_params = sop_node.get_parameter_definitions();
+  const auto& sop_params = sop_node.get_parameter_definitions();
 
   // Build a set of current SOP parameter names
   std::set<std::string> sop_param_names;
-  for (const auto &sop_param : sop_params) {
+  for (const auto& sop_param : sop_params) {
     sop_param_names.insert(sop_param.name);
   }
 
   // Get existing GraphNode parameters to preserve their values
-  const auto &existing_params = graph_node.get_parameters();
+  const auto& existing_params = graph_node.get_parameters();
 
   // Remove obsolete parameters (that exist in GraphNode but not in SOP)
-  for (const auto &existing : existing_params) {
+  for (const auto& existing : existing_params) {
     if (sop_param_names.find(existing.name) == sop_param_names.end()) {
       graph_node.remove_parameter(existing.name);
     }
   }
 
   // Check which parameters are new or need updates
-  for (const auto &sop_param : sop_params) {
+  for (const auto& sop_param : sop_params) {
     // Check if parameter already exists in GraphNode
     auto existing_param_opt = graph_node.get_parameter(sop_param.name);
 
     if (existing_param_opt.has_value()) {
       // Parameter exists - update its value from SOP if changed
-      auto &existing_param = existing_param_opt.value();
+      auto& existing_param = existing_param_opt.value();
 
       // Get current value from SOP's parameter map
       auto sop_value = sop_node.get_parameters();
@@ -457,16 +461,16 @@ void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode &sop_node,
 }
 
 std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
-ExecutionEngine::gather_input_geometries(const NodeGraph &graph, int node_id) {
+ExecutionEngine::gather_input_geometries(const NodeGraph& graph, int node_id) {
   std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
       input_geometries;
 
   // Get all connections that target this node
-  const auto &connections = graph.get_connections();
+  const auto& connections = graph.get_connections();
 
   // Collect connections to this node, grouped by target pin
   std::unordered_map<int, std::vector<NodeConnection>> connections_by_pin;
-  for (const auto &connection : connections) {
+  for (const auto& connection : connections) {
     if (connection.target_node_id == node_id) {
       connections_by_pin[connection.target_pin_index].push_back(connection);
     }
@@ -474,15 +478,15 @@ ExecutionEngine::gather_input_geometries(const NodeGraph &graph, int node_id) {
 
   // Process each target pin
   int input_index = 0;
-  for (auto &[pin_index, pin_connections] : connections_by_pin) {
+  for (auto& [pin_index, pin_connections] : connections_by_pin) {
     // For pins with multiple connections (MULTI_DYNAMIC nodes),
     // assign them to sequential input indices in order of connection ID
     std::sort(pin_connections.begin(), pin_connections.end(),
-              [](const NodeConnection &a, const NodeConnection &b) {
+              [](const NodeConnection& a, const NodeConnection& b) {
                 return a.id < b.id;
               });
 
-    for (const auto &connection : pin_connections) {
+    for (const auto& connection : pin_connections) {
       // Find the geometry from the source node
       auto geometry_iterator = geometry_cache_.find(connection.source_node_id);
       if (geometry_iterator != geometry_cache_.end() &&
@@ -517,7 +521,7 @@ void ExecutionEngine::notify_progress(int completed, int total) {
   }
 }
 
-void ExecutionEngine::notify_error(const std::string &error, int node_id) {
+void ExecutionEngine::notify_error(const std::string& error, int node_id) {
   // Call legacy error callback
   if (error_callback_) {
     error_callback_(error, node_id);

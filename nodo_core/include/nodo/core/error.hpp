@@ -61,7 +61,9 @@ struct Error {
   std::string context; ///< Additional context information
 
   Error(ErrorCategory cat, ErrorCode c, std::string msg, std::string ctx = "")
-      : category(cat), code(c), message(std::move(msg)),
+      : category(cat),
+        code(c),
+        message(std::move(msg)),
         context(std::move(ctx)) {}
 
   /// Get human-readable error description
@@ -84,8 +86,8 @@ public:
 
   /// Create a formatted error message
   static Error make_error(ErrorCategory category, ErrorCode code,
-                          const std::string &message,
-                          const std::string &context = "");
+                          const std::string& message,
+                          const std::string& context = "");
 };
 
 } // namespace nodo::core

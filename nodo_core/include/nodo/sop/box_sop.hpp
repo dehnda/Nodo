@@ -15,12 +15,14 @@ private:
   static constexpr float DEFAULT_SIZE = 2.0F;
   static constexpr int DEFAULT_SEGMENTS = 1;
 
-  enum class PrimitiveType { Polygon = 0, Points = 1 };
+  enum class PrimitiveType {
+    Polygon = 0,
+    Points = 1
+  };
 
 public:
-  explicit BoxSOP(const std::string &node_name = "box")
+  explicit BoxSOP(const std::string& node_name = "box")
       : SOPNode(node_name, "Box") {
-
     // Universal: Primitive Type
     register_parameter(define_int_parameter("primitive_type", 0)
                            .label("Primitive Type")
@@ -122,13 +124,13 @@ protected:
           std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
-        auto &topology = container->topology();
+        auto& topology = container->topology();
         topology.set_primitive_count(0);
       }
 
       return container;
 
-    } catch (const std::exception &exception) {
+    } catch (const std::exception& exception) {
       set_error("Exception during box generation: " +
                 std::string(exception.what()));
       return nullptr;

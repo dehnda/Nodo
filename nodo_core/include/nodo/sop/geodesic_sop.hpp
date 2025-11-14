@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../processing/geodesic.hpp"
 #include "sop_node.hpp"
+
 #include <fmt/core.h>
 
 namespace nodo::sop {
@@ -27,9 +28,8 @@ class GeodesicSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GeodesicSOP(const std::string &node_name = "geodesic")
+  explicit GeodesicSOP(const std::string& node_name = "geodesic")
       : SOPNode(node_name, "Geodesic") {
-
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

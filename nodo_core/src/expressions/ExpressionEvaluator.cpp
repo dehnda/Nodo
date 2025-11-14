@@ -2,12 +2,12 @@
 
 // exprtk is a header-only library for mathematical expression parsing
 #define exprtk_disable_comments
-#include <exprtk.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <random>
 #include <sstream>
+
+#include <exprtk.hpp>
 
 namespace nodo {
 
@@ -17,7 +17,7 @@ struct Function1Wrapper : public exprtk::ifunction<double> {
   Func func;
   explicit Function1Wrapper(Func f)
       : exprtk::ifunction<double>(1), func(std::move(f)) {}
-  double operator()(const double &arg) override { return func(arg); }
+  double operator()(const double& arg) override { return func(arg); }
 };
 
 template <typename Func>
@@ -25,7 +25,7 @@ struct Function2Wrapper : public exprtk::ifunction<double> {
   Func func;
   explicit Function2Wrapper(Func f)
       : exprtk::ifunction<double>(2), func(std::move(f)) {}
-  double operator()(const double &arg1, const double &arg2) override {
+  double operator()(const double& arg1, const double& arg2) override {
     return func(arg1, arg2);
   }
 };
@@ -35,8 +35,8 @@ struct Function3Wrapper : public exprtk::ifunction<double> {
   Func func;
   explicit Function3Wrapper(Func f)
       : exprtk::ifunction<double>(3), func(std::move(f)) {}
-  double operator()(const double &arg1, const double &arg2,
-                    const double &arg3) override {
+  double operator()(const double& arg1, const double& arg2,
+                    const double& arg3) override {
     return func(arg1, arg2, arg3);
   }
 };
@@ -53,24 +53,24 @@ struct ExpressionEvaluator::Implementation {
       function_wrappers;
 
   // Helper to register functions with exprtk symbol table
-  void registerWithSymbolTable(exprtk::symbol_table<double> &symbol_table) {
+  void registerWithSymbolTable(exprtk::symbol_table<double>& symbol_table) {
     // Clear previous wrappers
     function_wrappers.clear();
 
     // Register 1-arg functions
-    for (const auto &[name, func] : functions_1arg) {
+    for (const auto& [name, func] : functions_1arg) {
       auto wrapper = std::make_unique<Function1Wrapper<CustomFunction1>>(func);
       symbol_table.add_function(name, *wrapper);
       function_wrappers[name] = std::move(wrapper);
     }
     // Register 2-arg functions
-    for (const auto &[name, func] : functions_2arg) {
+    for (const auto& [name, func] : functions_2arg) {
       auto wrapper = std::make_unique<Function2Wrapper<CustomFunction2>>(func);
       symbol_table.add_function(name, *wrapper);
       function_wrappers[name] = std::move(wrapper);
     }
     // Register 3-arg functions
-    for (const auto &[name, func] : functions_3arg) {
+    for (const auto& [name, func] : functions_3arg) {
       auto wrapper = std::make_unique<Function3Wrapper<CustomFunction3>>(func);
       symbol_table.add_function(name, *wrapper);
       function_wrappers[name] = std::move(wrapper);
@@ -81,14 +81,14 @@ struct ExpressionEvaluator::Implementation {
 void ExpressionEvaluator::ensureImpl() const {
   if (!impl_) {
     // Remove const to initialize (this is a lazy initialization pattern)
-    const_cast<ExpressionEvaluator *>(this)->impl_ =
+    const_cast<ExpressionEvaluator*>(this)->impl_ =
         std::make_shared<Implementation>();
   }
 }
 
 ExpressionEvaluator::Result
-ExpressionEvaluator::evaluate(const std::string &expression,
-                              const VariableMap &variables) const {
+ExpressionEvaluator::evaluate(const std::string& expression,
+                              const VariableMap& variables) const {
   if (expression.empty()) {
     return Result::Error("Empty expression");
   }
@@ -110,7 +110,7 @@ ExpressionEvaluator::evaluate(const std::string &expression,
 
   // Register user variables
   std::unordered_map<std::string, double> var_storage;
-  for (const auto &[name, value] : variables) {
+  for (const auto& [name, value] : variables) {
     var_storage[name] = value;
     symbol_table.add_variable(name, var_storage[name]);
   }
@@ -152,15 +152,15 @@ ExpressionEvaluator::evaluate(const std::string &expression,
     }
 
     return Result::Success(result);
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     return Result::Error(std::string("Evaluation error: ") + e.what());
   }
 }
 
 // Non-const version that modifies variables
 ExpressionEvaluator::Result
-ExpressionEvaluator::evaluate(const std::string &expression,
-                              VariableMap &variables) {
+ExpressionEvaluator::evaluate(const std::string& expression,
+                              VariableMap& variables) {
   if (expression.empty()) {
     return Result::Error("Empty expression");
   }
@@ -181,7 +181,7 @@ ExpressionEvaluator::evaluate(const std::string &expression,
   }
 
   // Register user variables - symbol_table stores references to these
-  for (auto &[name, value] : variables) {
+  for (auto& [name, value] : variables) {
     symbol_table.add_variable(name, value);
   }
 
@@ -222,12 +222,12 @@ ExpressionEvaluator::evaluate(const std::string &expression,
 
     // Variables have been modified in-place through symbol_table references
     return Result::Success(result);
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     return Result::Error(std::string("Evaluation error: ") + e.what());
   }
 }
 
-std::string ExpressionEvaluator::validate(const std::string &expression) const {
+std::string ExpressionEvaluator::validate(const std::string& expression) const {
   if (expression.empty()) {
     return "Empty expression";
   }
@@ -259,7 +259,7 @@ std::string ExpressionEvaluator::validate(const std::string &expression) const {
 }
 
 std::vector<std::string>
-ExpressionEvaluator::getVariables(const std::string &expression) const {
+ExpressionEvaluator::getVariables(const std::string& expression) const {
   std::vector<std::string> variables;
 
   // Create a symbol table and parse to extract variable names
@@ -282,19 +282,19 @@ ExpressionEvaluator::getVariables(const std::string &expression) const {
 }
 
 // Function registration methods
-void ExpressionEvaluator::registerFunction(const std::string &name,
+void ExpressionEvaluator::registerFunction(const std::string& name,
                                            CustomFunction1 func) {
   ensureImpl();
   impl_->functions_1arg[name] = std::move(func);
 }
 
-void ExpressionEvaluator::registerFunction(const std::string &name,
+void ExpressionEvaluator::registerFunction(const std::string& name,
                                            CustomFunction2 func) {
   ensureImpl();
   impl_->functions_2arg[name] = std::move(func);
 }
 
-void ExpressionEvaluator::registerFunction(const std::string &name,
+void ExpressionEvaluator::registerFunction(const std::string& name,
                                            CustomFunction3 func) {
   ensureImpl();
   impl_->functions_3arg[name] = std::move(func);
@@ -357,7 +357,7 @@ void ExpressionEvaluator::clearCustomFunctions() {
   }
 }
 
-bool ExpressionEvaluator::hasFunction(const std::string &name) const {
+bool ExpressionEvaluator::hasFunction(const std::string& name) const {
   if (!impl_) {
     return false;
   }

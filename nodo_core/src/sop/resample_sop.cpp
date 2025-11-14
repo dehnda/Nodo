@@ -1,4 +1,5 @@
 #include "nodo/sop/resample_sop.hpp"
+
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 
@@ -6,7 +7,7 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-ResampleSOP::ResampleSOP(const std::string &name) : SOPNode(name, "Resample") {
+ResampleSOP::ResampleSOP(const std::string& name) : SOPNode(name, "Resample") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -50,14 +51,14 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
   const float segment_length = get_parameter<float>("segment_length", 0.1F);
 
   // Get input positions
-  const auto *input_positions =
+  const auto* input_positions =
       input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
   }
 
-  const auto &input_topology = input->topology();
+  const auto& input_topology = input->topology();
   const size_t input_prim_count = input_topology.primitive_count();
 
   if (input_prim_count == 0) {
@@ -76,7 +77,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
   prim_point_counts.reserve(input_prim_count);
 
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 2) {
@@ -119,7 +120,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
@@ -138,7 +139,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
       continue;
     }
 
-    const auto &vert_indices = input_topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     // Build cumulative lengths along the curve

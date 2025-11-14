@@ -1,9 +1,11 @@
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/io/obj_exporter.hpp"
+
 #include <filesystem>
 #include <fstream>
-#include <gtest/gtest.h>
 #include <sstream>
+
+#include <gtest/gtest.h>
 
 using namespace nodo;
 

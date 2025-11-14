@@ -1,42 +1,46 @@
 #include "Vector3Widget.h"
+
 #include "ExpressionCompleter.h"
 #include "ExpressionValidator.h"
+
 #include <QApplication>
 #include <QCursor>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QTimer>
+
 #include <algorithm>
+
 #include <nodo/graph/node_graph.hpp>
 #include <nodo/graph/parameter_expression_resolver.hpp>
 
 namespace nodo_studio {
 namespace widgets {
 
-Vector3Widget::Vector3Widget(const QString &label, double x, double y, double z,
-                             double min, double max, const QString &description,
-                             QWidget *parent)
+Vector3Widget::Vector3Widget(const QString& label, double x, double y, double z,
+                             double min, double max, const QString& description,
+                             QWidget* parent)
     : BaseParameterWidget(label, description, parent), values_{x, y, z} {
   min_values_.fill(min);
   max_values_.fill(max);
   addControlWidget(createControlWidget());
 }
 
-QWidget *Vector3Widget::createControlWidget() {
-  auto *main_container = new QWidget(this);
-  auto *main_layout = new QHBoxLayout(main_container);
+QWidget* Vector3Widget::createControlWidget() {
+  auto* main_container = new QWidget(this);
+  auto* main_layout = new QHBoxLayout(main_container);
   main_layout->setContentsMargins(0, 0, 0, 0);
   main_layout->setSpacing(4);
 
   // === Numeric mode container (3 spinboxes + uniform button) ===
   numeric_container_ = new QWidget(main_container);
-  auto *numeric_layout = new QHBoxLayout(numeric_container_);
+  auto* numeric_layout = new QHBoxLayout(numeric_container_);
   numeric_layout->setContentsMargins(0, 0, 0, 0);
   numeric_layout->setSpacing(4);
 
-  const char *component_names[] = {"X", "Y", "Z"};
-  const char *component_colors[] = {
+  const char* component_names[] = {"X", "Y", "Z"};
+  const char* component_colors[] = {
       "#f48771", "#89d185",
       "#4a9eff"}; // Red, Green, Blue (matches HTML design)
 
@@ -122,7 +126,7 @@ QWidget *Vector3Widget::createControlWidget() {
 
   // === Expression mode container (single text input for all 3 components) ===
   expression_container_ = new QWidget(main_container);
-  auto *expr_layout = new QHBoxLayout(expression_container_);
+  auto* expr_layout = new QHBoxLayout(expression_container_);
   expr_layout->setContentsMargins(0, 0, 0, 0);
   expr_layout->setSpacing(8);
 
@@ -212,11 +216,17 @@ QWidget *Vector3Widget::createControlWidget() {
   return main_container;
 }
 
-void Vector3Widget::setX(double x) { updateComponent(0, x); }
+void Vector3Widget::setX(double x) {
+  updateComponent(0, x);
+}
 
-void Vector3Widget::setY(double y) { updateComponent(1, y); }
+void Vector3Widget::setY(double y) {
+  updateComponent(1, y);
+}
 
-void Vector3Widget::setZ(double z) { updateComponent(2, z); }
+void Vector3Widget::setZ(double z) {
+  updateComponent(2, z);
+}
 
 void Vector3Widget::setValue(double x, double y, double z) {
   values_[0] = std::clamp(x, min_values_[0], max_values_[0]);
@@ -235,7 +245,7 @@ void Vector3Widget::setValue(double x, double y, double z) {
   }
 }
 
-void Vector3Widget::setValue(const std::array<double, 3> &value) {
+void Vector3Widget::setValue(const std::array<double, 3>& value) {
   setValue(value[0], value[1], value[2]);
 }
 
@@ -346,7 +356,7 @@ void Vector3Widget::setExpressionMode(bool enabled) {
   }
 }
 
-void Vector3Widget::setExpression(const QString &expr) {
+void Vector3Widget::setExpression(const QString& expr) {
   expression_text_ = expr;
   if (is_expression_mode_) {
     expression_edit_->setText(expr);
@@ -470,7 +480,7 @@ void Vector3Widget::setResolvedValue(float x, float y, float z) {
   updateExpressionVisuals();
 }
 
-void Vector3Widget::setExpressionError(const QString &error) {
+void Vector3Widget::setExpressionError(const QString& error) {
   if (!is_expression_mode_) {
     return;
   }

@@ -1,16 +1,20 @@
 #include "SliderWidget.h"
+
 #include <QTimer>
+
 #include <algorithm>
 
 namespace nodo_studio {
 namespace widgets {
 
-SliderWidget::SliderWidget(const QString &label, double value, double min,
-                           double max, const QString &description,
-                           QWidget *parent)
-    : BaseParameterWidget(label, description, parent), value_(value), min_(min),
-      max_(max), is_slider_dragging_(false) {
-
+SliderWidget::SliderWidget(const QString& label, double value, double min,
+                           double max, const QString& description,
+                           QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      value_(value),
+      min_(min),
+      max_(max),
+      is_slider_dragging_(false) {
   // Create timer for periodic live updates during slider drag
   slider_update_timer_ = new QTimer(this);
   slider_update_timer_->setInterval(100); // Update every 100ms during drag
@@ -22,9 +26,9 @@ SliderWidget::SliderWidget(const QString &label, double value, double min,
   });
 }
 
-QWidget *SliderWidget::createControlWidget() {
-  auto *container = new QWidget(this);
-  auto *layout = new QHBoxLayout(container);
+QWidget* SliderWidget::createControlWidget() {
+  auto* container = new QWidget(this);
+  auto* layout = new QHBoxLayout(container);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(8);
 
@@ -96,7 +100,9 @@ QWidget *SliderWidget::createControlWidget() {
   return container;
 }
 
-double SliderWidget::getValue() const { return value_; }
+double SliderWidget::getValue() const {
+  return value_;
+}
 
 void SliderWidget::setValue(double value) {
   value = std::clamp(value, min_, max_);
@@ -127,7 +133,7 @@ void SliderWidget::setShowValue(bool show) {
   }
 }
 
-void SliderWidget::setValueSuffix(const QString &suffix) {
+void SliderWidget::setValueSuffix(const QString& suffix) {
   value_suffix_ = suffix;
   updateValueLabel();
 }

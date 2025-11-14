@@ -2,6 +2,7 @@
 #include "nodo/geometry/box_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/processing/pmp_converter.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo;
@@ -10,11 +11,11 @@ using namespace nodo::processing::detail;
 namespace attrs = nodo::core::standard_attrs;
 
 // Helper to convert GeometryContainer to Mesh for comparison
-static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
+static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   core::Mesh mesh;
 
   // Get positions
-  const auto *positions =
+  const auto* positions =
       container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!positions) {
     return mesh;
@@ -32,12 +33,12 @@ static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
   }
 
   // Build face matrix
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t n_faces = topology.primitive_count();
   Eigen::Matrix<int, Eigen::Dynamic, 3, Eigen::RowMajor> F(n_faces, 3);
 
   for (size_t i = 0; i < n_faces; ++i) {
-    const auto &prim_verts = topology.get_primitive_vertices(i);
+    const auto& prim_verts = topology.get_primitive_vertices(i);
     F(i, 0) = prim_verts[0];
     F(i, 1) = prim_verts[1];
     F(i, 2) = prim_verts[2];
@@ -180,9 +181,9 @@ TEST_F(PMPConverterTest, RoundTripContainer) {
   // Verify position attribute
   ASSERT_TRUE(result_container.has_point_attribute(attrs::P));
 
-  const auto *orig_pos =
+  const auto* orig_pos =
       sphere_container_.get_point_attribute_typed<core::Vec3f>(attrs::P);
-  const auto *result_pos =
+  const auto* result_pos =
       result_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   ASSERT_NE(orig_pos, nullptr);
@@ -238,7 +239,7 @@ TEST_F(PMPConverterTest, PreservesNormals) {
   EXPECT_TRUE(result.has_point_attribute(attrs::N));
 
   // Verify normals are unit length
-  const auto *normals = result.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  const auto* normals = result.get_point_attribute_typed<core::Vec3f>(attrs::N);
   ASSERT_NE(normals, nullptr);
 
   auto norm_span = normals->values();
@@ -345,7 +346,7 @@ TEST_F(PMPConverterTest, ThrowsOnNonTriangles) {
   std::vector<core::Vec3f> positions = {
       {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}};
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *pos_attr = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* pos_attr = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   pos_attr->resize(4);
   auto pos_span = pos_attr->values_writable();
   for (size_t i = 0; i < 4; ++i) {

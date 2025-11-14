@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -18,7 +19,7 @@ class GroupPromoteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupPromoteSOP(const std::string &name = "group_promote")
+  explicit GroupPromoteSOP(const std::string& name = "group_promote")
       : SOPNode(name, "GroupPromote") {
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);
@@ -96,7 +97,7 @@ protected:
     //                                            core::ElementClass::PRIMITIVE;
 
     // Get source group attribute
-    auto *src_attr =
+    auto* src_attr =
         (from_class == 0)
             ? result->get_point_attribute_typed<int>(group_name)
             : result->get_primitive_attribute_typed<int>(group_name);
@@ -115,11 +116,11 @@ protected:
 
     // Point to Primitive promotion
     if (from_class == 0 && to_class == 1) {
-      auto *dst_attr = result->get_primitive_attribute_typed<int>(group_name);
+      auto* dst_attr = result->get_primitive_attribute_typed<int>(group_name);
 
       for (size_t prim_idx = 0; prim_idx < result->primitive_count();
            ++prim_idx) {
-        const auto &prim_verts =
+        const auto& prim_verts =
             result->topology().get_primitive_vertices(prim_idx);
 
         int in_group_count = 0;
@@ -147,7 +148,7 @@ protected:
     }
     // Primitive to Point promotion
     else if (from_class == 1 && to_class == 0) {
-      auto *dst_attr = result->get_point_attribute_typed<int>(group_name);
+      auto* dst_attr = result->get_point_attribute_typed<int>(group_name);
 
       // Initialize all points to 0
       for (size_t i = 0; i < dst_attr->size(); ++i) {
@@ -158,7 +159,7 @@ protected:
       for (size_t prim_idx = 0; prim_idx < result->primitive_count();
            ++prim_idx) {
         if ((*src_attr)[prim_idx] != 0) {
-          const auto &prim_verts =
+          const auto& prim_verts =
               result->topology().get_primitive_vertices(prim_idx);
 
           for (int vert_idx : prim_verts) {

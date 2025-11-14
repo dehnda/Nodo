@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 
 namespace nodo::processing {
@@ -27,8 +28,8 @@ public:
   /// @param params Hole filling parameters
   /// @return Repaired geometry, or nullopt on error
   static std::optional<core::GeometryContainer>
-  fill_holes(const core::GeometryContainer &input,
-             const HoleFillingParams &params = HoleFillingParams{});
+  fill_holes(const core::GeometryContainer& input,
+             const HoleFillingParams& params = HoleFillingParams{});
 };
 
 } // namespace nodo::processing

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sop_node.hpp"
+
 #include <memory>
 
 namespace nodo::sop {
@@ -22,7 +23,7 @@ class GroupSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupSOP(const std::string &name = "group");
+  explicit GroupSOP(const std::string& name = "group");
   ~GroupSOP() override = default;
 
 protected:

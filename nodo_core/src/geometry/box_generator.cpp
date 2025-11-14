@@ -1,4 +1,5 @@
 #include "nodo/geometry/box_generator.hpp"
+
 #include "nodo/sop/sop_utils.hpp"
 
 namespace attrs = nodo::core::standard_attrs;
@@ -13,7 +14,6 @@ std::optional<core::GeometryContainer>
 BoxGenerator::generate(double width, double height, double depth,
                        int width_segments, int height_segments,
                        int depth_segments) {
-
   if (width <= 0.0 || height <= 0.0 || depth <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::InvalidFormat,
@@ -39,9 +39,8 @@ BoxGenerator::generate(double width, double height, double depth,
 }
 
 std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
-    const Eigen::Vector3d &min_corner, const Eigen::Vector3d &max_corner,
+    const Eigen::Vector3d& min_corner, const Eigen::Vector3d& max_corner,
     int width_segments, int height_segments, int depth_segments) {
-
   if ((max_corner.array() <= min_corner.array()).any()) {
     set_last_error(core::Error{
         core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
@@ -189,7 +188,7 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   container.set_vertex_count(actual_point_count); // 1:1 mapping
 
   // Get topology reference for adding primitives
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Set up 1:1 vertex→point mapping
   for (size_t i = 0; i < actual_point_count; ++i) {
@@ -197,13 +196,13 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   }
 
   // Add primitives to topology (keep as quads)
-  for (const auto &prim_verts : primitive_vertices) {
+  for (const auto& prim_verts : primitive_vertices) {
     topology.add_primitive(prim_verts);
   }
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -216,12 +215,11 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
 }
 
 void BoxGenerator::generate_face(
-    std::vector<core::Vec3f> &positions,
-    std::vector<std::vector<int>> &primitive_vertices, int &vertex_index,
-    const Eigen::Vector3d &corner1, const Eigen::Vector3d &corner2,
-    const Eigen::Vector3d &corner3, const Eigen::Vector3d &corner4,
+    std::vector<core::Vec3f>& positions,
+    std::vector<std::vector<int>>& primitive_vertices, int& vertex_index,
+    const Eigen::Vector3d& corner1, const Eigen::Vector3d& corner2,
+    const Eigen::Vector3d& corner3, const Eigen::Vector3d& corner4,
     int u_segments, int v_segments, bool flip_normal) {
-
   const int start_vertex = vertex_index;
 
   // Generate vertices for this face
@@ -268,9 +266,11 @@ void BoxGenerator::generate_face(
   }
 }
 
-const core::Error &BoxGenerator::last_error() { return last_error_; }
+const core::Error& BoxGenerator::last_error() {
+  return last_error_;
+}
 
-void BoxGenerator::set_last_error(const core::Error &error) {
+void BoxGenerator::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

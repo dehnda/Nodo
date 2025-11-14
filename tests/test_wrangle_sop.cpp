@@ -3,6 +3,7 @@
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/geometry/mesh_generator.hpp"
 #include "nodo/sop/wrangle_sop.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -24,7 +25,7 @@ TEST_F(WrangleSOPTest, SimplePositionOffset) {
 
   // Add position attribute and fill it
   box_geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       box_geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   auto pos_span = positions->values_writable();
   pos_span[0] = Vec3f(-0.5f, -0.5f, -0.5f);
@@ -37,7 +38,7 @@ TEST_F(WrangleSOPTest, SimplePositionOffset) {
   pos_span[7] = Vec3f(0.5f, 0.5f, 0.5f);
 
   // Connect input
-  auto *input_port = wrangle_sop->get_input_ports().get_port("0");
+  auto* input_port = wrangle_sop->get_input_ports().get_port("0");
   ASSERT_NE(input_port, nullptr);
   input_port->set_data(box_geo);
 
@@ -52,14 +53,14 @@ TEST_F(WrangleSOPTest, SimplePositionOffset) {
   EXPECT_GT(result->point_count(), 0);
 
   // Verify positions were modified
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Check that Y values were offset
   auto result_span = result_positions->values();
   for (size_t i = 0; i < result_span.size(); ++i) {
-    const auto &pos = result_span[i];
+    const auto& pos = result_span[i];
     // Original box vertices are at -0.5 to 0.5, so after +0.5 they should be
     // 0.0 to 1.0
     EXPECT_GE(pos.y(), -0.01f); // Small tolerance
@@ -73,13 +74,13 @@ TEST_F(WrangleSOPTest, PointNumberAccess) {
   geo->set_point_count(5);
 
   geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-  auto *positions = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* positions = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   auto pos_span = positions->values_writable();
   for (int i = 0; i < 5; ++i) {
     pos_span[i] = Vec3f(float(i), 0.0f, 0.0f);
   }
 
-  auto *input_port = wrangle_sop->get_input_ports().get_port("0");
+  auto* input_port = wrangle_sop->get_input_ports().get_port("0");
   ASSERT_NE(input_port, nullptr);
   input_port->set_data(geo);
 
@@ -90,14 +91,14 @@ TEST_F(WrangleSOPTest, PointNumberAccess) {
   auto result = wrangle_sop->cook();
 
   ASSERT_NE(result, nullptr);
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Verify Y positions match point numbers
   auto result_span = result_positions->values();
   for (size_t i = 0; i < result_span.size(); ++i) {
-    const auto &pos = result_span[i];
+    const auto& pos = result_span[i];
     EXPECT_NEAR(pos.y(), i * 0.5f, 0.01f);
   }
 }
@@ -108,13 +109,13 @@ TEST_F(WrangleSOPTest, ColorAttribute) {
   geo->set_point_count(3);
 
   geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-  auto *positions = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* positions = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   auto pos_span = positions->values_writable();
   pos_span[0] = Vec3f(0.0f, 0.0f, 0.0f);
   pos_span[1] = Vec3f(1.0f, 0.0f, 0.0f);
   pos_span[2] = Vec3f(2.0f, 0.0f, 0.0f);
 
-  auto *input_port = wrangle_sop->get_input_ports().get_port("0");
+  auto* input_port = wrangle_sop->get_input_ports().get_port("0");
   ASSERT_NE(input_port, nullptr);
   input_port->set_data(geo);
 
@@ -128,13 +129,13 @@ TEST_F(WrangleSOPTest, ColorAttribute) {
   ASSERT_NE(result, nullptr);
 
   // Verify color attribute was created
-  auto *colors = result->get_point_attribute_typed<Vec3f>(standard_attrs::Cd);
+  auto* colors = result->get_point_attribute_typed<Vec3f>(standard_attrs::Cd);
   ASSERT_NE(colors, nullptr);
 
   // Check color values
   auto color_span = colors->values();
   for (size_t i = 0; i < color_span.size(); ++i) {
-    const auto &color = color_span[i];
+    const auto& color = color_span[i];
     EXPECT_NEAR(color.x(), 1.0f, 0.01f);
     EXPECT_NEAR(color.y(), 0.5f, 0.01f);
     EXPECT_NEAR(color.z(), 0.0f, 0.01f);
@@ -158,13 +159,13 @@ TEST_F(WrangleSOPTest, ExpressionError) {
   geo->set_point_count(3);
 
   geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-  auto *positions = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* positions = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   auto pos_span = positions->values_writable();
   pos_span[0] = Vec3f(0.0f, 0.0f, 0.0f);
   pos_span[1] = Vec3f(1.0f, 0.0f, 0.0f);
   pos_span[2] = Vec3f(2.0f, 0.0f, 0.0f);
 
-  auto *input_port = wrangle_sop->get_input_ports().get_port("0");
+  auto* input_port = wrangle_sop->get_input_ports().get_port("0");
   ASSERT_NE(input_port, nullptr);
   input_port->set_data(geo);
 

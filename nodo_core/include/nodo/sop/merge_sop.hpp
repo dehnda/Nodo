@@ -18,7 +18,7 @@ class MergeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit MergeSOP(const std::string &node_name = "merge");
+  explicit MergeSOP(const std::string& node_name = "merge");
 
   // Multi-input node - requires at least 1 input, accepts unlimited
   // Single wide input pin that accepts multiple connections

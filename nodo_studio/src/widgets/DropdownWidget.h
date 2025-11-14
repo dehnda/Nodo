@@ -1,7 +1,9 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QComboBox>
+
 #include <functional>
 #include <vector>
 
@@ -26,30 +28,30 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  DropdownWidget(const QString &label, const std::vector<QString> &options,
-                 int initial_index = 0, const QString &description = QString(),
-                 QWidget *parent = nullptr);
+  DropdownWidget(const QString& label, const std::vector<QString>& options,
+                 int initial_index = 0, const QString& description = QString(),
+                 QWidget* parent = nullptr);
 
   // Value access
   int getSelectedIndex() const { return selected_index_; }
   QString getSelectedOption() const;
 
   void setSelectedIndex(int index);
-  void setSelectedOption(const QString &option);
+  void setSelectedOption(const QString& option);
 
   // Update available options
-  void setOptions(const std::vector<QString> &options, int selected_index = 0);
+  void setOptions(const std::vector<QString>& options, int selected_index = 0);
   std::vector<QString> getOptions() const { return options_; }
 
   // Callback support
   void setSelectionChangedCallback(
-      std::function<void(int, const QString &)> callback);
+      std::function<void(int, const QString&)> callback);
 
 signals:
-  void selectionChangedSignal(int index, const QString &option);
+  void selectionChangedSignal(int index, const QString& option);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onCurrentIndexChanged(int index);
@@ -58,9 +60,9 @@ private:
   std::vector<QString> options_;
   int selected_index_{0};
 
-  QComboBox *combobox_{nullptr};
+  QComboBox* combobox_{nullptr};
 
-  std::function<void(int, const QString &)> selection_changed_callback_;
+  std::function<void(int, const QString&)> selection_changed_callback_;
 };
 
 } // namespace widgets

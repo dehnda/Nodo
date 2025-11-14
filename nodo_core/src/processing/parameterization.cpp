@@ -1,21 +1,22 @@
 #include "nodo/processing/parameterization.hpp"
+
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
+
 #include <pmp/algorithms/normals.h>
 #include <pmp/algorithms/parameterization.h>
-
 
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing {
 
 std::optional<core::GeometryContainer>
-Parameterization::parameterize(const core::GeometryContainer &input,
-                               const ParameterizationParams &params,
-                               std::string *error) {
+Parameterization::parameterize(const core::GeometryContainer& input,
+                               const ParameterizationParams& params,
+                               std::string* error) {
   try {
     // Validate input
     auto validation_error = detail::PMPConverter::validate_for_pmp(input);
@@ -74,7 +75,7 @@ Parameterization::parameterize(const core::GeometryContainer &input,
       // Create UV attribute
       result.add_point_attribute(params.uv_attribute_name,
                                  core::AttributeType::VEC2F);
-      auto *uv_attr = result.get_point_attribute_typed<core::Vec2f>(
+      auto* uv_attr = result.get_point_attribute_typed<core::Vec2f>(
           params.uv_attribute_name);
       uv_attr->resize(n_vertices);
       auto uv_writable = uv_attr->values_writable();
@@ -82,7 +83,7 @@ Parameterization::parameterize(const core::GeometryContainer &input,
       // Copy UV coordinates
       size_t idx = 0;
       for (auto v : pmp_mesh.vertices()) {
-        const auto &tex = tex_coords[v];
+        const auto& tex = tex_coords[v];
         uv_writable[idx] = core::Vec2f(tex[0], tex[1]);
         ++idx;
       }
@@ -94,7 +95,7 @@ Parameterization::parameterize(const core::GeometryContainer &input,
 
     return std::move(result);
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     if (error)
       *error = std::string("Parameterization failed: ") + e.what();
     return std::nullopt;

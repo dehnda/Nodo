@@ -1,7 +1,9 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QCheckBox>
+
 #include <functional>
 
 namespace nodo_studio {
@@ -23,9 +25,9 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  CheckboxWidget(const QString &label, bool initial_value = false,
-                 const QString &description = QString(),
-                 QWidget *parent = nullptr);
+  CheckboxWidget(const QString& label, bool initial_value = false,
+                 const QString& description = QString(),
+                 QWidget* parent = nullptr);
 
   // Value access
   bool isChecked() const;
@@ -38,14 +40,14 @@ signals:
   void valueChangedSignal(bool checked);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onCheckStateChanged(int state);
 
 private:
   bool checked_{false};
-  QCheckBox *checkbox_{nullptr};
+  QCheckBox* checkbox_{nullptr};
   std::function<void(bool)> value_changed_callback_;
 };
 

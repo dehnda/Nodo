@@ -25,7 +25,7 @@ public:
     GRID = 2    ///< Copies in a 2D grid pattern
   };
 
-  explicit ArraySOP(const std::string &name = "array");
+  explicit ArraySOP(const std::string& name = "array");
 
   /**
    * @brief Execute the array operation (SOPNode override)
@@ -34,11 +34,11 @@ public:
 
 private:
   std::unique_ptr<core::GeometryContainer>
-  create_linear_array(const core::GeometryContainer &input_geo, int count);
+  create_linear_array(const core::GeometryContainer& input_geo, int count);
   std::unique_ptr<core::GeometryContainer>
-  create_radial_array(const core::GeometryContainer &input_geo, int count);
+  create_radial_array(const core::GeometryContainer& input_geo, int count);
   std::unique_ptr<core::GeometryContainer>
-  create_grid_array(const core::GeometryContainer &input_geo, int grid_width,
+  create_grid_array(const core::GeometryContainer& input_geo, int grid_width,
                     int grid_height);
 };
 

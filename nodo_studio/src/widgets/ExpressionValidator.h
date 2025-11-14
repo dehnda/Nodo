@@ -3,6 +3,7 @@
 #include <QMap>
 #include <QString>
 #include <QStringList>
+
 #include <optional>
 #include <set>
 
@@ -43,23 +44,23 @@ public:
    * detection
    * @return Validation result with error details
    */
-  ValidationResult validate(const QString &expression,
-                            const QString &current_param_name = QString(),
-                            const QMap<QString, QString> &all_expressions = {});
+  ValidationResult validate(const QString& expression,
+                            const QString& current_param_name = QString(),
+                            const QMap<QString, QString>& all_expressions = {});
 
   /**
    * @brief Quick syntax check without context
    * @param expression The expression to check
    * @return true if syntax is valid
    */
-  bool validateSyntax(const QString &expression);
+  bool validateSyntax(const QString& expression);
 
   /**
    * @brief Extract all parameter references from an expression
    * @param expression The expression to analyze
    * @return List of parameter names referenced (both $ and ch() style)
    */
-  QStringList extractParameters(const QString &expression);
+  QStringList extractParameters(const QString& expression);
 
   /**
    * @brief Detect circular references in parameter dependencies
@@ -68,8 +69,8 @@ public:
    * @return Optional circular chain string if found, empty otherwise
    */
   std::optional<QString>
-  detectCircularReferences(const QString &param_name,
-                           const QMap<QString, QString> &all_expressions);
+  detectCircularReferences(const QString& param_name,
+                           const QMap<QString, QString>& all_expressions);
 
 private:
   /**
@@ -81,19 +82,19 @@ private:
    * @return Optional circular chain if detected
    */
   std::optional<QString> detectCircularReferencesRecursive(
-      const QString &current, const QMap<QString, QString> &all_expressions,
-      std::set<QString> &visited, QStringList &path);
+      const QString& current, const QMap<QString, QString>& all_expressions,
+      std::set<QString>& visited, QStringList& path);
 
   /**
    * @brief Extract $ style parameter references (e.g., $width, $height)
    */
-  QStringList extractDollarParameters(const QString &expression);
+  QStringList extractDollarParameters(const QString& expression);
 
   /**
    * @brief Extract ch() style parameter references (e.g.,
    * ch("../transform1/tx"))
    */
-  QStringList extractChParameters(const QString &expression);
+  QStringList extractChParameters(const QString& expression);
 };
 
 } // namespace Nodo

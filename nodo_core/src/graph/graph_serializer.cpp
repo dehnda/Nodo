@@ -4,23 +4,25 @@
  */
 
 #include "nodo/graph/graph_serializer.hpp"
+
 #include <fstream>
 #include <iostream>
+
 #include <nlohmann/json.hpp>
 
 namespace nodo::graph {
 
 using json = nlohmann::json;
 
-std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
+std::string GraphSerializer::serialize_to_json(const NodeGraph& graph) {
   try {
     json j;
     j["version"] = "1.0";
 
     // Serialize nodes
     j["nodes"] = json::array();
-    const auto &nodes = graph.get_nodes();
-    for (const auto &node : nodes) {
+    const auto& nodes = graph.get_nodes();
+    for (const auto& node : nodes) {
       json node_json;
       node_json["id"] = node->get_id();
       node_json["type"] = node_type_to_string(node->get_type());
@@ -36,8 +38,8 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
 
       // Serialize parameters
       node_json["parameters"] = json::array();
-      const auto &parameters = node->get_parameters();
-      for (const auto &param : parameters) {
+      const auto& parameters = node->get_parameters();
+      for (const auto& param : parameters) {
         json param_json;
         param_json["name"] = param.name;
         param_json["label"] = param.label;
@@ -50,45 +52,46 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
         }
 
         switch (param.type) {
-        case NodeParameter::Type::Float:
-          param_json["type"] = "float";
-          param_json["value"] = param.float_value;
-          param_json["float_min"] = param.ui_range.float_min;
-          param_json["float_max"] = param.ui_range.float_max;
-          break;
-        case NodeParameter::Type::Int:
-          param_json["type"] = "int";
-          param_json["value"] = param.int_value;
-          param_json["int_min"] = param.ui_range.int_min;
-          param_json["int_max"] = param.ui_range.int_max;
-          // Save string_options for combo box / mode widget
-          if (!param.string_options.empty()) {
-            param_json["string_options"] = param.string_options;
-          }
-          break;
-        case NodeParameter::Type::Bool:
-          param_json["type"] = "bool";
-          param_json["value"] = param.bool_value;
-          break;
-        case NodeParameter::Type::String:
-          param_json["type"] = "string";
-          param_json["value"] = param.string_value;
-          break;
-        case NodeParameter::Type::Code:
-          param_json["type"] = "code";
-          param_json["value"] = param.string_value;
-          break;
-        case NodeParameter::Type::Vector3:
-          param_json["type"] = "vector3";
-          param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
-                                 param.vector3_value[2]};
-          param_json["float_min"] = param.ui_range.float_min;
-          param_json["float_max"] = param.ui_range.float_max;
-          break;
-        case NodeParameter::Type::GroupSelector:
-          param_json["type"] = "group_selector";
-          param_json["value"] = param.string_value;
-          break;
+          case NodeParameter::Type::Float:
+            param_json["type"] = "float";
+            param_json["value"] = param.float_value;
+            param_json["float_min"] = param.ui_range.float_min;
+            param_json["float_max"] = param.ui_range.float_max;
+            break;
+          case NodeParameter::Type::Int:
+            param_json["type"] = "int";
+            param_json["value"] = param.int_value;
+            param_json["int_min"] = param.ui_range.int_min;
+            param_json["int_max"] = param.ui_range.int_max;
+            // Save string_options for combo box / mode widget
+            if (!param.string_options.empty()) {
+              param_json["string_options"] = param.string_options;
+            }
+            break;
+          case NodeParameter::Type::Bool:
+            param_json["type"] = "bool";
+            param_json["value"] = param.bool_value;
+            break;
+          case NodeParameter::Type::String:
+            param_json["type"] = "string";
+            param_json["value"] = param.string_value;
+            break;
+          case NodeParameter::Type::Code:
+            param_json["type"] = "code";
+            param_json["value"] = param.string_value;
+            break;
+          case NodeParameter::Type::Vector3:
+            param_json["type"] = "vector3";
+            param_json["value"] = {param.vector3_value[0],
+                                   param.vector3_value[1],
+                                   param.vector3_value[2]};
+            param_json["float_min"] = param.ui_range.float_min;
+            param_json["float_max"] = param.ui_range.float_max;
+            break;
+          case NodeParameter::Type::GroupSelector:
+            param_json["type"] = "group_selector";
+            param_json["value"] = param.string_value;
+            break;
         }
 
         node_json["parameters"].push_back(param_json);
@@ -99,8 +102,8 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
 
     // Serialize connections
     j["connections"] = json::array();
-    const auto &connections = graph.get_connections();
-    for (const auto &conn : connections) {
+    const auto& connections = graph.get_connections();
+    for (const auto& conn : connections) {
       json conn_json;
       conn_json["id"] = conn.id;
       conn_json["source_node"] = conn.source_node_id;
@@ -113,8 +116,8 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
 
     // Serialize graph parameters (M3.2)
     j["graph_parameters"] = json::array();
-    const auto &graph_params = graph.get_graph_parameters();
-    for (const auto &param : graph_params) {
+    const auto& graph_params = graph.get_graph_parameters();
+    for (const auto& param : graph_params) {
       json param_json;
       param_json["name"] = param.get_name();
       param_json["type"] = GraphParameter::type_to_string(param.get_type());
@@ -122,23 +125,23 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
 
       // Serialize value based on type
       switch (param.get_type()) {
-      case GraphParameter::Type::Int:
-        param_json["value"] = param.get_int_value();
-        break;
-      case GraphParameter::Type::Float:
-        param_json["value"] = param.get_float_value();
-        break;
-      case GraphParameter::Type::String:
-        param_json["value"] = param.get_string_value();
-        break;
-      case GraphParameter::Type::Bool:
-        param_json["value"] = param.get_bool_value();
-        break;
-      case GraphParameter::Type::Vector3: {
-        const auto &vec = param.get_vector3_value();
-        param_json["value"] = {vec[0], vec[1], vec[2]};
-        break;
-      }
+        case GraphParameter::Type::Int:
+          param_json["value"] = param.get_int_value();
+          break;
+        case GraphParameter::Type::Float:
+          param_json["value"] = param.get_float_value();
+          break;
+        case GraphParameter::Type::String:
+          param_json["value"] = param.get_string_value();
+          break;
+        case GraphParameter::Type::Bool:
+          param_json["value"] = param.get_bool_value();
+          break;
+        case GraphParameter::Type::Vector3: {
+          const auto& vec = param.get_vector3_value();
+          param_json["value"] = {vec[0], vec[1], vec[2]};
+          break;
+        }
       }
 
       j["graph_parameters"].push_back(param_json);
@@ -146,14 +149,14 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph &graph) {
 
     return j.dump(2); // Pretty print with 2-space indentation
 
-  } catch (const std::exception &error) {
+  } catch (const std::exception& error) {
     std::cerr << "Error serializing graph to JSON: " << error.what() << "\n";
     return "{}";
   }
 }
 
 std::optional<NodeGraph>
-GraphSerializer::deserialize_from_json(const std::string &json_data) {
+GraphSerializer::deserialize_from_json(const std::string& json_data) {
   try {
     json j = json::parse(json_data);
 
@@ -170,7 +173,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
     // Deserialize nodes
     if (j.contains("nodes") && j["nodes"].is_array()) {
-      for (const auto &node_json : j["nodes"]) {
+      for (const auto& node_json : j["nodes"]) {
         if (!node_json.contains("type") || !node_json.contains("name") ||
             !node_json.contains("id")) {
           std::cerr << "Invalid node: missing type, name, or id\n";
@@ -189,7 +192,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
         // Add node to graph with preserved ID
         graph.add_node_with_id(node_id, node_type.value(), name);
-        auto *node = graph.get_node(node_id);
+        auto* node = graph.get_node(node_id);
         if (!node) {
           std::cerr << "Failed to create node with id " << node_id << "\n";
           continue;
@@ -218,7 +221,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
         // Deserialize parameters
         if (node_json.contains("parameters") &&
             node_json["parameters"].is_array()) {
-          for (const auto &param_json : node_json["parameters"]) {
+          for (const auto& param_json : node_json["parameters"]) {
             if (!param_json.contains("name") || !param_json.contains("type") ||
                 !param_json.contains("value")) {
               continue;
@@ -373,7 +376,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
       // Update next_node_id_ to be higher than any loaded node ID
       // This ensures new nodes get unique IDs
       int max_node_id = 0;
-      for (const auto &node_ptr : graph.get_nodes()) {
+      for (const auto& node_ptr : graph.get_nodes()) {
         if (node_ptr->get_id() > max_node_id) {
           max_node_id = node_ptr->get_id();
         }
@@ -382,7 +385,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
       // Deserialize connections
       if (j.contains("connections") && j["connections"].is_array()) {
-        for (const auto &conn_json : j["connections"]) {
+        for (const auto& conn_json : j["connections"]) {
           if (!conn_json.contains("source_node") ||
               !conn_json.contains("source_pin") ||
               !conn_json.contains("target_node") ||
@@ -420,7 +423,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
         // Update next_connection_id_ to be higher than any loaded connection ID
         int max_conn_id = 0;
-        for (const auto &conn : graph.get_connections()) {
+        for (const auto& conn : graph.get_connections()) {
           if (conn.id > max_conn_id) {
             max_conn_id = conn.id;
           }
@@ -430,7 +433,7 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
       // Deserialize graph parameters (M3.2)
       if (j.contains("graph_parameters") && j["graph_parameters"].is_array()) {
-        for (const auto &param_json : j["graph_parameters"]) {
+        for (const auto& param_json : j["graph_parameters"]) {
           if (!param_json.contains("name") || !param_json.contains("type") ||
               !param_json.contains("value")) {
             continue;
@@ -445,35 +448,36 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
           // Set value based on type
           switch (type) {
-          case GraphParameter::Type::Int:
-            if (param_json["value"].is_number_integer()) {
-              param.set_value(param_json["value"].get<int>());
-            }
-            break;
-          case GraphParameter::Type::Float:
-            if (param_json["value"].is_number()) {
-              param.set_value(param_json["value"].get<float>());
-            }
-            break;
-          case GraphParameter::Type::String:
-            if (param_json["value"].is_string()) {
-              param.set_value(param_json["value"].get<std::string>());
-            }
-            break;
-          case GraphParameter::Type::Bool:
-            if (param_json["value"].is_boolean()) {
-              param.set_value(param_json["value"].get<bool>());
-            }
-            break;
-          case GraphParameter::Type::Vector3:
-            if (param_json["value"].is_array() &&
-                param_json["value"].size() >= 3) {
-              std::array<float, 3> vec = {param_json["value"][0].get<float>(),
-                                          param_json["value"][1].get<float>(),
-                                          param_json["value"][2].get<float>()};
-              param.set_value(vec);
-            }
-            break;
+            case GraphParameter::Type::Int:
+              if (param_json["value"].is_number_integer()) {
+                param.set_value(param_json["value"].get<int>());
+              }
+              break;
+            case GraphParameter::Type::Float:
+              if (param_json["value"].is_number()) {
+                param.set_value(param_json["value"].get<float>());
+              }
+              break;
+            case GraphParameter::Type::String:
+              if (param_json["value"].is_string()) {
+                param.set_value(param_json["value"].get<std::string>());
+              }
+              break;
+            case GraphParameter::Type::Bool:
+              if (param_json["value"].is_boolean()) {
+                param.set_value(param_json["value"].get<bool>());
+              }
+              break;
+            case GraphParameter::Type::Vector3:
+              if (param_json["value"].is_array() &&
+                  param_json["value"].size() >= 3) {
+                std::array<float, 3> vec = {
+                    param_json["value"][0].get<float>(),
+                    param_json["value"][1].get<float>(),
+                    param_json["value"][2].get<float>()};
+                param.set_value(vec);
+              }
+              break;
           }
 
           graph.add_graph_parameter(param);
@@ -483,18 +487,18 @@ GraphSerializer::deserialize_from_json(const std::string &json_data) {
 
     return graph;
 
-  } catch (const json::parse_error &error) {
+  } catch (const json::parse_error& error) {
     std::cerr << "JSON parse error: " << error.what() << "\n";
     return std::nullopt;
-  } catch (const std::exception &error) {
+  } catch (const std::exception& error) {
     std::cerr << "Error deserializing graph from JSON: " << error.what()
               << "\n";
     return std::nullopt;
   }
 }
 
-bool GraphSerializer::save_to_file(const NodeGraph &graph,
-                                   const std::string &file_path) {
+bool GraphSerializer::save_to_file(const NodeGraph& graph,
+                                   const std::string& file_path) {
   try {
     std::ofstream file(file_path);
     if (!file.is_open()) {
@@ -507,14 +511,14 @@ bool GraphSerializer::save_to_file(const NodeGraph &graph,
     file.close();
 
     return true;
-  } catch (const std::exception &error) {
+  } catch (const std::exception& error) {
     std::cerr << "Error saving to file: " << error.what() << "\n";
     return false;
   }
 }
 
 std::optional<NodeGraph>
-GraphSerializer::load_from_file(const std::string &file_path) {
+GraphSerializer::load_from_file(const std::string& file_path) {
   try {
     std::ifstream file(file_path);
     if (!file.is_open()) {
@@ -528,7 +532,7 @@ GraphSerializer::load_from_file(const std::string &file_path) {
 
     return deserialize_from_json(json_str);
 
-  } catch (const std::exception &error) {
+  } catch (const std::exception& error) {
     std::cerr << "Error loading from file: " << error.what() << "\n";
     return std::nullopt;
   }
@@ -536,119 +540,119 @@ GraphSerializer::load_from_file(const std::string &file_path) {
 
 std::string GraphSerializer::node_type_to_string(NodeType type) {
   switch (type) {
-  case NodeType::Sphere:
-    return "Sphere";
-  case NodeType::Box:
-    return "Box";
-  case NodeType::Cylinder:
-    return "Cylinder";
-  case NodeType::Grid:
-    return "Plane";
-  case NodeType::Torus:
-    return "Torus";
-  case NodeType::Line:
-    return "Line";
-  case NodeType::File:
-    return "File";
-  case NodeType::Export:
-    return "Export";
-  case NodeType::Extrude:
-    return "Extrude";
-  case NodeType::PolyExtrude:
-    return "PolyExtrude";
-  case NodeType::Smooth:
-    return "Smooth";
-  case NodeType::Subdivide:
-    return "Subdivide";
-  case NodeType::Transform:
-    return "Transform";
-  case NodeType::Array:
-    return "Array";
-  case NodeType::Mirror:
-    return "Mirror";
-  case NodeType::Resample:
-    return "Resample";
-  case NodeType::NoiseDisplacement:
-    return "NoiseDisplacement";
-  case NodeType::Boolean:
-    return "Boolean";
-  case NodeType::Scatter:
-    return "Scatter";
-  case NodeType::ScatterVolume:
-    return "ScatterVolume";
-  case NodeType::CopyToPoints:
-    return "CopyToPoints";
-  case NodeType::Merge:
-    return "Merge";
-  case NodeType::Switch:
-    return "Switch";
-  case NodeType::Null:
-    return "Null";
-  case NodeType::Cache:
-    return "Cache";
-  case NodeType::Time:
-    return "Time";
-  case NodeType::Output:
-    return "Output";
-  case NodeType::UVUnwrap:
-    return "UVUnwrap";
-  case NodeType::Wrangle:
-    return "Wrangle";
-  case NodeType::AttributeCreate:
-    return "AttributeCreate";
-  case NodeType::AttributeDelete:
-    return "AttributeDelete";
-  case NodeType::Color:
-    return "Color";
-  case NodeType::Normal:
-    return "Normal";
-  case NodeType::Group:
-    return "Group";
-  case NodeType::GroupDelete:
-    return "GroupDelete";
-  case NodeType::GroupPromote:
-    return "GroupPromote";
-  case NodeType::GroupCombine:
-    return "GroupCombine";
-  case NodeType::GroupExpand:
-    return "GroupExpand";
-  case NodeType::GroupTransfer:
-    return "GroupTransfer";
-  case NodeType::Blast:
-    return "Blast";
-  case NodeType::Sort:
-    return "Sort";
-  case NodeType::Bend:
-    return "Bend";
-  case NodeType::Twist:
-    return "Twist";
-  case NodeType::Lattice:
-    return "Lattice";
-  case NodeType::Bevel:
-    return "Bevel";
-  case NodeType::Remesh:
-    return "Remesh";
-  case NodeType::Align:
-    return "Align";
-  case NodeType::Split:
-    return "Split";
-  case NodeType::Parameterize:
-    return "Parameterize";
-  case NodeType::Geodesic:
-    return "Geodesic";
-  case NodeType::Curvature:
-    return "Curvature";
-  case NodeType::RepairMesh:
-    return "RepairMesh";
-  case NodeType::Decimate:
-    return "Decimate";
-  default:
-    return "Unknown";
+    case NodeType::Sphere:
+      return "Sphere";
+    case NodeType::Box:
+      return "Box";
+    case NodeType::Cylinder:
+      return "Cylinder";
+    case NodeType::Grid:
+      return "Plane";
+    case NodeType::Torus:
+      return "Torus";
+    case NodeType::Line:
+      return "Line";
+    case NodeType::File:
+      return "File";
+    case NodeType::Export:
+      return "Export";
+    case NodeType::Extrude:
+      return "Extrude";
+    case NodeType::PolyExtrude:
+      return "PolyExtrude";
+    case NodeType::Smooth:
+      return "Smooth";
+    case NodeType::Subdivide:
+      return "Subdivide";
+    case NodeType::Transform:
+      return "Transform";
+    case NodeType::Array:
+      return "Array";
+    case NodeType::Mirror:
+      return "Mirror";
+    case NodeType::Resample:
+      return "Resample";
+    case NodeType::NoiseDisplacement:
+      return "NoiseDisplacement";
+    case NodeType::Boolean:
+      return "Boolean";
+    case NodeType::Scatter:
+      return "Scatter";
+    case NodeType::ScatterVolume:
+      return "ScatterVolume";
+    case NodeType::CopyToPoints:
+      return "CopyToPoints";
+    case NodeType::Merge:
+      return "Merge";
+    case NodeType::Switch:
+      return "Switch";
+    case NodeType::Null:
+      return "Null";
+    case NodeType::Cache:
+      return "Cache";
+    case NodeType::Time:
+      return "Time";
+    case NodeType::Output:
+      return "Output";
+    case NodeType::UVUnwrap:
+      return "UVUnwrap";
+    case NodeType::Wrangle:
+      return "Wrangle";
+    case NodeType::AttributeCreate:
+      return "AttributeCreate";
+    case NodeType::AttributeDelete:
+      return "AttributeDelete";
+    case NodeType::Color:
+      return "Color";
+    case NodeType::Normal:
+      return "Normal";
+    case NodeType::Group:
+      return "Group";
+    case NodeType::GroupDelete:
+      return "GroupDelete";
+    case NodeType::GroupPromote:
+      return "GroupPromote";
+    case NodeType::GroupCombine:
+      return "GroupCombine";
+    case NodeType::GroupExpand:
+      return "GroupExpand";
+    case NodeType::GroupTransfer:
+      return "GroupTransfer";
+    case NodeType::Blast:
+      return "Blast";
+    case NodeType::Sort:
+      return "Sort";
+    case NodeType::Bend:
+      return "Bend";
+    case NodeType::Twist:
+      return "Twist";
+    case NodeType::Lattice:
+      return "Lattice";
+    case NodeType::Bevel:
+      return "Bevel";
+    case NodeType::Remesh:
+      return "Remesh";
+    case NodeType::Align:
+      return "Align";
+    case NodeType::Split:
+      return "Split";
+    case NodeType::Parameterize:
+      return "Parameterize";
+    case NodeType::Geodesic:
+      return "Geodesic";
+    case NodeType::Curvature:
+      return "Curvature";
+    case NodeType::RepairMesh:
+      return "RepairMesh";
+    case NodeType::Decimate:
+      return "Decimate";
+    default:
+      return "Unknown";
   }
 }
 
 std::optional<NodeType>
-GraphSerializer::string_to_node_type(const std::string &type_str) {
+GraphSerializer::string_to_node_type(const std::string& type_str) {
   if (type_str == "Sphere")
     return NodeType::Sphere;
   if (type_str == "Box")
@@ -758,7 +762,7 @@ GraphSerializer::string_to_node_type(const std::string &type_str) {
   return std::nullopt;
 }
 
-std::string GraphSerializer::parameter_to_json(const NodeParameter &param) {
+std::string GraphSerializer::parameter_to_json(const NodeParameter& param) {
   json param_json;
   param_json["name"] = param.name;
 
@@ -771,42 +775,42 @@ std::string GraphSerializer::parameter_to_json(const NodeParameter &param) {
   }
 
   switch (param.type) {
-  case NodeParameter::Type::Float:
-    param_json["type"] = "float";
-    param_json["value"] = param.float_value;
-    break;
-  case NodeParameter::Type::Int:
-    param_json["type"] = "int";
-    param_json["value"] = param.int_value;
-    break;
-  case NodeParameter::Type::Bool:
-    param_json["type"] = "bool";
-    param_json["value"] = param.bool_value;
-    break;
-  case NodeParameter::Type::String:
-    param_json["type"] = "string";
-    param_json["value"] = param.string_value;
-    break;
-  case NodeParameter::Type::Code:
-    param_json["type"] = "code";
-    param_json["value"] = param.string_value;
-    break;
-  case NodeParameter::Type::Vector3:
-    param_json["type"] = "vector3";
-    param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
-                           param.vector3_value[2]};
-    break;
-  case NodeParameter::Type::GroupSelector:
-    param_json["type"] = "group_selector";
-    param_json["value"] = param.string_value;
-    break;
+    case NodeParameter::Type::Float:
+      param_json["type"] = "float";
+      param_json["value"] = param.float_value;
+      break;
+    case NodeParameter::Type::Int:
+      param_json["type"] = "int";
+      param_json["value"] = param.int_value;
+      break;
+    case NodeParameter::Type::Bool:
+      param_json["type"] = "bool";
+      param_json["value"] = param.bool_value;
+      break;
+    case NodeParameter::Type::String:
+      param_json["type"] = "string";
+      param_json["value"] = param.string_value;
+      break;
+    case NodeParameter::Type::Code:
+      param_json["type"] = "code";
+      param_json["value"] = param.string_value;
+      break;
+    case NodeParameter::Type::Vector3:
+      param_json["type"] = "vector3";
+      param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
+                             param.vector3_value[2]};
+      break;
+    case NodeParameter::Type::GroupSelector:
+      param_json["type"] = "group_selector";
+      param_json["value"] = param.string_value;
+      break;
   }
 
   return param_json.dump();
 }
 
 std::optional<NodeParameter>
-GraphSerializer::json_to_parameter(const std::string &json_obj) {
+GraphSerializer::json_to_parameter(const std::string& json_obj) {
   try {
     json param_json = json::parse(json_obj);
 
@@ -862,7 +866,7 @@ GraphSerializer::json_to_parameter(const std::string &json_obj) {
     }
 
     return result_param;
-  } catch (const std::exception &error) {
+  } catch (const std::exception& error) {
     std::cerr << "Error parsing parameter JSON: " << error.what() << "\n";
     return std::nullopt;
   }

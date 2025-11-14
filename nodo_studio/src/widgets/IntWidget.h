@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BaseParameterWidget.h"
+
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QMouseEvent>
@@ -28,9 +29,9 @@ class IntWidget : public BaseParameterWidget {
   Q_OBJECT
 
 public:
-  explicit IntWidget(const QString &label, int value = 0, int min = 0,
-                     int max = 100, const QString &description = QString(),
-                     QWidget *parent = nullptr);
+  explicit IntWidget(const QString& label, int value = 0, int min = 0,
+                     int max = 100, const QString& description = QString(),
+                     QWidget* parent = nullptr);
 
   // Get/set current value
   int getValue() const;
@@ -54,17 +55,17 @@ public:
   void setExpressionMode(bool enabled);
   bool isExpressionMode() const { return is_expression_mode_; }
   QString getExpression() const { return expression_text_; }
-  void setExpression(const QString &expr);
+  void setExpression(const QString& expr);
 
   // Visual indicators (M3.3 Phase 4)
   void setResolvedValue(int resolved);
-  void setExpressionError(const QString &error);
+  void setExpressionError(const QString& error);
 
 signals:
   void valueChangedSignal(int value);
 
 protected:
-  QWidget *createControlWidget() override;
+  QWidget* createControlWidget() override;
 
 private slots:
   void onSpinBoxValueChanged(int value);
@@ -80,17 +81,17 @@ private:
   int current_value_;
 
   // UI components (numeric mode)
-  QSpinBox *spinbox_;
-  QSlider *slider_;
+  QSpinBox* spinbox_;
+  QSlider* slider_;
 
   // UI components (expression mode)
-  QLineEdit *expression_edit_;
-  QPushButton *mode_toggle_button_;
-  QWidget *numeric_container_;
-  QWidget *expression_container_;
-  ExpressionCompleter *expression_completer_; // M3.3 Phase 5
-  QTimer *validation_timer_;    // M3.3 Phase 6: Debounced validation
-  QTimer *slider_update_timer_; // Periodic updates during slider drag
+  QLineEdit* expression_edit_;
+  QPushButton* mode_toggle_button_;
+  QWidget* numeric_container_;
+  QWidget* expression_container_;
+  ExpressionCompleter* expression_completer_; // M3.3 Phase 5
+  QTimer* validation_timer_;    // M3.3 Phase 6: Debounced validation
+  QTimer* slider_update_timer_; // Periodic updates during slider drag
 
   // Expression mode state
   bool is_expression_mode_ = false;

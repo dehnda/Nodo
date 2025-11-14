@@ -24,19 +24,19 @@ private:
     /* Edges = 2 (maybe later)*/
   };
 
-  static constexpr const char *primitive_type_to_string(PrimitiveType type) {
+  static constexpr const char* primitive_type_to_string(PrimitiveType type) {
     switch (type) {
-    case PrimitiveType::Polygon:
-      return "Polygon";
-    case PrimitiveType::Points:
-      return "Points";
-    default:
-      return "Unknown";
+      case PrimitiveType::Polygon:
+        return "Polygon";
+      case PrimitiveType::Points:
+        return "Points";
+      default:
+        return "Unknown";
     }
   }
 
 public:
-  explicit GridSOP(const std::string &node_name = "grid")
+  explicit GridSOP(const std::string& node_name = "grid")
       : SOPNode(node_name, "Grid") {
     // Universal: Primitive Type
     register_parameter(
@@ -117,13 +117,13 @@ protected:
           std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
-        auto &topology = container->topology();
+        auto& topology = container->topology();
         topology.set_primitive_count(0);
       }
 
       return container;
 
-    } catch (const std::exception &exception) {
+    } catch (const std::exception& exception) {
       set_error("Exception during grid generation: " +
                 std::string(exception.what()));
       return nullptr;

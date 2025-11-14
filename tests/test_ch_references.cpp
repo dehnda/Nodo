@@ -5,6 +5,7 @@
 
 #include "nodo/graph/node_graph.hpp"
 #include "nodo/graph/parameter_expression_resolver.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::graph;
@@ -20,7 +21,7 @@ protected:
 TEST_F(CHReferencesTest, BasicAbsolutePathReference) {
   // Create a sphere node with a radius parameter
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 2.5F));
 
@@ -39,17 +40,17 @@ TEST_F(CHReferencesTest, BasicAbsolutePathReference) {
 TEST_F(CHReferencesTest, UniqueNodeNames) {
   // Create multiple sphere nodes - should get unique names
   int sphere1_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere1 = graph_->get_node(sphere1_id);
+  auto* sphere1 = graph_->get_node(sphere1_id);
   ASSERT_NE(sphere1, nullptr);
   sphere1->add_parameter(NodeParameter("radius", 1.0F));
 
   int sphere2_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere2 = graph_->get_node(sphere2_id);
+  auto* sphere2 = graph_->get_node(sphere2_id);
   ASSERT_NE(sphere2, nullptr);
   sphere2->add_parameter(NodeParameter("radius", 2.0F));
 
   int sphere3_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere3 = graph_->get_node(sphere3_id);
+  auto* sphere3 = graph_->get_node(sphere3_id);
   ASSERT_NE(sphere3, nullptr);
   sphere3->add_parameter(NodeParameter("radius", 3.0F));
 
@@ -78,7 +79,7 @@ TEST_F(CHReferencesTest, UniqueNodeNames) {
 // Test ch() in math expressions (uses ParameterExpressionResolver)
 TEST_F(CHReferencesTest, CHInMathExpression) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 5.0F));
 
@@ -99,7 +100,7 @@ TEST_F(CHReferencesTest, CHInMathExpression) {
 
   // Test multiple ch() references
   int sphere2_id = graph_->add_node(NodeType::Sphere, "sphere1");
-  auto *sphere2 = graph_->get_node(sphere2_id);
+  auto* sphere2 = graph_->get_node(sphere2_id);
   ASSERT_NE(sphere2, nullptr);
   sphere2->add_parameter(NodeParameter("radius", 3.0F));
 
@@ -112,7 +113,7 @@ TEST_F(CHReferencesTest, CHInMathExpression) {
 // Test ch() with integer parameters
 TEST_F(CHReferencesTest, IntegerParameters) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("u_segments", 32));
 
@@ -134,7 +135,7 @@ TEST_F(CHReferencesTest, NodeNotFound) {
 // Test error: parameter not found
 TEST_F(CHReferencesTest, ParameterNotFound) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 1.0F));
 
@@ -148,7 +149,7 @@ TEST_F(CHReferencesTest, ParameterNotFound) {
 // Test ch() with different node types
 TEST_F(CHReferencesTest, DifferentNodeTypes) {
   int box_source_id = graph_->add_node(NodeType::Box, "box_source");
-  auto *box_source = graph_->get_node(box_source_id);
+  auto* box_source = graph_->get_node(box_source_id);
   ASSERT_NE(box_source, nullptr);
   box_source->add_parameter(NodeParameter("width", 4.0F));
   box_source->add_parameter(NodeParameter("height", 3.0F));
@@ -169,7 +170,7 @@ TEST_F(CHReferencesTest, DifferentNodeTypes) {
 // Test ch() with nested expressions
 TEST_F(CHReferencesTest, NestedExpressions) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 5.0F));
   sphere->add_parameter(NodeParameter("u_segments", 16));
@@ -190,7 +191,7 @@ TEST_F(CHReferencesTest, NestedExpressions) {
 // Test ch() with single quotes
 TEST_F(CHReferencesTest, SingleQuotes) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 7.5F));
 
@@ -204,7 +205,7 @@ TEST_F(CHReferencesTest, SingleQuotes) {
 // Test updating referenced parameter
 TEST_F(CHReferencesTest, UpdateReferencedParameter) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 1.0F));
 
@@ -231,7 +232,7 @@ TEST_F(CHReferencesTest, UpdateReferencedParameter) {
 // Test ch() with zero values
 TEST_F(CHReferencesTest, ZeroValues) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", 0.0F));
 
@@ -245,7 +246,7 @@ TEST_F(CHReferencesTest, ZeroValues) {
 // Test ch() with negative values
 TEST_F(CHReferencesTest, NegativeValues) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("radius", -3.5F));
 
@@ -259,7 +260,7 @@ TEST_F(CHReferencesTest, NegativeValues) {
 // Test ch() with very large values
 TEST_F(CHReferencesTest, LargeValues) {
   int sphere_id = graph_->add_node(NodeType::Sphere, "sphere");
-  auto *sphere = graph_->get_node(sphere_id);
+  auto* sphere = graph_->get_node(sphere_id);
   ASSERT_NE(sphere, nullptr);
   sphere->add_parameter(NodeParameter("u_segments", 1000));
 

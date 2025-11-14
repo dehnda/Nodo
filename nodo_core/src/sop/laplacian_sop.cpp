@@ -1,5 +1,7 @@
 #include "nodo/sop/laplacian_sop.hpp"
+
 #include "nodo/core/attribute_types.hpp"
+
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
@@ -19,15 +21,14 @@ namespace {
  * analyzing edges in the primitives.
  */
 void build_point_connectivity(
-    const core::GeometryContainer &container,
-    std::unordered_map<int, std::unordered_set<int>> &point_neighbors) {
-
-  const auto &topology = container.topology();
+    const core::GeometryContainer& container,
+    std::unordered_map<int, std::unordered_set<int>>& point_neighbors) {
+  const auto& topology = container.topology();
   const size_t num_prims = topology.primitive_count();
 
   // Loop through all primitives
   for (size_t prim_idx = 0; prim_idx < num_prims; ++prim_idx) {
-    const auto &prim_vertices = topology.get_primitive_vertices(prim_idx);
+    const auto& prim_vertices = topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = prim_vertices.size();
 
     if (num_verts < 2) {
@@ -56,12 +57,11 @@ void build_point_connectivity(
  * @brief Perform one iteration of Laplacian smoothing
  */
 void smooth_iteration(
-    core::GeometryContainer &container,
-    core::AttributeStorage<core::Vec3f> *P_storage,
-    const std::unordered_map<int, std::unordered_set<int>> &point_neighbors,
+    core::GeometryContainer& container,
+    core::AttributeStorage<core::Vec3f>* P_storage,
+    const std::unordered_map<int, std::unordered_set<int>>& point_neighbors,
     float lambda, int method,
-    const std::unordered_set<size_t> &points_to_smooth) {
-
+    const std::unordered_set<size_t>& points_to_smooth) {
   const size_t num_points = container.point_count();
 
   // Store new positions (don't modify in place to avoid feedback)
@@ -85,8 +85,8 @@ void smooth_iteration(
       continue;
     }
 
-    const auto &neighbors = neighbors_it->second;
-    const core::Vec3f &current_pos = (*P_storage)[point_idx];
+    const auto& neighbors = neighbors_it->second;
+    const core::Vec3f& current_pos = (*P_storage)[point_idx];
 
     // Compute average neighbor position (uniform weighting)
     core::Vec3f avg_neighbor_pos(0.0F, 0.0F, 0.0F);
@@ -120,7 +120,7 @@ void smooth_iteration(
 
 } // anonymous namespace
 
-LaplacianSOP::LaplacianSOP(const std::string &name)
+LaplacianSOP::LaplacianSOP(const std::string& name)
     : SOPNode(name, "Laplacian") {
   // Add input port
   input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -168,7 +168,7 @@ std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
   const int method = get_parameter<int>("method", 0);
 
   // Get P attribute (point positions)
-  auto *P_storage = output->get_point_attribute_typed<core::Vec3f>("P");
+  auto* P_storage = output->get_point_attribute_typed<core::Vec3f>("P");
   if (P_storage == nullptr) {
     std::cerr << "LaplacianSOP: No P attribute found\n";
     return output;
@@ -197,8 +197,8 @@ std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
 
   // If we have vertex or point normals, recompute them after smoothing
   // (they may be pointing in wrong directions now)
-  auto *N_vertex = output->get_vertex_attribute_typed<core::Vec3f>("N");
-  auto *N_point = output->get_point_attribute_typed<core::Vec3f>("N");
+  auto* N_vertex = output->get_vertex_attribute_typed<core::Vec3f>("N");
+  auto* N_point = output->get_point_attribute_typed<core::Vec3f>("N");
 
   if (N_vertex != nullptr || N_point != nullptr) {
     // TODO: Optionally recompute normals here

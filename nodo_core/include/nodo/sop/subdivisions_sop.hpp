@@ -3,6 +3,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/processing/subdivision.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 
@@ -21,7 +22,7 @@ class SubdivisionSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SubdivisionSOP(const std::string &name = "subdivision");
+  explicit SubdivisionSOP(const std::string& name = "subdivision");
 
   // Configuration methods
   void set_subdivision_levels(int levels) {

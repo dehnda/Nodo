@@ -1,7 +1,9 @@
 #include "nodo/core/attribute_interpolation.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <cmath>
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -167,7 +169,7 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_EqualWeights) {
   geo->set_point_count(4);
   geo->add_point_attribute("height", AttributeType::FLOAT);
 
-  auto *height = geo->get_point_attribute_typed<float>("height");
+  auto* height = geo->get_point_attribute_typed<float>("height");
   auto height_span = height->values_writable();
   height_span[0] = 1.0f;
   height_span[1] = 2.0f;
@@ -187,7 +189,7 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_CustomWeights) {
   geo->set_point_count(3);
   geo->add_point_attribute("value", AttributeType::FLOAT);
 
-  auto *value = geo->get_point_attribute_typed<float>("value");
+  auto* value = geo->get_point_attribute_typed<float>("value");
   auto value_span = value->values_writable();
   value_span[0] = 10.0f;
   value_span[1] = 20.0f;
@@ -207,7 +209,7 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_Vec3f) {
   geo->set_point_count(3);
   geo->add_point_attribute("Cd", AttributeType::VEC3F);
 
-  auto *color = geo->get_point_attribute_typed<Vec3f>("Cd");
+  auto* color = geo->get_point_attribute_typed<Vec3f>("Cd");
   auto color_span = color->values_writable();
   color_span[0] = Vec3f{1.0f, 0.0f, 0.0f}; // Red
   color_span[1] = Vec3f{0.0f, 0.0f, 1.0f}; // Blue
@@ -235,12 +237,12 @@ TEST_F(AttributeInterpolationTest, CopyAndInterpolateAll) {
   geo->add_point_attribute("height", AttributeType::FLOAT);
   geo->add_point_attribute("Cd", AttributeType::VEC3F);
 
-  auto *height = geo->get_point_attribute_typed<float>("height");
+  auto* height = geo->get_point_attribute_typed<float>("height");
   auto height_span = height->values_writable();
   height_span[0] = 1.0f;
   height_span[1] = 3.0f;
 
-  auto *color = geo->get_point_attribute_typed<Vec3f>("Cd");
+  auto* color = geo->get_point_attribute_typed<Vec3f>("Cd");
   auto color_span = color->values_writable();
   color_span[0] = Vec3f{1.0f, 0.0f, 0.0f};
   color_span[1] = Vec3f{0.0f, 1.0f, 0.0f};
@@ -271,7 +273,7 @@ TEST_F(AttributeInterpolationTest, ResampleCurve_Endpoints) {
   geo->set_point_count(3);
   geo->add_point_attribute("value", AttributeType::FLOAT);
 
-  auto *value = geo->get_point_attribute_typed<float>("value");
+  auto* value = geo->get_point_attribute_typed<float>("value");
   auto value_span = value->values_writable();
   value_span[0] = 0.0f;
   value_span[1] = 5.0f;
@@ -292,7 +294,7 @@ TEST_F(AttributeInterpolationTest, ResampleCurve_Midpoint) {
   geo->set_point_count(3);
   geo->add_point_attribute("value", AttributeType::FLOAT);
 
-  auto *value = geo->get_point_attribute_typed<float>("value");
+  auto* value = geo->get_point_attribute_typed<float>("value");
   auto value_span = value->values_writable();
   value_span[0] = 0.0f;
   value_span[1] = 10.0f;
@@ -429,13 +431,13 @@ TEST_F(AttributeInterpolationTest, ComplexWorkflow_PointAveraging) {
   geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
   geo->add_point_attribute("Cd", AttributeType::VEC3F);
 
-  auto *pos = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* pos = geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   auto pos_span = pos->values_writable();
   pos_span[0] = Vec3f{0.0f, 0.0f, 0.0f};
   pos_span[1] = Vec3f{1.0f, 0.0f, 0.0f};
   pos_span[2] = Vec3f{0.5f, 1.0f, 0.0f};
 
-  auto *color = geo->get_point_attribute_typed<Vec3f>("Cd");
+  auto* color = geo->get_point_attribute_typed<Vec3f>("Cd");
   auto color_span = color->values_writable();
   color_span[0] = Vec3f{1.0f, 0.0f, 0.0f}; // Red
   color_span[1] = Vec3f{0.0f, 1.0f, 0.0f}; // Green

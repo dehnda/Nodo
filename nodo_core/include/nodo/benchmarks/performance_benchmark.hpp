@@ -2,12 +2,12 @@
 
 #include "../core/mesh.hpp"
 #include "../spatial/bvh.hpp"
+
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
-
 
 namespace nodo::benchmarks {
 
@@ -26,8 +26,12 @@ public:
     std::string additional_info;
 
     BenchmarkResult()
-        : average_time_ms(0), min_time_ms(0), max_time_ms(0), std_dev_ms(0),
-          iterations(0), memory_usage_bytes(0) {}
+        : average_time_ms(0),
+          min_time_ms(0),
+          max_time_ms(0),
+          std_dev_ms(0),
+          iterations(0),
+          memory_usage_bytes(0) {}
   };
 
   /// @brief Comprehensive benchmark suite results
@@ -37,13 +41,13 @@ public:
     std::chrono::system_clock::time_point timestamp;
 
     /// @brief Get result by operation name
-    const BenchmarkResult *find_result(const std::string &name) const;
+    const BenchmarkResult* find_result(const std::string& name) const;
 
     /// @brief Generate summary report
     std::string generate_report() const;
 
     /// @brief Export results to CSV
-    void export_csv(const std::string &filename) const;
+    void export_csv(const std::string& filename) const;
   };
 
   /// @brief Mesh complexity levels for testing
@@ -63,7 +67,9 @@ public:
     std::vector<ComplexityLevel> complexity_levels;
 
     BenchmarkConfig()
-        : iterations(100), measure_memory(true), warm_up_runs(true),
+        : iterations(100),
+          measure_memory(true),
+          warm_up_runs(true),
           warm_up_iterations(10),
           complexity_levels{ComplexityLevel::Simple, ComplexityLevel::Medium,
                             ComplexityLevel::Complex} {}
@@ -72,7 +78,7 @@ public:
 public:
   /// @brief Constructor
   explicit PerformanceBenchmark(
-      const BenchmarkConfig &config = BenchmarkConfig{});
+      const BenchmarkConfig& config = BenchmarkConfig{});
 
   /// @brief Run comprehensive BVH performance benchmarks
   /// @return Complete benchmark results
@@ -121,19 +127,20 @@ private:
   /// @brief Calculate statistics from timing data
   /// @param timings Vector of timing measurements
   /// @return Statistical summary
-  BenchmarkResult calculate_statistics(const std::vector<double> &timings,
-                                       const std::string &operation_name);
+  BenchmarkResult calculate_statistics(const std::vector<double>& timings,
+                                       const std::string& operation_name);
 
   /// @brief Estimate memory usage of an object
   /// @param obj Object to measure
   /// @return Estimated memory usage in bytes
-  template <typename T> size_t estimate_memory_usage(const T &obj);
+  template <typename T>
+  size_t estimate_memory_usage(const T& obj);
 
   /// @brief Generate mesh with specified subdivision level
   /// @param base_mesh Base mesh to subdivide
   /// @param subdivision_levels Number of subdivision iterations
   /// @return Subdivided mesh
-  static core::Mesh subdivide_mesh(const core::Mesh &base_mesh,
+  static core::Mesh subdivide_mesh(const core::Mesh& base_mesh,
                                    int subdivision_levels);
 
   /// @brief Brute force ray intersection (for comparison)
@@ -141,15 +148,15 @@ private:
   /// @param ray Ray to intersect
   /// @return Intersection result
   static std::optional<spatial::BVH::RayHit>
-  brute_force_ray_intersect(const core::Mesh &mesh,
-                            const spatial::BVH::Ray &ray);
+  brute_force_ray_intersect(const core::Mesh& mesh,
+                            const spatial::BVH::Ray& ray);
 
   /// @brief Brute force AABB query (for comparison)
   /// @param mesh Mesh to query
   /// @param aabb Query bounding box
   /// @return Triangle indices
-  static std::vector<int> brute_force_aabb_query(const core::Mesh &mesh,
-                                                 const spatial::AABB &aabb);
+  static std::vector<int> brute_force_aabb_query(const core::Mesh& mesh,
+                                                 const spatial::AABB& aabb);
 };
 
 /// @brief Memory usage tracker for performance analysis

@@ -7,11 +7,11 @@ using namespace nodo;
 
 // Helper to convert GeometryContainer to Mesh
 // Handles both triangles and quads
-static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
-  const auto &topology = container.topology();
+static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
+  const auto& topology = container.topology();
 
   // Extract positions
-  auto *p_storage =
+  auto* p_storage =
       container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
@@ -26,7 +26,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer &container) {
   // Mesh class requires triangles, so triangulate quads if needed
   std::vector<Eigen::Vector3i> triangle_list;
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
 
     // Convert vertex indices to point indices
     std::vector<int> point_indices;

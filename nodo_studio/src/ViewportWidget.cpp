@@ -1,7 +1,6 @@
 #include "ViewportWidget.h"
+
 #include "ViewportOverlay.h"
-#include <nodo/core/geometry_container.hpp>
-#include <nodo/core/mesh.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -11,8 +10,11 @@
 #include <QWheelEvent>
 #include <QtMath>
 
+#include <nodo/core/geometry_container.hpp>
+#include <nodo/core/mesh.hpp>
+
 // Vertex shader source (GLSL 330)
-static const char *vertex_shader_source = R"(
+static const char* vertex_shader_source = R"(
 #version 330 core
 
 layout(location = 0) in vec3 position;
@@ -37,7 +39,7 @@ void main() {
 )";
 
 // Fragment shader source (GLSL 330) - Blender-style 3-point lighting
-static const char *fragment_shader_source = R"(
+static const char* fragment_shader_source = R"(
 #version 330 core
 
 in vec3 frag_position;
@@ -99,7 +101,7 @@ void main() {
 )";
 
 // Grid vertex shader with distance calculation
-static const char *grid_vertex_shader_source = R"(
+static const char* grid_vertex_shader_source = R"(
 #version 330 core
 
 layout(location = 0) in vec3 position;
@@ -119,7 +121,7 @@ void main() {
 )";
 
 // Grid fragment shader with distance-based fade
-static const char *grid_fragment_shader_source = R"(
+static const char* grid_fragment_shader_source = R"(
 #version 330 core
 
 in float frag_distance;
@@ -137,7 +139,7 @@ void main() {
 )";
 
 // Simple vertex shader for edges and vertices (no lighting)
-static const char *simple_vertex_shader_source = R"(
+static const char* simple_vertex_shader_source = R"(
 #version 330 core
 
 layout(location = 0) in vec3 position;
@@ -154,7 +156,7 @@ void main() {
 )";
 
 // Simple fragment shader for edges and vertices (solid color)
-static const char *simple_fragment_shader_source = R"(
+static const char* simple_fragment_shader_source = R"(
 #version 330 core
 
 out vec4 frag_color;
@@ -187,7 +189,7 @@ void main() {
 }
 )";
 
-ViewportWidget::ViewportWidget(QWidget *parent) : QOpenGLWidget(parent) {
+ViewportWidget::ViewportWidget(QWidget* parent) : QOpenGLWidget(parent) {
   // Enable multisampling for smoother rendering
   QSurfaceFormat format;
   format.setSamples(4);
@@ -230,7 +232,7 @@ ViewportWidget::~ViewportWidget() {
 }
 
 void ViewportWidget::setGeometry(
-    const nodo::core::GeometryContainer &geometry) {
+    const nodo::core::GeometryContainer& geometry) {
   // Check if geometry is empty
   if (geometry.topology().point_count() == 0) {
     clearMesh();
@@ -244,7 +246,7 @@ void ViewportWidget::setGeometry(
   makeCurrent();
 
   // Get positions from "P" attribute
-  const auto *positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
+  const auto* positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
       nodo::core::standard_attrs::P);
   if (positions == nullptr) {
     clearMesh();
@@ -253,13 +255,13 @@ void ViewportWidget::setGeometry(
   }
 
   // Calculate bounds from positions for camera framing
-  const auto &pos_values = positions->values();
+  const auto& pos_values = positions->values();
   if (!pos_values.empty()) {
     // Calculate bounding box
     nodo::core::Vec3f min_point = pos_values[0];
     nodo::core::Vec3f max_point = pos_values[0];
 
-    for (const auto &pos : pos_values) {
+    for (const auto& pos : pos_values) {
       min_point = min_point.cwiseMin(pos);
       max_point = max_point.cwiseMax(pos);
     }
@@ -270,7 +272,7 @@ void ViewportWidget::setGeometry(
 
     // Calculate radius (distance from center to furthest point)
     float max_dist_sq = 0.0f;
-    for (const auto &pos : pos_values) {
+    for (const auto& pos : pos_values) {
       const nodo::core::Vec3f diff = pos - center;
       max_dist_sq = std::max(max_dist_sq, diff.squaredNorm());
     }
@@ -286,7 +288,7 @@ void ViewportWidget::setGeometry(
   // Extract vertex positions for rendering
   // In GeometryContainer, primitives reference points via vertices
   // We need to build per-vertex data for OpenGL
-  const auto &topology = geometry.topology();
+  const auto& topology = geometry.topology();
   std::vector<float> vertex_data;
   std::vector<float> normal_data;
   std::vector<unsigned int> index_data;
@@ -301,7 +303,7 @@ void ViewportWidget::setGeometry(
   if (is_point_cloud) {
     // For point clouds, render all points directly
     for (size_t point_idx = 0; point_idx < pos_values.size(); ++point_idx) {
-      const auto &pos = pos_values[point_idx];
+      const auto& pos = pos_values[point_idx];
       vertex_data.push_back(pos.x());
       vertex_data.push_back(pos.y());
       vertex_data.push_back(pos.z());
@@ -319,7 +321,7 @@ void ViewportWidget::setGeometry(
     size_t vertex_index = 0;
     for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
          ++prim_idx) {
-      const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+      const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
       // Detect line primitives (2 vertices)
       if (prim_verts.size() == 2) {
@@ -334,7 +336,7 @@ void ViewportWidget::setGeometry(
               static_cast<size_t>(point_idx) >= pos_values.size()) {
             continue;
           }
-          const auto &pos = pos_values[point_idx];
+          const auto& pos = pos_values[point_idx];
           line_vertex_data.push_back(pos.x());
           line_vertex_data.push_back(pos.y());
           line_vertex_data.push_back(pos.z());
@@ -359,7 +361,7 @@ void ViewportWidget::setGeometry(
               static_cast<size_t>(point_idx) >= pos_values.size()) {
             continue;
           }
-          const auto &pos = pos_values[point_idx];
+          const auto& pos = pos_values[point_idx];
           vertex_data.push_back(pos.x());
           vertex_data.push_back(pos.y());
           vertex_data.push_back(pos.z());
@@ -380,7 +382,7 @@ void ViewportWidget::setGeometry(
               static_cast<size_t>(point_idx) >= pos_values.size()) {
             continue;
           }
-          const auto &pos = pos_values[point_idx];
+          const auto& pos = pos_values[point_idx];
           vertex_data.push_back(pos.x());
           vertex_data.push_back(pos.y());
           vertex_data.push_back(pos.z());
@@ -402,7 +404,7 @@ void ViewportWidget::setGeometry(
                 static_cast<size_t>(point_idx) >= pos_values.size()) {
               continue;
             }
-            const auto &pos = pos_values[point_idx];
+            const auto& pos = pos_values[point_idx];
             vertex_data.push_back(pos.x());
             vertex_data.push_back(pos.y());
             vertex_data.push_back(pos.z());
@@ -414,20 +416,20 @@ void ViewportWidget::setGeometry(
 
     // Get normals from "N" attribute - check VERTEX attributes first (for hard
     // edges), then fall back to POINT attributes (for smooth shading)
-    const auto *vertex_normals =
+    const auto* vertex_normals =
         geometry.get_vertex_attribute_typed<nodo::core::Vec3f>(
             nodo::core::standard_attrs::N);
-    const auto *point_normals =
+    const auto* point_normals =
         geometry.get_point_attribute_typed<nodo::core::Vec3f>(
             nodo::core::standard_attrs::N);
 
     if (vertex_normals != nullptr) {
       // Use per-vertex normals (hard edges / faceted shading)
-      const auto &normal_values = vertex_normals->values();
+      const auto& normal_values = vertex_normals->values();
 
       for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
            ++prim_idx) {
-        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+        const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
         // Skip line primitives (they don't need normals for rendering)
         if (prim_verts.size() == 2) {
@@ -438,7 +440,7 @@ void ViewportWidget::setGeometry(
         if (prim_verts.size() == 3) {
           // Triangle
           for (int vert_idx : prim_verts) {
-            const auto &normal = normal_values[vert_idx];
+            const auto& normal = normal_values[vert_idx];
             normal_data.push_back(normal.x());
             normal_data.push_back(normal.y());
             normal_data.push_back(normal.z());
@@ -447,7 +449,7 @@ void ViewportWidget::setGeometry(
           // Quad: triangulated as 0-1-2, 0-2-3
           const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
           for (int local_idx : tri_indices) {
-            const auto &normal = normal_values[prim_verts[local_idx]];
+            const auto& normal = normal_values[prim_verts[local_idx]];
             normal_data.push_back(normal.x());
             normal_data.push_back(normal.y());
             normal_data.push_back(normal.z());
@@ -457,7 +459,7 @@ void ViewportWidget::setGeometry(
           for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
             const std::array<size_t, 3> tri_local = {0, i, i + 1};
             for (size_t local_idx : tri_local) {
-              const auto &normal = normal_values[prim_verts[local_idx]];
+              const auto& normal = normal_values[prim_verts[local_idx]];
               normal_data.push_back(normal.x());
               normal_data.push_back(normal.y());
               normal_data.push_back(normal.z());
@@ -467,11 +469,11 @@ void ViewportWidget::setGeometry(
       }
     } else if (point_normals != nullptr) {
       // Use per-point normals (smooth shading)
-      const auto &normal_values = point_normals->values();
+      const auto& normal_values = point_normals->values();
 
       for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
            ++prim_idx) {
-        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+        const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
         // Skip line primitives
         if (prim_verts.size() == 2) {
@@ -483,7 +485,7 @@ void ViewportWidget::setGeometry(
           // Triangle
           for (int vert_idx : prim_verts) {
             int point_idx = topology.get_vertex_point(vert_idx);
-            const auto &normal = normal_values[point_idx];
+            const auto& normal = normal_values[point_idx];
             normal_data.push_back(normal.x());
             normal_data.push_back(normal.y());
             normal_data.push_back(normal.z());
@@ -493,7 +495,7 @@ void ViewportWidget::setGeometry(
           const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
           for (int local_idx : tri_indices) {
             int point_idx = topology.get_vertex_point(prim_verts[local_idx]);
-            const auto &normal = normal_values[point_idx];
+            const auto& normal = normal_values[point_idx];
             normal_data.push_back(normal.x());
             normal_data.push_back(normal.y());
             normal_data.push_back(normal.z());
@@ -504,7 +506,7 @@ void ViewportWidget::setGeometry(
             const std::array<size_t, 3> tri_local = {0, i, i + 1};
             for (size_t local_idx : tri_local) {
               int point_idx = topology.get_vertex_point(prim_verts[local_idx]);
-              const auto &normal = normal_values[point_idx];
+              const auto& normal = normal_values[point_idx];
               normal_data.push_back(normal.x());
               normal_data.push_back(normal.y());
               normal_data.push_back(normal.z());
@@ -516,7 +518,7 @@ void ViewportWidget::setGeometry(
       // Generate flat normals if no normals attribute
       for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
            ++prim_idx) {
-        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+        const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
         if (prim_verts.size() >= 3) {
           // Compute face normal from first 3 vertices
@@ -566,9 +568,9 @@ void ViewportWidget::setGeometry(
   std::vector<float> color_data;
   has_vertex_colors_ = false;
 
-  const auto *vertex_colors =
+  const auto* vertex_colors =
       geometry.get_vertex_attribute_typed<nodo::core::Vec3f>("Cd");
-  const auto *point_colors =
+  const auto* point_colors =
       geometry.get_point_attribute_typed<nodo::core::Vec3f>("Cd");
 
   if (vertex_colors != nullptr || point_colors != nullptr) {
@@ -576,11 +578,11 @@ void ViewportWidget::setGeometry(
 
     if (vertex_colors != nullptr) {
       // Use per-vertex colors
-      const auto &color_values = vertex_colors->values();
+      const auto& color_values = vertex_colors->values();
 
       for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
            ++prim_idx) {
-        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+        const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
         // Skip line primitives
         if (prim_verts.size() == 2) {
@@ -591,7 +593,7 @@ void ViewportWidget::setGeometry(
         if (prim_verts.size() == 3) {
           // Triangle
           for (int vert_idx : prim_verts) {
-            const auto &color = color_values[vert_idx];
+            const auto& color = color_values[vert_idx];
             color_data.push_back(color.x());
             color_data.push_back(color.y());
             color_data.push_back(color.z());
@@ -600,7 +602,7 @@ void ViewportWidget::setGeometry(
           // Quad: triangulated as 0-1-2, 0-2-3
           const std::array<int, 6> tri_indices = {0, 1, 2, 0, 2, 3};
           for (int local_idx : tri_indices) {
-            const auto &color = color_values[prim_verts[local_idx]];
+            const auto& color = color_values[prim_verts[local_idx]];
             color_data.push_back(color.x());
             color_data.push_back(color.y());
             color_data.push_back(color.z());
@@ -610,7 +612,7 @@ void ViewportWidget::setGeometry(
           for (size_t i = 1; i + 1 < prim_verts.size(); ++i) {
             const std::array<size_t, 3> tri_local = {0, i, i + 1};
             for (size_t local_idx : tri_local) {
-              const auto &color = color_values[prim_verts[local_idx]];
+              const auto& color = color_values[prim_verts[local_idx]];
               color_data.push_back(color.x());
               color_data.push_back(color.y());
               color_data.push_back(color.z());
@@ -620,11 +622,11 @@ void ViewportWidget::setGeometry(
       }
     } else if (point_colors != nullptr) {
       // Use per-point colors (same color for all vertices of each point)
-      const auto &color_values = point_colors->values();
+      const auto& color_values = point_colors->values();
 
       for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
            ++prim_idx) {
-        const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+        const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
         // Skip line primitives
         if (prim_verts.size() == 2) {
@@ -636,7 +638,7 @@ void ViewportWidget::setGeometry(
           // Triangle
           for (int vert_idx : prim_verts) {
             int point_idx = topology.get_vertex_point(vert_idx);
-            const auto &color = color_values[point_idx];
+            const auto& color = color_values[point_idx];
             color_data.push_back(color.x());
             color_data.push_back(color.y());
             color_data.push_back(color.z());
@@ -647,7 +649,7 @@ void ViewportWidget::setGeometry(
           for (int local_idx : tri_indices) {
             int vert_idx = prim_verts[local_idx];
             int point_idx = topology.get_vertex_point(vert_idx);
-            const auto &color = color_values[point_idx];
+            const auto& color = color_values[point_idx];
             color_data.push_back(color.x());
             color_data.push_back(color.y());
             color_data.push_back(color.z());
@@ -659,7 +661,7 @@ void ViewportWidget::setGeometry(
             for (size_t local_idx : tri_local) {
               int vert_idx = prim_verts[local_idx];
               int point_idx = topology.get_vertex_point(vert_idx);
-              const auto &color = color_values[point_idx];
+              const auto& color = color_values[point_idx];
               color_data.push_back(color.x());
               color_data.push_back(color.y());
               color_data.push_back(color.z());
@@ -775,7 +777,7 @@ void ViewportWidget::clearMesh() {
 }
 
 void ViewportWidget::addWireframeOverlay(
-    int node_id, const nodo::core::GeometryContainer &geometry) {
+    int node_id, const nodo::core::GeometryContainer& geometry) {
   makeCurrent();
 
   qDebug() << "ViewportWidget::addWireframeOverlay - node_id:" << node_id
@@ -783,7 +785,7 @@ void ViewportWidget::addWireframeOverlay(
            << "primitives:" << geometry.primitive_count();
 
   // Get positions from "P" attribute
-  const auto *positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
+  const auto* positions = geometry.get_point_attribute_typed<nodo::core::Vec3f>(
       nodo::core::standard_attrs::P);
   if (positions == nullptr) {
     qDebug() << "  ERROR: No position attribute found!";
@@ -791,8 +793,8 @@ void ViewportWidget::addWireframeOverlay(
     return;
   }
 
-  const auto &pos_values = positions->values();
-  const auto &topology = geometry.topology();
+  const auto& pos_values = positions->values();
+  const auto& topology = geometry.topology();
 
   // Build wireframe edge data
   std::vector<float> edge_vertex_data;
@@ -812,8 +814,8 @@ void ViewportWidget::addWireframeOverlay(
       const int p1_idx = topology.get_vertex_point(v1_idx);
       const int p2_idx = topology.get_vertex_point(v2_idx);
 
-      const auto &p1 = pos_values[p1_idx];
-      const auto &p2 = pos_values[p2_idx];
+      const auto& p1 = pos_values[p1_idx];
+      const auto& p2 = pos_values[p2_idx];
 
       // Add edge as two vertices (line segment)
       edge_vertex_data.push_back(p1.x());
@@ -927,14 +929,14 @@ void ViewportWidget::initializeGL() {
   initializeOpenGLFunctions();
 
   // Detect GPU information
-  const GLubyte *vendor = glGetString(GL_VENDOR);
-  const GLubyte *renderer = glGetString(GL_RENDERER);
+  const GLubyte* vendor = glGetString(GL_VENDOR);
+  const GLubyte* renderer = glGetString(GL_RENDERER);
 
   QString gpu_info;
   if (renderer != nullptr) {
-    gpu_info = QString::fromUtf8(reinterpret_cast<const char *>(renderer));
+    gpu_info = QString::fromUtf8(reinterpret_cast<const char*>(renderer));
   } else if (vendor != nullptr) {
-    gpu_info = QString::fromUtf8(reinterpret_cast<const char *>(vendor));
+    gpu_info = QString::fromUtf8(reinterpret_cast<const char*>(vendor));
   } else {
     gpu_info = "Unknown";
   }
@@ -1000,7 +1002,7 @@ void ViewportWidget::paintGL() {
   }
 
   // Choose shader based on shading mode
-  auto *active_shader =
+  auto* active_shader =
       shading_enabled_ ? shader_program_.get() : simple_shader_program_.get();
 
   // Bind shader and set uniforms
@@ -1124,7 +1126,7 @@ void ViewportWidget::drawNormals() {
   glEnable(GL_DEPTH_TEST);
 }
 
-void ViewportWidget::mousePressEvent(QMouseEvent *event) {
+void ViewportWidget::mousePressEvent(QMouseEvent* event) {
   last_mouse_pos_ = event->pos();
 
   if (event->button() == Qt::LeftButton) {
@@ -1136,7 +1138,7 @@ void ViewportWidget::mousePressEvent(QMouseEvent *event) {
   }
 }
 
-void ViewportWidget::mouseMoveEvent(QMouseEvent *event) {
+void ViewportWidget::mouseMoveEvent(QMouseEvent* event) {
   const QPoint delta = event->pos() - last_mouse_pos_;
   last_mouse_pos_ = event->pos();
 
@@ -1164,7 +1166,7 @@ void ViewportWidget::mouseMoveEvent(QMouseEvent *event) {
   }
 }
 
-void ViewportWidget::mouseReleaseEvent(QMouseEvent *event) {
+void ViewportWidget::mouseReleaseEvent(QMouseEvent* event) {
   if (event->button() == Qt::LeftButton) {
     is_rotating_ = false;
   } else if (event->button() == Qt::MiddleButton) {
@@ -1172,7 +1174,7 @@ void ViewportWidget::mouseReleaseEvent(QMouseEvent *event) {
   }
 }
 
-void ViewportWidget::wheelEvent(QWheelEvent *event) {
+void ViewportWidget::wheelEvent(QWheelEvent* event) {
   // Zoom camera
   const float delta = event->angleDelta().y();
   const float zoom_speed = 0.001F;
@@ -1303,8 +1305,8 @@ void ViewportWidget::updateCamera() {
   model_matrix_.setToIdentity();
 }
 
-void ViewportWidget::calculateMeshBounds(const nodo::core::Mesh &mesh) {
-  const auto &vertices = mesh.vertices();
+void ViewportWidget::calculateMeshBounds(const nodo::core::Mesh& mesh) {
+  const auto& vertices = mesh.vertices();
 
   if (vertices.rows() == 0) {
     mesh_center_ = QVector3D(0.0F, 0.0F, 0.0F);
@@ -1530,12 +1532,11 @@ void ViewportWidget::drawAxes() {
 
 // New function: Extract edges and vertices from GeometryContainer
 void ViewportWidget::extractEdgesFromGeometry(
-    const nodo::core::GeometryContainer &geometry) {
-
-  const auto &topology = geometry.topology();
+    const nodo::core::GeometryContainer& geometry) {
+  const auto& topology = geometry.topology();
 
   // Get position attribute
-  const auto *pos_storage =
+  const auto* pos_storage =
       geometry.get_point_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::P);
 
@@ -1543,7 +1544,7 @@ void ViewportWidget::extractEdgesFromGeometry(
     return; // No positions, can't extract edges
   }
 
-  const auto &pos_values = pos_storage->values();
+  const auto& pos_values = pos_storage->values();
 
   // Setup edge VAO and buffer if not created
   if (!edge_vao_) {
@@ -1567,7 +1568,7 @@ void ViewportWidget::extractEdgesFromGeometry(
   std::vector<float> edge_data;
 
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+    const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
     // Skip degenerate primitives
     if (prim_verts.size() < 2) {
@@ -1592,8 +1593,8 @@ void ViewportWidget::extractEdgesFromGeometry(
         continue;
       }
 
-      const auto &pos0 = pos_values[point_idx_0];
-      const auto &pos1 = pos_values[point_idx_1];
+      const auto& pos0 = pos_values[point_idx_0];
+      const auto& pos1 = pos_values[point_idx_1];
 
       // Add edge (two vertices)
       edge_data.push_back(pos0.x());
@@ -1623,7 +1624,7 @@ void ViewportWidget::extractEdgesFromGeometry(
   std::vector<float> point_data;
   point_data.reserve(pos_values.size() * 3);
 
-  for (const auto &pos : pos_values) {
+  for (const auto& pos : pos_values) {
     point_data.push_back(pos.x());
     point_data.push_back(pos.y());
     point_data.push_back(pos.z());
@@ -1645,9 +1646,9 @@ void ViewportWidget::extractEdgesFromGeometry(
 }
 
 // Old function: Extract edges from legacy Mesh (kept for compatibility)
-void ViewportWidget::extractEdgesFromMesh(const nodo::core::Mesh &mesh) {
-  const auto &vertices = mesh.vertices();
-  const auto &faces = mesh.faces();
+void ViewportWidget::extractEdgesFromMesh(const nodo::core::Mesh& mesh) {
+  const auto& vertices = mesh.vertices();
+  const auto& faces = mesh.faces();
 
   // Setup edge VAO and buffer if not created
   if (!edge_vao_) {
@@ -1835,7 +1836,7 @@ void ViewportWidget::drawPointLabels() {
   }
 
   // Get point positions from geometry
-  const auto *positions =
+  const auto* positions =
       current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>("P");
   if (!positions) {
     return;
@@ -1848,9 +1849,9 @@ void ViewportWidget::drawPointLabels() {
   // Use system font stack with fallbacks for cross-platform support
   QFont pointFont;
   pointFont.setFamilies(QStringList()
-                        << "Segoe UI" << "Ubuntu" << "Roboto"
-                        << "Cantarell" << "Noto Sans" << "Liberation Sans"
-                        << "DejaVu Sans" << "sans-serif");
+                        << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell"
+                        << "Noto Sans" << "Liberation Sans" << "DejaVu Sans"
+                        << "sans-serif");
   pointFont.setWeight(QFont::Bold);
   pointFont.setPointSize(9);
   painter.setFont(pointFont);
@@ -1860,7 +1861,7 @@ void ViewportWidget::drawPointLabels() {
 
   // Draw label for each point
   for (size_t i = 0; i < static_cast<size_t>(point_count_); ++i) {
-    const auto &pos = (*positions)[i];
+    const auto& pos = (*positions)[i];
 
     // Transform to clip space
     QVector4D world_pos(pos.x(), pos.y(), pos.z(), 1.0F);
@@ -1897,14 +1898,14 @@ void ViewportWidget::drawPrimitiveLabels() {
   }
 
   // Get topology to access primitives
-  const auto &topology = current_geometry_->topology();
+  const auto& topology = current_geometry_->topology();
 
   if (topology.primitive_count() == 0) {
     return;
   }
 
   // Get point positions from geometry
-  const auto *positions =
+  const auto* positions =
       current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>("P");
   if (positions == nullptr || positions->size() == 0) {
     return;
@@ -1916,9 +1917,9 @@ void ViewportWidget::drawPrimitiveLabels() {
   painter.setPen(QColor(255, 200, 100)); // Orange/yellow text for primitives
   QFont primFont;
   primFont.setFamilies(QStringList()
-                       << "Segoe UI" << "Ubuntu" << "Roboto"
-                       << "Cantarell" << "Noto Sans" << "Liberation Sans"
-                       << "DejaVu Sans" << "sans-serif");
+                       << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell"
+                       << "Noto Sans" << "Liberation Sans" << "DejaVu Sans"
+                       << "sans-serif");
   primFont.setWeight(QFont::Bold);
   primFont.setPointSize(9);
   painter.setFont(primFont);
@@ -1928,7 +1929,7 @@ void ViewportWidget::drawPrimitiveLabels() {
 
   // Draw label for each primitive at its center
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
 
     if (vert_indices.empty()) {
       continue;
@@ -1939,7 +1940,7 @@ void ViewportWidget::drawPrimitiveLabels() {
     for (int vert_idx : vert_indices) {
       int point_idx = topology.get_vertex_point(vert_idx);
       if (point_idx >= 0 && point_idx < static_cast<int>(positions->size())) {
-        const auto &pos = (*positions)[point_idx];
+        const auto& pos = (*positions)[point_idx];
         center.x() += pos.x();
         center.y() += pos.y();
         center.z() += pos.z();
@@ -2002,7 +2003,7 @@ void ViewportWidget::drawWireframeOverlays() {
   glLineWidth(2.0F);
 
   // Draw each wireframe overlay
-  for (const auto &[node_id, overlay] : wireframe_overlays_) {
+  for (const auto& [node_id, overlay] : wireframe_overlays_) {
     qDebug() << "  Drawing overlay for node" << node_id
              << "vertex_count:" << (overlay ? overlay->vertex_count : 0);
     if (overlay && overlay->vao && overlay->vertex_count > 0) {
@@ -2021,19 +2022,19 @@ void ViewportWidget::drawVertexNormals() {
     return;
   }
 
-  const auto &topology = current_geometry_->topology();
+  const auto& topology = current_geometry_->topology();
 
   // Get positions
-  const auto *pos_storage =
+  const auto* pos_storage =
       current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::P);
 
   // Get normals - check VERTEX normals first (for hard edges), then POINT
   // normals
-  const auto *vertex_normals =
+  const auto* vertex_normals =
       current_geometry_->get_vertex_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::N);
-  const auto *point_normals =
+  const auto* point_normals =
       current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::N);
 
@@ -2041,7 +2042,7 @@ void ViewportWidget::drawVertexNormals() {
     return; // No positions or normals
   }
 
-  const auto &pos_values = pos_storage->values();
+  const auto& pos_values = pos_storage->values();
 
   // Calculate normal line length based on mesh size
   const float normal_length = mesh_radius_ * 0.1F;
@@ -2051,7 +2052,7 @@ void ViewportWidget::drawVertexNormals() {
 
   if (vertex_normals) {
     // Use vertex normals (one per vertex)
-    const auto &normal_values = vertex_normals->values();
+    const auto& normal_values = vertex_normals->values();
     normal_lines.reserve(topology.vertex_count() * 6);
 
     for (size_t vert_idx = 0; vert_idx < topology.vertex_count(); ++vert_idx) {
@@ -2061,8 +2062,8 @@ void ViewportWidget::drawVertexNormals() {
         continue;
       }
 
-      const auto &pos = pos_values[point_idx];
-      const auto &normal = normal_values[vert_idx];
+      const auto& pos = pos_values[point_idx];
+      const auto& normal = normal_values[vert_idx];
 
       // Start point (vertex position)
       normal_lines.push_back(pos.x());
@@ -2076,12 +2077,12 @@ void ViewportWidget::drawVertexNormals() {
     }
   } else if (point_normals) {
     // Use point normals (one per point)
-    const auto &normal_values = point_normals->values();
+    const auto& normal_values = point_normals->values();
     normal_lines.reserve(pos_values.size() * 6);
 
     for (size_t point_idx = 0; point_idx < pos_values.size(); ++point_idx) {
-      const auto &pos = pos_values[point_idx];
-      const auto &normal = normal_values[point_idx];
+      const auto& pos = pos_values[point_idx];
+      const auto& normal = normal_values[point_idx];
 
       // Start point
       normal_lines.push_back(pos.x());
@@ -2151,10 +2152,10 @@ void ViewportWidget::drawFaceNormals() {
     return;
   }
 
-  const auto &topology = current_geometry_->topology();
+  const auto& topology = current_geometry_->topology();
 
   // Get positions
-  const auto *pos_storage =
+  const auto* pos_storage =
       current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::P);
 
@@ -2162,13 +2163,13 @@ void ViewportWidget::drawFaceNormals() {
     return;
   }
 
-  const auto &pos_values = pos_storage->values();
+  const auto& pos_values = pos_storage->values();
 
   // Get normals to check winding direction
-  const auto *vertex_normals =
+  const auto* vertex_normals =
       current_geometry_->get_vertex_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::N);
-  const auto *point_normals =
+  const auto* point_normals =
       current_geometry_->get_point_attribute_typed<nodo::core::Vec3f>(
           nodo::core::standard_attrs::N);
 
@@ -2180,7 +2181,7 @@ void ViewportWidget::drawFaceNormals() {
   normal_lines.reserve(topology.primitive_count() * 6);
 
   for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+    const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
 
     // Skip primitives with less than 3 vertices (lines, points)
     if (prim_verts.size() < 3) {
@@ -2204,9 +2205,9 @@ void ViewportWidget::drawFaceNormals() {
       continue;
     }
 
-    const auto &v0 = pos_values[point_idx_0];
-    const auto &v1 = pos_values[point_idx_1];
-    const auto &v2 = pos_values[point_idx_2];
+    const auto& v0 = pos_values[point_idx_0];
+    const auto& v1 = pos_values[point_idx_1];
+    const auto& v2 = pos_values[point_idx_2];
 
     // Calculate face center
     nodo::core::Vec3f center = (v0 + v1 + v2) / 3.0F;
@@ -2364,7 +2365,7 @@ void ViewportWidget::updateOverlayPositions() {
   }
 }
 
-void ViewportWidget::resizeEvent(QResizeEvent *event) {
+void ViewportWidget::resizeEvent(QResizeEvent* event) {
   QOpenGLWidget::resizeEvent(event);
   updateOverlayPositions();
 }

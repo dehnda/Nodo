@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../processing/remeshing.hpp"
 #include "sop_node.hpp"
+
 #include <fmt/core.h>
 
 namespace nodo::sop {
@@ -24,9 +25,8 @@ class RemeshSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit RemeshSOP(const std::string &node_name = "remesh")
+  explicit RemeshSOP(const std::string& node_name = "remesh")
       : SOPNode(node_name, "Remesh") {
-
     // Add input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
                           NodePort::DataType::GEOMETRY, this);

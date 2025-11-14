@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -19,7 +20,10 @@ class SOPNode; // Forward declaration
  */
 class NodePort {
 public:
-  enum class Type { INPUT, OUTPUT };
+  enum class Type {
+    INPUT,
+    OUTPUT
+  };
 
   enum class DataType {
     GEOMETRY, // GeometryContainer
@@ -30,13 +34,13 @@ private:
   std::string name_;
   Type port_type_;
   DataType data_type_;
-  SOPNode *owner_node_;
+  SOPNode* owner_node_;
 
   // Input ports can connect to one output port
-  NodePort *connected_output_ = nullptr;
+  NodePort* connected_output_ = nullptr;
 
   // Output ports can connect to multiple input ports
-  std::vector<NodePort *> connected_inputs_;
+  std::vector<NodePort*> connected_inputs_;
 
   // Cached data for this port
   mutable std::shared_ptr<core::GeometryContainer> cached_data_;
@@ -44,20 +48,22 @@ private:
 
 public:
   explicit NodePort(std::string name, Type port_type, DataType data_type,
-                    SOPNode *owner)
-      : name_(std::move(name)), port_type_(port_type), data_type_(data_type),
+                    SOPNode* owner)
+      : name_(std::move(name)),
+        port_type_(port_type),
+        data_type_(data_type),
         owner_node_(owner) {}
 
   // Non-copyable but movable
-  NodePort(const NodePort &) = delete;
-  NodePort &operator=(const NodePort &) = delete;
-  NodePort(NodePort &&) = default;
-  NodePort &operator=(NodePort &&) = default;
+  NodePort(const NodePort&) = delete;
+  NodePort& operator=(const NodePort&) = delete;
+  NodePort(NodePort&&) = default;
+  NodePort& operator=(NodePort&&) = default;
 
   /**
    * @brief Get port name
    */
-  const std::string &get_name() const { return name_; }
+  const std::string& get_name() const { return name_; }
 
   /**
    * @brief Get port type (input/output)
@@ -72,14 +78,14 @@ public:
   /**
    * @brief Get owner node
    */
-  SOPNode *get_owner_node() const { return owner_node_; }
+  SOPNode* get_owner_node() const { return owner_node_; }
 
   /**
    * @brief Connect this input port to an output port
    * @param output_port The output port to connect to
    * @return true if connection successful
    */
-  bool connect_input(NodePort *output_port) {
+  bool connect_input(NodePort* output_port) {
     if (!output_port || port_type_ != Type::INPUT ||
         output_port->port_type_ != Type::OUTPUT ||
         data_type_ != output_port->data_type_) {
@@ -105,13 +111,13 @@ public:
   void disconnect() {
     if (port_type_ == Type::INPUT && connected_output_) {
       // Remove this input from output's connection list
-      auto &inputs = connected_output_->connected_inputs_;
+      auto& inputs = connected_output_->connected_inputs_;
       inputs.erase(std::remove(inputs.begin(), inputs.end(), this),
                    inputs.end());
       connected_output_ = nullptr;
     } else if (port_type_ == Type::OUTPUT) {
       // Disconnect all connected inputs
-      for (auto *input_port : connected_inputs_) {
+      for (auto* input_port : connected_inputs_) {
         input_port->connected_output_ = nullptr;
         input_port->invalidate_cache();
       }
@@ -132,12 +138,12 @@ public:
   /**
    * @brief Get connected output port (for input ports)
    */
-  NodePort *get_connected_output() const { return connected_output_; }
+  NodePort* get_connected_output() const { return connected_output_; }
 
   /**
    * @brief Get connected input ports (for output ports)
    */
-  const std::vector<NodePort *> &get_connected_inputs() const {
+  const std::vector<NodePort*>& get_connected_inputs() const {
     return connected_inputs_;
   }
 
@@ -180,7 +186,7 @@ public:
 
     // Propagate invalidation to connected input ports
     if (port_type_ == Type::OUTPUT) {
-      for (auto *input_port : connected_inputs_) {
+      for (auto* input_port : connected_inputs_) {
         input_port->invalidate_cache();
       }
     }
@@ -198,16 +204,16 @@ public:
 class PortCollection {
 private:
   std::vector<std::unique_ptr<NodePort>> ports_;
-  std::unordered_map<std::string, NodePort *> port_map_;
+  std::unordered_map<std::string, NodePort*> port_map_;
 
 public:
   /**
    * @brief Add a port to the collection
    */
-  NodePort *add_port(std::string name, NodePort::Type port_type,
-                     NodePort::DataType data_type, SOPNode *owner) {
+  NodePort* add_port(std::string name, NodePort::Type port_type,
+                     NodePort::DataType data_type, SOPNode* owner) {
     auto port = std::make_unique<NodePort>(name, port_type, data_type, owner);
-    auto *port_ptr = port.get();
+    auto* port_ptr = port.get();
 
     port_map_[name] = port_ptr;
     ports_.push_back(std::move(port));
@@ -218,7 +224,7 @@ public:
   /**
    * @brief Get port by name
    */
-  NodePort *get_port(const std::string &name) const {
+  NodePort* get_port(const std::string& name) const {
     auto port_it = port_map_.find(name);
     return port_it != port_map_.end() ? port_it->second : nullptr;
   }
@@ -226,16 +232,16 @@ public:
   /**
    * @brief Get all ports
    */
-  const std::vector<std::unique_ptr<NodePort>> &get_all_ports() const {
+  const std::vector<std::unique_ptr<NodePort>>& get_all_ports() const {
     return ports_;
   }
 
   /**
    * @brief Get ports by type
    */
-  std::vector<NodePort *> get_ports_by_type(NodePort::Type port_type) const {
-    std::vector<NodePort *> result;
-    for (const auto &port : ports_) {
+  std::vector<NodePort*> get_ports_by_type(NodePort::Type port_type) const {
+    std::vector<NodePort*> result;
+    for (const auto& port : ports_) {
       if (port->get_port_type() == port_type) {
         result.push_back(port.get());
       }
@@ -247,7 +253,7 @@ public:
    * @brief Disconnect all ports
    */
   void disconnect_all() {
-    for (auto &port : ports_) {
+    for (auto& port : ports_) {
       port->disconnect();
     }
   }

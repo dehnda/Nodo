@@ -1,4 +1,5 @@
 #include "nodo/spatial/enhanced_boolean_ops.hpp"
+
 #include "nodo/geometry/boolean_ops.hpp"
 #include "nodo/geometry/mesh_repairer.hpp"
 #include "nodo/geometry/mesh_validator.hpp"
@@ -9,9 +10,9 @@ thread_local core::Error EnhancedBooleanOps::last_error_{
     core::ErrorCategory::Geometry, core::ErrorCode::Unknown, ""};
 
 std::optional<core::Mesh>
-EnhancedBooleanOps::union_meshes(const core::Mesh &mesh_a,
-                                 const core::Mesh &mesh_b,
-                                 const BooleanParams &params) {
+EnhancedBooleanOps::union_meshes(const core::Mesh& mesh_a,
+                                 const core::Mesh& mesh_b,
+                                 const BooleanParams& params) {
   // Prepare meshes if requested
   auto prepared_a = params.use_mesh_repair
                         ? prepare_mesh_for_boolean(mesh_a, params)
@@ -56,9 +57,9 @@ EnhancedBooleanOps::union_meshes(const core::Mesh &mesh_a,
 }
 
 std::optional<core::Mesh>
-EnhancedBooleanOps::intersect_meshes(const core::Mesh &mesh_a,
-                                     const core::Mesh &mesh_b,
-                                     const BooleanParams &params) {
+EnhancedBooleanOps::intersect_meshes(const core::Mesh& mesh_a,
+                                     const core::Mesh& mesh_b,
+                                     const BooleanParams& params) {
   // Prepare meshes if requested
   auto prepared_a = params.use_mesh_repair
                         ? prepare_mesh_for_boolean(mesh_a, params)
@@ -105,9 +106,9 @@ EnhancedBooleanOps::intersect_meshes(const core::Mesh &mesh_a,
 }
 
 std::optional<core::Mesh>
-EnhancedBooleanOps::subtract_meshes(const core::Mesh &mesh_a,
-                                    const core::Mesh &mesh_b,
-                                    const BooleanParams &params) {
+EnhancedBooleanOps::subtract_meshes(const core::Mesh& mesh_a,
+                                    const core::Mesh& mesh_b,
+                                    const BooleanParams& params) {
   // Prepare meshes if requested
   auto prepared_a = params.use_mesh_repair
                         ? prepare_mesh_for_boolean(mesh_a, params)
@@ -152,8 +153,8 @@ EnhancedBooleanOps::subtract_meshes(const core::Mesh &mesh_a,
   return result;
 }
 
-bool EnhancedBooleanOps::meshes_intersect(const core::Mesh &mesh_a,
-                                          const core::Mesh &mesh_b) {
+bool EnhancedBooleanOps::meshes_intersect(const core::Mesh& mesh_a,
+                                          const core::Mesh& mesh_b) {
   // Simple AABB intersection test first
   AABB bounds_a = AABB::from_mesh(mesh_a);
   AABB bounds_b = AABB::from_mesh(mesh_b);
@@ -168,8 +169,8 @@ bool EnhancedBooleanOps::meshes_intersect(const core::Mesh &mesh_a,
 }
 
 std::vector<Eigen::Vector3d>
-EnhancedBooleanOps::find_intersection_points(const core::Mesh &mesh_a,
-                                             const core::Mesh &mesh_b) {
+EnhancedBooleanOps::find_intersection_points(const core::Mesh& mesh_a,
+                                             const core::Mesh& mesh_b) {
   std::vector<Eigen::Vector3d> intersection_points;
 
   // This is a placeholder implementation
@@ -190,8 +191,8 @@ EnhancedBooleanOps::find_intersection_points(const core::Mesh &mesh_a,
 }
 
 std::optional<core::Mesh>
-EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh &mesh,
-                                             const BooleanParams &params) {
+EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh& mesh,
+                                             const BooleanParams& params) {
   core::Mesh prepared_mesh = mesh;
 
   if (params.validate_input) {
@@ -217,10 +218,12 @@ EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh &mesh,
   return prepared_mesh;
 }
 
-const core::Error &EnhancedBooleanOps::last_error() { return last_error_; }
+const core::Error& EnhancedBooleanOps::last_error() {
+  return last_error_;
+}
 
 std::unique_ptr<BVH> EnhancedBooleanOps::build_mesh_bvh(
-    const core::Mesh &mesh, [[maybe_unused]] const BooleanParams &params) {
+    const core::Mesh& mesh, [[maybe_unused]] const BooleanParams& params) {
   auto bvh = std::make_unique<BVH>();
   BVH::BuildParams build_params;
 
@@ -232,7 +235,7 @@ std::unique_ptr<BVH> EnhancedBooleanOps::build_mesh_bvh(
 }
 
 bool EnhancedBooleanOps::validate_mesh_for_boolean(
-    const core::Mesh &mesh, const BooleanParams &params) {
+    const core::Mesh& mesh, const BooleanParams& params) {
   if (mesh.vertices().rows() == 0 || mesh.faces().rows() == 0) {
     return false;
   }
@@ -247,8 +250,8 @@ bool EnhancedBooleanOps::validate_mesh_for_boolean(
 }
 
 std::optional<core::Mesh>
-EnhancedBooleanOps::post_process_result(const core::Mesh &result,
-                                        const BooleanParams &params) {
+EnhancedBooleanOps::post_process_result(const core::Mesh& result,
+                                        const BooleanParams& params) {
   core::Mesh processed_result = result;
 
   // Apply mesh repair to ensure manifold result

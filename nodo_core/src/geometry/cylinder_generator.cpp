@@ -1,4 +1,5 @@
 #include "nodo/geometry/cylinder_generator.hpp"
+
 #include <cmath>
 #include <numbers>
 
@@ -14,7 +15,6 @@ std::optional<core::GeometryContainer>
 CylinderGenerator::generate(double radius, double height, int radial_segments,
                             int height_segments, bool top_cap,
                             bool bottom_cap) {
-
   if (radius <= 0.0) {
     set_last_error(core::Error{core::ErrorCategory::Validation,
                                core::ErrorCode::InvalidFormat,
@@ -58,7 +58,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
   container.set_point_count(total_vertices);
   container.set_vertex_count(total_vertices); // 1:1 mapping for cylinder
 
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Storage for positions
   std::vector<core::Vec3f> positions;
@@ -157,13 +157,13 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
   }
 
   // Add primitives to topology
-  for (const auto &prim_verts : primitive_vertices) {
+  for (const auto& prim_verts : primitive_vertices) {
     topology.add_primitive(prim_verts);
   }
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -171,7 +171,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
 
   // Calculate and add normals
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
 
@@ -205,9 +205,11 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
   return container;
 }
 
-const core::Error &CylinderGenerator::last_error() { return last_error_; }
+const core::Error& CylinderGenerator::last_error() {
+  return last_error_;
+}
 
-void CylinderGenerator::set_last_error(const core::Error &error) {
+void CylinderGenerator::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

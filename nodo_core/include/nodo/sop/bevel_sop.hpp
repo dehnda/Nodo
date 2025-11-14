@@ -3,6 +3,7 @@
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -44,7 +45,7 @@ public:
     Weight = 2 // Limit by edge weight
   };
 
-  explicit BevelSOP(const std::string &name = "bevel");
+  explicit BevelSOP(const std::string& name = "bevel");
 
   /**
    * @brief Set bevel width

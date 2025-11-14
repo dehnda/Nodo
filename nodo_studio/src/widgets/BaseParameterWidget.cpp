@@ -1,28 +1,28 @@
 #include "BaseParameterWidget.h"
+
 #include <QHBoxLayout>
 #include <QToolTip>
 
 namespace nodo_studio {
 namespace widgets {
 
-BaseParameterWidget::BaseParameterWidget(const QString &label,
-                                         const QString &description,
-                                         QWidget *parent)
+BaseParameterWidget::BaseParameterWidget(const QString& label,
+                                         const QString& description,
+                                         QWidget* parent)
     : QWidget(parent), description_(description) {
-
   // Create grid layout (label left, control right - matches HTML design)
   main_layout_ = new QVBoxLayout(this);
   main_layout_->setContentsMargins(0, 4, 0, 4);
   main_layout_->setSpacing(0);
 
-  auto *grid_container = new QWidget(this);
+  auto* grid_container = new QWidget(this);
   grid_layout_ = new QHBoxLayout(grid_container);
   grid_layout_->setContentsMargins(0, 0, 0, 0);
   grid_layout_->setSpacing(12);
 
   // Left: Label container with drag indicator
-  auto *label_container = new QWidget(grid_container);
-  auto *label_layout = new QHBoxLayout(label_container);
+  auto* label_container = new QWidget(grid_container);
+  auto* label_layout = new QHBoxLayout(label_container);
   label_layout->setContentsMargins(0, 0, 0, 0);
   label_layout->setSpacing(4);
 
@@ -57,7 +57,7 @@ BaseParameterWidget::BaseParameterWidget(const QString &label,
   applyBaseStyles();
 }
 
-void BaseParameterWidget::addControlWidget(QWidget *widget) {
+void BaseParameterWidget::addControlWidget(QWidget* widget) {
   if (widget != nullptr) {
     control_widget_ = widget;
     // Add to grid layout (right side)
@@ -67,15 +67,19 @@ void BaseParameterWidget::addControlWidget(QWidget *widget) {
   }
 }
 
-QString BaseParameterWidget::getLabel() const { return label_widget_->text(); }
+QString BaseParameterWidget::getLabel() const {
+  return label_widget_->text();
+}
 
-void BaseParameterWidget::setLabel(const QString &label) {
+void BaseParameterWidget::setLabel(const QString& label) {
   label_widget_->setText(label);
 }
 
-QString BaseParameterWidget::getDescription() const { return description_; }
+QString BaseParameterWidget::getDescription() const {
+  return description_;
+}
 
-void BaseParameterWidget::setDescription(const QString &description) {
+void BaseParameterWidget::setDescription(const QString& description) {
   description_ = description;
   if (!description.isEmpty()) {
     label_widget_->setToolTip(description);
@@ -104,7 +108,7 @@ void BaseParameterWidget::enableDragIndicator(bool enable) {
   Q_UNUSED(enable);
 }
 
-bool BaseParameterWidget::eventFilter(QObject *obj, QEvent *event) {
+bool BaseParameterWidget::eventFilter(QObject* obj, QEvent* event) {
   // Drag indicator hover functionality removed
   return QWidget::eventFilter(obj, event);
 }

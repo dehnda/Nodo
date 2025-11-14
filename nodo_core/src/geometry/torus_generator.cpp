@@ -1,5 +1,7 @@
 #include "nodo/geometry/torus_generator.hpp"
+
 #include <Eigen/Dense>
+
 #include <cmath>
 #include <numbers>
 
@@ -49,7 +51,7 @@ TorusGenerator::generate(double major_radius, double minor_radius,
   container.set_point_count(num_vertices);
   container.set_vertex_count(num_vertices); // 1:1 mapping for torus
 
-  auto &topology = container.topology();
+  auto& topology = container.topology();
 
   // Set up 1:1 vertex→point mapping
   for (size_t i = 0; i < static_cast<size_t>(num_vertices); ++i) {
@@ -118,7 +120,7 @@ TorusGenerator::generate(double major_radius, double minor_radius,
 
   // Add P (position) attribute
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (p_storage != nullptr) {
     auto p_span = p_storage->values_writable();
     std::copy(positions.begin(), positions.end(), p_span.begin());
@@ -126,7 +128,7 @@ TorusGenerator::generate(double major_radius, double minor_radius,
 
   // Add N (normal) attribute
   container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
-  auto *n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
     std::copy(normals.begin(), normals.end(), n_span.begin());
@@ -138,6 +140,8 @@ TorusGenerator::generate(double major_radius, double minor_radius,
   return container;
 }
 
-const core::Error &TorusGenerator::last_error() { return last_error_; }
+const core::Error& TorusGenerator::last_error() {
+  return last_error_;
+}
 
 } // namespace nodo::geometry

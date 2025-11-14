@@ -1,7 +1,8 @@
-#include "nodo/sop/boolean_sop.hpp"
-#include "nodo/geometry/box_generator.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
+#include "nodo/geometry/box_generator.hpp"
+#include "nodo/sop/boolean_sop.hpp"
+
 #include <iostream>
 
 using namespace nodo;
@@ -21,21 +22,25 @@ int main() {
     return 1;
   }
 
-  auto geo1 = std::make_shared<core::GeometryContainer>(box1_result.value().clone());
-  auto geo2 = std::make_shared<core::GeometryContainer>(box2_result.value().clone());
+  auto geo1 =
+      std::make_shared<core::GeometryContainer>(box1_result.value().clone());
+  auto geo2 =
+      std::make_shared<core::GeometryContainer>(box2_result.value().clone());
 
   std::cout << "Box1 points: " << geo1->topology().point_count() << "\n";
-  std::cout << "Box1 primitives: " << geo1->topology().primitive_count() << "\n";
+  std::cout << "Box1 primitives: " << geo1->topology().primitive_count()
+            << "\n";
 
   std::cout << "Box2 points: " << geo2->topology().point_count() << "\n";
-  std::cout << "Box2 primitives: " << geo2->topology().primitive_count() << "\n";
+  std::cout << "Box2 primitives: " << geo2->topology().primitive_count()
+            << "\n";
 
   // Create boolean node
   auto boolean_node = std::make_shared<sop::BooleanSOP>("test_boolean");
 
   // Connect inputs
-  auto *port_a = boolean_node->get_input_ports().get_port("mesh_a");
-  auto *port_b = boolean_node->get_input_ports().get_port("mesh_b");
+  auto* port_a = boolean_node->get_input_ports().get_port("mesh_a");
+  auto* port_b = boolean_node->get_input_ports().get_port("mesh_b");
 
   if (!port_a) {
     std::cout << "Port A not found!\n";
@@ -64,8 +69,10 @@ int main() {
     return 1;
   }
 
-  std::cout << "Success! Result points: " << result->topology().point_count() << "\n";
-  std::cout << "Result primitives: " << result->topology().primitive_count() << "\n";
+  std::cout << "Success! Result points: " << result->topology().point_count()
+            << "\n";
+  std::cout << "Result primitives: " << result->topology().primitive_count()
+            << "\n";
 
   return 0;
 }

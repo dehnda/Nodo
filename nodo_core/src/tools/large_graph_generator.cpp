@@ -5,19 +5,20 @@
 
 #include "nodo/graph/graph_serializer.hpp"
 #include "nodo/graph/node_graph.hpp"
+
 #include <iostream>
 
 using namespace nodo::graph;
 
 // Generate a chain of transform nodes
-void generate_transform_chain(NodeGraph &graph, int chain_length) {
+void generate_transform_chain(NodeGraph& graph, int chain_length) {
   int prev_node_id = -1;
 
   for (int i = 0; i < chain_length; ++i) {
     if (i == 0) {
       // First node: Sphere generator
       int sphere_id = graph.add_node(NodeType::Sphere);
-      auto *sphere = graph.get_node(sphere_id);
+      auto* sphere = graph.get_node(sphere_id);
       sphere->set_parameter("radius", 1.0F);
       sphere->set_parameter("u_segments", 32);
       sphere->set_parameter("v_segments", 64);
@@ -25,7 +26,7 @@ void generate_transform_chain(NodeGraph &graph, int chain_length) {
     } else {
       // Transform nodes
       int transform_id = graph.add_node(NodeType::Transform);
-      auto *transform = graph.get_node(transform_id);
+      auto* transform = graph.get_node(transform_id);
       transform->set_parameter("translate_x", 0.01F * static_cast<float>(i));
       transform->set_parameter("translate_y", 0.0F);
       transform->set_parameter("translate_z", 0.0F);
@@ -45,10 +46,10 @@ void generate_transform_chain(NodeGraph &graph, int chain_length) {
 }
 
 // Generate a scatter + copy pattern
-void generate_scatter_grid(NodeGraph &graph, int grid_size) {
+void generate_scatter_grid(NodeGraph& graph, int grid_size) {
   // Create base geometry (box)
   int box_id = graph.add_node(NodeType::Box);
-  auto *box = graph.get_node(box_id);
+  auto* box = graph.get_node(box_id);
   box->set_parameter("size_x", NodeParameter::from_float(0.1F));
   box->set_parameter("size_y", NodeParameter::from_float(0.1F));
   box->set_parameter("size_z", NodeParameter::from_float(0.1F));
@@ -59,14 +60,14 @@ void generate_scatter_grid(NodeGraph &graph, int grid_size) {
   for (int i = 0; i < grid_size; ++i) {
     // Create points to scatter on
     int sphere_id = graph.add_node(NodeType::Sphere);
-    auto *sphere = graph.get_node(sphere_id);
+    auto* sphere = graph.get_node(sphere_id);
     sphere->set_parameter("radius", NodeParameter::from_float(2.0F));
     sphere->set_parameter("u_segments", NodeParameter::from_int(8));
     sphere->set_parameter("v_segments", NodeParameter::from_int(16));
 
     // Scatter points
     int scatter_id = graph.add_node(NodeType::Scatter);
-    auto *scatter = graph.get_node(scatter_id);
+    auto* scatter = graph.get_node(scatter_id);
     scatter->set_parameter("count", NodeParameter::from_int(20));
     scatter->set_parameter("seed", NodeParameter::from_int(i));
     graph.add_connection(sphere_id, 0, scatter_id, 0);
@@ -82,7 +83,7 @@ void generate_scatter_grid(NodeGraph &graph, int grid_size) {
   graph.set_display_node(prev_display);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   if (argc < 4) {
     std::cout << "Large Graph Generator\n\n";
     std::cout << "Usage:\n";

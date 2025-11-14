@@ -15,7 +15,7 @@ class StatusBarWidget : public QWidget {
   Q_OBJECT
 
 public:
-  explicit StatusBarWidget(QWidget *parent = nullptr);
+  explicit StatusBarWidget(QWidget* parent = nullptr);
   ~StatusBarWidget() override = default;
 
   // Status indicator states
@@ -26,27 +26,27 @@ public:
   };
 
   // Public API
-  void setStatus(Status status, const QString &message);
+  void setStatus(Status status, const QString& message);
   void setNodeCount(int current);
-  void setGPUInfo(const QString &gpu_name);
+  void setGPUInfo(const QString& gpu_name);
   void setFPS(double fps);
-  void setHintText(const QString &hint);
+  void setHintText(const QString& hint);
 
 private:
   void setupUI();
   void updateStatusIndicator();
 
   // Left section
-  QWidget *left_section_;
-  QLabel *status_indicator_;
-  QLabel *status_message_;
-  QLabel *node_count_label_;
+  QWidget* left_section_;
+  QLabel* status_indicator_;
+  QLabel* status_message_;
+  QLabel* node_count_label_;
 
   // Right section
-  QWidget *right_section_;
-  QLabel *gpu_label_;
-  QLabel *fps_label_;
-  QLabel *hint_label_;
+  QWidget* right_section_;
+  QLabel* gpu_label_;
+  QLabel* fps_label_;
+  QLabel* hint_label_;
 
   // State
   Status current_status_;

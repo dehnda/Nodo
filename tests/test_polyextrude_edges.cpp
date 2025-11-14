@@ -1,6 +1,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/sop/polyextrude_sop.hpp"
+
 #include <gtest/gtest.h>
 
 namespace attrs = nodo::core::standard_attrs;
@@ -13,7 +14,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdges) {
 
   // Add position attribute
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -53,7 +54,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdges) {
   EXPECT_EQ(result->topology().primitive_count(), 3);
 
   // Verify positions exist
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
@@ -69,7 +70,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeFacesStillWorks) {
   input->set_vertex_count(4);
 
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -106,7 +107,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithDistance) {
   input->set_vertex_count(2);
 
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -126,7 +127,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithDistance) {
   auto result = extrude_node.execute_for_test();
   ASSERT_NE(result, nullptr);
 
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
@@ -134,10 +135,10 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithDistance) {
   // Points should be extruded perpendicular to the edge
   // The edge is along X axis, extrusion perpendicular creates a quad
   // Original points and extruded points should exist
-  const auto &bottom_p0 = (*result_positions)[0]; // Original p0
-  const auto &bottom_p1 = (*result_positions)[1]; // Original p1
-  const auto &top_p1 = (*result_positions)[2];    // Extruded p1
-  const auto &top_p0 = (*result_positions)[3];    // Extruded p0
+  const auto& bottom_p0 = (*result_positions)[0]; // Original p0
+  const auto& bottom_p1 = (*result_positions)[1]; // Original p1
+  const auto& top_p1 = (*result_positions)[2];    // Extruded p1
+  const auto& top_p0 = (*result_positions)[3];    // Extruded p0
 
   // Verify that bottom edge is horizontal
   EXPECT_NEAR(bottom_p0.y(), 0.0F, 0.01F);
@@ -158,7 +159,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithCustomDirection) {
   input->set_vertex_count(2);
 
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -185,13 +186,13 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithCustomDirection) {
   auto result = extrude_node.execute_for_test();
   ASSERT_NE(result, nullptr);
 
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Points: [bottom_p0, bottom_p1, top_p1, top_p0]
-  const auto &bottom_p0 = (*result_positions)[0];
-  const auto &top_p0 = (*result_positions)[3];
+  const auto& bottom_p0 = (*result_positions)[0];
+  const auto& top_p0 = (*result_positions)[3];
 
   // With custom direction (0, 0, 1), extrusion should be along Z-axis
   EXPECT_NEAR(bottom_p0.x(), 0.0F, 0.01F);
@@ -212,7 +213,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
 
   // Add position attribute
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -255,7 +256,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
   EXPECT_EQ(result->topology().vertex_count(), 12);
 
   // Verify positions
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
@@ -281,7 +282,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
 
   // Verify that quads share points correctly
   // First quad should use points: 0, 1, 5, 4
-  const auto &quad0_verts = result->topology().get_primitive_vertices(0);
+  const auto& quad0_verts = result->topology().get_primitive_vertices(0);
   EXPECT_EQ(result->topology().get_vertex_point(quad0_verts[0]), 0);
   EXPECT_EQ(result->topology().get_vertex_point(quad0_verts[1]), 1);
   EXPECT_EQ(result->topology().get_vertex_point(quad0_verts[2]), 5);
@@ -289,7 +290,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
 
   // Second quad should use points: 1, 2, 6, 5 (shares points 1 and 5 with first
   // quad)
-  const auto &quad1_verts = result->topology().get_primitive_vertices(1);
+  const auto& quad1_verts = result->topology().get_primitive_vertices(1);
   EXPECT_EQ(result->topology().get_vertex_point(quad1_verts[0]), 1);
   EXPECT_EQ(result->topology().get_vertex_point(quad1_verts[1]), 2);
   EXPECT_EQ(result->topology().get_vertex_point(quad1_verts[2]), 6);
@@ -297,7 +298,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
 
   // Third quad should use points: 2, 3, 7, 6 (shares points 2 and 6 with second
   // quad)
-  const auto &quad2_verts = result->topology().get_primitive_vertices(2);
+  const auto& quad2_verts = result->topology().get_primitive_vertices(2);
   EXPECT_EQ(result->topology().get_vertex_point(quad2_verts[0]), 2);
   EXPECT_EQ(result->topology().get_vertex_point(quad2_verts[1]), 3);
   EXPECT_EQ(result->topology().get_vertex_point(quad2_verts[2]), 7);
@@ -311,7 +312,7 @@ TEST(PolyExtrudeSOPTest, ExtrudePoints) {
 
   // Add position attribute
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto *positions =
+  auto* positions =
       input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
@@ -340,7 +341,7 @@ TEST(PolyExtrudeSOPTest, ExtrudePoints) {
   EXPECT_EQ(result->topology().vertex_count(), 6);
 
   // Verify positions
-  auto *result_positions =
+  auto* result_positions =
       result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
@@ -370,7 +371,7 @@ TEST(PolyExtrudeSOPTest, ExtrudePoints) {
 
   // Verify edge primitives are correct (each should be a 2-vertex line)
   for (int i = 0; i < 3; ++i) {
-    const auto &edge_verts = result->topology().get_primitive_vertices(i);
+    const auto& edge_verts = result->topology().get_primitive_vertices(i);
     EXPECT_EQ(edge_verts.size(), 2); // Each edge has 2 vertices
 
     // Verify the edge connects the right points

@@ -1,6 +1,7 @@
 #include "nodo/core/attribute_promotion.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -26,7 +27,7 @@ protected:
 
     // Create and set up point positions
     container->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-    auto *P = container->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+    auto* P = container->get_point_attribute_typed<Vec3f>(standard_attrs::P);
     auto P_span = P->values_writable();
     P_span[0] = Vec3f{0.0f, 0.0f, 0.0f};
     P_span[1] = Vec3f{1.0f, 0.0f, 0.0f};
@@ -44,7 +45,7 @@ protected:
 TEST_F(AttributePromotionTest, PromotePointToVertex_Float) {
   // Create point attribute
   container->add_point_attribute("pscale", AttributeType::FLOAT);
-  auto *pscale = container->get_point_attribute_typed<float>("pscale");
+  auto* pscale = container->get_point_attribute_typed<float>("pscale");
   auto pscale_span = pscale->values_writable();
 
   pscale_span[0] = 1.0f;
@@ -56,7 +57,7 @@ TEST_F(AttributePromotionTest, PromotePointToVertex_Float) {
   EXPECT_TRUE(promote_point_to_vertex(*container, "pscale", "vpscale"));
 
   // Verify vertex attribute exists
-  auto *vpscale = container->get_vertex_attribute_typed<float>("vpscale");
+  auto* vpscale = container->get_vertex_attribute_typed<float>("vpscale");
   ASSERT_NE(vpscale, nullptr);
   EXPECT_EQ(vpscale->size(), 4);
 
@@ -71,7 +72,7 @@ TEST_F(AttributePromotionTest, PromotePointToVertex_Float) {
 TEST_F(AttributePromotionTest, PromotePointToVertex_Vec3f) {
   // Create point color attribute
   container->add_point_attribute("Cd", AttributeType::VEC3F);
-  auto *Cd = container->get_point_attribute_typed<Vec3f>("Cd");
+  auto* Cd = container->get_point_attribute_typed<Vec3f>("Cd");
   auto Cd_span = Cd->values_writable();
 
   Cd_span[0] = Vec3f{1.0f, 0.0f, 0.0f}; // Red
@@ -83,7 +84,7 @@ TEST_F(AttributePromotionTest, PromotePointToVertex_Vec3f) {
   EXPECT_TRUE(promote_point_to_vertex(*container, "Cd", "vertex_Cd"));
 
   // Verify vertex colors
-  auto *vCd = container->get_vertex_attribute_typed<Vec3f>("vertex_Cd");
+  auto* vCd = container->get_vertex_attribute_typed<Vec3f>("vertex_Cd");
   ASSERT_NE(vCd, nullptr);
 
   auto vCd_span = vCd->values();
@@ -96,7 +97,7 @@ TEST_F(AttributePromotionTest, PromotePointToVertex_Vec3f) {
 TEST_F(AttributePromotionTest, DemoteVertexToPoint_Average) {
   // Create vertex attribute with different values
   container->add_vertex_attribute("vnormal", AttributeType::VEC3F);
-  auto *vN = container->get_vertex_attribute_typed<Vec3f>("vnormal");
+  auto* vN = container->get_vertex_attribute_typed<Vec3f>("vnormal");
   auto vN_span = vN->values_writable();
 
   // All normals pointing up (should average to up)
@@ -109,7 +110,7 @@ TEST_F(AttributePromotionTest, DemoteVertexToPoint_Average) {
   EXPECT_TRUE(demote_vertex_to_point(*container, "vnormal", "N"));
 
   // Verify point normals
-  auto *N = container->get_point_attribute_typed<Vec3f>("N");
+  auto* N = container->get_point_attribute_typed<Vec3f>("N");
   ASSERT_NE(N, nullptr);
 
   auto N_span = N->values();
@@ -127,7 +128,7 @@ TEST_F(AttributePromotionTest, DemoteVertexToPoint_Average) {
 TEST_F(AttributePromotionTest, PromotePointToPrimitive_Average) {
   // Create point density attribute
   container->add_point_attribute("density", AttributeType::FLOAT);
-  auto *density = container->get_point_attribute_typed<float>("density");
+  auto* density = container->get_point_attribute_typed<float>("density");
   auto density_span = density->values_writable();
 
   density_span[0] = 1.0f;
@@ -140,7 +141,7 @@ TEST_F(AttributePromotionTest, PromotePointToPrimitive_Average) {
       promote_point_to_primitive(*container, "density", "prim_density"));
 
   // Verify primitive attribute
-  auto *prim_density =
+  auto* prim_density =
       container->get_primitive_attribute_typed<float>("prim_density");
   ASSERT_NE(prim_density, nullptr);
   EXPECT_EQ(prim_density->size(), 1);
@@ -152,7 +153,7 @@ TEST_F(AttributePromotionTest, PromotePointToPrimitive_Average) {
 TEST_F(AttributePromotionTest, PromotePointToPrimitive_Vec3f) {
   // Create point color attribute
   container->add_point_attribute("Cd", AttributeType::VEC3F);
-  auto *Cd = container->get_point_attribute_typed<Vec3f>("Cd");
+  auto* Cd = container->get_point_attribute_typed<Vec3f>("Cd");
   auto Cd_span = Cd->values_writable();
 
   // All corners are white, average should be white
@@ -165,7 +166,7 @@ TEST_F(AttributePromotionTest, PromotePointToPrimitive_Vec3f) {
   EXPECT_TRUE(promote_point_to_primitive(*container, "Cd", "prim_Cd"));
 
   // Verify
-  auto *prim_Cd = container->get_primitive_attribute_typed<Vec3f>("prim_Cd");
+  auto* prim_Cd = container->get_primitive_attribute_typed<Vec3f>("prim_Cd");
   ASSERT_NE(prim_Cd, nullptr);
 
   auto prim_Cd_span = prim_Cd->values();
@@ -175,7 +176,7 @@ TEST_F(AttributePromotionTest, PromotePointToPrimitive_Vec3f) {
 TEST_F(AttributePromotionTest, DemotePrimitiveToPoint_Distribute) {
   // Create primitive material ID
   container->add_primitive_attribute("material_id", AttributeType::INT);
-  auto *mat = container->get_primitive_attribute_typed<int>("material_id");
+  auto* mat = container->get_primitive_attribute_typed<int>("material_id");
   auto mat_span = mat->values_writable();
 
   mat_span[0] = 42;
@@ -185,7 +186,7 @@ TEST_F(AttributePromotionTest, DemotePrimitiveToPoint_Distribute) {
       demote_primitive_to_point(*container, "material_id", "point_mat"));
 
   // Verify all points got the value
-  auto *point_mat = container->get_point_attribute_typed<int>("point_mat");
+  auto* point_mat = container->get_point_attribute_typed<int>("point_mat");
   ASSERT_NE(point_mat, nullptr);
 
   auto point_mat_span = point_mat->values();
@@ -202,7 +203,7 @@ TEST_F(AttributePromotionTest, DemotePrimitiveToPoint_Distribute) {
 TEST_F(AttributePromotionTest, PromoteVertexToPrimitive_Average) {
   // Create vertex attribute
   container->add_vertex_attribute("vweight", AttributeType::FLOAT);
-  auto *vweight = container->get_vertex_attribute_typed<float>("vweight");
+  auto* vweight = container->get_vertex_attribute_typed<float>("vweight");
   auto vweight_span = vweight->values_writable();
 
   vweight_span[0] = 1.0f;
@@ -215,7 +216,7 @@ TEST_F(AttributePromotionTest, PromoteVertexToPrimitive_Average) {
       promote_vertex_to_primitive(*container, "vweight", "prim_weight"));
 
   // Verify
-  auto *prim_weight =
+  auto* prim_weight =
       container->get_primitive_attribute_typed<float>("prim_weight");
   ASSERT_NE(prim_weight, nullptr);
 
@@ -226,7 +227,7 @@ TEST_F(AttributePromotionTest, PromoteVertexToPrimitive_Average) {
 TEST_F(AttributePromotionTest, DemotePrimitivToVertex_Replicate) {
   // Create primitive normal (face normal)
   container->add_primitive_attribute("prim_N", AttributeType::VEC3F);
-  auto *prim_N = container->get_primitive_attribute_typed<Vec3f>("prim_N");
+  auto* prim_N = container->get_primitive_attribute_typed<Vec3f>("prim_N");
   auto prim_N_span = prim_N->values_writable();
 
   prim_N_span[0] = Vec3f{0.0f, 0.0f, 1.0f}; // Face pointing up
@@ -235,7 +236,7 @@ TEST_F(AttributePromotionTest, DemotePrimitivToVertex_Replicate) {
   EXPECT_TRUE(demote_primitive_to_vertex(*container, "prim_N", "vertex_N"));
 
   // Verify all vertices got the face normal
-  auto *vertex_N = container->get_vertex_attribute_typed<Vec3f>("vertex_N");
+  auto* vertex_N = container->get_vertex_attribute_typed<Vec3f>("vertex_N");
   ASSERT_NE(vertex_N, nullptr);
 
   auto vertex_N_span = vertex_N->values();
@@ -271,7 +272,7 @@ TEST_F(AttributePromotionTest, ErrorHandling_AttributeAlreadyExists) {
 TEST_F(AttributePromotionTest, DefaultOutputName_UsesSameName) {
   // Create point attribute
   container->add_point_attribute("value", AttributeType::FLOAT);
-  auto *value = container->get_point_attribute_typed<float>("value");
+  auto* value = container->get_point_attribute_typed<float>("value");
   value->values_writable()[0] = 123.0f;
 
   // Promote without specifying output name (should create vertex attr with same
@@ -279,7 +280,7 @@ TEST_F(AttributePromotionTest, DefaultOutputName_UsesSameName) {
   EXPECT_TRUE(promote_point_to_vertex(*container, "value"));
 
   // Verify vertex attribute exists with same name
-  auto *vertex_value = container->get_vertex_attribute_typed<float>("value");
+  auto* vertex_value = container->get_vertex_attribute_typed<float>("value");
   ASSERT_NE(vertex_value, nullptr);
   EXPECT_FLOAT_EQ(vertex_value->values()[0], 123.0f);
 }
@@ -310,7 +311,7 @@ TEST_F(AttributePromotionTest, ComplexGeometry_TwoTriangles) {
 
   // Create point density
   complex_geo->add_point_attribute("density", AttributeType::FLOAT);
-  auto *density = complex_geo->get_point_attribute_typed<float>("density");
+  auto* density = complex_geo->get_point_attribute_typed<float>("density");
   auto density_span = density->values_writable();
 
   density_span[0] = 1.0f;
@@ -322,7 +323,7 @@ TEST_F(AttributePromotionTest, ComplexGeometry_TwoTriangles) {
   EXPECT_TRUE(
       promote_point_to_primitive(*complex_geo, "density", "prim_density"));
 
-  auto *prim_density =
+  auto* prim_density =
       complex_geo->get_primitive_attribute_typed<float>("prim_density");
   ASSERT_NE(prim_density, nullptr);
   EXPECT_EQ(prim_density->size(), 2);

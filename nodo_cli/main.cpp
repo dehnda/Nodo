@@ -19,6 +19,7 @@
 #include "nodo/graph/graph_serializer.hpp"
 #include "nodo/graph/node_graph.hpp"
 #include "nodo/io/obj_exporter.hpp"
+
 #include "nodo_core/IHostInterface.h"
 
 #include <chrono>
@@ -36,7 +37,7 @@ public:
   explicit CLIHostInterface(bool verbose) : verbose_(verbose) {}
 
   bool report_progress(int current, int total,
-                       const std::string &message) override {
+                       const std::string& message) override {
     if (verbose_) {
       // Calculate percentage
       float percent = (static_cast<float>(current) / total) * 100.0f;
@@ -63,7 +64,7 @@ public:
     return true; // Never cancel
   }
 
-  void log(const std::string &level, const std::string &message) override {
+  void log(const std::string& level, const std::string& message) override {
     if (verbose_ || level == "error" || level == "warning") {
       std::cout << "\n[" << level << "] " << message;
     }
@@ -78,7 +79,7 @@ private:
 /**
  * Print usage information
  */
-void print_usage(const char *program_name) {
+void print_usage(const char* program_name) {
   std::cout << "Nodo CLI - Headless Node Graph Execution\n\n";
   std::cout << "Usage:\n";
   std::cout << "  " << program_name
@@ -99,7 +100,7 @@ void print_usage(const char *program_name) {
 /**
  * Main CLI entry point
  */
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   // Parse command line arguments
   if (argc < 3) {
     print_usage(argv[0]);
@@ -166,7 +167,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  nodo::graph::NodeGraph &graph = *graph_opt;
+  nodo::graph::NodeGraph& graph = *graph_opt;
 
   if (verbose) {
     std::cout << "Loaded " << graph.get_nodes().size() << " nodes\n\n";

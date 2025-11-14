@@ -3,8 +3,8 @@
 #include "../core/error.hpp"
 #include "../core/geometry_container.hpp"
 #include "../core/mesh.hpp"
-#include <optional>
 
+#include <optional>
 
 namespace nodo::geometry {
 
@@ -29,21 +29,21 @@ public:
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error
-  static const core::Error &last_error();
+  static const core::Error& last_error();
 
 private:
-  static void set_last_error(const core::Error &error);
+  static void set_last_error(const core::Error& error);
   static thread_local core::Error last_error_;
 
   // Helper functions for icosphere generation
-  static void subdivide_triangle(const Eigen::Vector3d &v1,
-                                 const Eigen::Vector3d &v2,
-                                 const Eigen::Vector3d &v3,
-                                 std::vector<Eigen::Vector3d> &vertices,
-                                 std::vector<std::array<int, 3>> &faces,
+  static void subdivide_triangle(const Eigen::Vector3d& v1,
+                                 const Eigen::Vector3d& v2,
+                                 const Eigen::Vector3d& v3,
+                                 std::vector<Eigen::Vector3d>& vertices,
+                                 std::vector<std::array<int, 3>>& faces,
                                  int level);
 
-  static Eigen::Vector3d normalize_vertex(const Eigen::Vector3d &vertex,
+  static Eigen::Vector3d normalize_vertex(const Eigen::Vector3d& vertex,
                                           double radius);
 };
 

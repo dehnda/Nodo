@@ -2,9 +2,10 @@
 #include "nodo/geometry/box_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/sop/boolean_sop.hpp"
-#include <gtest/gtest.h>
+
 #include <memory>
 
+#include <gtest/gtest.h>
 
 using namespace nodo;
 
@@ -32,8 +33,8 @@ TEST_F(BooleanSOPTest, UnionOperation) {
   auto boolean_node = std::make_shared<sop::BooleanSOP>("test_boolean");
 
   // Connect inputs via ports (using numeric port names)
-  auto *port_a = boolean_node->get_input_ports().get_port("0");
-  auto *port_b = boolean_node->get_input_ports().get_port("1");
+  auto* port_a = boolean_node->get_input_ports().get_port("0");
+  auto* port_b = boolean_node->get_input_ports().get_port("1");
 
   ASSERT_NE(port_a, nullptr);
   ASSERT_NE(port_b, nullptr);
@@ -57,8 +58,8 @@ TEST_F(BooleanSOPTest, IntersectionOperation) {
   auto boolean_node = std::make_shared<sop::BooleanSOP>("test_intersection");
 
   // Connect inputs
-  auto *port_a = boolean_node->get_input_ports().get_port("0");
-  auto *port_b = boolean_node->get_input_ports().get_port("1");
+  auto* port_a = boolean_node->get_input_ports().get_port("0");
+  auto* port_b = boolean_node->get_input_ports().get_port("1");
 
   port_a->set_data(geo1_);
   port_b->set_data(geo2_);
@@ -90,8 +91,8 @@ TEST_F(BooleanSOPTest, DifferenceOperation) {
       std::make_shared<core::GeometryContainer>(box2_result.value().clone());
 
   // Connect inputs
-  auto *port_a = boolean_node->get_input_ports().get_port("0");
-  auto *port_b = boolean_node->get_input_ports().get_port("1");
+  auto* port_a = boolean_node->get_input_ports().get_port("0");
+  auto* port_b = boolean_node->get_input_ports().get_port("1");
 
   port_a->set_data(geo1);
   port_b->set_data(geo2);
@@ -121,7 +122,7 @@ TEST_F(BooleanSOPTest, MissingInputB) {
   auto boolean_node = std::make_shared<sop::BooleanSOP>("test_missing_b");
 
   // Only connect input A
-  auto *port_a = boolean_node->get_input_ports().get_port("0");
+  auto* port_a = boolean_node->get_input_ports().get_port("0");
   port_a->set_data(geo1_);
 
   // Try to execute
@@ -135,8 +136,8 @@ TEST_F(BooleanSOPTest, InvalidOperationType) {
   auto boolean_node = std::make_shared<sop::BooleanSOP>("test_invalid_op");
 
   // Connect both inputs
-  auto *port_a = boolean_node->get_input_ports().get_port("0");
-  auto *port_b = boolean_node->get_input_ports().get_port("1");
+  auto* port_a = boolean_node->get_input_ports().get_port("0");
+  auto* port_b = boolean_node->get_input_ports().get_port("1");
 
   port_a->set_data(geo1_);
   port_b->set_data(geo2_);
@@ -171,7 +172,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
 
   // Offset second sphere by 0.5 units in X to create overlap
   constexpr float offset = 0.5F;
-  auto *pos2 = geo2->get_point_attribute_typed<core::Vec3f>("P");
+  auto* pos2 = geo2->get_point_attribute_typed<core::Vec3f>("P");
   ASSERT_NE(pos2, nullptr);
   for (size_t i = 0; i < geo2->topology().point_count(); ++i) {
     (*pos2)[i].x() += offset;
@@ -181,8 +182,8 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
   {
     auto boolean_node =
         std::make_shared<sop::BooleanSOP>("test_union_manifold");
-    auto *port_a = boolean_node->get_input_ports().get_port("0");
-    auto *port_b = boolean_node->get_input_ports().get_port("1");
+    auto* port_a = boolean_node->get_input_ports().get_port("0");
+    auto* port_b = boolean_node->get_input_ports().get_port("1");
 
     port_a->set_data(geo1);
     port_b->set_data(geo2);
@@ -196,7 +197,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
     // 2. No duplicate vertices at the same position
     // 3. All faces should reference valid vertices
 
-    const auto &topo = result->topology();
+    const auto& topo = result->topology();
     ASSERT_GT(topo.point_count(), 0);
     ASSERT_GT(topo.primitive_count(), 0);
 
@@ -204,7 +205,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
     std::map<std::pair<int, int>, int> edge_count;
 
     for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-      const auto &vert_indices = topo.get_primitive_vertices(prim_idx);
+      const auto& vert_indices = topo.get_primitive_vertices(prim_idx);
       std::vector<int> point_indices;
       point_indices.reserve(vert_indices.size());
 
@@ -230,7 +231,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
     // Edge count of 1 means it's a boundary edge (valid for open meshes)
     // Edge count of 2 means it's an internal manifold edge (ideal)
     // Edge count > 2 means non-manifold (BAD - indicates internal geometry)
-    for (const auto &[edge, count] : edge_count) {
+    for (const auto& [edge, count] : edge_count) {
       EXPECT_LE(count, 2) << "Non-manifold edge detected between vertices "
                           << edge.first << " and " << edge.second
                           << " (shared by " << count << " faces). "
@@ -241,7 +242,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
     // all edges should be shared by exactly 2 faces
     // We'll just verify no edge has more than 2 faces (non-manifold condition)
     int non_manifold_edges = 0;
-    for (const auto &[edge, count] : edge_count) {
+    for (const auto& [edge, count] : edge_count) {
       if (count > 2) {
         non_manifold_edges++;
       }
@@ -255,8 +256,8 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
   // Test DIFFERENCE operation (more likely to create complex topology)
   {
     auto boolean_node = std::make_shared<sop::BooleanSOP>("test_diff_manifold");
-    auto *port_a = boolean_node->get_input_ports().get_port("0");
-    auto *port_b = boolean_node->get_input_ports().get_port("1");
+    auto* port_a = boolean_node->get_input_ports().get_port("0");
+    auto* port_b = boolean_node->get_input_ports().get_port("1");
 
     port_a->set_data(geo1);
     port_b->set_data(geo2);
@@ -266,11 +267,11 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
     ASSERT_NE(result, nullptr);
 
     // Same manifold verification
-    const auto &topo = result->topology();
+    const auto& topo = result->topology();
     std::map<std::pair<int, int>, int> edge_count;
 
     for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-      const auto &vert_indices = topo.get_primitive_vertices(prim_idx);
+      const auto& vert_indices = topo.get_primitive_vertices(prim_idx);
       std::vector<int> point_indices;
       point_indices.reserve(vert_indices.size());
 
@@ -290,7 +291,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
 
     // Verify manifold property
     int non_manifold_edges = 0;
-    for (const auto &[edge, count] : edge_count) {
+    for (const auto& [edge, count] : edge_count) {
       if (count > 2) {
         non_manifold_edges++;
       }

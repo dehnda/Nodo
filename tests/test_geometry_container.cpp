@@ -1,4 +1,5 @@
 #include "nodo/core/geometry_container.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo::core;
@@ -45,7 +46,7 @@ TEST_F(GeometryContainerTest, AddPointAttributes) {
   EXPECT_FALSE(geo.has_point_attribute("N"));
 
   // All attributes should have 100 elements
-  auto *pos = geo.get_point_attribute("P");
+  auto* pos = geo.get_point_attribute("P");
   EXPECT_EQ(pos->size(), 100);
 }
 
@@ -59,8 +60,8 @@ TEST_F(GeometryContainerTest, AddVertexAttributes) {
   EXPECT_TRUE(geo.has_vertex_attribute("N"));
   EXPECT_TRUE(geo.has_vertex_attribute("uv"));
 
-  auto *normals = geo.get_vertex_attribute("N");
-  auto *uvs = geo.get_vertex_attribute("uv");
+  auto* normals = geo.get_vertex_attribute("N");
+  auto* uvs = geo.get_vertex_attribute("uv");
 
   EXPECT_EQ(normals->size(), 50);
   EXPECT_EQ(uvs->size(), 50);
@@ -89,7 +90,7 @@ TEST_F(GeometryContainerTest, AddDetailAttributes) {
 
   // Detail attributes should have size 1 (global)
   geo.detail_attributes().resize(1);
-  auto *name_attr = geo.get_detail_attribute("name");
+  auto* name_attr = geo.get_detail_attribute("name");
   EXPECT_EQ(name_attr->size(), 1);
 }
 
@@ -98,7 +99,7 @@ TEST_F(GeometryContainerTest, TypedAccessPointAttributes) {
   geo.set_point_count(10);
   geo.add_point_attribute("P", AttributeType::VEC3F);
 
-  auto *positions = geo.get_point_attribute_typed<Vec3f>("P");
+  auto* positions = geo.get_point_attribute_typed<Vec3f>("P");
   ASSERT_NE(positions, nullptr);
 
   (*positions)[0] = Vec3f(1.0F, 2.0F, 3.0F);
@@ -116,7 +117,7 @@ TEST_F(GeometryContainerTest, TypedAccessVertexAttributes) {
   geo.set_vertex_count(5);
   geo.add_vertex_attribute("N", AttributeType::VEC3F);
 
-  auto *normals = geo.get_vertex_attribute_typed<Vec3f>("N");
+  auto* normals = geo.get_vertex_attribute_typed<Vec3f>("N");
   ASSERT_NE(normals, nullptr);
 
   (*normals)[0] = Vec3f(0.0F, 0.0F, 1.0F);
@@ -131,7 +132,7 @@ TEST_F(GeometryContainerTest, StandardPositionAccessor) {
   geo.set_point_count(10);
   geo.add_point_attribute("P", AttributeType::VEC3F);
 
-  auto *pos = geo.positions();
+  auto* pos = geo.positions();
   ASSERT_NE(pos, nullptr);
 
   (*pos)[0] = Vec3f(1.0F, 2.0F, 3.0F);
@@ -143,7 +144,7 @@ TEST_F(GeometryContainerTest, StandardNormalAccessor) {
   geo.set_vertex_count(10);
   geo.add_vertex_attribute("N", AttributeType::VEC3F);
 
-  auto *normals = geo.normals();
+  auto* normals = geo.normals();
   ASSERT_NE(normals, nullptr);
 
   (*normals)[0] = Vec3f(0.0F, 0.0F, 1.0F);
@@ -155,7 +156,7 @@ TEST_F(GeometryContainerTest, StandardUVAccessor) {
   geo.set_vertex_count(10);
   geo.add_vertex_attribute("uv", AttributeType::VEC2F);
 
-  auto *uvs = geo.uvs();
+  auto* uvs = geo.uvs();
   ASSERT_NE(uvs, nullptr);
 
   (*uvs)[0] = Vec2f(0.5F, 0.5F);
@@ -168,7 +169,7 @@ TEST_F(GeometryContainerTest, StandardColorAccessor) {
   geo.set_point_count(10);
   geo.add_point_attribute("Cd", AttributeType::VEC3F);
 
-  auto *colors = geo.colors();
+  auto* colors = geo.colors();
   ASSERT_NE(colors, nullptr);
 
   (*colors)[0] = Vec3f(1.0F, 0.0F, 0.0F); // Red
@@ -185,7 +186,7 @@ TEST_F(GeometryContainerTest, EnsurePositionAttribute) {
 
   EXPECT_TRUE(geo.has_point_attribute("P"));
 
-  auto *pos = geo.positions();
+  auto* pos = geo.positions();
   ASSERT_NE(pos, nullptr);
   EXPECT_EQ(pos->size(), 10);
 }
@@ -200,7 +201,7 @@ TEST_F(GeometryContainerTest, EnsureNormalAttribute) {
 
   EXPECT_TRUE(geo.has_vertex_attribute("N"));
 
-  auto *normals = geo.normals();
+  auto* normals = geo.normals();
   ASSERT_NE(normals, nullptr);
   EXPECT_EQ(normals->size(), 20);
 }
@@ -265,7 +266,7 @@ TEST_F(GeometryContainerTest, Clone) {
   geo.set_vertex_count(3);
   geo.add_point_attribute("P", AttributeType::VEC3F);
 
-  auto *pos = geo.positions();
+  auto* pos = geo.positions();
   (*pos)[0] = Vec3f(1.0F, 2.0F, 3.0F);
   (*pos)[1] = Vec3f(4.0F, 5.0F, 6.0F);
 
@@ -275,7 +276,7 @@ TEST_F(GeometryContainerTest, Clone) {
   EXPECT_EQ(cloned.vertex_count(), 3);
   EXPECT_TRUE(cloned.has_point_attribute("P"));
 
-  auto *cloned_pos = cloned.positions();
+  auto* cloned_pos = cloned.positions();
   EXPECT_FLOAT_EQ((*cloned_pos)[0].x(), 1.0F);
   EXPECT_FLOAT_EQ((*cloned_pos)[1].x(), 4.0F);
 }
@@ -322,8 +323,8 @@ TEST_F(GeometryContainerTest, RealWorldExample_Triangle) {
   GeometryContainer geo;
 
   // Set topology
-  geo.set_point_count(3);   // 3 unique points
-  geo.set_vertex_count(3);  // 3 vertices (no split normals for simplicity)
+  geo.set_point_count(3);  // 3 unique points
+  geo.set_vertex_count(3); // 3 vertices (no split normals for simplicity)
 
   // Map vertices to points (1:1 for this simple case)
   for (int i = 0; i < 3; ++i) {
@@ -339,19 +340,19 @@ TEST_F(GeometryContainerTest, RealWorldExample_Triangle) {
   geo.add_vertex_attribute("uv", AttributeType::VEC2F);
 
   // Populate positions
-  auto *pos = geo.positions();
+  auto* pos = geo.positions();
   (*pos)[0] = Vec3f(0.0F, 0.0F, 0.0F);
   (*pos)[1] = Vec3f(1.0F, 0.0F, 0.0F);
   (*pos)[2] = Vec3f(0.5F, 1.0F, 0.0F);
 
   // Populate normals (all pointing up)
-  auto *normals = geo.normals();
+  auto* normals = geo.normals();
   for (int i = 0; i < 3; ++i) {
     (*normals)[i] = Vec3f(0.0F, 0.0F, 1.0F);
   }
 
   // Populate UVs
-  auto *uvs = geo.uvs();
+  auto* uvs = geo.uvs();
   (*uvs)[0] = Vec2f(0.0F, 0.0F);
   (*uvs)[1] = Vec2f(1.0F, 0.0F);
   (*uvs)[2] = Vec2f(0.5F, 1.0F);
@@ -361,7 +362,7 @@ TEST_F(GeometryContainerTest, RealWorldExample_Triangle) {
 
   // Check primitive
   EXPECT_EQ(geo.primitive_count(), 1);
-  const auto &prim_verts = geo.topology().get_primitive_vertices(0);
+  const auto& prim_verts = geo.topology().get_primitive_vertices(0);
   EXPECT_EQ(prim_verts.size(), 3);
   EXPECT_EQ(prim_verts[0], 0);
   EXPECT_EQ(prim_verts[1], 1);
@@ -385,7 +386,7 @@ TEST_F(GeometryContainerTest, RealWorldExample_CubeWithSplitNormals) {
   geo.add_vertex_attribute("N", AttributeType::VEC3F);
 
   // Set cube corner positions
-  auto *pos = geo.positions();
+  auto* pos = geo.positions();
   (*pos)[0] = Vec3f(0.0F, 0.0F, 0.0F);
   (*pos)[1] = Vec3f(1.0F, 0.0F, 0.0F);
   (*pos)[2] = Vec3f(1.0F, 1.0F, 0.0F);
@@ -412,7 +413,7 @@ TEST_F(GeometryContainerTest, RealWorldExample_CubeWithSplitNormals) {
   // For simplicity, just set up first 8 vertices
 
   // Set normals (each face has unique normal)
-  auto *normals = geo.normals();
+  auto* normals = geo.normals();
   // Front face normal
   (*normals)[0] = Vec3f(0.0F, 0.0F, -1.0F);
   (*normals)[1] = Vec3f(0.0F, 0.0F, -1.0F);

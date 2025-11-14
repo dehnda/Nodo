@@ -1,18 +1,18 @@
 #include "nodo/processing/smoothing.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
+
 #include <pmp/algorithms/fairing.h>
 #include <pmp/algorithms/smoothing.h>
 #include <pmp/algorithms/triangulation.h>
 
-
 namespace nodo::processing {
 
 std::optional<core::GeometryContainer>
-Smoothing::smooth(const core::GeometryContainer &container,
-                  const SmoothingParams &params, std::string *error) {
-
+Smoothing::smooth(const core::GeometryContainer& container,
+                  const SmoothingParams& params, std::string* error) {
   // Validate input
   if (container.point_count() < 3) {
     if (error)
@@ -57,7 +57,7 @@ Smoothing::smooth(const core::GeometryContainer &container,
     // Convert back to GeometryContainer
     return detail::PMPConverter::from_pmp_container(pmp_mesh);
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     if (error)
       *error = std::string("Smoothing failed: ") + e.what();
     return std::nullopt;

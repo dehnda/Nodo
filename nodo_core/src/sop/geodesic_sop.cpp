@@ -1,5 +1,7 @@
 #include "nodo/sop/geodesic_sop.hpp"
+
 #include "nodo/processing/geodesic.hpp"
+
 #include <fmt/core.h>
 
 namespace nodo::sop {
@@ -18,15 +20,15 @@ std::shared_ptr<core::GeometryContainer> GeodesicSOP::execute() {
   // Method selection
   int method_index = get_parameter<int>("method", 1); // Default to Heat
   switch (method_index) {
-  case 0:
-    params.method = processing::GeodesicMethod::Dijkstra;
-    break;
-  case 1:
-    params.method = processing::GeodesicMethod::Heat;
-    break;
-  default:
-    params.method = processing::GeodesicMethod::Heat; // Default to Heat
-    break;
+    case 0:
+      params.method = processing::GeodesicMethod::Dijkstra;
+      break;
+    case 1:
+      params.method = processing::GeodesicMethod::Heat;
+      break;
+    default:
+      params.method = processing::GeodesicMethod::Heat; // Default to Heat
+      break;
   }
 
   // Seed group

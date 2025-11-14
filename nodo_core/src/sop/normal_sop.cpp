@@ -1,14 +1,17 @@
 #include "nodo/sop/normal_sop.hpp"
+
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
+
 #include <Eigen/Dense>
+
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
 
 namespace nodo::sop {
 
-NormalSOP::NormalSOP(const std::string &name) : SOPNode(name, "Normal") {
+NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
   // Single geometry input
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -70,25 +73,25 @@ std::shared_ptr<core::GeometryContainer> NormalSOP::execute() {
             << " normals\n";
 
   switch (normal_type) {
-  case 0: // Vertex normals
-    compute_vertex_normals(*result, weighting, cusp_angle, reverse);
-    break;
-  case 1: // Face normals
-    compute_face_normals(*result, reverse);
-    break;
-  case 2: // Point normals
-    compute_point_normals(*result, weighting, cusp_angle, reverse);
-    break;
+    case 0: // Vertex normals
+      compute_vertex_normals(*result, weighting, cusp_angle, reverse);
+      break;
+    case 1: // Face normals
+      compute_face_normals(*result, reverse);
+      break;
+    case 2: // Point normals
+      compute_point_normals(*result, weighting, cusp_angle, reverse);
+      break;
   }
 
   return result;
 }
 
-void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
+void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
                                        int weighting, float cusp_angle,
                                        bool reverse) const {
   using namespace core;
-  const auto &topo = geo.topology();
+  const auto& topo = geo.topology();
 
   // Add vertex normal attribute
   if (!geo.has_vertex_attribute("N")) {
@@ -117,7 +120,7 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
   std::vector<float> face_areas(topo.primitive_count());
 
   for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-    const auto &verts = topo.get_primitive_vertices(prim_idx);
+    const auto& verts = topo.get_primitive_vertices(prim_idx);
     if (verts.size() < 3)
       continue;
 
@@ -160,7 +163,7 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
     std::vector<size_t> adjacent_prims;
 
     for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-      const auto &verts = topo.get_primitive_vertices(prim_idx);
+      const auto& verts = topo.get_primitive_vertices(prim_idx);
       for (int v : verts) {
         // Check if this vertex references the same point
         if (topo.get_vertex_point(v) == point_idx) {
@@ -185,8 +188,8 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
       for (size_t i = 0; i < adjacent_prims.size() && !has_hard_edge; ++i) {
         for (size_t j = i + 1; j < adjacent_prims.size() && !has_hard_edge;
              ++j) {
-          const Eigen::Vector3f &normal_i = face_normals[adjacent_prims[i]];
-          const Eigen::Vector3f &normal_j = face_normals[adjacent_prims[j]];
+          const Eigen::Vector3f& normal_i = face_normals[adjacent_prims[i]];
+          const Eigen::Vector3f& normal_j = face_normals[adjacent_prims[j]];
           float dot = normal_i.dot(normal_j);
 
           // If dot product < cusp_cos, the angle is > cusp_angle (hard edge)
@@ -252,10 +255,10 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer &geo,
             << " vertex normals\n";
 }
 
-void NormalSOP::compute_face_normals(core::GeometryContainer &geo,
+void NormalSOP::compute_face_normals(core::GeometryContainer& geo,
                                      bool reverse) const {
   using namespace core;
-  const auto &topo = geo.topology();
+  const auto& topo = geo.topology();
 
   // Debug: Check primitive count
   std::cerr << "NormalSOP: Geometry has " << topo.primitive_count()
@@ -293,7 +296,7 @@ void NormalSOP::compute_face_normals(core::GeometryContainer &geo,
   }
 
   for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-    const auto &verts = topo.get_primitive_vertices(prim_idx);
+    const auto& verts = topo.get_primitive_vertices(prim_idx);
     if (verts.size() < 3) {
       (*prim_normals)[prim_idx] = Eigen::Vector3f(0, 1, 0);
       continue;
@@ -328,12 +331,12 @@ void NormalSOP::compute_face_normals(core::GeometryContainer &geo,
             << " face normals\n";
 }
 
-void NormalSOP::compute_point_normals(core::GeometryContainer &geo,
+void NormalSOP::compute_point_normals(core::GeometryContainer& geo,
                                       int weighting,
                                       [[maybe_unused]] float cusp_angle,
                                       bool reverse) const {
   using namespace core;
-  const auto &topo = geo.topology();
+  const auto& topo = geo.topology();
 
   // Add point normal attribute
   if (!geo.has_point_attribute("N")) {
@@ -352,7 +355,7 @@ void NormalSOP::compute_point_normals(core::GeometryContainer &geo,
   std::vector<float> face_areas(topo.primitive_count());
 
   for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-    const auto &verts = topo.get_primitive_vertices(prim_idx);
+    const auto& verts = topo.get_primitive_vertices(prim_idx);
     if (verts.size() < 3)
       continue;
 
@@ -390,7 +393,7 @@ void NormalSOP::compute_point_normals(core::GeometryContainer &geo,
 
     // Find primitives that use this point
     for (size_t prim_idx = 0; prim_idx < topo.primitive_count(); ++prim_idx) {
-      const auto &verts = topo.get_primitive_vertices(prim_idx);
+      const auto& verts = topo.get_primitive_vertices(prim_idx);
       for (int v : verts) {
         if (topo.get_vertex_point(v) == static_cast<int>(pt_idx)) {
           adjacent_prims.push_back(prim_idx);

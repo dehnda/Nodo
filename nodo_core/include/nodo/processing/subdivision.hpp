@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
+
 #include <optional>
 #include <string>
 
@@ -40,8 +41,8 @@ public:
    * @return Subdivided geometry or nullopt on failure
    */
   static std::optional<core::GeometryContainer>
-  subdivide(const core::GeometryContainer &container,
-            const SubdivisionParams &params, std::string *error = nullptr);
+  subdivide(const core::GeometryContainer& container,
+            const SubdivisionParams& params, std::string* error = nullptr);
 };
 
 } // namespace nodo::processing

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo_core/IHostInterface.h"
+
 #include <QObject>
 #include <QString>
 
@@ -14,14 +15,14 @@ class StudioHostInterface : public QObject, public nodo::IHostInterface {
   Q_OBJECT
 
 public:
-  explicit StudioHostInterface(QObject *parent = nullptr);
+  explicit StudioHostInterface(QObject* parent = nullptr);
   ~StudioHostInterface() override = default;
 
   // IHostInterface implementation
   bool report_progress(int current, int total,
-                       const std::string &message = "") override;
+                       const std::string& message = "") override;
   bool is_cancelled() const override;
-  void log(const std::string &level, const std::string &message) override;
+  void log(const std::string& level, const std::string& message) override;
   std::string get_host_info() const override;
 
   // Cancellation control
@@ -35,14 +36,14 @@ signals:
    * @param total Total steps
    * @param message Progress message
    */
-  void progressReported(int current, int total, const QString &message);
+  void progressReported(int current, int total, const QString& message);
 
   /**
    * @brief Emitted when a log message is received
    * @param level Log level (info, warning, error, debug)
    * @param message Log message
    */
-  void logMessage(const QString &level, const QString &message);
+  void logMessage(const QString& level, const QString& message);
 
   /**
    * @brief Emitted when execution starts

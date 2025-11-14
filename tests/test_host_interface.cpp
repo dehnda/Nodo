@@ -1,9 +1,12 @@
 #include "nodo/graph/execution_engine.hpp"
 #include "nodo/graph/node_graph.hpp"
+
 #include "nodo_core/IHostInterface.h"
-#include <gtest/gtest.h>
+
 #include <string>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 using namespace nodo;
 using namespace nodo::graph;
@@ -16,7 +19,7 @@ using namespace nodo::graph;
 class ExampleHostInterface : public IHostInterface {
 public:
   bool report_progress(int current, int total,
-                       const std::string &message) override {
+                       const std::string& message) override {
     // Track progress calls
     progress_calls_++;
     last_progress_message_ = message;
@@ -29,12 +32,12 @@ public:
 
   bool is_cancelled() const override { return should_cancel_; }
 
-  void log(const std::string &level, const std::string &message) override {
+  void log(const std::string& level, const std::string& message) override {
     // Store log messages for verification
     log_messages_.push_back("[" + level + "] " + message);
   }
 
-  std::string resolve_path(const std::string &relative_path) const override {
+  std::string resolve_path(const std::string& relative_path) const override {
     // Convert project-relative paths to absolute paths
     return project_root_ + "/" + relative_path;
   }
@@ -44,12 +47,12 @@ public:
   }
 
   // Test helper methods
-  void set_project_root(const std::string &root) { project_root_ = root; }
+  void set_project_root(const std::string& root) { project_root_ = root; }
 
   void cancel() { should_cancel_ = true; }
 
   int get_progress_calls() const { return progress_calls_; }
-  const std::vector<std::string> &get_log_messages() const {
+  const std::vector<std::string>& get_log_messages() const {
     return log_messages_;
   }
   int get_last_current() const { return last_current_; }

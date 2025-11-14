@@ -1,11 +1,8 @@
-#include "nodo/sop/bevel_sop.hpp"
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/math.hpp"
+#include "nodo/sop/bevel_sop.hpp"
 
 #include <Eigen/Core>
-#include <igl/edges.h>
-#include <igl/per_face_normals.h>
-#include <igl/per_vertex_normals.h>
 
 #include <algorithm>
 #include <cmath>
@@ -14,6 +11,10 @@
 #include <set>
 #include <unordered_map>
 
+#include <igl/edges.h>
+#include <igl/per_face_normals.h>
+#include <igl/per_vertex_normals.h>
+
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
@@ -21,10 +22,10 @@ namespace nodo::sop {
 struct EdgeKey {
   int v0, v1;
   EdgeKey(int a, int b) : v0(std::min(a, b)), v1(std::max(a, b)) {}
-  bool operator<(const EdgeKey &other) const {
+  bool operator<(const EdgeKey& other) const {
     return v0 < other.v0 || (v0 == other.v0 && v1 < other.v1);
   }
-  bool operator==(const EdgeKey &other) const {
+  bool operator==(const EdgeKey& other) const {
     return v0 == other.v0 && v1 == other.v1;
   }
 };
@@ -35,21 +36,21 @@ struct EdgeInfo {
 };
 
 // Helper: Convert GeometryContainer to Eigen matrices
-static bool geometry_to_eigen(const core::GeometryContainer &geom,
-                               Eigen::MatrixXd &V, Eigen::MatrixXi &F) {
-  const auto *positions = geom.positions();
+static bool geometry_to_eigen(const core::GeometryContainer& geom,
+                              Eigen::MatrixXd& V, Eigen::MatrixXi& F) {
+  const auto* positions = geom.positions();
   if (!positions) {
     return false;
   }
 
-  const auto &topology = geom.topology();
+  const auto& topology = geom.topology();
   const size_t num_points = geom.point_count();
   const size_t num_prims = topology.primitive_count();
 
   // Build vertex matrix (n x 3)
   V.resize(num_points, 3);
   for (size_t i = 0; i < num_points; ++i) {
-    const auto &pos = (*positions)[i];
+    const auto& pos = (*positions)[i];
     V(i, 0) = pos.x();
     V(i, 1) = pos.y();
     V(i, 2) = pos.z();
@@ -58,7 +59,7 @@ static bool geometry_to_eigen(const core::GeometryContainer &geom,
   // Build face matrix - count total vertices across all primitives
   size_t total_faces = 0;
   for (size_t i = 0; i < num_prims; ++i) {
-    const auto &prim_verts = topology.get_primitive_vertices(i);
+    const auto& prim_verts = topology.get_primitive_vertices(i);
     if (prim_verts.size() == 3) {
       total_faces++; // Triangle
     } else if (prim_verts.size() == 4) {
@@ -73,7 +74,7 @@ static bool geometry_to_eigen(const core::GeometryContainer &geom,
   size_t face_idx = 0;
 
   for (size_t prim_idx = 0; prim_idx < num_prims; ++prim_idx) {
-    const auto &prim_verts = topology.get_primitive_vertices(prim_idx);
+    const auto& prim_verts = topology.get_primitive_vertices(prim_idx);
     if (prim_verts.size() < 3) {
       continue;
     }
@@ -117,7 +118,7 @@ static bool geometry_to_eigen(const core::GeometryContainer &geom,
 
 // Helper: Convert Eigen matrices back to GeometryContainer
 static std::shared_ptr<core::GeometryContainer>
-eigen_to_geometry(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F) {
+eigen_to_geometry(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
   auto result = std::make_shared<core::GeometryContainer>();
 
   const size_t num_points = V.rows();
@@ -125,13 +126,13 @@ eigen_to_geometry(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F) {
 
   result->set_point_count(num_points);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   // Copy positions
   for (size_t i = 0; i < num_points; ++i) {
-    (*result_pos)[i] = core::Vec3f(static_cast<float>(V(i, 0)),
-                                     static_cast<float>(V(i, 1)),
-                                     static_cast<float>(V(i, 2)));
+    (*result_pos)[i] =
+        core::Vec3f(static_cast<float>(V(i, 0)), static_cast<float>(V(i, 1)),
+                    static_cast<float>(V(i, 2)));
   }
 
   // Set vertex count and build primitives
@@ -151,7 +152,7 @@ eigen_to_geometry(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F) {
   return result;
 }
 
-BevelSOP::BevelSOP(const std::string &name) : SOPNode(name, "Bevel") {
+BevelSOP::BevelSOP(const std::string& name) : SOPNode(name, "Bevel") {
   // Input geometry port
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -178,8 +179,7 @@ BevelSOP::BevelSOP(const std::string &name) : SOPNode(name, "Bevel") {
           .label("Profile")
           .range(0.0, 1.0)
           .category("Bevel")
-          .description(
-              "Reserved for future profile control (currently unused)")
+          .description("Reserved for future profile control (currently unused)")
           .build());
 
   register_parameter(
@@ -187,7 +187,8 @@ BevelSOP::BevelSOP(const std::string &name) : SOPNode(name, "Bevel") {
           .label("Mode")
           .options({"Vertex", "Edge", "Face"})
           .category("Bevel")
-          .description("Edge=proper edge bevel, Face=face inset, Vertex=experimental")
+          .description(
+              "Edge=proper edge bevel, Face=face inset, Vertex=experimental")
           .build());
 
   register_parameter(define_bool_parameter("clamp_overlap", true)
@@ -196,20 +197,20 @@ BevelSOP::BevelSOP(const std::string &name) : SOPNode(name, "Bevel") {
                          .description("Reserved for future use")
                          .build());
 
-  register_parameter(
-      define_float_parameter("angle_limit", 30.0F)
-          .label("Angle Limit")
-          .range(0.0, 180.0)
-          .category("Limits")
-          .description("Reserved for future edge selection")
-          .build());
+  register_parameter(define_float_parameter("angle_limit", 30.0F)
+                         .label("Angle Limit")
+                         .range(0.0, 180.0)
+                         .category("Limits")
+                         .description("Reserved for future edge selection")
+                         .build());
 }
 
 // ============================================================================
-// Vertex Bevel: Creates beveled corners by offsetting vertices toward face centers
+// Vertex Bevel: Creates beveled corners by offsetting vertices toward face
+// centers
 // ============================================================================
 static std::shared_ptr<core::GeometryContainer>
-bevel_vertices(const core::GeometryContainer &input, float bevel_width,
+bevel_vertices(const core::GeometryContainer& input, float bevel_width,
                int segments, float angle_threshold) {
   std::cout << "\n=== Vertex Bevel Mode ===\n";
 
@@ -240,10 +241,10 @@ bevel_vertices(const core::GeometryContainer &input, float bevel_width,
   const float angle_rad =
       angle_threshold * static_cast<float>(core::math::PI) / 180.0F;
 
-  for (auto &[edge, info] : edge_map) {
+  for (auto& [edge, info] : edge_map) {
     if (info.faces.size() == 2) {
-      const Eigen::Vector3d &normal_a = face_normals.row(info.faces[0]);
-      const Eigen::Vector3d &normal_b = face_normals.row(info.faces[1]);
+      const Eigen::Vector3d& normal_a = face_normals.row(info.faces[0]);
+      const Eigen::Vector3d& normal_b = face_normals.row(info.faces[1]);
       double dot_product = normal_a.dot(normal_b);
       double angle = std::acos(std::clamp(dot_product, -1.0, 1.0));
       info.angle = static_cast<float>(angle);
@@ -258,7 +259,7 @@ bevel_vertices(const core::GeometryContainer &input, float bevel_width,
 
   // Find vertices that are part of sharp edges
   std::set<int> sharp_vertices;
-  for (const auto &edge : sharp_edges) {
+  for (const auto& edge : sharp_edges) {
     sharp_vertices.insert(edge.v0);
     sharp_vertices.insert(edge.v1);
   }
@@ -270,7 +271,8 @@ bevel_vertices(const core::GeometryContainer &input, float bevel_width,
     std::cout << "No sharp vertices found, returning input unchanged\n";
     // Need to return a copy since we can't just return the input reference
     auto result = std::make_shared<core::GeometryContainer>();
-    // Copy geometry data here if needed, or just return nullptr to signal no change
+    // Copy geometry data here if needed, or just return nullptr to signal no
+    // change
     return nullptr; // Caller should handle nullptr as "no change needed"
   }
 
@@ -295,7 +297,7 @@ bevel_vertices(const core::GeometryContainer &input, float bevel_width,
 
   // Create offset vertices for sharp vertices
   for (int vert_id : sharp_vertices) {
-    const auto &adjacent_faces = vertex_to_faces[vert_id];
+    const auto& adjacent_faces = vertex_to_faces[vert_id];
     Eigen::Vector3d vertex_pos = V.row(vert_id);
 
     for (int face_idx : adjacent_faces) {
@@ -352,24 +354,23 @@ bevel_vertices(const core::GeometryContainer &input, float bevel_width,
   auto result = std::make_shared<core::GeometryContainer>();
   result->set_point_count(out_vertices.size());
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   for (size_t i = 0; i < out_vertices.size(); ++i) {
-    (*result_pos)[i] =
-        core::Vec3f(static_cast<float>(out_vertices[i].x()),
-                    static_cast<float>(out_vertices[i].y()),
-                    static_cast<float>(out_vertices[i].z()));
+    (*result_pos)[i] = core::Vec3f(static_cast<float>(out_vertices[i].x()),
+                                   static_cast<float>(out_vertices[i].y()),
+                                   static_cast<float>(out_vertices[i].z()));
   }
 
   // Build topology
   size_t total_verts = 0;
-  for (const auto &face : out_faces) {
+  for (const auto& face : out_faces) {
     total_verts += face.size();
   }
   result->set_vertex_count(total_verts);
 
   size_t vert_idx = 0;
-  for (const auto &face : out_faces) {
+  for (const auto& face : out_faces) {
     std::vector<int> prim_verts;
     for (int point_idx : face) {
       result->topology().set_vertex_point(vert_idx, point_idx);
@@ -387,7 +388,7 @@ bevel_vertices(const core::GeometryContainer &input, float bevel_width,
 // Based on: https://stackoverflow.com/questions/3484497/
 // ============================================================================
 static std::shared_ptr<core::GeometryContainer>
-bevel_edges(const core::GeometryContainer &input, float bevel_width,
+bevel_edges(const core::GeometryContainer& input, float bevel_width,
             int segments, float angle_threshold) {
   std::cout << "\n=== Edge Bevel Mode (Cylinder Strips) ===\n";
 
@@ -422,18 +423,19 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
             << " degrees (" << angle_rad << " radians)\n";
   std::cout << "Total unique edges: " << edge_map.size() << "\n";
 
-  for (auto &[edge, info] : edge_map) {
+  for (auto& [edge, info] : edge_map) {
     if (info.faces.size() == 2) {
-      const Eigen::Vector3d &normal_a = face_normals.row(info.faces[0]);
-      const Eigen::Vector3d &normal_b = face_normals.row(info.faces[1]);
+      const Eigen::Vector3d& normal_a = face_normals.row(info.faces[0]);
+      const Eigen::Vector3d& normal_b = face_normals.row(info.faces[1]);
       double dot_product = normal_a.dot(normal_b);
       double angle = std::acos(std::clamp(dot_product, -1.0, 1.0));
       double angle_degrees = angle * 180.0 / core::math::PI;
 
       // Debug first few edges
       if (sharp_edges.size() < 3) {
-        std::cout << "Edge (" << edge.v0 << "," << edge.v1 << "): angle = "
-                  << angle_degrees << " degrees (dot=" << dot_product << ")\n";
+        std::cout << "Edge (" << edge.v0 << "," << edge.v1
+                  << "): angle = " << angle_degrees
+                  << " degrees (dot=" << dot_product << ")\n";
       }
 
       if (angle > angle_rad) {
@@ -445,7 +447,8 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
   std::cout << "Found " << sharp_edges.size() << " sharp edges\n";
 
   if (sharp_edges.empty()) {
-    std::cout << "WARNING: No sharp edges found with angle > " << angle_threshold
+    std::cout << "WARNING: No sharp edges found with angle > "
+              << angle_threshold
               << " degrees. Try lowering the angle limit parameter.\n";
     return nullptr;
   }
@@ -460,46 +463,48 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
   // Step 2: For each face adjacent to sharp edges, create inset vertices
   // For vertices on sharp edges, offset along the edge bisector
   // For vertices not on sharp edges, keep original position
-  
+
   std::map<std::pair<int, int>, int> face_vert_to_inset;
-  
+
   // Find all faces adjacent to sharp edges
   std::set<int> faces_with_sharp_edges;
-  for (const EdgeKey &edge : sharp_edges) {
-    const EdgeInfo &info = edge_map[edge];
+  for (const EdgeKey& edge : sharp_edges) {
+    const EdgeInfo& info = edge_map[edge];
     for (int face_idx : info.faces) {
       faces_with_sharp_edges.insert(face_idx);
     }
   }
-  
-  std::cout << "Found " << faces_with_sharp_edges.size() 
+
+  std::cout << "Found " << faces_with_sharp_edges.size()
             << " faces adjacent to sharp edges\n";
-  
+
   // For each face with sharp edges, create inset vertices
   for (int face_idx : faces_with_sharp_edges) {
     Eigen::Vector3d face_normal = face_normals.row(face_idx);
-    
+
     for (int i = 0; i < 3; ++i) {
       int vert_idx = F(face_idx, i);
       Eigen::Vector3d vert_pos = V.row(vert_idx);
-      
+
       // Offset vertex inward along face normal
       Eigen::Vector3d inset_pos = vert_pos - face_normal * bevel_width;
-      
+
       int new_vert_idx = static_cast<int>(out_vertices.size());
       out_vertices.push_back(inset_pos);
       face_vert_to_inset[{face_idx, i}] = new_vert_idx;
     }
   }
-  
+
   std::cout << "Created " << face_vert_to_inset.size() << " inset vertices\n";
 
   std::vector<std::vector<int>> out_faces;
-  
-  // Step 3: Add faces - inset versions for faces with sharp edges, original for others
+
+  // Step 3: Add faces - inset versions for faces with sharp edges, original for
+  // others
   for (int face_idx = 0; face_idx < F.rows(); ++face_idx) {
-    bool has_sharp_edge = (faces_with_sharp_edges.find(face_idx) != faces_with_sharp_edges.end());
-    
+    bool has_sharp_edge =
+        (faces_with_sharp_edges.find(face_idx) != faces_with_sharp_edges.end());
+
     std::vector<int> face_verts;
     for (int i = 0; i < 3; ++i) {
       if (has_sharp_edge) {
@@ -512,24 +517,24 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
     }
     out_faces.push_back(face_verts);
   }
-  
-  std::cout << "Added " << F.rows() << " faces (" << faces_with_sharp_edges.size() 
-            << " with insets)\n";
+
+  std::cout << "Added " << F.rows() << " faces ("
+            << faces_with_sharp_edges.size() << " with insets)\n";
 
   // Step 4: Create bevel strips for sharp edges
   std::cout << "Creating bevel strips for " << sharp_edges.size()
             << " sharp edges...\n";
   int bridge_count = 0;
-  
-  for (const EdgeKey &edge : sharp_edges) {
-    const EdgeInfo &info = edge_map[edge];
+
+  for (const EdgeKey& edge : sharp_edges) {
+    const EdgeInfo& info = edge_map[edge];
     if (info.faces.size() != 2) {
       continue;
     }
 
     int face0 = info.faces[0];
     int face1 = info.faces[1];
-    
+
     // Find which local indices in each face correspond to this edge
     int f0_idx0 = -1, f0_idx1 = -1;
     for (int i = 0; i < 3; ++i) {
@@ -542,7 +547,7 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
         break;
       }
     }
-    
+
     int f1_idx0 = -1, f1_idx1 = -1;
     for (int i = 0; i < 3; ++i) {
       int curr = F(face1, i);
@@ -554,24 +559,24 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
         break;
       }
     }
-    
+
     if (f0_idx0 == -1 || f1_idx0 == -1) {
       continue;
     }
-    
-    // Get inset vertex indices from both faces  
+
+    // Get inset vertex indices from both faces
     int inset_f0_v0 = face_vert_to_inset[{face0, f0_idx0}];
     int inset_f0_v1 = face_vert_to_inset[{face0, f0_idx1}];
     int inset_f1_v0 = face_vert_to_inset[{face1, f1_idx0}];
     int inset_f1_v1 = face_vert_to_inset[{face1, f1_idx1}];
-    
+
     // Check edge direction
     int orig_v0 = F(face0, f0_idx0);
     int orig_v1 = F(face0, f0_idx1);
     int f1_orig_v0 = F(face1, f1_idx0);
-    
+
     bool same_direction = (orig_v0 == f1_orig_v0);
-    
+
     if (same_direction) {
       // Create bridge quad connecting the two inset edges
       out_faces.push_back({inset_f0_v0, inset_f0_v1, inset_f1_v0});
@@ -583,8 +588,9 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
     }
     bridge_count++;
   }
-  
-  std::cout << "Created " << bridge_count << " bevel strips (2 triangles each)\n";
+
+  std::cout << "Created " << bridge_count
+            << " bevel strips (2 triangles each)\n";
   std::cout << "Total output: " << out_vertices.size() << " vertices, "
             << out_faces.size() << " faces\n";
 
@@ -595,24 +601,23 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
   auto result = std::make_shared<core::GeometryContainer>();
   result->set_point_count(out_vertices.size());
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   for (size_t i = 0; i < out_vertices.size(); ++i) {
-    (*result_pos)[i] =
-        core::Vec3f(static_cast<float>(out_vertices[i].x()),
-                    static_cast<float>(out_vertices[i].y()),
-                    static_cast<float>(out_vertices[i].z()));
+    (*result_pos)[i] = core::Vec3f(static_cast<float>(out_vertices[i].x()),
+                                   static_cast<float>(out_vertices[i].y()),
+                                   static_cast<float>(out_vertices[i].z()));
   }
 
   // Build topology
   size_t total_verts = 0;
-  for (const auto &face : out_faces) {
+  for (const auto& face : out_faces) {
     total_verts += face.size();
   }
   result->set_vertex_count(total_verts);
 
   size_t vert_idx = 0;
-  for (const auto &face : out_faces) {
+  for (const auto& face : out_faces) {
     std::vector<int> prim_verts;
     for (int point_idx : face) {
       result->topology().set_vertex_point(vert_idx, point_idx);
@@ -630,7 +635,7 @@ bevel_edges(const core::GeometryContainer &input, float bevel_width,
 // This creates beveled borders around faces
 // ============================================================================
 static std::shared_ptr<core::GeometryContainer>
-bevel_faces(const core::GeometryContainer &input, float bevel_width,
+bevel_faces(const core::GeometryContainer& input, float bevel_width,
             int segments, float angle_threshold) {
   std::cout << "\n=== Face Inset/Bevel Mode ===\n";
 
@@ -661,10 +666,10 @@ bevel_faces(const core::GeometryContainer &input, float bevel_width,
   const float angle_rad =
       angle_threshold * static_cast<float>(core::math::PI) / 180.0F;
 
-  for (auto &[edge, info] : edge_map) {
+  for (auto& [edge, info] : edge_map) {
     if (info.faces.size() == 2) {
-      const Eigen::Vector3d &normal_a = face_normals.row(info.faces[0]);
-      const Eigen::Vector3d &normal_b = face_normals.row(info.faces[1]);
+      const Eigen::Vector3d& normal_a = face_normals.row(info.faces[0]);
+      const Eigen::Vector3d& normal_b = face_normals.row(info.faces[1]);
       double dot_product = normal_a.dot(normal_b);
       double angle = std::acos(std::clamp(dot_product, -1.0, 1.0));
 
@@ -750,24 +755,23 @@ bevel_faces(const core::GeometryContainer &input, float bevel_width,
   auto result = std::make_shared<core::GeometryContainer>();
   result->set_point_count(out_vertices.size());
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_pos = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   for (size_t i = 0; i < out_vertices.size(); ++i) {
-    (*result_pos)[i] =
-        core::Vec3f(static_cast<float>(out_vertices[i].x()),
-                    static_cast<float>(out_vertices[i].y()),
-                    static_cast<float>(out_vertices[i].z()));
+    (*result_pos)[i] = core::Vec3f(static_cast<float>(out_vertices[i].x()),
+                                   static_cast<float>(out_vertices[i].y()),
+                                   static_cast<float>(out_vertices[i].z()));
   }
 
   // Build topology
   size_t total_verts = 0;
-  for (const auto &face : out_faces) {
+  for (const auto& face : out_faces) {
     total_verts += face.size();
   }
   result->set_vertex_count(total_verts);
 
   size_t vert_idx = 0;
-  for (const auto &face : out_faces) {
+  for (const auto& face : out_faces) {
     std::vector<int> prim_verts;
     for (int point_idx : face) {
       result->topology().set_vertex_point(vert_idx, point_idx);
@@ -807,21 +811,21 @@ std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
   std::shared_ptr<core::GeometryContainer> result;
 
   switch (bevel_type) {
-  case BevelType::Vertex:
-    result = bevel_vertices(*input, bevel_width, segments, angle_threshold);
-    break;
+    case BevelType::Vertex:
+      result = bevel_vertices(*input, bevel_width, segments, angle_threshold);
+      break;
 
-  case BevelType::Edge:
-    result = bevel_edges(*input, bevel_width, segments, angle_threshold);
-    break;
+    case BevelType::Edge:
+      result = bevel_edges(*input, bevel_width, segments, angle_threshold);
+      break;
 
-  case BevelType::Face:
-    result = bevel_faces(*input, bevel_width, segments, angle_threshold);
-    break;
+    case BevelType::Face:
+      result = bevel_faces(*input, bevel_width, segments, angle_threshold);
+      break;
 
-  default:
-    set_error("Invalid bevel mode");
-    return nullptr;
+    default:
+      set_error("Invalid bevel mode");
+      return nullptr;
   }
 
   if (!result) {

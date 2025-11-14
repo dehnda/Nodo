@@ -1,5 +1,6 @@
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/sop/array_sop.hpp"
+
 #include <gtest/gtest.h>
 
 using namespace nodo;

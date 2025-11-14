@@ -7,6 +7,7 @@
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QWidget>
+
 #include <memory>
 #include <unordered_map>
 
@@ -19,14 +20,14 @@ enum class NodeType;
 
 namespace nodo::studio {
 class UndoStack;
-}
+} // namespace nodo::studio
 
 #include <nodo/graph/node_graph.hpp>
 
 // Forward declare NodeCreationMenu
 namespace nodo_studio {
 class NodeCreationMenu;
-}
+} // namespace nodo_studio
 
 /**
  * @brief Visual representation of a node in the graph
@@ -35,14 +36,14 @@ class NodeCreationMenu;
  */
 class NodeGraphicsItem : public QGraphicsItem {
 public:
-  explicit NodeGraphicsItem(int node_id, const QString &node_name,
+  explicit NodeGraphicsItem(int node_id, const QString& node_name,
                             int input_count, int output_count,
                             nodo::graph::NodeType node_type);
 
   // QGraphicsItem interface
   QRectF boundingRect() const override;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
-             QWidget *widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+             QWidget* widget) override;
 
   // Node information
   int get_node_id() const { return node_id_; }
@@ -121,21 +122,21 @@ public:
   }
 
   // Parameters
-  void set_parameters(const std::vector<std::pair<QString, QString>> &params) {
+  void set_parameters(const std::vector<std::pair<QString, QString>>& params) {
     parameters_ = params;
     update();
   }
 
   // Pin hit detection
-  int get_pin_at_position(const QPointF &pos, bool &is_input) const;
+  int get_pin_at_position(const QPointF& pos, bool& is_input) const;
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-  void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
-  void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
 private:
   int node_id_;
@@ -189,10 +190,10 @@ private:
   // Button toolbar rect (outside node, to the right)
   QRectF getButtonToolbarRect() const;
 
-  void drawHeader(QPainter *painter);
-  void drawButtonToolbar(QPainter *painter);
-  void drawBody(QPainter *painter);
-  void drawFooter(QPainter *painter);
+  void drawHeader(QPainter* painter);
+  void drawButtonToolbar(QPainter* painter);
+  void drawBody(QPainter* painter);
+  void drawFooter(QPainter* painter);
 };
 
 /**
@@ -201,14 +202,14 @@ private:
 class ConnectionGraphicsItem : public QGraphicsItem {
 public:
   explicit ConnectionGraphicsItem(int connection_id,
-                                  NodeGraphicsItem *source_node, int source_pin,
-                                  NodeGraphicsItem *target_node,
+                                  NodeGraphicsItem* source_node, int source_pin,
+                                  NodeGraphicsItem* target_node,
                                   int target_pin);
 
   QRectF boundingRect() const override;
   QPainterPath shape() const override; // For better hit testing
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
-             QWidget *widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+             QWidget* widget) override;
 
   int get_connection_id() const { return connection_id_; }
 
@@ -216,14 +217,14 @@ public:
   void update_path();
 
 protected:
-  void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
 private:
   int connection_id_;
-  NodeGraphicsItem *source_node_;
+  NodeGraphicsItem* source_node_;
   int source_pin_;
-  NodeGraphicsItem *target_node_;
+  NodeGraphicsItem* target_node_;
   int target_pin_;
   QPainterPath path_;
   bool is_hovered_ = false;
@@ -238,18 +239,18 @@ class NodeGraphWidget : public QGraphicsView {
   Q_OBJECT
 
 public:
-  explicit NodeGraphWidget(QWidget *parent = nullptr);
+  explicit NodeGraphWidget(QWidget* parent = nullptr);
   ~NodeGraphWidget() override; // Ensure proper teardown of scene/items
 
   // Graph management
-  void set_graph(nodo::graph::NodeGraph *graph);
-  nodo::graph::NodeGraph *get_graph() const { return graph_; }
+  void set_graph(nodo::graph::NodeGraph* graph);
+  nodo::graph::NodeGraph* get_graph() const { return graph_; }
 
   // Undo/Redo management
-  void set_undo_stack(nodo::studio::UndoStack *undo_stack) {
+  void set_undo_stack(nodo::studio::UndoStack* undo_stack) {
     undo_stack_ = undo_stack;
   }
-  nodo::studio::UndoStack *get_undo_stack() const { return undo_stack_; }
+  nodo::studio::UndoStack* get_undo_stack() const { return undo_stack_; }
 
   // Rebuild visual representation from backend graph
   void rebuild_from_graph();
@@ -269,7 +270,7 @@ public:
   void clear_selection();
 
   // Get all node items
-  QVector<NodeGraphicsItem *> get_all_node_items() const;
+  QVector<NodeGraphicsItem*> get_all_node_items() const;
 
   // Public wrappers for undo/redo commands
   void create_node_item_public(int node_id) { create_node_item(node_id); }
@@ -280,7 +281,7 @@ public:
   void remove_connection_item_public(int connection_id) {
     remove_connection_item(connection_id);
   }
-  NodeGraphicsItem *get_node_item_public(int node_id);
+  NodeGraphicsItem* get_node_item_public(int node_id);
 
   // Select a node programmatically (for undo/redo of parameter changes)
   void select_node_public(int node_id);
@@ -325,48 +326,53 @@ signals:
   void property_panel_refresh_needed();
 
 protected:
-  bool event(QEvent *event) override;
-  void wheelEvent(QWheelEvent *event) override;
-  void mousePressEvent(QMouseEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *event) override;
-  void mouseReleaseEvent(QMouseEvent *event) override;
-  void keyPressEvent(QKeyEvent *event) override;
-  void contextMenuEvent(QContextMenuEvent *event) override;
-  void drawBackground(QPainter *painter, const QRectF &rect) override;
+  bool event(QEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
+  void contextMenuEvent(QContextMenuEvent* event) override;
+  void drawBackground(QPainter* painter, const QRectF& rect) override;
 
 private slots:
-  void on_node_moved(NodeGraphicsItem *node);
+  void on_node_moved(NodeGraphicsItem* node);
   void on_scene_selection_changed();
 
 private:
   // Backend graph reference (not owned)
-  nodo::graph::NodeGraph *graph_ = nullptr;
+  nodo::graph::NodeGraph* graph_ = nullptr;
 
   // Undo/Redo stack reference (not owned)
-  nodo::studio::UndoStack *undo_stack_ = nullptr;
+  nodo::studio::UndoStack* undo_stack_ = nullptr;
 
   // Qt graphics scene
-  QGraphicsScene *scene_;
+  QGraphicsScene* scene_;
 
   // Visual items (node_id -> graphics item)
-  std::unordered_map<int, NodeGraphicsItem *> node_items_;
+  std::unordered_map<int, NodeGraphicsItem*> node_items_;
 
   // Connection items (connection_id -> graphics item)
-  std::unordered_map<int, ConnectionGraphicsItem *> connection_items_;
+  std::unordered_map<int, ConnectionGraphicsItem*> connection_items_;
 
   // Node creation menu
-  nodo_studio::NodeCreationMenu *node_creation_menu_ = nullptr;
+  nodo_studio::NodeCreationMenu* node_creation_menu_ = nullptr;
 
   // Interaction state
-  enum class InteractionMode { None, Panning, Selecting, ConnectingPin };
+  enum class InteractionMode {
+    None,
+    Panning,
+    Selecting,
+    ConnectingPin
+  };
 
   InteractionMode mode_ = InteractionMode::None;
   QPoint last_mouse_pos_;
 
   // Connection creation state
-  NodeGraphicsItem *connection_source_node_ = nullptr;
+  NodeGraphicsItem* connection_source_node_ = nullptr;
   int connection_source_pin_ = -1;
-  QGraphicsLineItem *temp_connection_line_ = nullptr;
+  QGraphicsLineItem* temp_connection_line_ = nullptr;
 
   // Pending connection for node creation (when dragging out a connection)
   bool has_pending_connection_ = false;
@@ -376,7 +382,7 @@ private:
 
   // Box selection state
   QPointF selection_start_pos_;
-  QGraphicsRectItem *selection_rect_ = nullptr;
+  QGraphicsRectItem* selection_rect_ = nullptr;
 
   // Selection
   QSet<int> selected_nodes_;
@@ -399,15 +405,15 @@ private:
   void remove_node_item(int node_id);
   void remove_connection_item(int connection_id);
   void update_all_connections();
-  void create_node_at_position(nodo::graph::NodeType type, const QPointF &pos);
+  void create_node_at_position(nodo::graph::NodeType type, const QPointF& pos);
 
   // Node creation menu helpers
-  void on_node_menu_selected(const QString &type_id);
-  nodo::graph::NodeType string_to_node_type(const QString &type_id) const;
+  void on_node_menu_selected(const QString& type_id);
+  nodo::graph::NodeType string_to_node_type(const QString& type_id) const;
 
   // Grid drawing
-  void draw_grid(QPainter *painter, const QRectF &rect);
-  void draw_watermark_logo(QPainter *painter, const QRectF &rect);
+  void draw_grid(QPainter* painter, const QRectF& rect);
+  void draw_watermark_logo(QPainter* painter, const QRectF& rect);
 
   // Destruction guard flag
   bool destroying_ = false;

@@ -8,7 +8,7 @@ namespace nodo::sop {
 constexpr float DEFAULT_SCALE_MULTIPLIER = 0.1F;
 constexpr double UP_VECTOR_Y = 1.0;
 
-CopyToPointsSOP::CopyToPointsSOP(const std::string &node_name)
+CopyToPointsSOP::CopyToPointsSOP(const std::string& node_name)
     : SOPNode(node_name, "CopyToPoints") {
   // Add input ports (use "0" and "1" to match execution engine's numeric
   // indexing)
@@ -81,7 +81,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
       get_parameter<std::string>("scale_attribute", "point_index");
 
   // Get point positions from points input
-  auto *points_P =
+  auto* points_P =
       points_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (points_P == nullptr) {
     set_error("Points input has no position attribute");
@@ -89,11 +89,11 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   }
 
   // Get optional point normals for rotation
-  auto *points_N =
+  auto* points_N =
       points_input->get_point_attribute_typed<core::Vec3f>(attrs::N);
 
   // Get template positions
-  auto *template_P =
+  auto* template_P =
       template_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (template_P == nullptr) {
     set_error("Template input has no position attribute");
@@ -117,7 +117,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
 
   // Add position attribute
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto *result_P = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_P = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   // Copy other point attributes from template if they exist
   if (template_input->has_point_attribute(attrs::N)) {
@@ -127,11 +127,11 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
     result->add_point_attribute(attrs::Cd, core::AttributeType::VEC3F);
   }
 
-  auto *result_N = result->get_point_attribute_typed<core::Vec3f>(attrs::N);
-  auto *result_Cd = result->get_point_attribute_typed<core::Vec3f>(attrs::Cd);
-  auto *template_N =
+  auto* result_N = result->get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* result_Cd = result->get_point_attribute_typed<core::Vec3f>(attrs::Cd);
+  auto* template_N =
       template_input->get_point_attribute_typed<core::Vec3f>(attrs::N);
-  auto *template_Cd =
+  auto* template_Cd =
       template_input->get_point_attribute_typed<core::Vec3f>(attrs::Cd);
 
   // For each point in the points input
@@ -142,7 +142,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
     float instance_scale = uniform_scale;
     if (use_point_scale) {
       // Try to get scale from point attribute
-      auto *pscale_attr =
+      auto* pscale_attr =
           points_input->get_point_attribute_typed<float>(attrs::pscale);
       if (pscale_attr != nullptr) {
         instance_scale *= (*pscale_attr)[point_idx];
@@ -219,7 +219,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
     const int point_offset = static_cast<int>(point_idx * template_point_count);
 
     for (size_t prim_idx = 0; prim_idx < template_prim_count; ++prim_idx) {
-      const auto &template_verts =
+      const auto& template_verts =
           template_input->topology().get_primitive_vertices(prim_idx);
       std::vector<int> new_prim_verts;
       new_prim_verts.reserve(template_verts.size());

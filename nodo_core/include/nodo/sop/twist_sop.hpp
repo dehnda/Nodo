@@ -3,6 +3,7 @@
 #include "../core/geometry_container.hpp"
 #include "../core/math.hpp"
 #include "sop_node.hpp"
+
 #include <cmath>
 
 namespace nodo::sop {
@@ -19,7 +20,7 @@ private:
   static constexpr int NODE_VERSION = 1;
 
 public:
-  explicit TwistSOP(const std::string &name = "twist")
+  explicit TwistSOP(const std::string& name = "twist")
       : SOPNode(name, "Twist") {
     // Create input port
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -86,7 +87,7 @@ protected:
 
     // Get group filtering
     const std::string group_name = get_parameter<std::string>("group", "");
-    core::AttributeStorage<int> *group_attr = nullptr;
+    core::AttributeStorage<int>* group_attr = nullptr;
     const bool use_group = !group_name.empty();
 
     if (use_group && result->has_point_attribute(group_name)) {
@@ -94,7 +95,7 @@ protected:
     }
 
     // Get positions
-    auto *positions = result->get_point_attribute_typed<core::Vec3f>("P");
+    auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
       set_error("TwistSOP requires position attribute 'P'");
       return nullptr;
@@ -113,7 +114,7 @@ protected:
         continue;
       }
 
-      auto &pos = (*positions)[i];
+      auto& pos = (*positions)[i];
 
       // Distance along twist axis from origin
       const float dist = pos[twist_axis] - origin;

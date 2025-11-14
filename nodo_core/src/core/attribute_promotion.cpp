@@ -1,5 +1,7 @@
 #include "nodo/core/attribute_promotion.hpp"
+
 #include "nodo/core/standard_attributes.hpp"
+
 #include <unordered_map>
 
 namespace nodo::core {
@@ -15,10 +17,10 @@ static std::string get_output_name(std::string_view attr_name,
 // Point ↔ Vertex
 // ============================================================================
 
-bool promote_point_to_vertex(GeometryContainer &container,
+bool promote_point_to_vertex(GeometryContainer& container,
                              std::string_view attr_name,
                              std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t vertex_count = topology.vertex_count();
 
   if (vertex_count == 0) {
@@ -26,12 +28,12 @@ bool promote_point_to_vertex(GeometryContainer &container,
   }
 
   // Get source point attribute
-  auto *src_storage = container.get_point_attribute(attr_name);
+  auto* src_storage = container.get_point_attribute(attr_name);
   if (!src_storage) {
     return false;
   }
 
-  const auto &desc = src_storage->descriptor();
+  const auto& desc = src_storage->descriptor();
   const std::string out_name = get_output_name(attr_name, output_name);
 
   // Handle different types
@@ -47,26 +49,26 @@ bool promote_point_to_vertex(GeometryContainer &container,
 }
 
 template <typename T>
-bool promote_point_to_vertex_typed(GeometryContainer &container,
+bool promote_point_to_vertex_typed(GeometryContainer& container,
                                    std::string_view attr_name,
                                    std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t vertex_count = topology.vertex_count();
 
-  auto *src = container.get_point_attribute_typed<T>(attr_name);
+  auto* src = container.get_point_attribute_typed<T>(attr_name);
   if (!src) {
     return false;
   }
 
   const std::string out_name = get_output_name(attr_name, output_name);
-  const auto &desc = src->descriptor();
+  const auto& desc = src->descriptor();
 
   if (!container.add_vertex_attribute(out_name, desc.type(),
                                       desc.interpolation())) {
     return false;
   }
 
-  auto *dst = container.get_vertex_attribute_typed<T>(out_name);
+  auto* dst = container.get_vertex_attribute_typed<T>(out_name);
   if (!dst) {
     return false;
   }
@@ -85,10 +87,10 @@ bool promote_point_to_vertex_typed(GeometryContainer &container,
   return true;
 }
 
-bool demote_vertex_to_point(GeometryContainer &container,
+bool demote_vertex_to_point(GeometryContainer& container,
                             std::string_view attr_name,
                             std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t point_count = topology.point_count();
   const size_t vertex_count = topology.vertex_count();
 
@@ -97,12 +99,12 @@ bool demote_vertex_to_point(GeometryContainer &container,
   }
 
   // Get source vertex attribute
-  auto *src_storage = container.get_vertex_attribute(attr_name);
+  auto* src_storage = container.get_vertex_attribute(attr_name);
   if (!src_storage) {
     return false;
   }
 
-  const auto &desc = src_storage->descriptor();
+  const auto& desc = src_storage->descriptor();
 
   // This operation requires type-specific handling for averaging
   // For now, we'll handle common types: float, Vec3f
@@ -122,15 +124,15 @@ bool demote_vertex_to_point(GeometryContainer &container,
 }
 
 template <typename T>
-bool demote_vertex_to_point_typed(GeometryContainer &container,
+bool demote_vertex_to_point_typed(GeometryContainer& container,
                                   std::string_view attr_name,
                                   std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t point_count = topology.point_count();
   const size_t vertex_count = topology.vertex_count();
 
   // Get typed source
-  auto *src = container.get_vertex_attribute_typed<T>(attr_name);
+  auto* src = container.get_vertex_attribute_typed<T>(attr_name);
   if (!src) {
     return false;
   }
@@ -138,13 +140,13 @@ bool demote_vertex_to_point_typed(GeometryContainer &container,
   const std::string out_name = get_output_name(attr_name, output_name);
 
   // Create point attribute
-  const auto &desc = src->descriptor();
+  const auto& desc = src->descriptor();
   if (!container.add_point_attribute(out_name, desc.type(),
                                      desc.interpolation())) {
     return false;
   }
 
-  auto *dst = container.get_point_attribute_typed<T>(out_name);
+  auto* dst = container.get_point_attribute_typed<T>(out_name);
   if (!dst) {
     return false;
   }
@@ -175,22 +177,22 @@ bool demote_vertex_to_point_typed(GeometryContainer &container,
 // Point ↔ Primitive
 // ============================================================================
 
-bool promote_point_to_primitive(GeometryContainer &container,
+bool promote_point_to_primitive(GeometryContainer& container,
                                 std::string_view attr_name,
                                 std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t prim_count = topology.primitive_count();
 
   if (prim_count == 0) {
     return false;
   }
 
-  auto *src_storage = container.get_point_attribute(attr_name);
+  auto* src_storage = container.get_point_attribute(attr_name);
   if (!src_storage) {
     return false;
   }
 
-  const auto &desc = src_storage->descriptor();
+  const auto& desc = src_storage->descriptor();
 
   // Type-specific handling for averaging
   if (desc.type() == AttributeType::FLOAT) {
@@ -208,26 +210,26 @@ bool promote_point_to_primitive(GeometryContainer &container,
 }
 
 template <typename T>
-bool promote_point_to_primitive_typed(GeometryContainer &container,
+bool promote_point_to_primitive_typed(GeometryContainer& container,
                                       std::string_view attr_name,
                                       std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t prim_count = topology.primitive_count();
 
-  auto *src = container.get_point_attribute_typed<T>(attr_name);
+  auto* src = container.get_point_attribute_typed<T>(attr_name);
   if (!src) {
     return false;
   }
 
   const std::string out_name = get_output_name(attr_name, output_name);
-  const auto &desc = src->descriptor();
+  const auto& desc = src->descriptor();
 
   if (!container.add_primitive_attribute(out_name, desc.type(),
                                          desc.interpolation())) {
     return false;
   }
 
-  auto *dst = container.get_primitive_attribute_typed<T>(out_name);
+  auto* dst = container.get_primitive_attribute_typed<T>(out_name);
   if (!dst) {
     return false;
   }
@@ -237,7 +239,7 @@ bool promote_point_to_primitive_typed(GeometryContainer &container,
 
   // For each primitive, average its points' attribute values
   for (size_t prim_idx = 0; prim_idx < prim_count; ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
     std::vector<T> values;
     values.reserve(vert_indices.size());
 
@@ -256,10 +258,10 @@ bool promote_point_to_primitive_typed(GeometryContainer &container,
   return true;
 }
 
-bool demote_primitive_to_point(GeometryContainer &container,
+bool demote_primitive_to_point(GeometryContainer& container,
                                std::string_view attr_name,
                                std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t point_count = topology.point_count();
   const size_t prim_count = topology.primitive_count();
 
@@ -267,12 +269,12 @@ bool demote_primitive_to_point(GeometryContainer &container,
     return false;
   }
 
-  auto *src_storage = container.get_primitive_attribute(attr_name);
+  auto* src_storage = container.get_primitive_attribute(attr_name);
   if (!src_storage) {
     return false;
   }
 
-  const auto &desc = src_storage->descriptor();
+  const auto& desc = src_storage->descriptor();
 
   if (desc.type() == AttributeType::FLOAT) {
     return demote_primitive_to_point_typed<float>(container, attr_name,
@@ -289,27 +291,27 @@ bool demote_primitive_to_point(GeometryContainer &container,
 }
 
 template <typename T>
-bool demote_primitive_to_point_typed(GeometryContainer &container,
+bool demote_primitive_to_point_typed(GeometryContainer& container,
                                      std::string_view attr_name,
                                      std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t point_count = topology.point_count();
   const size_t prim_count = topology.primitive_count();
 
-  auto *src = container.get_primitive_attribute_typed<T>(attr_name);
+  auto* src = container.get_primitive_attribute_typed<T>(attr_name);
   if (!src) {
     return false;
   }
 
   const std::string out_name = get_output_name(attr_name, output_name);
-  const auto &desc = src->descriptor();
+  const auto& desc = src->descriptor();
 
   if (!container.add_point_attribute(out_name, desc.type(),
                                      desc.interpolation())) {
     return false;
   }
 
-  auto *dst = container.get_point_attribute_typed<T>(out_name);
+  auto* dst = container.get_point_attribute_typed<T>(out_name);
   if (!dst) {
     return false;
   }
@@ -320,7 +322,7 @@ bool demote_primitive_to_point_typed(GeometryContainer &container,
   auto src_span = src->values();
 
   for (size_t prim_idx = 0; prim_idx < prim_count; ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
 
     for (int v_idx : vert_indices) {
       int p_idx = topology.get_vertex_point(v_idx);
@@ -345,22 +347,22 @@ bool demote_primitive_to_point_typed(GeometryContainer &container,
 // Vertex ↔ Primitive
 // ============================================================================
 
-bool promote_vertex_to_primitive(GeometryContainer &container,
+bool promote_vertex_to_primitive(GeometryContainer& container,
                                  std::string_view attr_name,
                                  std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t prim_count = topology.primitive_count();
 
   if (prim_count == 0) {
     return false;
   }
 
-  auto *src_storage = container.get_vertex_attribute(attr_name);
+  auto* src_storage = container.get_vertex_attribute(attr_name);
   if (!src_storage) {
     return false;
   }
 
-  const auto &desc = src_storage->descriptor();
+  const auto& desc = src_storage->descriptor();
 
   if (desc.type() == AttributeType::FLOAT) {
     return promote_vertex_to_primitive_typed<float>(container, attr_name,
@@ -377,26 +379,26 @@ bool promote_vertex_to_primitive(GeometryContainer &container,
 }
 
 template <typename T>
-bool promote_vertex_to_primitive_typed(GeometryContainer &container,
+bool promote_vertex_to_primitive_typed(GeometryContainer& container,
                                        std::string_view attr_name,
                                        std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t prim_count = topology.primitive_count();
 
-  auto *src = container.get_vertex_attribute_typed<T>(attr_name);
+  auto* src = container.get_vertex_attribute_typed<T>(attr_name);
   if (!src) {
     return false;
   }
 
   const std::string out_name = get_output_name(attr_name, output_name);
-  const auto &desc = src->descriptor();
+  const auto& desc = src->descriptor();
 
   if (!container.add_primitive_attribute(out_name, desc.type(),
                                          desc.interpolation())) {
     return false;
   }
 
-  auto *dst = container.get_primitive_attribute_typed<T>(out_name);
+  auto* dst = container.get_primitive_attribute_typed<T>(out_name);
   if (!dst) {
     return false;
   }
@@ -406,7 +408,7 @@ bool promote_vertex_to_primitive_typed(GeometryContainer &container,
 
   // Average vertex values for each primitive
   for (size_t prim_idx = 0; prim_idx < prim_count; ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
     std::vector<T> values;
     values.reserve(vert_indices.size());
 
@@ -424,10 +426,10 @@ bool promote_vertex_to_primitive_typed(GeometryContainer &container,
   return true;
 }
 
-bool demote_primitive_to_vertex(GeometryContainer &container,
+bool demote_primitive_to_vertex(GeometryContainer& container,
                                 std::string_view attr_name,
                                 std::string_view output_name) {
-  const auto &topology = container.topology();
+  const auto& topology = container.topology();
   const size_t vertex_count = topology.vertex_count();
   const size_t prim_count = topology.primitive_count();
 
@@ -435,12 +437,12 @@ bool demote_primitive_to_vertex(GeometryContainer &container,
     return false;
   }
 
-  auto *src_storage = container.get_primitive_attribute(attr_name);
+  auto* src_storage = container.get_primitive_attribute(attr_name);
   if (!src_storage) {
     return false;
   }
 
-  const auto &desc = src_storage->descriptor();
+  const auto& desc = src_storage->descriptor();
   const std::string out_name = get_output_name(attr_name, output_name);
 
   // Create vertex attribute
@@ -449,7 +451,7 @@ bool demote_primitive_to_vertex(GeometryContainer &container,
     return false;
   }
 
-  auto *dst_storage = container.get_vertex_attribute(out_name);
+  auto* dst_storage = container.get_vertex_attribute(out_name);
   if (!dst_storage) {
     return false;
   }
@@ -459,7 +461,7 @@ bool demote_primitive_to_vertex(GeometryContainer &container,
   std::vector<int> vertex_to_prim(vertex_count, -1);
 
   for (size_t prim_idx = 0; prim_idx < prim_count; ++prim_idx) {
-    const auto &vert_indices = topology.get_primitive_vertices(prim_idx);
+    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
     for (int v_idx : vert_indices) {
       if (v_idx >= 0 && v_idx < static_cast<int>(vertex_count)) {
         vertex_to_prim[v_idx] = static_cast<int>(prim_idx);
@@ -479,53 +481,53 @@ bool demote_primitive_to_vertex(GeometryContainer &container,
 }
 
 // Forward declarations for template instantiation
-template bool promote_point_to_vertex_typed<float>(GeometryContainer &,
+template bool promote_point_to_vertex_typed<float>(GeometryContainer&,
                                                    std::string_view,
                                                    std::string_view);
-template bool promote_point_to_vertex_typed<int>(GeometryContainer &,
+template bool promote_point_to_vertex_typed<int>(GeometryContainer&,
                                                  std::string_view,
                                                  std::string_view);
-template bool promote_point_to_vertex_typed<Vec3f>(GeometryContainer &,
+template bool promote_point_to_vertex_typed<Vec3f>(GeometryContainer&,
                                                    std::string_view,
                                                    std::string_view);
 
-template bool demote_vertex_to_point_typed<float>(GeometryContainer &,
+template bool demote_vertex_to_point_typed<float>(GeometryContainer&,
                                                   std::string_view,
                                                   std::string_view);
-template bool demote_vertex_to_point_typed<int>(GeometryContainer &,
+template bool demote_vertex_to_point_typed<int>(GeometryContainer&,
                                                 std::string_view,
                                                 std::string_view);
-template bool demote_vertex_to_point_typed<Vec3f>(GeometryContainer &,
+template bool demote_vertex_to_point_typed<Vec3f>(GeometryContainer&,
                                                   std::string_view,
                                                   std::string_view);
 
-template bool promote_point_to_primitive_typed<float>(GeometryContainer &,
+template bool promote_point_to_primitive_typed<float>(GeometryContainer&,
                                                       std::string_view,
                                                       std::string_view);
-template bool promote_point_to_primitive_typed<int>(GeometryContainer &,
+template bool promote_point_to_primitive_typed<int>(GeometryContainer&,
                                                     std::string_view,
                                                     std::string_view);
-template bool promote_point_to_primitive_typed<Vec3f>(GeometryContainer &,
+template bool promote_point_to_primitive_typed<Vec3f>(GeometryContainer&,
                                                       std::string_view,
                                                       std::string_view);
 
-template bool demote_primitive_to_point_typed<float>(GeometryContainer &,
+template bool demote_primitive_to_point_typed<float>(GeometryContainer&,
                                                      std::string_view,
                                                      std::string_view);
-template bool demote_primitive_to_point_typed<int>(GeometryContainer &,
+template bool demote_primitive_to_point_typed<int>(GeometryContainer&,
                                                    std::string_view,
                                                    std::string_view);
-template bool demote_primitive_to_point_typed<Vec3f>(GeometryContainer &,
+template bool demote_primitive_to_point_typed<Vec3f>(GeometryContainer&,
                                                      std::string_view,
                                                      std::string_view);
 
-template bool promote_vertex_to_primitive_typed<float>(GeometryContainer &,
+template bool promote_vertex_to_primitive_typed<float>(GeometryContainer&,
                                                        std::string_view,
                                                        std::string_view);
-template bool promote_vertex_to_primitive_typed<int>(GeometryContainer &,
+template bool promote_vertex_to_primitive_typed<int>(GeometryContainer&,
                                                      std::string_view,
                                                      std::string_view);
-template bool promote_vertex_to_primitive_typed<Vec3f>(GeometryContainer &,
+template bool promote_vertex_to_primitive_typed<Vec3f>(GeometryContainer&,
                                                        std::string_view,
                                                        std::string_view);
 

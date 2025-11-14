@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+
 #include "../include/StudioHostInterface.h"
 #include "Command.h"
 #include "GeometrySpreadsheet.h"
@@ -13,14 +14,6 @@
 #include "UndoStack.h"
 #include "ViewportToolbar.h"
 #include "ViewportWidget.h"
-
-#include <nodo/core/geometry_container.hpp>
-#include <nodo/graph/execution_engine.hpp>
-#include <nodo/graph/graph_serializer.hpp>
-#include <nodo/graph/node_graph.hpp>
-#include <nodo/io/obj_exporter.hpp>
-#include <nodo/sop/sop_factory.hpp>
-#include <nodo/sop/sop_node.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -46,9 +39,16 @@
 #include <QWidget>
 #include <QtConcurrent/QtConcurrent>
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
+#include <nodo/core/geometry_container.hpp>
+#include <nodo/graph/execution_engine.hpp>
+#include <nodo/graph/graph_serializer.hpp>
+#include <nodo/graph/node_graph.hpp>
+#include <nodo/io/obj_exporter.hpp>
+#include <nodo/sop/sop_factory.hpp>
+#include <nodo/sop/sop_node.hpp>
 
+MainWindow::MainWindow(QWidget* parent)
+    : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
   execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
@@ -130,7 +130,7 @@ auto MainWindow::setupMenuBar() -> void {
 auto MainWindow::setupRecentFilesMenu() -> void {
   // Initialize recent file actions and add them to the menu
   for (int i = 0; i < MaxRecentFiles; ++i) {
-    QAction *action = new QAction(this);
+    QAction* action = new QAction(this);
     action->setVisible(false);
     connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
     recent_file_actions_.append(action);
@@ -139,15 +139,15 @@ auto MainWindow::setupRecentFilesMenu() -> void {
   updateRecentFileActions();
 }
 
-QWidget *MainWindow::createCustomTitleBar(const QString &title,
-                                          QWidget *parent) {
+QWidget* MainWindow::createCustomTitleBar(const QString& title,
+                                          QWidget* parent) {
   // Create a custom title bar that matches PropertyPanel's title style
-  auto *title_widget = new QWidget(parent);
-  auto *title_layout = new QVBoxLayout(title_widget);
+  auto* title_widget = new QWidget(parent);
+  auto* title_layout = new QVBoxLayout(title_widget);
   title_layout->setContentsMargins(0, 0, 0, 0);
   title_layout->setSpacing(0);
 
-  auto *title_label = new QLabel(title, title_widget);
+  auto* title_label = new QLabel(title, title_widget);
   title_label->setStyleSheet("QLabel {"
                              "   background: #1a1a1f;"
                              "   color: #808088;"
@@ -171,8 +171,8 @@ auto MainWindow::setupDockWidgets() -> void {
 
   // Create container widget for toolbar + viewport (no custom title for
   // viewport)
-  QWidget *viewport_container = new QWidget(this);
-  QVBoxLayout *viewport_layout = new QVBoxLayout(viewport_container);
+  QWidget* viewport_container = new QWidget(this);
+  QVBoxLayout* viewport_layout = new QVBoxLayout(viewport_container);
   viewport_layout->setContentsMargins(0, 0, 0, 0);
   viewport_layout->setSpacing(0);
 
@@ -205,7 +205,7 @@ auto MainWindow::setupDockWidgets() -> void {
   connect(viewport_toolbar_, &ViewportToolbar::wireframeToggled,
           viewport_widget_, &ViewportWidget::setWireframeMode);
   connect(viewport_toolbar_, &ViewportToolbar::shadingModeChanged,
-          viewport_widget_, [this](const QString &mode) {
+          viewport_widget_, [this](const QString& mode) {
             viewport_widget_->setShadingEnabled(mode == "smooth");
           });
   connect(viewport_toolbar_, &ViewportToolbar::pointNumbersToggled,
@@ -245,8 +245,8 @@ auto MainWindow::setupDockWidgets() -> void {
       new QWidget()); // Hide default title bar
 
   // Create container with custom title bar
-  QWidget *spreadsheet_container = new QWidget(this);
-  QVBoxLayout *spreadsheet_layout = new QVBoxLayout(spreadsheet_container);
+  QWidget* spreadsheet_container = new QWidget(this);
+  QVBoxLayout* spreadsheet_layout = new QVBoxLayout(spreadsheet_container);
   spreadsheet_layout->setContentsMargins(0, 0, 0, 0);
   spreadsheet_layout->setSpacing(0);
 
@@ -267,8 +267,8 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_dock_->setTitleBarWidget(new QWidget()); // Hide default title bar
 
   // Create container with custom title bar
-  QWidget *node_graph_container = new QWidget(this);
-  QVBoxLayout *node_graph_layout = new QVBoxLayout(node_graph_container);
+  QWidget* node_graph_container = new QWidget(this);
+  QVBoxLayout* node_graph_layout = new QVBoxLayout(node_graph_container);
   node_graph_layout->setContentsMargins(0, 0, 0, 0);
   node_graph_layout->setSpacing(0);
 
@@ -286,8 +286,8 @@ auto MainWindow::setupDockWidgets() -> void {
 
   // Add edit actions to node graph widget so shortcuts work when it has focus
   // Find the actions from the menu
-  for (QAction *action : menuBar()->actions()) {
-    QMenu *menu = action->menu();
+  for (QAction* action : menuBar()->actions()) {
+    QMenu* menu = action->menu();
     if (menu && (menu->title() == "&Edit" || menu->title() == "&Graph" ||
                  menu->title() == "&View")) {
       // Add all actions from Edit, Graph, and View menus to the node graph
@@ -391,7 +391,7 @@ auto MainWindow::setupDockWidgets() -> void {
           &MainWindow::onGraphParameterValueChanged);
 
   // Add panel visibility toggles to View → Panels submenu
-  QMenu *panelsMenu = menuBar()->findChild<QMenu *>("panelsMenu");
+  QMenu* panelsMenu = menuBar()->findChild<QMenu*>("panelsMenu");
   if (panelsMenu) {
     // Add toggle actions for each dock widget
     panelsMenu->addAction(viewport_dock_->toggleViewAction());
@@ -402,7 +402,7 @@ auto MainWindow::setupDockWidgets() -> void {
   }
 }
 
-void MainWindow::showEvent(QShowEvent *event) {
+void MainWindow::showEvent(QShowEvent* event) {
   QMainWindow::showEvent(event);
 
   // Force viewport to be the active tab on first show
@@ -431,7 +431,7 @@ void MainWindow::onParameterChanged() {
     if (node_graph_widget_) {
       // Get all nodes and find the one with display flag
       auto node_items = node_graph_widget_->get_all_node_items();
-      for (auto *item : node_items) {
+      for (auto* item : node_items) {
         if (item && item->has_display_flag()) {
           // Execute and display the node that has the display flag
           executeAndDisplayNode(item->get_node_id());
@@ -453,7 +453,7 @@ void MainWindow::onGraphParameterValueChanged() {
   // Find which node has the display flag set and update viewport
   if (node_graph_widget_) {
     auto node_items = node_graph_widget_->get_all_node_items();
-    for (auto *item : node_items) {
+    for (auto* item : node_items) {
       if (item && item->has_display_flag()) {
         // Execute and display the node that has the display flag
         executeAndDisplayNode(item->get_node_id());
@@ -470,7 +470,7 @@ void MainWindow::onParameterChangedLive() {
   // Find which node has the display flag set and update viewport
   if (node_graph_widget_) {
     auto node_items = node_graph_widget_->get_all_node_items();
-    for (auto *item : node_items) {
+    for (auto* item : node_items) {
       if (item && item->has_display_flag()) {
         // Execute and display without invalidating cache
         executeAndDisplayNode(item->get_node_id());
@@ -562,7 +562,7 @@ void MainWindow::onOpenScene() {
   if (node_graph_) {
     // Collect nodes that need wireframe overlays restored
     pending_wireframe_node_ids_.clear();
-    for (const auto &node : node_graph_->get_nodes()) {
+    for (const auto& node : node_graph_->get_nodes()) {
       if (node->has_render_flag()) {
         pending_wireframe_node_ids_.append(node->get_id());
       }
@@ -570,7 +570,7 @@ void MainWindow::onOpenScene() {
 
     // Execute display node - wireframe overlays will be restored after
     // execution completes
-    for (const auto &node : node_graph_->get_nodes()) {
+    for (const auto& node : node_graph_->get_nodes()) {
       if (node->has_display_flag()) {
         executeAndDisplayNode(node->get_id());
         break;
@@ -623,7 +623,7 @@ void MainWindow::onRevertToSaved() {
   if (node_graph_) {
     // Collect nodes that need wireframe overlays restored
     pending_wireframe_node_ids_.clear();
-    for (const auto &node : node_graph_->get_nodes()) {
+    for (const auto& node : node_graph_->get_nodes()) {
       if (node->has_render_flag()) {
         pending_wireframe_node_ids_.append(node->get_id());
       }
@@ -631,7 +631,7 @@ void MainWindow::onRevertToSaved() {
 
     // Execute display node - wireframe overlays will be restored after
     // execution completes
-    for (const auto &node : node_graph_->get_nodes()) {
+    for (const auto& node : node_graph_->get_nodes()) {
       if (node->has_display_flag()) {
         executeAndDisplayNode(node->get_id());
         break;
@@ -640,15 +640,25 @@ void MainWindow::onRevertToSaved() {
   }
 }
 
-void MainWindow::onImportGeometry() { scene_file_manager_->importGeometry(); }
+void MainWindow::onImportGeometry() {
+  scene_file_manager_->importGeometry();
+}
 
-void MainWindow::onImportGraph() { scene_file_manager_->importGraph(); }
+void MainWindow::onImportGraph() {
+  scene_file_manager_->importGraph();
+}
 
-void MainWindow::onExportGeometry() { scene_file_manager_->exportGeometry(); }
+void MainWindow::onExportGeometry() {
+  scene_file_manager_->exportGeometry();
+}
 
-void MainWindow::onExportGraph() { scene_file_manager_->exportGraph(); }
+void MainWindow::onExportGraph() {
+  scene_file_manager_->exportGraph();
+}
 
-void MainWindow::onExportSelection() { scene_file_manager_->exportSelection(); }
+void MainWindow::onExportSelection() {
+  scene_file_manager_->exportSelection();
+}
 
 void MainWindow::onExportMesh() {
   using nodo::io::ObjExporter;
@@ -762,13 +772,13 @@ void MainWindow::onCreateTestGraph() {
   int cylinder_id = node_graph_->add_node(NodeType::Cylinder, "Test Cylinder");
 
   // Set positions for nice layout
-  if (auto *sphere_node = node_graph_->get_node(sphere_id)) {
+  if (auto* sphere_node = node_graph_->get_node(sphere_id)) {
     sphere_node->set_position(50.0F, 100.0F);
   }
-  if (auto *box_node = node_graph_->get_node(box_id)) {
+  if (auto* box_node = node_graph_->get_node(box_id)) {
     box_node->set_position(250.0F, 100.0F);
   }
-  if (auto *cylinder_node = node_graph_->get_node(cylinder_id)) {
+  if (auto* cylinder_node = node_graph_->get_node(cylinder_id)) {
     cylinder_node->set_position(450.0F, 100.0F);
   }
 
@@ -813,7 +823,7 @@ void MainWindow::onConnectionsDeleted(QVector<int> /*connection_ids*/) {
     int display_node = node_graph_->get_display_node();
     if (display_node != -1) {
       // Mark the display node as needing update
-      auto *node = node_graph_->get_node(display_node);
+      auto* node = node_graph_->get_node(display_node);
       if (node != nullptr) {
         node->mark_for_update();
       }
@@ -892,7 +902,7 @@ void MainWindow::onNodeSelectionChanged() {
 
     // Update property panel to show selected node's parameters
     if (node_graph_ != nullptr) {
-      auto *node = node_graph_->get_node(selected_id);
+      auto* node = node_graph_->get_node(selected_id);
       if (node != nullptr) {
         property_panel_->setGraphNode(node, node_graph_.get());
 
@@ -976,7 +986,7 @@ void MainWindow::onNodePassThroughFlagChanged(int node_id,
   }
 
   // Mark this node as needing update
-  auto *node = node_graph_->get_node(node_id);
+  auto* node = node_graph_->get_node(node_id);
   if (node != nullptr) {
     node->mark_for_update();
   }
@@ -1064,7 +1074,7 @@ void MainWindow::onExecutionFinished() {
       int memory_kb = memory_bytes / 1024;
 
       // Get node and cook time
-      auto *node = node_graph_->get_node(node_id);
+      auto* node = node_graph_->get_node(node_id);
       double cook_time_ms = (node != nullptr) ? node->get_cook_time() : 0.0;
 
       // Update node stats and parameters in graph widget
@@ -1182,7 +1192,7 @@ void MainWindow::onSelectAll() {
 
   // Select all node items in the graph
   auto all_nodes = node_graph_widget_->get_all_node_items();
-  for (auto *node_item : all_nodes) {
+  for (auto* node_item : all_nodes) {
     node_item->setSelected(true);
   }
 
@@ -1208,7 +1218,7 @@ void MainWindow::onInvertSelection() {
   auto all_nodes = node_graph_widget_->get_all_node_items();
 
   // Invert selection state for each node
-  for (auto *node_item : all_nodes) {
+  for (auto* node_item : all_nodes) {
     node_item->setSelected(!node_item->isSelected());
   }
 
@@ -1259,7 +1269,7 @@ void MainWindow::onCopy() {
   std::unordered_map<int, int> old_to_new_id_map;
 
   for (int old_node_id : selected_nodes) {
-    auto *node = node_graph_->get_node(old_node_id);
+    auto* node = node_graph_->get_node(old_node_id);
     if (node == nullptr)
       continue;
 
@@ -1269,23 +1279,22 @@ void MainWindow::onCopy() {
 
     // Copy node position
     auto [pos_x, pos_y] = node->get_position();
-    auto *new_node = clipboard_graph.get_node(new_node_id);
+    auto* new_node = clipboard_graph.get_node(new_node_id);
     if (new_node) {
       new_node->set_position(pos_x, pos_y);
 
       // Copy all parameters
-      for (const auto &param : node->get_parameters()) {
+      for (const auto& param : node->get_parameters()) {
         new_node->set_parameter(param.name, param);
       }
     }
   }
 
   // Copy connections between selected nodes
-  for (const auto &conn : node_graph_->get_connections()) {
+  for (const auto& conn : node_graph_->get_connections()) {
     // Only copy connections where both ends are in selected nodes
     if (old_to_new_id_map.contains(conn.source_node_id) &&
         old_to_new_id_map.contains(conn.target_node_id)) {
-
       int new_source_id = old_to_new_id_map[conn.source_node_id];
       int new_target_id = old_to_new_id_map[conn.target_node_id];
 
@@ -1298,7 +1307,7 @@ void MainWindow::onCopy() {
   std::string json_data =
       nodo::graph::GraphSerializer::serialize_to_json(clipboard_graph);
 
-  QClipboard *clipboard = QApplication::clipboard();
+  QClipboard* clipboard = QApplication::clipboard();
   clipboard->setText(QString::fromStdString(json_data));
 
   statusBar()->showMessage(
@@ -1310,7 +1319,7 @@ void MainWindow::onPaste() {
     return;
   }
 
-  QClipboard *clipboard = QApplication::clipboard();
+  QClipboard* clipboard = QApplication::clipboard();
   QString clipboard_text = clipboard->text();
 
   if (clipboard_text.isEmpty()) {
@@ -1339,7 +1348,7 @@ void MainWindow::onPaste() {
   undo_stack_->push(std::move(cmd));
 
   // Count nodes in pasted graph
-  const auto &clipboard_graph = clipboard_graph_opt.value();
+  const auto& clipboard_graph = clipboard_graph_opt.value();
   int node_count = clipboard_graph.get_nodes().size();
 
   statusBar()->showMessage(QString("Pasted %1 nodes").arg(node_count), 2000);
@@ -1359,7 +1368,7 @@ void MainWindow::onDuplicate() {
 
   // Duplicate is like copy+paste but with smaller offset
   // Store clipboard, do our operation, restore clipboard
-  QClipboard *clipboard = QApplication::clipboard();
+  QClipboard* clipboard = QApplication::clipboard();
   QString old_clipboard = clipboard->text();
 
   // Copy selected nodes
@@ -1438,7 +1447,7 @@ void MainWindow::onFrameSelected() {
 
   for (int node_id : selected_nodes) {
     // Find the node item with this ID
-    for (auto *item : node_items) {
+    for (auto* item : node_items) {
       if (item->get_node_id() == node_id) {
         QRectF node_bounds = item->sceneBoundingRect();
         if (bounds.isNull()) {
@@ -1498,7 +1507,7 @@ void MainWindow::onDisconnectSelected() {
   // Collect all connections to/from selected nodes
   QVector<int> connections_to_delete;
 
-  for (const auto &conn : node_graph_->get_connections()) {
+  for (const auto& conn : node_graph_->get_connections()) {
     int source_node = conn.source_node_id;
     int target_node = conn.target_node_id;
 
@@ -1537,7 +1546,7 @@ void MainWindow::onDisconnectSelected() {
 // ============================================================================
 
 void MainWindow::onShowKeyboardShortcuts() {
-  auto *dialog = new KeyboardShortcutsDialog(this);
+  auto* dialog = new KeyboardShortcutsDialog(this);
   dialog->show();
 }
 
@@ -1546,7 +1555,7 @@ void MainWindow::onShowKeyboardShortcuts() {
 // ============================================================================
 
 void MainWindow::onProgressReported(int current, int total,
-                                    const QString &message) {
+                                    const QString& message) {
   if (status_bar_widget_) {
     // Update status bar with progress
     QString progress_text =
@@ -1559,7 +1568,7 @@ void MainWindow::onProgressReported(int current, int total,
   }
 }
 
-void MainWindow::onLogMessage(const QString &level, const QString &message) {
+void MainWindow::onLogMessage(const QString& level, const QString& message) {
   // Log to console (could also show in a log panel)
   if (level == "error") {
     qWarning() << "Error:" << message;
@@ -1595,12 +1604,12 @@ QStringList MainWindow::getRecentFiles() const {
   return settings.value("recentFiles").toStringList();
 }
 
-void MainWindow::setRecentFiles(const QStringList &files) {
+void MainWindow::setRecentFiles(const QStringList& files) {
   QSettings settings("Nodo", "NodoStudio");
   settings.setValue("recentFiles", files);
 }
 
-void MainWindow::addToRecentFiles(const QString &filename) {
+void MainWindow::addToRecentFiles(const QString& filename) {
   QStringList files = getRecentFiles();
   files.removeAll(filename); // Remove if already exists
   files.prepend(filename);   // Add to front
@@ -1638,7 +1647,7 @@ void MainWindow::updateRecentFileActions() {
 }
 
 void MainWindow::openRecentFile() {
-  QAction *action = qobject_cast<QAction *>(sender());
+  QAction* action = qobject_cast<QAction*>(sender());
   if (action) {
     QString filename = action->data().toString();
 
@@ -1699,7 +1708,7 @@ void MainWindow::openRecentFile() {
 
       // Collect nodes that need wireframe overlays restored
       pending_wireframe_node_ids_.clear();
-      for (const auto &node : node_graph_->get_nodes()) {
+      for (const auto& node : node_graph_->get_nodes()) {
         if (node->has_render_flag()) {
           pending_wireframe_node_ids_.append(node->get_id());
         }
@@ -1707,7 +1716,7 @@ void MainWindow::openRecentFile() {
 
       // Find and execute the node with the display flag
       // Wireframe overlays will be restored after execution completes
-      for (const auto &node : node_graph_->get_nodes()) {
+      for (const auto& node : node_graph_->get_nodes()) {
         if (node->has_display_flag()) {
           executeAndDisplayNode(node->get_id());
           break;

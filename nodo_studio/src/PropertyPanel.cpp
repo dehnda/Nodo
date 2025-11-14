@@ -1,9 +1,11 @@
 #include "PropertyPanel.h"
+
 #include "Command.h"
 #include "IconManager.h"
 #include "NodeGraphWidget.h"
 #include "ParameterWidgetFactory.h"
 #include "UndoStack.h"
+
 #include <nodo/core/attribute_group.hpp>
 #include <nodo/graph/execution_engine.hpp>
 #include <nodo/graph/node_graph.hpp>
@@ -35,10 +37,10 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QTimer>
+
 #include <iostream>
 
-PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
-
+PropertyPanel::PropertyPanel(QWidget* parent) : QWidget(parent) {
   // Initialize throttle timer for slider updates
   slider_update_timer_ = new QTimer(this);
   slider_update_timer_->setSingleShot(true);
@@ -51,7 +53,7 @@ PropertyPanel::PropertyPanel(QWidget *parent) : QWidget(parent) {
   });
 
   // Create main layout
-  auto *main_layout = new QVBoxLayout(this);
+  auto* main_layout = new QVBoxLayout(this);
   main_layout->setContentsMargins(0, 0, 0, 0);
   main_layout->setSpacing(0);
 
@@ -123,12 +125,12 @@ void PropertyPanel::clearProperties() {
   title_label_->setText("Properties");
 
   // Add empty state message with icon
-  auto *empty_container = new QWidget(content_widget_);
-  auto *empty_layout = new QVBoxLayout(empty_container);
+  auto* empty_container = new QWidget(content_widget_);
+  auto* empty_layout = new QVBoxLayout(empty_container);
   empty_layout->setAlignment(Qt::AlignCenter);
   empty_layout->setSpacing(12);
 
-  auto *empty_icon = new QLabel(empty_container);
+  auto* empty_icon = new QLabel(empty_container);
   empty_icon->setPixmap(nodo_studio::Icons::getPixmap(
       nodo_studio::IconManager::Icon::Settings, 48, QColor(128, 128, 136)));
   empty_icon->setAlignment(Qt::AlignCenter);
@@ -136,7 +138,7 @@ void PropertyPanel::clearProperties() {
                             "  padding: 20px; "
                             "}");
 
-  auto *empty_label = new QLabel("No node selected", empty_container);
+  auto* empty_label = new QLabel("No node selected", empty_container);
   empty_label->setAlignment(Qt::AlignCenter);
   empty_label->setStyleSheet("QLabel { "
                              "  color: #606068; "
@@ -144,7 +146,7 @@ void PropertyPanel::clearProperties() {
                              "  font-weight: 500; "
                              "}");
 
-  auto *empty_hint =
+  auto* empty_hint =
       new QLabel("Select a node to edit its properties", empty_container);
   empty_hint->setAlignment(Qt::AlignCenter);
   empty_hint->setStyleSheet("QLabel { "
@@ -162,7 +164,7 @@ void PropertyPanel::clearProperties() {
 void PropertyPanel::clearLayout() {
   // Remove all widgets from layout
   while (content_layout_->count() > 1) { // Keep the stretch
-    QLayoutItem *item = content_layout_->takeAt(0);
+    QLayoutItem* item = content_layout_->takeAt(0);
     if (item->widget() != nullptr) {
       item->widget()->deleteLater();
     }
@@ -171,7 +173,7 @@ void PropertyPanel::clearLayout() {
 }
 
 void PropertyPanel::addSeparator() {
-  auto *line = new QFrame(content_widget_);
+  auto* line = new QFrame(content_widget_);
   line->setFrameShape(QFrame::HLine);
   line->setFrameShadow(QFrame::Plain);
   line->setFixedHeight(1);
@@ -183,8 +185,8 @@ void PropertyPanel::addSeparator() {
   content_layout_->insertWidget(content_layout_->count() - 1, line);
 }
 
-void PropertyPanel::addHeader(const QString &text) {
-  auto *header = new QLabel(text, content_widget_);
+void PropertyPanel::addHeader(const QString& text) {
+  auto* header = new QLabel(text, content_widget_);
   header->setStyleSheet("QLabel {"
                         "   color: #a0a0a8;"
                         "   font-weight: 600;"
@@ -197,15 +199,15 @@ void PropertyPanel::addHeader(const QString &text) {
   content_layout_->insertWidget(content_layout_->count() - 1, header);
 }
 
-void PropertyPanel::addStyledHeader(const QString &text,
-                                    const QString &backgroundColor) {
+void PropertyPanel::addStyledHeader(const QString& text,
+                                    const QString& backgroundColor) {
   // Create container for styled header
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QHBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QHBoxLayout(container);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
 
-  auto *header = new QLabel(text, container);
+  auto* header = new QLabel(text, container);
   header->setStyleSheet(QString("QLabel {"
                                 "   color: #c0c0c8;"
                                 "   font-weight: 600;"
@@ -224,17 +226,17 @@ void PropertyPanel::addStyledHeader(const QString &text,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::addIntParameter(const QString &label, int value, int min,
+void PropertyPanel::addIntParameter(const QString& label, int value, int min,
                                     int max,
                                     std::function<void(int)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *param_label = new QLabel(label, container);
+  auto* param_label = new QLabel(label, container);
   param_label->setStyleSheet("QLabel { "
                              "  color: #e0e0e0; "
                              "  font-size: 11px; "
@@ -244,13 +246,13 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
   layout->addWidget(param_label);
 
   // Spinbox and slider container
-  auto *control_container = new QWidget(container);
-  auto *control_layout = new QHBoxLayout(control_container);
+  auto* control_container = new QWidget(container);
+  auto* control_layout = new QHBoxLayout(control_container);
   control_layout->setContentsMargins(0, 0, 0, 0);
   control_layout->setSpacing(8);
 
   // Spinbox for precise input
-  auto *spinbox = new QSpinBox(control_container);
+  auto* spinbox = new QSpinBox(control_container);
   spinbox->setRange(min, max);
   spinbox->setValue(value);
   spinbox->setMinimumWidth(70);
@@ -275,7 +277,7 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
                          "}");
 
   // Slider for visual adjustment
-  auto *slider = new QSlider(Qt::Horizontal, control_container);
+  auto* slider = new QSlider(Qt::Horizontal, control_container);
   slider->setRange(min, max);
   slider->setValue(value);
   slider->setStyleSheet("QSlider::groove:horizontal {"
@@ -337,17 +339,17 @@ void PropertyPanel::addIntParameter(const QString &label, int value, int min,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::addDoubleParameter(const QString &label, double value,
+void PropertyPanel::addDoubleParameter(const QString& label, double value,
                                        double min, double max,
                                        std::function<void(double)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *param_label = new QLabel(label, container);
+  auto* param_label = new QLabel(label, container);
   param_label->setStyleSheet("QLabel { "
                              "  color: #e0e0e0; "
                              "  font-size: 11px; "
@@ -357,13 +359,13 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
   layout->addWidget(param_label);
 
   // Spinbox and slider container
-  auto *control_container = new QWidget(container);
-  auto *control_layout = new QHBoxLayout(control_container);
+  auto* control_container = new QWidget(container);
+  auto* control_layout = new QHBoxLayout(control_container);
   control_layout->setContentsMargins(0, 0, 0, 0);
   control_layout->setSpacing(8);
 
   // Double spinbox for precise input
-  auto *spinbox = new QDoubleSpinBox(control_container);
+  auto* spinbox = new QDoubleSpinBox(control_container);
   spinbox->setRange(min, max);
   spinbox->setValue(value);
   spinbox->setDecimals(3);
@@ -391,7 +393,7 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
       "}");
 
   // Slider for visual adjustment (map double range to int slider 0-1000)
-  auto *slider = new QSlider(Qt::Horizontal, control_container);
+  auto* slider = new QSlider(Qt::Horizontal, control_container);
   slider->setRange(0, 1000);
   double normalized = (value - min) / (max - min);
   slider->setValue(static_cast<int>(normalized * 1000));
@@ -466,16 +468,16 @@ void PropertyPanel::addDoubleParameter(const QString &label, double value,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::addBoolParameter(const QString &label, bool value,
+void PropertyPanel::addBoolParameter(const QString& label, bool value,
                                      std::function<void(bool)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QHBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QHBoxLayout(container);
   layout->setContentsMargins(0, 6, 0, 6);
   layout->setSpacing(8);
 
   // Checkbox
-  auto *checkbox = new QCheckBox(label, container);
+  auto* checkbox = new QCheckBox(label, container);
   checkbox->setChecked(value);
   checkbox->setStyleSheet(
       "QCheckBox {"
@@ -517,16 +519,16 @@ void PropertyPanel::addBoolParameter(const QString &label, bool value,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::addButtonParameter(const QString &label,
+void PropertyPanel::addButtonParameter(const QString& label,
                                        std::function<void()> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Button
-  auto *button = new QPushButton(label, container);
+  auto* button = new QPushButton(label, container);
   button->setStyleSheet("QPushButton {"
                         "  background: rgba(74, 158, 255, 0.15);"
                         "  border: 1px solid rgba(74, 158, 255, 0.3);"
@@ -554,22 +556,22 @@ void PropertyPanel::addButtonParameter(const QString &label,
 }
 
 void PropertyPanel::addStringParameter(
-    const QString &label, const QString &value,
-    std::function<void(const QString &)> callback) {
+    const QString& label, const QString& value,
+    std::function<void(const QString&)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *label_widget = new QLabel(label, container);
+  auto* label_widget = new QLabel(label, container);
   label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
                               "font-weight: 500; }");
   layout->addWidget(label_widget);
 
   // Line edit for string input
-  auto *line_edit = new QLineEdit(value, container);
+  auto* line_edit = new QLineEdit(value, container);
   line_edit->setStyleSheet("QLineEdit {"
                            "  background: rgba(255, 255, 255, 0.05);"
                            "  border: 1px solid rgba(255, 255, 255, 0.1);"
@@ -597,26 +599,26 @@ void PropertyPanel::addStringParameter(
 }
 
 void PropertyPanel::addFilePathParameter(
-    const QString &label, const QString &value,
-    std::function<void(const QString &)> callback) {
+    const QString& label, const QString& value,
+    std::function<void(const QString&)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *label_widget = new QLabel(label, container);
+  auto* label_widget = new QLabel(label, container);
   label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
                               "font-weight: 500; }");
   layout->addWidget(label_widget);
 
   // Horizontal layout for line edit + browse button
-  auto *input_layout = new QHBoxLayout();
+  auto* input_layout = new QHBoxLayout();
   input_layout->setSpacing(6);
 
   // Line edit for file path
-  auto *line_edit = new QLineEdit(value, container);
+  auto* line_edit = new QLineEdit(value, container);
   line_edit->setStyleSheet("QLineEdit {"
                            "  background: rgba(255, 255, 255, 0.05);"
                            "  border: 1px solid rgba(255, 255, 255, 0.1);"
@@ -637,7 +639,7 @@ void PropertyPanel::addFilePathParameter(
   input_layout->addWidget(line_edit, 1);
 
   // Browse button
-  auto *browse_button = new QPushButton("Browse...", container);
+  auto* browse_button = new QPushButton("Browse...", container);
   browse_button->setStyleSheet("QPushButton {"
                                "  background: rgba(74, 158, 255, 0.15);"
                                "  border: 1px solid rgba(74, 158, 255, 0.3);"
@@ -677,26 +679,26 @@ void PropertyPanel::addFilePathParameter(
 }
 
 void PropertyPanel::addFileSaveParameter(
-    const QString &label, const QString &value,
-    std::function<void(const QString &)> callback) {
+    const QString& label, const QString& value,
+    std::function<void(const QString&)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *label_widget = new QLabel(label, container);
+  auto* label_widget = new QLabel(label, container);
   label_widget->setStyleSheet("QLabel { color: #b0b0b0; font-size: 11px; "
                               "font-weight: 500; }");
   layout->addWidget(label_widget);
 
   // Horizontal layout for line edit + browse button
-  auto *input_layout = new QHBoxLayout();
+  auto* input_layout = new QHBoxLayout();
   input_layout->setSpacing(6);
 
   // Line edit for file path
-  auto *line_edit = new QLineEdit(value, container);
+  auto* line_edit = new QLineEdit(value, container);
   line_edit->setStyleSheet("QLineEdit {"
                            "  background: rgba(255, 255, 255, 0.05);"
                            "  border: 1px solid rgba(255, 255, 255, 0.1);"
@@ -717,7 +719,7 @@ void PropertyPanel::addFileSaveParameter(
   input_layout->addWidget(line_edit, 1);
 
   // Save button
-  auto *save_button = new QPushButton("Save As...", container);
+  auto* save_button = new QPushButton("Save As...", container);
   save_button->setStyleSheet("QPushButton {"
                              "  background: rgba(74, 158, 255, 0.15);"
                              "  border: 1px solid rgba(74, 158, 255, 0.3);"
@@ -756,17 +758,17 @@ void PropertyPanel::addFileSaveParameter(
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::addComboParameter(const QString &label, int value,
-                                      const QStringList &options,
+void PropertyPanel::addComboParameter(const QString& label, int value,
+                                      const QStringList& options,
                                       std::function<void(int)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *param_label = new QLabel(label, container);
+  auto* param_label = new QLabel(label, container);
   param_label->setStyleSheet("QLabel { "
                              "  color: #e0e0e0; "
                              "  font-size: 11px; "
@@ -776,7 +778,7 @@ void PropertyPanel::addComboParameter(const QString &label, int value,
   layout->addWidget(param_label);
 
   // Combo box
-  auto *combobox = new QComboBox(container);
+  auto* combobox = new QComboBox(container);
   combobox->addItems(options);
   combobox->setCurrentIndex(value);
   combobox->setMinimumHeight(32);
@@ -827,8 +829,8 @@ void PropertyPanel::addComboParameter(const QString &label, int value,
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::setGraphNode(nodo::graph::GraphNode *node,
-                                 nodo::graph::NodeGraph *graph) {
+void PropertyPanel::setGraphNode(nodo::graph::GraphNode* node,
+                                 nodo::graph::NodeGraph* graph) {
   // Use auto-generation system for all nodes
   buildFromNode(node, graph);
 }
@@ -841,19 +843,17 @@ void PropertyPanel::refreshFromCurrentNode() {
 }
 
 void PropertyPanel::connectParameterWidget(
-    nodo_studio::widgets::BaseParameterWidget *widget,
-    const nodo::graph::NodeParameter &param, nodo::graph::GraphNode *node,
-    nodo::graph::NodeGraph *graph) {
-
+    nodo_studio::widgets::BaseParameterWidget* widget,
+    const nodo::graph::NodeParameter& param, nodo::graph::GraphNode* node,
+    nodo::graph::NodeGraph* graph) {
   using namespace nodo::graph;
 
   // Connect widget-specific signals based on widget type
   // We'll use dynamic_cast to determine the actual widget type and connect
   // appropriately
 
-  if (auto *float_widget =
-          dynamic_cast<nodo_studio::widgets::FloatWidget *>(widget)) {
-
+  if (auto* float_widget =
+          dynamic_cast<nodo_studio::widgets::FloatWidget*>(widget)) {
     // Set up live callback for slider drag preview (no cache invalidation)
     float_widget->setLiveValueChangedCallback([this, node,
                                                param](double new_value) {
@@ -910,9 +910,8 @@ void PropertyPanel::connectParameterWidget(
 
       emit parameterChanged();
     });
-  } else if (auto *int_widget =
-                 dynamic_cast<nodo_studio::widgets::IntWidget *>(widget)) {
-
+  } else if (auto* int_widget =
+                 dynamic_cast<nodo_studio::widgets::IntWidget*>(widget)) {
     // Set up live callback for slider drag preview (no cache invalidation)
     int_widget->setLiveValueChangedCallback([this, node, param](int new_value) {
       // Update the parameter directly without undo stack or cache invalidation
@@ -963,8 +962,8 @@ void PropertyPanel::connectParameterWidget(
 
       emit parameterChanged();
     });
-  } else if (auto *vec3_widget =
-                 dynamic_cast<nodo_studio::widgets::Vector3Widget *>(widget)) {
+  } else if (auto* vec3_widget =
+                 dynamic_cast<nodo_studio::widgets::Vector3Widget*>(widget)) {
     vec3_widget->setValueChangedCallback(
         [this, node, graph, param, vec3_widget](double x, double y, double z) {
           // Get old parameter value
@@ -1003,11 +1002,11 @@ void PropertyPanel::connectParameterWidget(
 
           emit parameterChanged();
         });
-  } else if (auto *mode_widget =
-                 dynamic_cast<nodo_studio::widgets::ModeSelectorWidget *>(
+  } else if (auto* mode_widget =
+                 dynamic_cast<nodo_studio::widgets::ModeSelectorWidget*>(
                      widget)) {
     mode_widget->setSelectionChangedCallback(
-        [this, node, param, graph](int new_value, const QString &) {
+        [this, node, param, graph](int new_value, const QString&) {
           // Get old parameter value
           auto old_param_opt = node->get_parameter(param.name);
           if (!old_param_opt.has_value()) {
@@ -1033,7 +1032,7 @@ void PropertyPanel::connectParameterWidget(
 
           // Check if this parameter controls visibility of others
           bool controls_visibility = false;
-          for (const auto &p : node->get_parameters()) {
+          for (const auto& p : node->get_parameters()) {
             if (p.category_control_param == param.name) {
               controls_visibility = true;
               break;
@@ -1045,10 +1044,10 @@ void PropertyPanel::connectParameterWidget(
 
           emit parameterChanged();
         });
-  } else if (auto *dropdown_widget =
-                 dynamic_cast<nodo_studio::widgets::DropdownWidget *>(widget)) {
+  } else if (auto* dropdown_widget =
+                 dynamic_cast<nodo_studio::widgets::DropdownWidget*>(widget)) {
     dropdown_widget->setSelectionChangedCallback(
-        [this, node, param, graph](int new_value, const QString &) {
+        [this, node, param, graph](int new_value, const QString&) {
           // Get old parameter value
           auto old_param_opt = node->get_parameter(param.name);
           if (!old_param_opt.has_value()) {
@@ -1074,7 +1073,7 @@ void PropertyPanel::connectParameterWidget(
 
           // Check if this parameter controls visibility
           bool controls_visibility = false;
-          for (const auto &p : node->get_parameters()) {
+          for (const auto& p : node->get_parameters()) {
             if (p.category_control_param == param.name) {
               controls_visibility = true;
               break;
@@ -1086,8 +1085,8 @@ void PropertyPanel::connectParameterWidget(
 
           emit parameterChanged();
         });
-  } else if (auto *checkbox_widget =
-                 dynamic_cast<nodo_studio::widgets::CheckboxWidget *>(widget)) {
+  } else if (auto* checkbox_widget =
+                 dynamic_cast<nodo_studio::widgets::CheckboxWidget*>(widget)) {
     checkbox_widget->setValueChangedCallback(
         [this, node, graph, param](bool new_value) {
           // Get old parameter value
@@ -1114,8 +1113,8 @@ void PropertyPanel::connectParameterWidget(
 
           emit parameterChanged();
         });
-  } else if (auto *button_widget =
-                 dynamic_cast<nodo_studio::widgets::ButtonWidget *>(widget)) {
+  } else if (auto* button_widget =
+                 dynamic_cast<nodo_studio::widgets::ButtonWidget*>(widget)) {
     // Button widget triggers an action by setting parameter to 1
     // The node's execute() will reset it back to 0
     connect(
@@ -1148,10 +1147,10 @@ void PropertyPanel::connectParameterWidget(
 
           emit parameterChanged();
         });
-  } else if (auto *text_widget =
-                 dynamic_cast<nodo_studio::widgets::TextWidget *>(widget)) {
+  } else if (auto* text_widget =
+                 dynamic_cast<nodo_studio::widgets::TextWidget*>(widget)) {
     text_widget->setTextEditingFinishedCallback(
-        [this, node, graph, param](const QString &new_value) {
+        [this, node, graph, param](const QString& new_value) {
           // Get old parameter value
           auto old_param_opt = node->get_parameter(param.name);
           if (!old_param_opt.has_value()) {
@@ -1176,10 +1175,10 @@ void PropertyPanel::connectParameterWidget(
 
           emit parameterChanged();
         });
-  } else if (auto *file_widget =
-                 dynamic_cast<nodo_studio::widgets::FilePathWidget *>(widget)) {
+  } else if (auto* file_widget =
+                 dynamic_cast<nodo_studio::widgets::FilePathWidget*>(widget)) {
     file_widget->setPathChangedCallback([this, node, graph,
-                                         param](const QString &new_value) {
+                                         param](const QString& new_value) {
       // Get old parameter value
       auto old_param_opt = node->get_parameter(param.name);
       if (!old_param_opt.has_value()) {
@@ -1204,11 +1203,11 @@ void PropertyPanel::connectParameterWidget(
 
       emit parameterChanged();
     });
-  } else if (auto *multiline_widget =
-                 dynamic_cast<nodo_studio::widgets::MultiLineTextWidget *>(
+  } else if (auto* multiline_widget =
+                 dynamic_cast<nodo_studio::widgets::MultiLineTextWidget*>(
                      widget)) {
     multiline_widget->setTextChangedCallback([this, node,
-                                              param](const QString &new_value) {
+                                              param](const QString& new_value) {
       auto updated_param = NodeParameter(param.name, new_value.toStdString(),
                                          param.label, param.category);
       updated_param.category_control_param = param.category_control_param;
@@ -1218,11 +1217,11 @@ void PropertyPanel::connectParameterWidget(
       node->set_parameter(param.name, updated_param);
       emit parameterChanged();
     });
-  } else if (auto *group_widget =
-                 dynamic_cast<nodo_studio::widgets::GroupSelectorWidget *>(
+  } else if (auto* group_widget =
+                 dynamic_cast<nodo_studio::widgets::GroupSelectorWidget*>(
                      widget)) {
     group_widget->setGroupChangedCallback([this, node, graph,
-                                           param](const QString &new_value) {
+                                           param](const QString& new_value) {
       // Get old parameter value
       auto old_param_opt = node->get_parameter(param.name);
       if (!old_param_opt.has_value()) {
@@ -1256,9 +1255,8 @@ void PropertyPanel::connectParameterWidget(
 }
 
 void PropertyPanel::populateGroupWidget(
-    nodo_studio::widgets::GroupSelectorWidget *widget,
-    nodo::graph::GraphNode *node, nodo::graph::NodeGraph *graph) {
-
+    nodo_studio::widgets::GroupSelectorWidget* widget,
+    nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph) {
   if (widget == nullptr || node == nullptr || graph == nullptr) {
     return;
   }
@@ -1298,8 +1296,8 @@ void PropertyPanel::populateGroupWidget(
   widget->setAvailableGroups(all_groups);
 }
 
-void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
-                                  nodo::graph::NodeGraph *graph) {
+void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node,
+                                  nodo::graph::NodeGraph* graph) {
   if (node == nullptr || graph == nullptr) {
     clearProperties();
     return;
@@ -1313,10 +1311,10 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
   title_label_->setText(node_name + " Properties");
 
   // Get all parameters from the node
-  const auto &params = node->get_parameters();
+  const auto& params = node->get_parameters();
 
   if (params.empty()) {
-    auto *label = new QLabel("No parameters available", content_widget_);
+    auto* label = new QLabel("No parameters available", content_widget_);
     label->setAlignment(Qt::AlignCenter);
     label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
     content_layout_->insertWidget(0, label);
@@ -1324,10 +1322,10 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
   }
 
   // Separate universal and regular parameters
-  std::vector<const nodo::graph::NodeParameter *> universal_params;
-  std::vector<const nodo::graph::NodeParameter *> regular_params;
+  std::vector<const nodo::graph::NodeParameter*> universal_params;
+  std::vector<const nodo::graph::NodeParameter*> regular_params;
 
-  for (const auto &param : params) {
+  for (const auto& param : params) {
     // Check visibility conditions
     if (!param.category_control_param.empty() &&
         param.category_control_value >= 0) {
@@ -1349,7 +1347,7 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
   // Render universal parameters section (if any)
   if (!universal_params.empty()) {
     // Add "UNIVERSAL" section header label (no background box)
-    auto *header_label = new QLabel("UNIVERSAL", content_widget_);
+    auto* header_label = new QLabel("UNIVERSAL", content_widget_);
     header_label->setStyleSheet("QLabel {"
                                 "   color: #808080;"
                                 "   font-size: 10px;"
@@ -1361,8 +1359,8 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
     content_layout_->insertWidget(content_layout_->count() - 1, header_label);
 
     // Add universal parameter widgets directly (no container)
-    for (const auto *param : universal_params) {
-      auto *widget = nodo_studio::ParameterWidgetFactory::createWidget(
+    for (const auto* param : universal_params) {
+      auto* widget = nodo_studio::ParameterWidgetFactory::createWidget(
           *param, content_widget_);
       if (widget != nullptr) {
         widget->setMinimumHeight(36); // Ensure minimum height
@@ -1376,19 +1374,19 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
   }
 
   // Render regular parameters by category
-  std::map<std::string, std::vector<const nodo::graph::NodeParameter *>>
+  std::map<std::string, std::vector<const nodo::graph::NodeParameter*>>
       params_by_category;
-  for (const auto *param : regular_params) {
+  for (const auto* param : regular_params) {
     std::string category =
         param->category.empty() ? "Parameters" : param->category;
     params_by_category[category].push_back(param);
   }
 
-  for (const auto &[category, category_params] : params_by_category) {
+  for (const auto& [category, category_params] : params_by_category) {
     addHeader(QString::fromStdString(category));
 
-    for (const auto *param : category_params) {
-      auto *widget = nodo_studio::ParameterWidgetFactory::createWidget(
+    for (const auto* param : category_params) {
+      auto* widget = nodo_studio::ParameterWidgetFactory::createWidget(
           *param, content_widget_);
       if (widget != nullptr) {
         connectParameterWidget(widget, *param, node, graph);
@@ -1416,7 +1414,7 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode *node,
   }
 }
 
-void PropertyPanel::buildSphereParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildSphereParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Geometry");
@@ -1461,7 +1459,7 @@ void PropertyPanel::buildSphereParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildBoxParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildBoxParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Dimensions");
@@ -1503,7 +1501,7 @@ void PropertyPanel::buildBoxParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildCylinderParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildCylinderParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Geometry");
@@ -1546,7 +1544,7 @@ void PropertyPanel::buildCylinderParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildPlaneParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildPlaneParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Dimensions");
@@ -1576,7 +1574,7 @@ void PropertyPanel::buildPlaneParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildTorusParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildTorusParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Geometry");
@@ -1638,7 +1636,7 @@ void PropertyPanel::buildTorusParameters(nodo::graph::GraphNode *node) {
                   });
 }
 
-void PropertyPanel::buildTransformParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildTransformParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Translation");
@@ -1741,7 +1739,7 @@ void PropertyPanel::buildTransformParameters(nodo::graph::GraphNode *node) {
       });
 }
 
-void PropertyPanel::buildArrayParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildArrayParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Array Mode");
@@ -1873,7 +1871,7 @@ void PropertyPanel::buildArrayParameters(nodo::graph::GraphNode *node) {
       });
 }
 
-void PropertyPanel::buildBooleanParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildBooleanParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Boolean Operation");
@@ -1894,7 +1892,7 @@ void PropertyPanel::buildBooleanParameters(nodo::graph::GraphNode *node) {
       });
 }
 
-void PropertyPanel::buildLineParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildLineParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Line Geometry");
@@ -1990,7 +1988,7 @@ void PropertyPanel::buildLineParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildResampleParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildResampleParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Resample Curve");
@@ -2044,12 +2042,12 @@ void PropertyPanel::buildResampleParameters(nodo::graph::GraphNode *node) {
 // PolyExtrude parameters are automatically generated from SOP parameter
 // definitions No manual UI building needed - the parameter system handles it
 // automatically
-void PropertyPanel::buildPolyExtrudeParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildPolyExtrudeParameters(nodo::graph::GraphNode* node) {
   // This function intentionally left empty - parameters are auto-generated
   (void)node; // Suppress unused parameter warning
 }
 
-void PropertyPanel::buildScatterParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildScatterParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Scatter Points");
@@ -2106,7 +2104,7 @@ void PropertyPanel::buildScatterParameters(nodo::graph::GraphNode *node) {
   });
 }
 
-void PropertyPanel::buildCopyToPointsParameters(nodo::graph::GraphNode *node) {
+void PropertyPanel::buildCopyToPointsParameters(nodo::graph::GraphNode* node) {
   using namespace nodo::graph;
 
   addHeader("Copy to Points");
@@ -2153,16 +2151,16 @@ void PropertyPanel::buildCopyToPointsParameters(nodo::graph::GraphNode *node) {
 }
 
 void PropertyPanel::addVector3Parameter(
-    const QString &label, double x, double y, double z, double min, double max,
+    const QString& label, double x, double y, double z, double min, double max,
     std::function<void(double, double, double)> callback) {
   // Create container widget
-  auto *container = new QWidget(content_widget_);
-  auto *layout = new QVBoxLayout(container);
+  auto* container = new QWidget(content_widget_);
+  auto* layout = new QVBoxLayout(container);
   layout->setContentsMargins(0, 4, 0, 4);
   layout->setSpacing(6);
 
   // Label
-  auto *param_label = new QLabel(label, container);
+  auto* param_label = new QLabel(label, container);
   param_label->setStyleSheet("QLabel { "
                              "  color: #e0e0e0; "
                              "  font-size: 11px; "
@@ -2172,13 +2170,13 @@ void PropertyPanel::addVector3Parameter(
   layout->addWidget(param_label);
 
   // Create three spinboxes in a row for X, Y, Z
-  auto *xyz_container = new QWidget(container);
-  auto *xyz_layout = new QHBoxLayout(xyz_container);
+  auto* xyz_container = new QWidget(container);
+  auto* xyz_layout = new QHBoxLayout(xyz_container);
   xyz_layout->setContentsMargins(0, 0, 0, 0);
   xyz_layout->setSpacing(6);
 
   // X component
-  auto *x_spinbox = new QDoubleSpinBox(xyz_container);
+  auto* x_spinbox = new QDoubleSpinBox(xyz_container);
   x_spinbox->setRange(min, max);
   x_spinbox->setValue(x);
   x_spinbox->setDecimals(3);
@@ -2205,7 +2203,7 @@ void PropertyPanel::addVector3Parameter(
       "}");
 
   // Y component
-  auto *y_spinbox = new QDoubleSpinBox(xyz_container);
+  auto* y_spinbox = new QDoubleSpinBox(xyz_container);
   y_spinbox->setRange(min, max);
   y_spinbox->setValue(y);
   y_spinbox->setDecimals(3);
@@ -2232,7 +2230,7 @@ void PropertyPanel::addVector3Parameter(
       "}");
 
   // Z component
-  auto *z_spinbox = new QDoubleSpinBox(xyz_container);
+  auto* z_spinbox = new QDoubleSpinBox(xyz_container);
   z_spinbox->setRange(min, max);
   z_spinbox->setValue(z);
   z_spinbox->setDecimals(3);
@@ -2277,8 +2275,8 @@ void PropertyPanel::addVector3Parameter(
   content_layout_->insertWidget(content_layout_->count() - 1, container);
 }
 
-void PropertyPanel::addInfoLabel(const QString &text) {
-  auto *info = new QLabel(text, content_widget_);
+void PropertyPanel::addInfoLabel(const QString& text) {
+  auto* info = new QLabel(text, content_widget_);
   info->setWordWrap(true);
   info->setStyleSheet("QLabel { "
                       "  background: rgba(74, 158, 255, 0.1); "

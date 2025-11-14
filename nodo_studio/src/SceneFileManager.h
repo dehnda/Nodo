@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <QWidget>
+
 #include <memory>
 
 // Forward declarations
@@ -26,7 +27,7 @@ class NodeGraphWidget;
  */
 class SceneFileManager {
 public:
-  explicit SceneFileManager(QWidget *parent);
+  explicit SceneFileManager(QWidget* parent);
 
   // Scene operations
   void newScene();
@@ -43,32 +44,32 @@ public:
   void exportSelection();
 
   // Setters for dependencies
-  void setNodeGraph(nodo::graph::NodeGraph *graph) { node_graph_ = graph; }
-  void setExecutionEngine(nodo::graph::ExecutionEngine *engine) {
+  void setNodeGraph(nodo::graph::NodeGraph* graph) { node_graph_ = graph; }
+  void setExecutionEngine(nodo::graph::ExecutionEngine* engine) {
     execution_engine_ = engine;
   }
-  void setNodeGraphWidget(NodeGraphWidget *widget) {
+  void setNodeGraphWidget(NodeGraphWidget* widget) {
     node_graph_widget_ = widget;
   }
 
   // File tracking
   QString getCurrentFilePath() const { return current_file_path_; }
-  void setCurrentFilePath(const QString &path) { current_file_path_ = path; }
+  void setCurrentFilePath(const QString& path) { current_file_path_ = path; }
   bool isModified() const { return is_modified_; }
   void setModified(bool modified) { is_modified_ = modified; }
 
   // Recent files
   QStringList getRecentFiles() const;
-  void addToRecentFiles(const QString &filename);
+  void addToRecentFiles(const QString& filename);
 
 private:
-  QWidget *parent_;
-  nodo::graph::NodeGraph *node_graph_;
-  nodo::graph::ExecutionEngine *execution_engine_;
-  NodeGraphWidget *node_graph_widget_;
+  QWidget* parent_;
+  nodo::graph::NodeGraph* node_graph_;
+  nodo::graph::ExecutionEngine* execution_engine_;
+  NodeGraphWidget* node_graph_widget_;
 
   QString current_file_path_;
   bool is_modified_;
 
-  void setRecentFiles(const QStringList &files);
+  void setRecentFiles(const QStringList& files);
 };

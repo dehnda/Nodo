@@ -19,7 +19,7 @@ class AttributeCreateSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit AttributeCreateSOP(const std::string &node_name = "attribcreate")
+  explicit AttributeCreateSOP(const std::string& node_name = "attribcreate")
       : SOPNode(node_name, "AttributeCreate") {
     // Single geometry input
     input_ports_.add_port("0", NodePort::Type::INPUT,
@@ -115,169 +115,170 @@ protected:
     bool success = false;
 
     switch (attr_class) {
-    case 0: {               // Point
-      if (attr_type == 0) { // Float
-        success =
-            output->add_point_attribute(attr_name, core::AttributeType::FLOAT);
-        if (success) {
-          const float value = get_parameter<float>("value_float", 0.0F);
-          auto *attr = output->get_point_attribute_typed<float>(attr_name);
-          if (attr) {
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), value);
+      case 0: {               // Point
+        if (attr_type == 0) { // Float
+          success = output->add_point_attribute(attr_name,
+                                                core::AttributeType::FLOAT);
+          if (success) {
+            const float value = get_parameter<float>("value_float", 0.0F);
+            auto* attr = output->get_point_attribute_typed<float>(attr_name);
+            if (attr) {
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), value);
+            }
+          }
+        } else if (attr_type == 1) { // Vector
+          success = output->add_point_attribute(attr_name,
+                                                core::AttributeType::VEC3F);
+          if (success) {
+            const float vx = get_parameter<float>("value_x", 0.0F);
+            const float vy = get_parameter<float>("value_y", 0.0F);
+            const float vz = get_parameter<float>("value_z", 0.0F);
+            auto* attr =
+                output->get_point_attribute_typed<core::Vec3f>(attr_name);
+            if (attr) {
+              const core::Vec3f vec(vx, vy, vz);
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), vec);
+            }
+          }
+        } else if (attr_type == 2) { // Integer
+          success =
+              output->add_point_attribute(attr_name, core::AttributeType::INT);
+          if (success) {
+            const int value = get_parameter<int>("value_int", 0);
+            auto* attr = output->get_point_attribute_typed<int>(attr_name);
+            if (attr) {
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), value);
+            }
           }
         }
-      } else if (attr_type == 1) { // Vector
-        success =
-            output->add_point_attribute(attr_name, core::AttributeType::VEC3F);
-        if (success) {
-          const float vx = get_parameter<float>("value_x", 0.0F);
-          const float vy = get_parameter<float>("value_y", 0.0F);
-          const float vz = get_parameter<float>("value_z", 0.0F);
-          auto *attr =
-              output->get_point_attribute_typed<core::Vec3f>(attr_name);
-          if (attr) {
-            const core::Vec3f vec(vx, vy, vz);
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), vec);
-          }
-        }
-      } else if (attr_type == 2) { // Integer
-        success =
-            output->add_point_attribute(attr_name, core::AttributeType::INT);
-        if (success) {
-          const int value = get_parameter<int>("value_int", 0);
-          auto *attr = output->get_point_attribute_typed<int>(attr_name);
-          if (attr) {
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), value);
-          }
-        }
+        break;
       }
-      break;
-    }
 
-    case 1: {               // Primitive
-      if (attr_type == 0) { // Float
-        success = output->add_primitive_attribute(attr_name,
-                                                  core::AttributeType::FLOAT);
-        if (success) {
-          const float value = get_parameter<float>("value_float", 0.0F);
-          auto *attr = output->get_primitive_attribute_typed<float>(attr_name);
-          if (attr) {
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), value);
+      case 1: {               // Primitive
+        if (attr_type == 0) { // Float
+          success = output->add_primitive_attribute(attr_name,
+                                                    core::AttributeType::FLOAT);
+          if (success) {
+            const float value = get_parameter<float>("value_float", 0.0F);
+            auto* attr =
+                output->get_primitive_attribute_typed<float>(attr_name);
+            if (attr) {
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), value);
+            }
+          }
+        } else if (attr_type == 1) { // Vector
+          success = output->add_primitive_attribute(attr_name,
+                                                    core::AttributeType::VEC3F);
+          if (success) {
+            const float vx = get_parameter<float>("value_x", 0.0F);
+            const float vy = get_parameter<float>("value_y", 0.0F);
+            const float vz = get_parameter<float>("value_z", 0.0F);
+            auto* attr =
+                output->get_primitive_attribute_typed<core::Vec3f>(attr_name);
+            if (attr) {
+              const core::Vec3f vec(vx, vy, vz);
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), vec);
+            }
+          }
+        } else if (attr_type == 2) { // Integer
+          success = output->add_primitive_attribute(attr_name,
+                                                    core::AttributeType::INT);
+          if (success) {
+            const int value = get_parameter<int>("value_int", 0);
+            auto* attr = output->get_primitive_attribute_typed<int>(attr_name);
+            if (attr) {
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), value);
+            }
           }
         }
-      } else if (attr_type == 1) { // Vector
-        success = output->add_primitive_attribute(attr_name,
-                                                  core::AttributeType::VEC3F);
-        if (success) {
-          const float vx = get_parameter<float>("value_x", 0.0F);
-          const float vy = get_parameter<float>("value_y", 0.0F);
-          const float vz = get_parameter<float>("value_z", 0.0F);
-          auto *attr =
-              output->get_primitive_attribute_typed<core::Vec3f>(attr_name);
-          if (attr) {
-            const core::Vec3f vec(vx, vy, vz);
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), vec);
-          }
-        }
-      } else if (attr_type == 2) { // Integer
-        success = output->add_primitive_attribute(attr_name,
-                                                  core::AttributeType::INT);
-        if (success) {
-          const int value = get_parameter<int>("value_int", 0);
-          auto *attr = output->get_primitive_attribute_typed<int>(attr_name);
-          if (attr) {
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), value);
-          }
-        }
+        break;
       }
-      break;
-    }
 
-    case 2: {               // Vertex
-      if (attr_type == 0) { // Float
-        success =
-            output->add_vertex_attribute(attr_name, core::AttributeType::FLOAT);
-        if (success) {
-          const float value = get_parameter<float>("value_float", 0.0F);
-          auto *attr = output->get_vertex_attribute_typed<float>(attr_name);
-          if (attr) {
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), value);
+      case 2: {               // Vertex
+        if (attr_type == 0) { // Float
+          success = output->add_vertex_attribute(attr_name,
+                                                 core::AttributeType::FLOAT);
+          if (success) {
+            const float value = get_parameter<float>("value_float", 0.0F);
+            auto* attr = output->get_vertex_attribute_typed<float>(attr_name);
+            if (attr) {
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), value);
+            }
+          }
+        } else if (attr_type == 1) { // Vector
+          success = output->add_vertex_attribute(attr_name,
+                                                 core::AttributeType::VEC3F);
+          if (success) {
+            const float vx = get_parameter<float>("value_x", 0.0F);
+            const float vy = get_parameter<float>("value_y", 0.0F);
+            const float vz = get_parameter<float>("value_z", 0.0F);
+            auto* attr =
+                output->get_vertex_attribute_typed<core::Vec3f>(attr_name);
+            if (attr) {
+              const core::Vec3f vec(vx, vy, vz);
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), vec);
+            }
+          }
+        } else if (attr_type == 2) { // Integer
+          success =
+              output->add_vertex_attribute(attr_name, core::AttributeType::INT);
+          if (success) {
+            const int value = get_parameter<int>("value_int", 0);
+            auto* attr = output->get_vertex_attribute_typed<int>(attr_name);
+            if (attr) {
+              std::fill(attr->values_writable().begin(),
+                        attr->values_writable().end(), value);
+            }
           }
         }
-      } else if (attr_type == 1) { // Vector
-        success =
-            output->add_vertex_attribute(attr_name, core::AttributeType::VEC3F);
-        if (success) {
-          const float vx = get_parameter<float>("value_x", 0.0F);
-          const float vy = get_parameter<float>("value_y", 0.0F);
-          const float vz = get_parameter<float>("value_z", 0.0F);
-          auto *attr =
-              output->get_vertex_attribute_typed<core::Vec3f>(attr_name);
-          if (attr) {
-            const core::Vec3f vec(vx, vy, vz);
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), vec);
-          }
-        }
-      } else if (attr_type == 2) { // Integer
-        success =
-            output->add_vertex_attribute(attr_name, core::AttributeType::INT);
-        if (success) {
-          const int value = get_parameter<int>("value_int", 0);
-          auto *attr = output->get_vertex_attribute_typed<int>(attr_name);
-          if (attr) {
-            std::fill(attr->values_writable().begin(),
-                      attr->values_writable().end(), value);
-          }
-        }
+        break;
       }
-      break;
-    }
 
-    case 3: {               // Detail (global attributes)
-      if (attr_type == 0) { // Float
-        success =
-            output->add_detail_attribute(attr_name, core::AttributeType::FLOAT);
-        if (success) {
-          const float value = get_parameter<float>("value_float", 0.0F);
-          auto *attr = output->get_detail_attribute_typed<float>(attr_name);
-          if (attr && attr->size() > 0) {
-            (*attr)[0] = value;
+      case 3: {               // Detail (global attributes)
+        if (attr_type == 0) { // Float
+          success = output->add_detail_attribute(attr_name,
+                                                 core::AttributeType::FLOAT);
+          if (success) {
+            const float value = get_parameter<float>("value_float", 0.0F);
+            auto* attr = output->get_detail_attribute_typed<float>(attr_name);
+            if (attr && attr->size() > 0) {
+              (*attr)[0] = value;
+            }
+          }
+        } else if (attr_type == 1) { // Vector
+          success = output->add_detail_attribute(attr_name,
+                                                 core::AttributeType::VEC3F);
+          if (success) {
+            const float vx = get_parameter<float>("value_x", 0.0F);
+            const float vy = get_parameter<float>("value_y", 0.0F);
+            const float vz = get_parameter<float>("value_z", 0.0F);
+            auto* attr =
+                output->get_detail_attribute_typed<core::Vec3f>(attr_name);
+            if (attr && attr->size() > 0) {
+              (*attr)[0] = core::Vec3f(vx, vy, vz);
+            }
+          }
+        } else if (attr_type == 2) { // Integer
+          success =
+              output->add_detail_attribute(attr_name, core::AttributeType::INT);
+          if (success) {
+            const int value = get_parameter<int>("value_int", 0);
+            auto* attr = output->get_detail_attribute_typed<int>(attr_name);
+            if (attr && attr->size() > 0) {
+              (*attr)[0] = value;
+            }
           }
         }
-      } else if (attr_type == 1) { // Vector
-        success =
-            output->add_detail_attribute(attr_name, core::AttributeType::VEC3F);
-        if (success) {
-          const float vx = get_parameter<float>("value_x", 0.0F);
-          const float vy = get_parameter<float>("value_y", 0.0F);
-          const float vz = get_parameter<float>("value_z", 0.0F);
-          auto *attr =
-              output->get_detail_attribute_typed<core::Vec3f>(attr_name);
-          if (attr && attr->size() > 0) {
-            (*attr)[0] = core::Vec3f(vx, vy, vz);
-          }
-        }
-      } else if (attr_type == 2) { // Integer
-        success =
-            output->add_detail_attribute(attr_name, core::AttributeType::INT);
-        if (success) {
-          const int value = get_parameter<int>("value_int", 0);
-          auto *attr = output->get_detail_attribute_typed<int>(attr_name);
-          if (attr && attr->size() > 0) {
-            (*attr)[0] = value;
-          }
-        }
+        break;
       }
-      break;
-    }
     }
 
     if (!success) {

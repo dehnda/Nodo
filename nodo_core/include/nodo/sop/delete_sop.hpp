@@ -16,7 +16,7 @@ class DeleteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit DeleteSOP(const std::string &name);
+  explicit DeleteSOP(const std::string& name);
 
   std::shared_ptr<core::GeometryContainer> execute() override;
 };

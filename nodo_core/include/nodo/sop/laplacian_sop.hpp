@@ -3,8 +3,10 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+
 #include <memory>
 #include <string>
 
@@ -31,7 +33,7 @@ public:
    * @brief Construct Laplacian smoother with name
    * @param name Unique identifier for this SOP instance
    */
-  explicit LaplacianSOP(const std::string &name = "laplacian");
+  explicit LaplacianSOP(const std::string& name = "laplacian");
 
   /**
    * @brief Set number of smoothing iterations
@@ -114,34 +116,34 @@ protected:
 
 private:
   /// Apply uniform Laplacian smoothing
-  Eigen::MatrixXd apply_uniform_laplacian(const Eigen::MatrixXd &vertices,
-                                          const Eigen::MatrixXi &faces);
+  Eigen::MatrixXd apply_uniform_laplacian(const Eigen::MatrixXd& vertices,
+                                          const Eigen::MatrixXi& faces);
 
   /// Apply cotangent-weighted Laplacian smoothing
-  Eigen::MatrixXd apply_cotangent_laplacian(const Eigen::MatrixXd &vertices,
-                                            const Eigen::MatrixXi &faces);
+  Eigen::MatrixXd apply_cotangent_laplacian(const Eigen::MatrixXd& vertices,
+                                            const Eigen::MatrixXi& faces);
 
   /// Apply Taubin smoothing (lambda-mu scheme)
-  Eigen::MatrixXd apply_taubin_smoothing(const Eigen::MatrixXd &vertices,
-                                         const Eigen::MatrixXi &faces);
+  Eigen::MatrixXd apply_taubin_smoothing(const Eigen::MatrixXd& vertices,
+                                         const Eigen::MatrixXi& faces);
 
   /// Build uniform Laplacian matrix
   Eigen::SparseMatrix<double>
-  build_uniform_laplacian(const Eigen::MatrixXi &faces, int num_vertices);
+  build_uniform_laplacian(const Eigen::MatrixXi& faces, int num_vertices);
 
   /// Build cotangent-weighted Laplacian matrix
   Eigen::SparseMatrix<double>
-  build_cotangent_laplacian(const Eigen::MatrixXd &vertices,
-                            const Eigen::MatrixXi &faces);
+  build_cotangent_laplacian(const Eigen::MatrixXd& vertices,
+                            const Eigen::MatrixXi& faces);
 
   /// Find boundary vertices
-  std::vector<bool> find_boundary_vertices(const Eigen::MatrixXi &faces,
+  std::vector<bool> find_boundary_vertices(const Eigen::MatrixXi& faces,
                                            int num_vertices);
 
   /// Calculate cotangent weights for an edge
-  double calculate_cotangent_weight(const Eigen::Vector3d &v1,
-                                    const Eigen::Vector3d &v2,
-                                    const Eigen::Vector3d &opposite);
+  double calculate_cotangent_weight(const Eigen::Vector3d& v1,
+                                    const Eigen::Vector3d& v2,
+                                    const Eigen::Vector3d& opposite);
 
   // Smoothing parameters
   int iterations_ = 1;  ///< Number of smoothing passes

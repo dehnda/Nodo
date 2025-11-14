@@ -6,7 +6,9 @@
 
 namespace nodo::core {
 
-void ElementTopology::set_point_count(size_t count) { point_count_ = count; }
+void ElementTopology::set_point_count(size_t count) {
+  point_count_ = count;
+}
 
 void ElementTopology::set_vertex_count(size_t count) {
   vertex_count_ = count;
@@ -51,7 +53,7 @@ std::span<int> ElementTopology::get_vertex_points_writable() {
   return vertex_points_;
 }
 
-const std::vector<int> &
+const std::vector<int>&
 ElementTopology::get_primitive_vertices(size_t prim_idx) const {
   if (prim_idx >= primitive_count_) {
     throw std::out_of_range("Primitive index out of range");
@@ -59,8 +61,8 @@ ElementTopology::get_primitive_vertices(size_t prim_idx) const {
   return primitive_vertices_[prim_idx];
 }
 
-void ElementTopology::set_primitive_vertices(
-    size_t prim_idx, const std::vector<int> &vertices) {
+void ElementTopology::set_primitive_vertices(size_t prim_idx,
+                                             const std::vector<int>& vertices) {
   if (prim_idx >= primitive_count_) {
     throw std::out_of_range("Primitive index out of range");
   }
@@ -75,7 +77,7 @@ void ElementTopology::set_primitive_vertices(
   primitive_vertices_[prim_idx] = vertices;
 }
 
-size_t ElementTopology::add_primitive(const std::vector<int> &vertices) {
+size_t ElementTopology::add_primitive(const std::vector<int>& vertices) {
   // Validate vertices
   for (int v : vertices) {
     if (v >= static_cast<int>(vertex_count_) || v < 0) {
@@ -107,7 +109,7 @@ bool ElementTopology::validate() const {
 
   // Check primitive→vertex references
   for (size_t i = 0; i < primitive_count_; ++i) {
-    const auto &verts = primitive_vertices_[i];
+    const auto& verts = primitive_vertices_[i];
     if (verts.empty()) {
       return false; // Primitives must have at least one vertex
     }

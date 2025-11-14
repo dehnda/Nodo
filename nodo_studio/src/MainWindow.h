@@ -3,6 +3,7 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QShowEvent>
+
 #include <memory>
 
 // Forward declarations
@@ -37,11 +38,11 @@ class MainWindow : public QMainWindow {
       friend class MenuManager; // Allow MenuManager to access private members
 
 public:
-  explicit MainWindow(QWidget *parent = nullptr);
+  explicit MainWindow(QWidget* parent = nullptr);
   ~MainWindow() override;
 
 protected:
-  void showEvent(QShowEvent *event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   // UI setup methods
@@ -53,40 +54,40 @@ private:
 
   // Recent files helpers
   QStringList getRecentFiles() const;
-  void setRecentFiles(const QStringList &files);
+  void setRecentFiles(const QStringList& files);
 
   // Execution helper
   void executeAndDisplayNode(int node_id);
   void updateDisplayFlagVisuals();
 
   // Helper to create custom title bar matching PropertyPanel style
-  QWidget *createCustomTitleBar(const QString &title,
-                                QWidget *parent = nullptr);
+  QWidget* createCustomTitleBar(const QString& title,
+                                QWidget* parent = nullptr);
 
   // Setters for MenuManager to store action pointers
-  void setUndoAction(QAction *action) { undo_action_ = action; }
-  void setRedoAction(QAction *action) { redo_action_ = action; }
-  void setVerticesAction(QAction *action) { vertices_action_ = action; }
-  void setEdgesAction(QAction *action) { edges_action_ = action; }
-  void setVertexNormalsAction(QAction *action) {
+  void setUndoAction(QAction* action) { undo_action_ = action; }
+  void setRedoAction(QAction* action) { redo_action_ = action; }
+  void setVerticesAction(QAction* action) { vertices_action_ = action; }
+  void setEdgesAction(QAction* action) { edges_action_ = action; }
+  void setVertexNormalsAction(QAction* action) {
     vertex_normals_action_ = action;
   }
-  void setFaceNormalsAction(QAction *action) { face_normals_action_ = action; }
-  void setRecentProjectsMenu(QMenu *menu) { recent_projects_menu_ = menu; }
+  void setFaceNormalsAction(QAction* action) { face_normals_action_ = action; }
+  void setRecentProjectsMenu(QMenu* menu) { recent_projects_menu_ = menu; }
 
   // UI components (these will be pointers to our widgets)
-  ViewportWidget *viewport_widget_;
-  ViewportToolbar *viewport_toolbar_;
-  PropertyPanel *property_panel_;
-  NodeGraphWidget *node_graph_widget_;
-  StatusBarWidget *status_bar_widget_;
-  nodo::studio::GeometrySpreadsheet *geometry_spreadsheet_;
-  GraphParametersPanel *graph_parameters_panel_;
-  QDockWidget *viewport_dock_;
-  QDockWidget *property_dock_;
-  QDockWidget *node_graph_dock_;
-  QDockWidget *geometry_spreadsheet_dock_;
-  QDockWidget *graph_parameters_dock_;
+  ViewportWidget* viewport_widget_;
+  ViewportToolbar* viewport_toolbar_;
+  PropertyPanel* property_panel_;
+  NodeGraphWidget* node_graph_widget_;
+  StatusBarWidget* status_bar_widget_;
+  nodo::studio::GeometrySpreadsheet* geometry_spreadsheet_;
+  GraphParametersPanel* graph_parameters_panel_;
+  QDockWidget* viewport_dock_;
+  QDockWidget* property_dock_;
+  QDockWidget* node_graph_dock_;
+  QDockWidget* geometry_spreadsheet_dock_;
+  QDockWidget* graph_parameters_dock_;
 
   // Menu management helper
   std::unique_ptr<MenuManager> menu_manager_;
@@ -102,7 +103,7 @@ private:
   std::unique_ptr<StudioHostInterface> host_interface_;
 
   // Async execution tracking
-  QFutureWatcher<bool> *execution_watcher_;
+  QFutureWatcher<bool>* execution_watcher_;
   int pending_display_node_id_;
   QVector<int> pending_wireframe_node_ids_; // Nodes to restore wireframe
                                             // overlays after execution
@@ -111,18 +112,18 @@ private:
   std::unique_ptr<nodo::studio::UndoStack> undo_stack_;
 
   // View menu actions (stored to connect after viewport creation)
-  QAction *edges_action_;
-  QAction *vertices_action_;
-  QAction *vertex_normals_action_;
-  QAction *face_normals_action_;
+  QAction* edges_action_;
+  QAction* vertices_action_;
+  QAction* vertex_normals_action_;
+  QAction* face_normals_action_;
 
   // Edit menu actions
-  QAction *undo_action_;
-  QAction *redo_action_;
+  QAction* undo_action_;
+  QAction* redo_action_;
 
   // Recent projects menu
-  QMenu *recent_projects_menu_;
-  QList<QAction *> recent_file_actions_;
+  QMenu* recent_projects_menu_;
+  QList<QAction*> recent_file_actions_;
   static constexpr int MaxRecentFiles = 10;
 
   // Current file tracking
@@ -206,11 +207,11 @@ private slots:
   // Recent files
   void openRecentFile();
   void updateRecentFileActions();
-  void addToRecentFiles(const QString &filename);
+  void addToRecentFiles(const QString& filename);
 
   // Progress reporting
-  void onProgressReported(int current, int total, const QString &message);
-  void onLogMessage(const QString &level, const QString &message);
+  void onProgressReported(int current, int total, const QString& message);
+  void onLogMessage(const QString& level, const QString& message);
   void onExecutionStarted();
   void onExecutionCompleted();
 };

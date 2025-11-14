@@ -1,4 +1,5 @@
 #include "nodo/geometry/mesh_repairer.hpp"
+
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -29,8 +30,8 @@ std::string MeshRepairer::RepairResult::summary() const {
   return oss.str();
 }
 
-MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh &mesh,
-                                                const RepairOptions &options) {
+MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh& mesh,
+                                                const RepairOptions& options) {
   RepairResult result;
 
   if (mesh.vertices().rows() == 0 || mesh.faces().rows() == 0) {
@@ -97,7 +98,7 @@ MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh &mesh,
                 << result.final_report.summary() << "\n";
     }
 
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     result.success = false;
     result.message = std::string("Repair failed: ") + e.what();
     set_last_error(core::Error{core::ErrorCategory::Validation,
@@ -107,7 +108,7 @@ MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh &mesh,
   return result;
 }
 
-int MeshRepairer::remove_degenerate_faces(core::Mesh &mesh) {
+int MeshRepairer::remove_degenerate_faces(core::Mesh& mesh) {
   auto degenerate_faces = MeshValidator::find_degenerate_faces(mesh);
 
   if (degenerate_faces.empty()) {
@@ -137,7 +138,7 @@ int MeshRepairer::remove_degenerate_faces(core::Mesh &mesh) {
   return degenerate_faces.size();
 }
 
-int MeshRepairer::merge_duplicate_vertices(core::Mesh &mesh, double tolerance) {
+int MeshRepairer::merge_duplicate_vertices(core::Mesh& mesh, double tolerance) {
   auto vertex_mapping = build_vertex_mapping(mesh, tolerance);
 
   // Count merged vertices
@@ -190,7 +191,7 @@ int MeshRepairer::merge_duplicate_vertices(core::Mesh &mesh, double tolerance) {
   return merged_count;
 }
 
-int MeshRepairer::remove_unreferenced_vertices(core::Mesh &mesh) {
+int MeshRepairer::remove_unreferenced_vertices(core::Mesh& mesh) {
   auto unreferenced = MeshValidator::find_unreferenced_vertices(mesh);
 
   if (unreferenced.empty()) {
@@ -207,7 +208,7 @@ int MeshRepairer::remove_unreferenced_vertices(core::Mesh &mesh) {
   return unreferenced.size();
 }
 
-int MeshRepairer::fix_face_orientation(core::Mesh &mesh) {
+int MeshRepairer::fix_face_orientation(core::Mesh& mesh) {
   // Simple heuristic: ensure consistent winding order
   // This is a basic implementation - more sophisticated algorithms exist
 
@@ -270,7 +271,7 @@ int MeshRepairer::fix_face_orientation(core::Mesh &mesh) {
   return flipped_count;
 }
 
-bool MeshRepairer::make_manifold(core::Mesh &mesh) {
+bool MeshRepairer::make_manifold(core::Mesh& mesh) {
   // Remove non-manifold edges by removing affected faces
   auto non_manifold_faces = MeshValidator::find_non_manifold_edges(mesh);
 
@@ -309,14 +310,14 @@ bool MeshRepairer::make_manifold(core::Mesh &mesh) {
   return MeshValidator::is_manifold(mesh);
 }
 
-int MeshRepairer::recalculate_normals(core::Mesh & /* mesh */) {
+int MeshRepairer::recalculate_normals(core::Mesh& /* mesh */) {
   // This would implement normal recalculation
   // For now, just return 0 as we don't store normals in our basic mesh
   return 0;
 }
 
-void MeshRepairer::compact_mesh(core::Mesh &mesh,
-                                const std::vector<bool> &vertex_keep_mask) {
+void MeshRepairer::compact_mesh(core::Mesh& mesh,
+                                const std::vector<bool>& vertex_keep_mask) {
   // Build index mapping
   std::vector<int> new_indices(mesh.vertices().rows(), -1);
   int new_vertex_count = 0;
@@ -348,7 +349,7 @@ void MeshRepairer::compact_mesh(core::Mesh &mesh,
   mesh.vertices() = new_vertices;
 }
 
-std::vector<int> MeshRepairer::build_vertex_mapping(const core::Mesh &mesh,
+std::vector<int> MeshRepairer::build_vertex_mapping(const core::Mesh& mesh,
                                                     double tolerance) {
   std::vector<int> mapping(mesh.vertices().rows());
   const double tolerance_sq = tolerance * tolerance;
@@ -377,9 +378,11 @@ std::vector<int> MeshRepairer::build_vertex_mapping(const core::Mesh &mesh,
   return mapping;
 }
 
-const core::Error &MeshRepairer::last_error() { return last_error_; }
+const core::Error& MeshRepairer::last_error() {
+  return last_error_;
+}
 
-void MeshRepairer::set_last_error(const core::Error &error) {
+void MeshRepairer::set_last_error(const core::Error& error) {
   last_error_ = error;
 }
 

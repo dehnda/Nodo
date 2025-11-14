@@ -1,10 +1,12 @@
 #pragma once
 
+#include "nodo/core/attribute_types.hpp"
+
 #include "../core/geometry_attributes.hpp"
 #include "../core/geometry_container.hpp"
 #include "../core/standard_attributes.hpp"
-#include "nodo/core/attribute_types.hpp"
 #include "sop_node.hpp"
+
 #include <memory>
 #include <random>
 
@@ -30,7 +32,7 @@ private:
   static constexpr float DEFAULT_DENSITY = 1.0F;
 
 public:
-  explicit ScatterSOP(const std::string &node_name = "scatter");
+  explicit ScatterSOP(const std::string& node_name = "scatter");
 
   /**
    * @brief Generate scattered points on input geometry
@@ -43,7 +45,7 @@ public:
       return nullptr;
     }
 
-    auto *input_geo = input_data->get_point_attribute_typed<core::Vec3f>("P");
+    auto* input_geo = input_data->get_point_attribute_typed<core::Vec3f>("P");
     if (input_geo == nullptr || input_geo->size() == 0) {
       return nullptr;
     }
@@ -67,8 +69,8 @@ public:
   /**
    * @brief Scatter points across mesh surface (new attribute system)
    */
-  void scatter_points_on_mesh(const core::GeometryContainer &input_geo,
-                              core::GeometryContainer &output_geo,
+  void scatter_points_on_mesh(const core::GeometryContainer& input_geo,
+                              core::GeometryContainer& output_geo,
                               int point_count, int seed, float density,
                               bool use_face_area);
 
@@ -76,10 +78,10 @@ private:
   /**
    * @brief Generate random point on triangle face
    */
-  core::Vector3 random_point_on_triangle(const core::Vector3 &v0,
-                                         const core::Vector3 &v1,
-                                         const core::Vector3 &v2,
-                                         std::mt19937 &generator);
+  core::Vector3 random_point_on_triangle(const core::Vector3& v0,
+                                         const core::Vector3& v1,
+                                         const core::Vector3& v2,
+                                         std::mt19937& generator);
 };
 
 } // namespace nodo::sop

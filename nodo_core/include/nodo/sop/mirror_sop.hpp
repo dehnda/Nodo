@@ -5,6 +5,7 @@
 #include "nodo/sop/sop_node.hpp"
 
 #include <Eigen/Dense>
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -39,7 +40,7 @@ public:
    * @brief Construct a new Mirror SOP
    * @param name Node name for debugging
    */
-  explicit MirrorSOP(const std::string &name = "mirror");
+  explicit MirrorSOP(const std::string& name = "mirror");
 
   /**
    * @brief Set the mirror plane
@@ -62,8 +63,8 @@ public:
    * @param point A point on the plane
    * @param normal The plane normal vector
    */
-  void set_custom_plane(const core::Vector3 &point,
-                        const core::Vector3 &normal) {
+  void set_custom_plane(const core::Vector3& point,
+                        const core::Vector3& normal) {
     set_parameter("custom_point_x", static_cast<float>(point.x()));
     set_parameter("custom_point_y", static_cast<float>(point.y()));
     set_parameter("custom_point_z", static_cast<float>(point.z()));
@@ -108,9 +109,9 @@ private:
    * @return Mirrored vertices
    */
   std::vector<core::Vector3>
-  mirror_vertices(const std::vector<core::Vector3> &vertices,
-                  const core::Vector3 &plane_point,
-                  const core::Vector3 &plane_normal) const;
+  mirror_vertices(const std::vector<core::Vector3>& vertices,
+                  const core::Vector3& plane_point,
+                  const core::Vector3& plane_normal) const;
 };
 
 } // namespace nodo::sop

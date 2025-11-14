@@ -1,8 +1,9 @@
 #include "StatusBarWidget.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
 
-StatusBarWidget::StatusBarWidget(QWidget *parent)
+StatusBarWidget::StatusBarWidget(QWidget* parent)
     : QWidget(parent), current_status_(Status::Ready) {
   setupUI();
   setStatus(Status::Ready, "Ready");
@@ -10,13 +11,13 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
 
 void StatusBarWidget::setupUI() {
   // Main horizontal layout
-  auto *main_layout = new QHBoxLayout(this);
+  auto* main_layout = new QHBoxLayout(this);
   main_layout->setContentsMargins(16, 6, 16, 6);
   main_layout->setSpacing(16);
 
   // === LEFT SECTION ===
   left_section_ = new QWidget(this);
-  auto *left_layout = new QHBoxLayout(left_section_);
+  auto* left_layout = new QHBoxLayout(left_section_);
   left_layout->setContentsMargins(0, 0, 0, 0);
   left_layout->setSpacing(12);
 
@@ -48,7 +49,7 @@ void StatusBarWidget::setupUI() {
 
   // === RIGHT SECTION ===
   right_section_ = new QWidget(this);
-  auto *right_layout = new QHBoxLayout(right_section_);
+  auto* right_layout = new QHBoxLayout(right_section_);
   right_layout->setContentsMargins(0, 0, 0, 0);
   right_layout->setSpacing(16);
 
@@ -85,7 +86,7 @@ void StatusBarWidget::setupUI() {
                 "}");
 }
 
-void StatusBarWidget::setStatus(Status status, const QString &message) {
+void StatusBarWidget::setStatus(Status status, const QString& message) {
   current_status_ = status;
   status_message_->setText(message);
   updateStatusIndicator();
@@ -96,18 +97,18 @@ void StatusBarWidget::updateStatusIndicator() {
   QString animation;
 
   switch (current_status_) {
-  case Status::Ready:
-    color = "#4ade80"; // Green
-    animation = "";    // Solid
-    break;
-  case Status::Processing:
-    color = "#ffd93d"; // Yellow
-    animation = "";    // Could add pulse animation later
-    break;
-  case Status::Error:
-    color = "#ff6b9d"; // Red
-    animation = "";
-    break;
+    case Status::Ready:
+      color = "#4ade80"; // Green
+      animation = "";    // Solid
+      break;
+    case Status::Processing:
+      color = "#ffd93d"; // Yellow
+      animation = "";    // Could add pulse animation later
+      break;
+    case Status::Error:
+      color = "#ff6b9d"; // Red
+      animation = "";
+      break;
   }
 
   status_indicator_->setStyleSheet(QString("QLabel {"
@@ -121,7 +122,7 @@ void StatusBarWidget::setNodeCount(int current) {
   node_count_label_->setText(QString("Nodes: %1").arg(current));
 }
 
-void StatusBarWidget::setGPUInfo(const QString &gpu_name) {
+void StatusBarWidget::setGPUInfo(const QString& gpu_name) {
   gpu_label_->setText(QString("⚡ GPU: %1").arg(gpu_name));
 }
 
@@ -133,6 +134,6 @@ void StatusBarWidget::setFPS(double fps) {
   }
 }
 
-void StatusBarWidget::setHintText(const QString &hint) {
+void StatusBarWidget::setHintText(const QString& hint) {
   hint_label_->setText(hint);
 }

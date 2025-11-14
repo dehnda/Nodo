@@ -1,10 +1,12 @@
 #include "nodo/sop/group_sop.hpp"
+
 #include "nodo/core/attribute_group.hpp"
+
 #include <iostream>
 
 namespace nodo::sop {
 
-GroupSOP::GroupSOP(const std::string &name) : SOPNode(name, "Group") {
+GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
   // Single input (using standard "0" port name)
   input_ports_.add_port("0", NodePort::Type::INPUT,
                         NodePort::DataType::GEOMETRY, this);
@@ -159,57 +161,58 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   std::vector<size_t> selection;
 
   switch (selection_mode) {
-  case 0: { // Range
-    int start = get_parameter<int>("range_start", 0);
-    int end = get_parameter<int>("range_end", 10);
+    case 0: { // Range
+      int start = get_parameter<int>("range_start", 0);
+      int end = get_parameter<int>("range_end", 10);
 
-    // Clamp to valid range
-    start = std::max(0, std::min(start, static_cast<int>(elem_count)));
-    end = std::max(0, std::min(end, static_cast<int>(elem_count)));
+      // Clamp to valid range
+      start = std::max(0, std::min(start, static_cast<int>(elem_count)));
+      end = std::max(0, std::min(end, static_cast<int>(elem_count)));
 
-    if (start < end) {
-      for (int i = start; i < end; ++i) {
-        selection.push_back(static_cast<size_t>(i));
+      if (start < end) {
+        for (int i = start; i < end; ++i) {
+          selection.push_back(static_cast<size_t>(i));
+        }
       }
+      break;
     }
-    break;
-  }
 
-  case 1: { // Every Nth (Pattern)
-    int step = get_parameter<int>("pattern_step", 2);
-    int offset = get_parameter<int>("pattern_offset", 0);
+    case 1: { // Every Nth (Pattern)
+      int step = get_parameter<int>("pattern_step", 2);
+      int offset = get_parameter<int>("pattern_offset", 0);
 
-    step = std::max(1, step);
-    offset = std::max(0, offset);
+      step = std::max(1, step);
+      offset = std::max(0, offset);
 
-    for (size_t i = offset; i < elem_count; i += step) {
-      selection.push_back(i);
+      for (size_t i = offset; i < elem_count; i += step) {
+        selection.push_back(i);
+      }
+      break;
     }
-    break;
-  }
 
-  case 2: { // Random
-    int count = get_parameter<int>("random_count", 10);
-    int seed = get_parameter<int>("random_seed", 0);
+    case 2: { // Random
+      int count = get_parameter<int>("random_count", 10);
+      int seed = get_parameter<int>("random_seed", 0);
 
-    count = std::max(0, std::min(count, static_cast<int>(elem_count)));
+      count = std::max(0, std::min(count, static_cast<int>(elem_count)));
 
-    // Use the existing random selection function
-    // Note: We need to create a temp group, get elements, then apply operation
-    std::string temp_group = "__temp_random__";
-    core::create_group(*result, temp_group, elem_class);
-    core::select_random(*result, temp_group, elem_class, count, seed);
-    selection = core::get_group_elements(*result, temp_group, elem_class);
-    core::delete_group(*result, temp_group, elem_class);
-    break;
-  }
-
-  case 3: { // All
-    for (size_t i = 0; i < elem_count; ++i) {
-      selection.push_back(i);
+      // Use the existing random selection function
+      // Note: We need to create a temp group, get elements, then apply
+      // operation
+      std::string temp_group = "__temp_random__";
+      core::create_group(*result, temp_group, elem_class);
+      core::select_random(*result, temp_group, elem_class, count, seed);
+      selection = core::get_group_elements(*result, temp_group, elem_class);
+      core::delete_group(*result, temp_group, elem_class);
+      break;
     }
-    break;
-  }
+
+    case 3: { // All
+      for (size_t i = 0; i < elem_count; ++i) {
+        selection.push_back(i);
+      }
+      break;
+    }
   }
 
   // Apply operation

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 
@@ -26,7 +27,7 @@ public:
    * @brief Construct a new Boolean SOP
    * @param name Node name for debugging
    */
-  explicit BooleanSOP(const std::string &node_name = "boolean");
+  explicit BooleanSOP(const std::string& node_name = "boolean");
 
   // Dual-input node - requires exactly 2 inputs
   InputConfig get_input_config() const override {

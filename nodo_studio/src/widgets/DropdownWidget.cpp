@@ -3,21 +3,21 @@
 namespace nodo_studio {
 namespace widgets {
 
-DropdownWidget::DropdownWidget(const QString &label,
-                               const std::vector<QString> &options,
-                               int initial_index, const QString &description,
-                               QWidget *parent)
-    : BaseParameterWidget(label, description, parent), options_(options),
+DropdownWidget::DropdownWidget(const QString& label,
+                               const std::vector<QString>& options,
+                               int initial_index, const QString& description,
+                               QWidget* parent)
+    : BaseParameterWidget(label, description, parent),
+      options_(options),
       selected_index_(initial_index) {
-
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
 
-QWidget *DropdownWidget::createControlWidget() {
+QWidget* DropdownWidget::createControlWidget() {
   combobox_ = new QComboBox(this);
 
-  for (const auto &option : options_) {
+  for (const auto& option : options_) {
     combobox_->addItem(option);
   }
 
@@ -96,7 +96,7 @@ void DropdownWidget::setSelectedIndex(int index) {
   }
 }
 
-void DropdownWidget::setSelectedOption(const QString &option) {
+void DropdownWidget::setSelectedOption(const QString& option) {
   for (size_t i = 0; i < options_.size(); ++i) {
     if (options_[i] == option) {
       setSelectedIndex(i);
@@ -105,7 +105,7 @@ void DropdownWidget::setSelectedOption(const QString &option) {
   }
 }
 
-void DropdownWidget::setOptions(const std::vector<QString> &options,
+void DropdownWidget::setOptions(const std::vector<QString>& options,
                                 int selected_index) {
   options_ = options;
   selected_index_ =
@@ -114,7 +114,7 @@ void DropdownWidget::setOptions(const std::vector<QString> &options,
   if (combobox_) {
     combobox_->blockSignals(true);
     combobox_->clear();
-    for (const auto &option : options_) {
+    for (const auto& option : options_) {
       combobox_->addItem(option);
     }
     combobox_->setCurrentIndex(selected_index_);
@@ -128,7 +128,7 @@ void DropdownWidget::setOptions(const std::vector<QString> &options,
 }
 
 void DropdownWidget::setSelectionChangedCallback(
-    std::function<void(int, const QString &)> callback) {
+    std::function<void(int, const QString&)> callback) {
   selection_changed_callback_ = callback;
 }
 

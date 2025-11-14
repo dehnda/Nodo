@@ -2,6 +2,7 @@
 
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/sop/sop_node.hpp"
+
 #include <memory>
 #include <string>
 
@@ -22,7 +23,7 @@ public:
    * @brief Construct decimation operator with name
    * @param name Unique identifier for this SOP instance
    */
-  explicit DecimationSOP(const std::string &name = "decimate");
+  explicit DecimationSOP(const std::string& name = "decimate");
 
   /**
    * @brief Set target reduction percentage
