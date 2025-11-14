@@ -12,6 +12,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     OpenGL
     OpenGLWidgets
     Svg
+    Concurrent
 )
 
 # System OpenGL (for legacy fixed-function calls like glBegin/glEnd on Windows)

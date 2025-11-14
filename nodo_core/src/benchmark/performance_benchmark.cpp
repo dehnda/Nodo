@@ -9,6 +9,7 @@
 #include "nodo/performance/profiler.hpp"
 
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -152,7 +153,7 @@ public:
               << std::string(29, ' ') << "║\n";
     std::cout << "║  Std Dev:  " << std::setw(8) << std_dev << " ms"
               << std::string(29, ' ') << "║\n";
-    std::cout << "║  " << std::string(52, '─') << "║\n";
+    std::cout << "║  " << std::string(52, '-') << "║\n";
     std::cout << "║  Nodes:        " << std::setw(8) << graph.get_nodes().size()
               << std::string(29, ' ') << "║\n";
     std::cout << "║  Points:       " << std::setw(8) << point_count

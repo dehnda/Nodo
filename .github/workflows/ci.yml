@@ -28,6 +28,7 @@ jobs:
             lcov \
             qt6-base-dev \
             libqt6svg6-dev \
+            libqt6concurrent6 \
             libgl1-mesa-dev \
             libglu1-mesa-dev \
             libx11-dev \
@@ -70,7 +71,7 @@ jobs:
 
       - name: Install Conan dependencies
         run: |
-          conan install . --output-folder=build/Debug --build=missing -s build_type=Debug -o system_qt=True -o nodo:with_tests=True
+          conan install . --output-folder=build/Debug --build=missing -s build_type=Debug -o system_qt=True -o "nodo/*:with_tests=True"
 
       - name: Configure CMake with coverage
         run: |

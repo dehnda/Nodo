@@ -127,7 +127,7 @@ public:
 
     // Print each section
     for (const auto& [name, section] : sorted) {
-      double percent = (section->total_time() / total_time) * 100.0;
+      // double percent = (section->total_time() / total_time) * 100.0;
 
       char line[200];
       snprintf(line, sizeof(line),

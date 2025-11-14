@@ -236,12 +236,8 @@ int NodeGraph::add_node_with_id(int node_id, NodeType type,
   // Use provided name or generate one from the type
   std::string base_name = name.empty() ? get_node_type_name(type) : name;
 
-  std::string final_name;
-  if (name.empty()) {
-    final_name = generate_unique_node_name(base_name);
-  } else {
-    final_name = name;
-  }
+  // Always ensure the name is unique
+  std::string final_name = generate_unique_node_name(base_name);
 
   auto node = std::make_unique<GraphNode>(node_id, type);
   node->set_name(final_name);
