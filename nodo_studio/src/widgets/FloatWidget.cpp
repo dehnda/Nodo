@@ -162,10 +162,8 @@ QWidget* FloatWidget::createControlWidget() {
           .arg(COLOR_ACCENT)
           .arg(COLOR_PANEL));
 
-  // M3.3 Phase 5: Create auto-completer for expressions
   expression_completer_ = new ExpressionCompleter(expression_edit_, this);
 
-  // M3.3 Phase 6: Create debounced validation timer
   validation_timer_ = new QTimer(this);
   validation_timer_->setSingleShot(true);
   validation_timer_->setInterval(500); // 500ms debounce
@@ -328,7 +326,6 @@ void FloatWidget::setExpressionMode(bool enabled) {
       expression_edit_->setText(QString::number(current_value_, 'g', 6));
     }
 
-    // M3.3 Phase 5: Enable auto-completer
     expression_completer_->setEnabled(true);
 
     // Disable value scrubbing in expression mode
@@ -340,7 +337,6 @@ void FloatWidget::setExpressionMode(bool enabled) {
     mode_toggle_button_->setText("≡");
     mode_toggle_button_->setToolTip("Switch to expression mode");
 
-    // M3.3 Phase 5: Disable auto-completer
     expression_completer_->setEnabled(false);
 
     // Re-enable value scrubbing
@@ -358,7 +354,6 @@ void FloatWidget::setExpression(const QString& expr) {
 void FloatWidget::onExpressionEditingFinished() {
   expression_text_ = expression_edit_->text();
 
-  // M3.3 Phase 6: Validate expression using ExpressionValidator
   if (!expression_text_.isEmpty()) {
     Nodo::ExpressionValidator validator;
     auto result = validator.validate(expression_text_);
@@ -396,7 +391,6 @@ void FloatWidget::onExpressionEditingFinished() {
   }
 }
 
-// M3.3 Phase 4: Visual Indicators
 void FloatWidget::updateExpressionVisuals() {
   if (!is_expression_mode_ || expression_text_.isEmpty()) {
     // Reset to default styling
@@ -525,7 +519,6 @@ void FloatWidget::onModeToggleClicked() {
   setExpressionMode(!is_expression_mode_);
 }
 
-// M3.3 Phase 6: Real-time validation (debounced)
 void FloatWidget::onValidationTimerTimeout() {
   if (!is_expression_mode_ || expression_edit_->text().isEmpty()) {
     return;

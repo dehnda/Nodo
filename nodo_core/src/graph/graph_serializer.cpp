@@ -766,7 +766,6 @@ std::string GraphSerializer::parameter_to_json(const NodeParameter& param) {
   json param_json;
   param_json["name"] = param.name;
 
-  // M3.3 Phase 2: Serialize expression mode and expression string
   if (param.has_expression()) {
     param_json["value_mode"] = "expression";
     param_json["expression_string"] = param.get_expression();
@@ -822,7 +821,6 @@ GraphSerializer::json_to_parameter(const std::string& json_obj) {
     std::string name = param_json["name"];
     std::string type = param_json["type"];
 
-    // M3.3 Phase 2: Check for expression mode (backward compatible)
     bool has_expression_mode = param_json.contains("value_mode") &&
                                param_json["value_mode"] == "expression";
     std::string expression_str;
@@ -859,7 +857,6 @@ GraphSerializer::json_to_parameter(const std::string& json_obj) {
       return std::nullopt;
     }
 
-    // M3.3 Phase 2: Restore expression if present
     if (result_param.has_value() && has_expression_mode &&
         !expression_str.empty()) {
       result_param->set_expression(expression_str);

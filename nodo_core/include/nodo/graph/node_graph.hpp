@@ -138,7 +138,6 @@ struct NodeParameter {
   std::string category; // UI grouping/filtering (optional)
   std::string ui_hint;  // UI widget hint (e.g., "filepath", "multiline")
 
-  // M3.3 Phase 2: Value storage mode
   ParameterValueMode value_mode = ParameterValueMode::LITERAL;
 
   // Expression string (used when value_mode == EXPRESSION)
@@ -242,8 +241,6 @@ struct NodeParameter {
     ui_range.int_max = static_cast<int>(options.size()) - 1;
   }
 
-  // M3.3 Phase 2: Expression mode helpers
-
   /**
    * @brief Set this parameter to use an expression instead of literal value
    * @param expr The expression string (e.g., "$radius * 2", "sin(pi/4)")
@@ -318,20 +315,17 @@ class GraphNode {
 public:
   GraphNode(int id, NodeType type);
 
-  // Basic properties
   int get_id() const { return id_; }
   NodeType get_type() const { return type_; }
   const std::string& get_name() const { return name_; }
   void set_name(const std::string& name) { name_ = name; }
 
-  // Position (for UI layout)
   std::pair<float, float> get_position() const { return {x_, y_}; }
   void set_position(float x, float y) {
     x_ = x;
     y_ = y;
   }
 
-  // Parameters
   void add_parameter(const NodeParameter& param);
   void remove_parameter(const std::string& name);
   std::optional<NodeParameter> get_parameter(const std::string& name) const;
@@ -340,16 +334,13 @@ public:
     return parameters_;
   }
 
-  // Pins
   const std::vector<NodePin>& get_input_pins() const { return input_pins_; }
   const std::vector<NodePin>& get_output_pins() const { return output_pins_; }
 
-  // State
   bool needs_update() const { return needs_update_; }
   void mark_for_update() { needs_update_ = true; }
   void mark_updated() { needs_update_ = false; }
 
-  // Flags (Houdini-style)
   bool has_display_flag() const { return display_flag_; }
   void set_display_flag(bool flag) { display_flag_ = flag; }
 
@@ -364,7 +355,6 @@ public:
     pass_through_flag_ = pass_through;
   }
 
-  // Error state
   bool has_error() const { return has_error_; }
   void set_error(bool error, const std::string& message = "") {
     has_error_ = error;
@@ -372,13 +362,11 @@ public:
   }
   const std::string& get_error_message() const { return error_message_; }
 
-  // Result cache
   void set_output_mesh(std::shared_ptr<core::Mesh> mesh) {
     output_mesh_ = mesh;
   }
   std::shared_ptr<core::Mesh> get_output_mesh() const { return output_mesh_; }
 
-  // Cook time (execution duration in milliseconds)
   double get_cook_time() const { return cook_time_ms_; }
   void set_cook_time(double time_ms) { cook_time_ms_ = time_ms; }
 
@@ -397,17 +385,14 @@ private:
   bool needs_update_ = true;
   std::shared_ptr<core::Mesh> output_mesh_;
 
-  // Houdini-style flags
   bool display_flag_ = false;
   bool render_flag_ = false;
   bool bypass_flag_ = false;
   bool pass_through_flag_ = false; // When enabled, node passes input unchanged
 
-  // Error state
   bool has_error_ = false;
   std::string error_message_;
 
-  // Performance tracking
   double cook_time_ms_ = 0.0;
 };
 
@@ -419,13 +404,11 @@ public:
   NodeGraph() = default;
   ~NodeGraph() = default;
 
-  // Non-copyable but movable
   NodeGraph(const NodeGraph&) = delete;
   NodeGraph& operator=(const NodeGraph&) = delete;
   NodeGraph(NodeGraph&&) = default;
   NodeGraph& operator=(NodeGraph&&) = default;
 
-  // Node management
   int add_node(NodeType type, const std::string& name = "");
   int add_node_with_id(int node_id, NodeType type,
                        const std::string& name = ""); // For undo/redo
@@ -436,11 +419,9 @@ public:
     return nodes_;
   }
 
-  // ID management (for deserialization)
   void set_next_node_id(int id) { next_node_id_ = id; }
   void set_next_connection_id(int id) { next_connection_id_ = id; }
 
-  // Connection management
   int add_connection(int source_node_id, int source_pin, int target_node_id,
                      int target_pin);
   bool remove_connection(int connection_id);
@@ -449,7 +430,6 @@ public:
     return connections_;
   }
 
-  // Graph queries
   std::vector<int> get_input_nodes(int node_id) const;
   std::vector<int> get_output_nodes(int node_id) const;
   std::vector<int> get_execution_order() const; // Topological sort
@@ -466,16 +446,13 @@ public:
    */
   std::vector<int> get_upstream_dependencies(int node_id) const;
 
-  // Graph operations
   void clear();
   bool is_valid() const;
   bool has_cycles() const;
 
-  // Display flag management (only one node can have display flag)
   void set_display_node(int node_id);
   int get_display_node() const;
 
-  // Events
   using NodeChangedCallback = std::function<void(int node_id)>;
   using ConnectionChangedCallback = std::function<void(int connection_id)>;
 
@@ -486,7 +463,6 @@ public:
     connection_changed_callback_ = callback;
   }
 
-  // Graph parameters (M3.2)
   /**
    * @brief Add or update a graph-level parameter
    * @param parameter The graph parameter to add/update
@@ -560,14 +536,11 @@ private:
   int next_node_id_ = 1;
   int next_connection_id_ = 1;
 
-  // Graph-level parameters (M3.2)
   std::vector<class GraphParameter> graph_parameters_;
 
-  // Event callbacks
   NodeChangedCallback node_changed_callback_;
   ConnectionChangedCallback connection_changed_callback_;
 
-  // Helper methods
   void notify_node_changed(int node_id);
   void notify_connection_changed(int connection_id);
   std::string generate_node_name(NodeType type) const;

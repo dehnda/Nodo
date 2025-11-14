@@ -6,7 +6,6 @@
 
 namespace nodo::studio {
 
-// Base GeometryTableModel implementation
 GeometryTableModel::GeometryTableModel(QObject* parent)
     : QAbstractTableModel(parent) {}
 
@@ -170,7 +169,6 @@ QString GeometryTableModel::formatValue(const QVariant& value) const {
   return value.toString();
 }
 
-// PointAttributeTableModel implementation
 PointAttributeTableModel::PointAttributeTableModel(QObject* parent)
     : GeometryTableModel(parent) {}
 
@@ -255,7 +253,6 @@ PointAttributeTableModel::getElementData(size_t element_index,
   return QVariant();
 }
 
-// VertexAttributeTableModel implementation
 VertexAttributeTableModel::VertexAttributeTableModel(QObject* parent)
     : GeometryTableModel(parent) {}
 
@@ -338,7 +335,6 @@ VertexAttributeTableModel::getElementData(size_t element_index,
   return QVariant();
 }
 
-// PrimitiveAttributeTableModel implementation
 PrimitiveAttributeTableModel::PrimitiveAttributeTableModel(QObject* parent)
     : GeometryTableModel(parent) {}
 
@@ -366,7 +362,6 @@ PrimitiveAttributeTableModel::getElementData(size_t element_index,
 
   auto attr = geometry_->get_primitive_attribute(column.attribute_name);
 
-  // Debug output for group attributes
   if (column.attribute_name.find("group_") == 0) {
     std::cerr << "PrimitiveAttributeTableModel::getElementData for '"
               << column.attribute_name << "' element " << element_index;
@@ -434,7 +429,6 @@ PrimitiveAttributeTableModel::getElementData(size_t element_index,
   return QVariant();
 }
 
-// DetailAttributeTableModel implementation
 DetailAttributeTableModel::DetailAttributeTableModel(QObject* parent)
     : GeometryTableModel(parent) {}
 

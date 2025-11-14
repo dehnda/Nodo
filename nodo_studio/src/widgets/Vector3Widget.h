@@ -13,7 +13,8 @@
 
 namespace nodo_studio {
 namespace widgets {
-class ExpressionCompleter; // Forward declaration
+class ExpressionCompleter;
+class ExpressionValidator;
 
 /**
  * @brief Widget for editing 3D vector parameters (X, Y, Z)
@@ -88,7 +89,10 @@ private slots:
   void onSpinBoxValueChanged(int component, double value);
   void onExpressionEditingFinished();
   void onModeToggleClicked();
-  void onValidationTimerTimeout(); // M3.3 Phase 6: Real-time validation
+  void onXChanged();
+  void onYChanged();
+  void onZChanged();
+  void onValidationTimerTimeout();
 
 private:
   void updateComponent(int component, double value, bool emit_signal = true);
@@ -108,12 +112,13 @@ private:
   QPushButton* mode_toggle_button_{nullptr};
   QWidget* numeric_container_{nullptr};
   QWidget* expression_container_{nullptr};
-  ExpressionCompleter* expression_completer_{nullptr}; // M3.3 Phase 5
-  QTimer* validation_timer_{nullptr}; // M3.3 Phase 6: Debounced validation
 
   // Expression mode state
   bool is_expression_mode_{false};
   QString expression_text_;
+  ExpressionCompleter* expression_completer_{nullptr};
+  QTimer* validation_timer_{nullptr};
+  ExpressionValidator* expression_validator_{nullptr};
 
   std::function<void(double, double, double)> value_changed_callback_;
 

@@ -78,7 +78,7 @@ private slots:
   void onSliderValueChanged(int value);
   void onExpressionEditingFinished();
   void onModeToggleClicked();
-  void onValidationTimerTimeout(); // M3.3 Phase 6: Real-time validation
+  void onValidationTimerTimeout();
 
 private:
   // Value range
@@ -95,9 +95,9 @@ private:
   QPushButton* mode_toggle_button_;
   QWidget* numeric_container_;
   QWidget* expression_container_;
-  ExpressionCompleter* expression_completer_; // M3.3 Phase 5
-  QTimer* validation_timer_;    // M3.3 Phase 6: Debounced validation
-  QTimer* slider_update_timer_; // Periodic updates during slider drag
+  ExpressionCompleter* expression_completer_;
+  QTimer* validation_timer_;
+  QTimer* slider_update_timer_;
 
   // Expression mode state
   bool is_expression_mode_ = false;

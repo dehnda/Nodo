@@ -223,9 +223,8 @@ public:
 
 private:
   const NodeGraph& graph_;
-  const std::vector<NodeParameter>*
-      node_params_;     // M3.3: For same-node param refs
-  int current_node_id_; // M3.3 Phase 3: For ch() cross-node references
+  const std::vector<NodeParameter>* node_params_;
+  int current_node_id_;
 
   /**
    * @brief Convert node parameter to string value
@@ -259,7 +258,6 @@ private:
    * Checks node parameters first, then graph parameters
    */
   std::string get_parameter_value(const std::string& param_name) const {
-    // M3.3: First check same-node parameters
     if (node_params_ != nullptr) {
       for (const auto& param : *node_params_) {
         if (param.name == param_name) {

@@ -239,10 +239,6 @@ void ExecutionEngine::invalidate_node(NodeGraph& graph, int node_id) {
 void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
                                           sop::SOPNode& sop_node,
                                           const NodeGraph& graph) {
-  // M3.3 Phase 3: Create expression resolver with access to:
-  // - Global graph parameters
-  // - Same-node parameters
-  // - Cross-node parameters via ch() function
   const auto& node_params = graph_node.get_parameters();
   ParameterExpressionResolver resolver(graph, &node_params,
                                        graph_node.get_id());
@@ -251,7 +247,6 @@ void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
   for (const auto& param : node_params) {
     switch (param.type) {
       case NodeParameter::Type::Float: {
-        // M3.3 Phase 2: Check if parameter uses an expression
         if (param.has_expression()) {
           // Evaluate expression
           auto result = resolver.resolve_float(param.get_expression());
@@ -269,7 +264,6 @@ void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
       }
 
       case NodeParameter::Type::Int: {
-        // M3.3 Phase 2: Check if parameter uses an expression
         if (param.has_expression()) {
           // Evaluate expression
           auto result = resolver.resolve_int(param.get_expression());
@@ -312,7 +306,6 @@ void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
       }
 
       case NodeParameter::Type::Vector3: {
-        // M3.3 Phase 2: Check if parameter uses an expression
         Eigen::Vector3f vec3;
 
         if (param.has_expression()) {

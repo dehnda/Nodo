@@ -156,10 +156,8 @@ QWidget* Vector3Widget::createControlWidget() {
           .arg(COLOR_ACCENT)
           .arg(COLOR_PANEL));
 
-  // M3.3 Phase 5: Create auto-completer for expressions
   expression_completer_ = new ExpressionCompleter(expression_edit_, this);
 
-  // M3.3 Phase 6: Create debounced validation timer
   validation_timer_ = new QTimer(this);
   validation_timer_->setSingleShot(true);
   validation_timer_->setInterval(500); // 500ms debounce
@@ -342,7 +340,6 @@ void Vector3Widget::setExpressionMode(bool enabled) {
                                     .arg(values_[2], 0, 'g', 6));
     }
 
-    // M3.3 Phase 5: Enable auto-completer
     expression_completer_->setEnabled(true);
   } else {
     // Switch to numeric mode
@@ -351,7 +348,6 @@ void Vector3Widget::setExpressionMode(bool enabled) {
     mode_toggle_button_->setText("≡");
     mode_toggle_button_->setToolTip("Switch to expression mode");
 
-    // M3.3 Phase 5: Disable auto-completer
     expression_completer_->setEnabled(false);
   }
 }
@@ -366,7 +362,6 @@ void Vector3Widget::setExpression(const QString& expr) {
 void Vector3Widget::onExpressionEditingFinished() {
   expression_text_ = expression_edit_->text();
 
-  // M3.3 Phase 6: Validate expression using ExpressionValidator
   if (!expression_text_.isEmpty()) {
     Nodo::ExpressionValidator validator;
     auto result = validator.validate(expression_text_);
@@ -407,7 +402,6 @@ void Vector3Widget::onModeToggleClicked() {
   setExpressionMode(!is_expression_mode_);
 }
 
-// M3.3 Phase 4: Visual Indicators
 void Vector3Widget::updateExpressionVisuals() {
   if (!is_expression_mode_ || expression_text_.isEmpty()) {
     // Reset to default styling
@@ -505,7 +499,10 @@ void Vector3Widget::setExpressionError(const QString& error) {
           .arg(error));
 }
 
-// M3.3 Phase 6: Real-time validation (debounced)
+void Vector3Widget::onXChanged() {}
+void Vector3Widget::onYChanged() {}
+void Vector3Widget::onZChanged() {}
+
 void Vector3Widget::onValidationTimerTimeout() {
   if (!is_expression_mode_ || expression_edit_->text().isEmpty()) {
     return;

@@ -886,7 +886,6 @@ void PropertyPanel::connectParameterWidget(
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
 
-      // M3.3 Phase 2: Check if widget is in expression mode
       if (float_widget->isExpressionMode()) {
         // Store the expression string instead of evaluating it here
         updated_param.set_expression(
@@ -942,7 +941,6 @@ void PropertyPanel::connectParameterWidget(
       updated_param.category_control_param = param.category_control_param;
       updated_param.category_control_value = param.category_control_value;
 
-      // M3.3 Phase 2: Check if widget is in expression mode
       if (int_widget->isExpressionMode()) {
         updated_param.set_expression(int_widget->getExpression().toStdString());
       } else {
@@ -981,7 +979,6 @@ void PropertyPanel::connectParameterWidget(
           updated_param.category_control_param = param.category_control_param;
           updated_param.category_control_value = param.category_control_value;
 
-          // M3.3 Phase 2: Check if widget is in expression mode
           if (vec3_widget->isExpressionMode()) {
             updated_param.set_expression(
                 vec3_widget->getExpression().toStdString());

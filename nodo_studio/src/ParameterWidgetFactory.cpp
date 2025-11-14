@@ -72,24 +72,16 @@ BaseParameterWidget* ParameterWidgetFactory::createWidget(
       std::string value = std::get<std::string>(def.default_value);
       QString qvalue = QString::fromStdString(value);
 
-      // Debug output
-      qDebug() << "String parameter:" << QString::fromStdString(def.name)
-               << "ui_hint:" << QString::fromStdString(def.ui_hint);
-
-      // Check if it's a file path parameter (ui_hint or common naming
-      // conventions)
       if (def.ui_hint == "filepath" || def.ui_hint == "filepath_save" ||
           def.name.find("file") != std::string::npos ||
           def.name.find("path") != std::string::npos ||
           def.name.find("texture") != std::string::npos) {
-        qDebug() << "  -> Creating FilePathWidget";
         FilePathWidget::Mode mode = (def.ui_hint == "filepath_save")
                                         ? FilePathWidget::Mode::SaveFile
                                         : FilePathWidget::Mode::OpenFile;
         return createFilePathWidget(label, qvalue, description, parent, mode);
       }
 
-      qDebug() << "  -> Creating StringWidget";
       return createStringWidget(label, qvalue, description, parent);
     }
 
@@ -131,7 +123,6 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
       auto* widget =
           createFloatWidget(label, param.float_value, param.ui_range.float_min,
                             param.ui_range.float_max, description, parent);
-      // M3.3 Phase 2: Restore expression mode if parameter has an expression
       if (param.has_expression()) {
         auto* float_widget = dynamic_cast<FloatWidget*>(widget);
         if (float_widget) {
@@ -139,7 +130,6 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
           QString expr = QString::fromStdString(param.get_expression());
           float_widget->setExpression(expr);
 
-          // M3.3 Phase 4: Check if expression has parameter references
           bool has_references = expr.contains('$') || expr.contains("ch(");
 
           if (has_references) {
@@ -187,7 +177,6 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
       auto* widget =
           createIntWidget(label, param.int_value, param.ui_range.int_min,
                           param.ui_range.int_max, description, parent);
-      // M3.3 Phase 2: Restore expression mode if parameter has an expression
       if (param.has_expression()) {
         auto* int_widget = dynamic_cast<IntWidget*>(widget);
         if (int_widget) {
@@ -195,7 +184,6 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
           QString expr = QString::fromStdString(param.get_expression());
           int_widget->setExpression(expr);
 
-          // M3.3 Phase 4: Check if expression has parameter references
           bool has_references = expr.contains('$') || expr.contains("ch(");
 
           if (has_references) {
@@ -250,7 +238,6 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
           label, param.vector3_value[0], param.vector3_value[1],
           param.vector3_value[2], param.ui_range.float_min,
           param.ui_range.float_max, description, parent);
-      // M3.3 Phase 2: Restore expression mode if parameter has an expression
       if (param.has_expression()) {
         auto* vec3_widget = dynamic_cast<Vector3Widget*>(widget);
         if (vec3_widget) {
@@ -258,7 +245,6 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
           QString expr = QString::fromStdString(param.get_expression());
           vec3_widget->setExpression(expr);
 
-          // M3.3 Phase 4: Check if expression has parameter references
           bool has_references = expr.contains('$') || expr.contains("ch(");
 
           if (has_references) {

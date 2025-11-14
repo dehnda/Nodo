@@ -236,11 +236,15 @@ int NodeGraph::add_node_with_id(int node_id, NodeType type,
   // Use provided name or generate one from the type
   std::string base_name = name.empty() ? get_node_type_name(type) : name;
 
-  // M3.3 Phase 3: Ensure unique node names (sphere, sphere1, sphere2, etc.)
-  std::string node_name = generate_unique_node_name(base_name);
+  std::string final_name;
+  if (name.empty()) {
+    final_name = generate_unique_node_name(base_name);
+  } else {
+    final_name = name;
+  }
 
   auto node = std::make_unique<GraphNode>(node_id, type);
-  node->set_name(node_name);
+  node->set_name(final_name);
 
   // Initialize parameters from the SOP definition
   initialize_node_parameters_from_sop(*node);
@@ -517,7 +521,6 @@ std::string NodeGraph::generate_node_name(NodeType type) const {
   return sop::SOPFactory::get_display_name(type);
 }
 
-// M3.3 Phase 3: Generate unique node names for ch() function
 std::string
 NodeGraph::generate_unique_node_name(const std::string& base_name) const {
   // Check if base name is already unique
@@ -680,7 +683,6 @@ bool NodeGraph::is_valid_parameter_name(const std::string& name) {
   return true;
 }
 
-// M3.3 Phase 3: Cross-node parameter path resolution
 std::optional<std::string>
 NodeGraph::resolve_parameter_path(int current_node_id,
                                   const std::string& path) const {
