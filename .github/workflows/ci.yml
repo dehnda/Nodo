@@ -1,7 +1,11 @@
 name: CI
 
 on:
-  workflow_dispatch:  # Only manual trigger (disabled auto-trigger for now)
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -21,6 +25,7 @@ jobs:
             cmake \
             pkg-config \
             python3-pip \
+            lcov \
             qt6-base-dev \
             libqt6svg6-dev \
             libgl1-mesa-dev \
@@ -65,9 +70,9 @@ jobs:
 
       - name: Install Conan dependencies
         run: |
-          conan install . --output-folder=build/Debug --build=missing -s build_type=Debug -o system_qt=True
+          conan install . --output-folder=build/Debug --build=missing -s build_type=Debug -o system_qt=True -o nodo:with_tests=True
 
-      - name: Configure CMake
+      - name: Configure CMake with coverage
         run: |
           TOOLCHAIN=$(find build/Debug -name "conan_toolchain.cmake" -type f | head -1)
           if [ -z "$TOOLCHAIN" ]; then
@@ -75,7 +80,11 @@ jobs:
             exit 1
           fi
           echo "Found toolchain at: $TOOLCHAIN"
-          cmake -S . -B build/Debug -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DCMAKE_BUILD_TYPE=Debug
+          cmake -S . -B build/Debug \
+            -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="--coverage" \
+            -DCMAKE_EXE_LINKER_FLAGS="--coverage"
 
       - name: Build
         run: |
@@ -85,6 +94,20 @@ jobs:
         run: |
           cd build/Debug
           ctest --output-on-failure --verbose -C Debug
+
+      - name: Generate coverage report
+        run: |
+          lcov --capture --directory build/Debug --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/external/*' '*/tests/*' '*/build/*' '*.conan2*' --output-file coverage_filtered.info
+          lcov --list coverage_filtered.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage_filtered.info
+          flags: unittests
+          name: codecov-nodo
+          fail_ci_if_error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

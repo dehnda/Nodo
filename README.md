@@ -2,53 +2,59 @@
 
 ![Nodo Logo](nodo_studio/resources/logos/nodo_logo_horizontal.svg)
 
-A modern C++20 **GPU-accelerated procedural mesh generation library** with node-based workflows and real-time performance.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/dehnda/Nodo/workflows/CI/badge.svg)](https://github.com/dehnda/Nodo/actions)
+[![codecov](https://codecov.io/gh/dehnda/Nodo/branch/main/graph/badge.svg)](https://codecov.io/gh/dehnda/Nodo)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/dehnda/Nodo)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
+[![Qt](https://img.shields.io/badge/Qt-6.7-green.svg)](https://www.qt.io/)
+[![CMake](https://img.shields.io/badge/CMake-3.20%2B-064F8C.svg)](https://cmake.org/)
+[![Conan](https://img.shields.io/badge/Conan-2.x-blue.svg)](https://conan.io/)
+
+A professional **node-based procedural 3D modeling tool** with real-time workflows and parametric control.
+
+> **⚠️ Early Development**: Nodo is actively being developed. Features and APIs may change. Use for experimentation and provide feedback!
+
+![Nodo Studio Interface](website/Nodo_Studio_Screenshot.png)
 
 ## 🎯 Vision
 
-Nodo is the **first GPU-native procedural mesh generation system** that combines:
-- **🔥 Houdini-inspired SOP workflow** with visual node-based operations
-- **⚡ Complete GPU acceleration** for real-time performance
-- **🧠 Intelligent caching & data flow** for complex procedural workflows
-- **🎯 Modern C++20 architecture** with robust error handling
+Nodo brings **Houdini-inspired procedural modeling** to everyone:
+- **🔥 Visual node-based workflow** - Connect nodes to build complex geometry
+- **⚡ Real-time updates** - See changes instantly as you work
+- **🧠 Expression system** - Parameter-driven workflows with math expressions
+- **🎯 Production-ready** - 44+ nodes for complete modeling workflows
 
-## ✅ Current Status (Production Ready)
+## ✅ What's Included
 
-### **🏗️ Core Infrastructure**
-- **Core Architecture**: C++20 modern design with std::optional error handling
-- **Build System**: CMake with Conan 2.x unified dependency management
-- **Unit Testing**: Comprehensive Google Test suite with 59 passing tests
-- **GPU Framework**: Complete OpenGL compute shader system
+### **🎨 44+ Production Nodes**
+- **Generators**: Box, Sphere, Cylinder, Torus, Grid, Line
+- **Modifiers**: Extrude, Subdivide, Smooth, Noise, Bevel, Mirror, Bend, Twist
+- **Transform**: Transform, Array, Copy to Points, Scatter, Align
+- **Boolean**: Union, Intersection, Difference, Merge, Split
+- **Attributes**: Wrangle (expressions), Color, Normal, UV Unwrap
+- **Groups**: Create, Delete, Combine, Promote, Expand, Transfer
+- **Advanced**: Geodesic, Remesh, Parameterize, Curvature, Repair
+- **Utility**: Switch, Null, Output, File I/O
 
-### **🎨 Mesh Generation Engine**
-- **All Primitives**: Box, Sphere (UV/Icosphere), Cylinder, Plane, Torus generators
-- **Complete Node System**: Parameter-driven node architecture for all primitives
-- **Mesh Validation**: Comprehensive validation and repair system
-- **Export System**: Wavefront OBJ file format support
+### **⚡ Expression System**
+- **Parameter expressions**: `$F * 0.1`, `ch("../box/size")`
+- **Math functions**: `sin()`, `cos()`, `rand()`, `noise()`
+- **Channel references**: Link parameters across nodes
+- **Graph parameters**: Expose controls for entire graphs
 
-### **🚀 GPU Acceleration**
-- **GPU Mesh Generation**: All primitives working with 10-100x speedups for large meshes
-- **BVH Spatial Acceleration**: 45x speedup over brute-force boolean operations
-- **Hardware Utilization**: Full RTX 5070 Ti support with 1024 work groups
+### **🔧 Professional Features**
+- **Real-time preview**: See changes as you modify parameters
+- **Undo/Redo**: Full history with Ctrl+Z/Ctrl+Y
+- **Keyboard shortcuts**: Professional workflow navigation
+- **File format**: OBJ import/export with full attribute support
+- **CLI tool**: Headless batch processing (nodo_cli)
 
-### **🔧 Boolean & Spatial Operations**
-- **Boolean Operations**: Union, intersection, difference with CGAL integration
-- **Advanced Algorithms**: Ready for procedural workflows
+## 🚀 Development Status
 
-## 🚀 Development Status & Roadmap
+Nodo is in **active development** with a stable core feature set.
 
-See **[ROADMAP.md](ROADMAP.md)** for the complete development plan including:
-- Strategic goals and timeline (Q4 2025 - 2027+)
-- Current phase: Property panel system implementation (Phase 1)
-- Future engine integration plans (Godot/Unity/Unreal)
-- Decision points and success metrics
-
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for technical documentation:
-- Code style guide and formatting
-- How to add new SOP nodes
-- Build instructions and testing
-
-**Current Focus (October 2025)**: Backend parameter system + property panel UI for all 44 nodes.
+See **[ROADMAP.md](ROADMAP.md)** for upcoming features and long-term vision.
 
 ## Quick Start
 
@@ -148,19 +154,9 @@ tests/              # Unit tests (44 passing tests)
 
 Comprehensive documentation is available:
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Code style, architecture, and how to contribute
+- **[📖 Online Documentation](https://dehnda.github.io/Nodo/)** - Complete user guide and API reference
 - **[ROADMAP.md](ROADMAP.md)** - Development roadmap and future plans
-- **[docs/](docs/)** - Technical documentation and guides
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Code style guidelines
-- Development workflow
-- How to submit pull requests
-- Testing requirements
-
-For bug reports and feature requests, please use [GitHub Issues](https://github.com/dehnda/Nodo/issues).
+- **[BUILD.md](BUILD.md)** - Build instructions for all platforms
 
 ## 📄 License
 

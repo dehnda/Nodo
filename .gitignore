@@ -9,6 +9,19 @@ site/
 public/
 .cache/
 
+# Internal planning documents
+ROADMAP_INTERNAL.md
+*_INTERNAL.md
+
+# Coverage files
+*.gcda
+*.gcno
+*.gcov
+coverage.info
+coverage_filtered.info
+*.profdata
+*.profraw
+
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
