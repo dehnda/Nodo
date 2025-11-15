@@ -7,6 +7,11 @@ project(nodo_core VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Windows: Define M_PI before any includes
+if(MSVC)
+    add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 # Find dependencies
 find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
