@@ -174,10 +174,36 @@ jobs:
           Copy-Item build/Release/nodo_studio/Release/nodo_studio.exe nodo-windows-x64/
           Copy-Item build/Release/nodo_cli/Release/nodo_cli.exe nodo-windows-x64/
           
-          # Copy Qt DLLs and dependencies (Conan should have them in build/Release)
-          Get-ChildItem -Path build/Release -Filter "*.dll" -Recurse | ForEach-Object {
-            Copy-Item $_.FullName nodo-windows-x64/ -ErrorAction SilentlyContinue
+          # Find and copy all DLL dependencies from Conan packages
+          # Qt DLLs are typically in bin/ subdirectories
+          $conanDirs = Get-ChildItem -Path build/Release -Directory -Recurse -Filter "bin" | Where-Object { $_.FullName -like "*\.conan2*" }
+          foreach ($dir in $conanDirs) {
+            Get-ChildItem -Path $dir.FullName -Filter "*.dll" | ForEach-Object {
+              Copy-Item $_.FullName nodo-windows-x64/ -Force -ErrorAction SilentlyContinue
+            }
           }
+          
+          # Also copy any DLLs in the build output directories
+          Get-ChildItem -Path "build/Release/nodo_studio/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+            Copy-Item $_.FullName nodo-windows-x64/ -Force
+          }
+          Get-ChildItem -Path "build/Release/nodo_cli/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+            Copy-Item $_.FullName nodo-windows-x64/ -Force
+          }
+          
+          # Create README
+          @"
+          Nodo - Node-based 3D Modeling Tool
+          
+          To run:
+            Double-click nodo_studio.exe - Launch GUI application
+            nodo_cli.exe - Run CLI tool from command prompt
+          
+          Requirements:
+            - Windows 10/11 x64
+            - Visual C++ Redistributable 2022 (should be included)
+            - OpenGL 3.3+ compatible graphics
+          "@ | Out-File -FilePath nodo-windows-x64/README.txt -Encoding ASCII
           
           # Create zip
           Compress-Archive -Path nodo-windows-x64/* -DestinationPath nodo-windows-x64.zip
