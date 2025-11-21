@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.20)
 # Unit Tests using Google Test
 include(GoogleTest)
 
+# Windows: Define M_PI before any includes
+if(MSVC)
+    add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 add_executable(nodo_tests
     # Core Math & Utilities
     test_math.cpp
