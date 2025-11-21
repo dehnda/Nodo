@@ -174,14 +174,37 @@ jobs:
           Copy-Item build/Release/nodo_studio/Release/nodo_studio.exe nodo-windows-x64/
           Copy-Item build/Release/nodo_cli/Release/nodo_cli.exe nodo-windows-x64/
           
-          # Find and copy all DLL dependencies from Conan packages
-          # Qt DLLs are typically in bin/ subdirectories
-          $conanDirs = Get-ChildItem -Path build/Release -Directory -Recurse -Filter "bin" | Where-Object { $_.FullName -like "*\.conan2*" }
-          foreach ($dir in $conanDirs) {
-            Get-ChildItem -Path $dir.FullName -Filter "*.dll" | ForEach-Object {
+          # Find Qt installation from Conan
+          Write-Host "Searching for Qt DLLs in Conan packages..."
+          $qtPath = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Directory -Recurse -Filter "bin" -ErrorAction SilentlyContinue | 
+                    Where-Object { $_.FullName -like "*qt*" } | 
+                    Select-Object -First 1
+          
+          if ($qtPath) {
+            Write-Host "Found Qt bin directory: $($qtPath.FullName)"
+            # Copy all Qt DLLs
+            Get-ChildItem -Path $qtPath.FullName -Filter "Qt6*.dll" | ForEach-Object {
+              Write-Host "Copying $_"
+              Copy-Item $_.FullName nodo-windows-x64/ -Force
+            }
+            # Copy other DLLs from Qt bin (like opengl32sw.dll)
+            Get-ChildItem -Path $qtPath.FullName -Filter "*.dll" | Where-Object { $_.Name -notlike "Qt6*" } | ForEach-Object {
+              Write-Host "Copying $_"
               Copy-Item $_.FullName nodo-windows-x64/ -Force -ErrorAction SilentlyContinue
             }
+          } else {
+            Write-Host "WARNING: Qt bin directory not found in Conan packages"
           }
+          
+          # Find and copy other Conan dependency DLLs
+          Write-Host "Searching for other dependency DLLs..."
+          Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Directory -Recurse -Filter "bin" -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notlike "*qt*" } | ForEach-Object {
+              Get-ChildItem -Path $_.FullName -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "Copying $($_.Name)"
+                Copy-Item $_.FullName nodo-windows-x64/ -Force -ErrorAction SilentlyContinue
+              }
+            }
           
           # Also copy any DLLs in the build output directories
           Get-ChildItem -Path "build/Release/nodo_studio/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
@@ -190,6 +213,10 @@ jobs:
           Get-ChildItem -Path "build/Release/nodo_cli/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
             Copy-Item $_.FullName nodo-windows-x64/ -Force
           }
+          
+          # List what we collected
+          Write-Host "`nCollected DLLs:"
+          Get-ChildItem -Path nodo-windows-x64 -Filter "*.dll" | ForEach-Object { Write-Host "  $($_.Name)" }
           
           # Create README
           @"
