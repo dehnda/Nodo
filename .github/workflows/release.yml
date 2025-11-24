@@ -174,39 +174,30 @@ jobs:
           Copy-Item build/Release/nodo_studio/Release/nodo_studio.exe nodo-windows-x64/
           Copy-Item build/Release/nodo_cli/Release/nodo_cli.exe nodo-windows-x64/
           
-          # Find Qt installation from Conan
-          Write-Host "Searching for Qt DLLs in Conan packages..."
-          $qtPath = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Directory -Recurse -Filter "bin" -ErrorAction SilentlyContinue | 
-                    Where-Object { $_.FullName -like "*qt*" } | 
-                    Select-Object -First 1
+          # Use windeployqt to collect Qt dependencies
+          # First, find qmake to locate Qt installation
+          Write-Host "Searching for Qt installation..."
           
+          # Qt should be in system PATH on Windows runner
+          $qtPath = (Get-Command qmake -ErrorAction SilentlyContinue).Source
           if ($qtPath) {
-            Write-Host "Found Qt bin directory: $($qtPath.FullName)"
-            # Copy all Qt DLLs
-            Get-ChildItem -Path $qtPath.FullName -Filter "Qt6*.dll" | ForEach-Object {
-              Write-Host "Copying $_"
-              Copy-Item $_.FullName nodo-windows-x64/ -Force
-            }
-            # Copy other DLLs from Qt bin (like opengl32sw.dll)
-            Get-ChildItem -Path $qtPath.FullName -Filter "*.dll" | Where-Object { $_.Name -notlike "Qt6*" } | ForEach-Object {
-              Write-Host "Copying $_"
+            $qtBinDir = Split-Path $qtPath -Parent
+            Write-Host "Found Qt at: $qtBinDir"
+            
+            # Use windeployqt to deploy Qt dependencies
+            & "$qtBinDir\windeployqt.exe" --release --no-translations nodo-windows-x64/nodo_studio.exe
+            Write-Host "windeployqt completed"
+          } else {
+            Write-Host "Qt not found in PATH, manually collecting DLLs..."
+            
+            # Fallback: Copy DLLs from build directories and runtime paths
+            Get-ChildItem -Path "build/Release" -Filter "*.dll" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+              Write-Host "Copying $($_.Name) from $($_.DirectoryName)"
               Copy-Item $_.FullName nodo-windows-x64/ -Force -ErrorAction SilentlyContinue
             }
-          } else {
-            Write-Host "WARNING: Qt bin directory not found in Conan packages"
           }
           
-          # Find and copy other Conan dependency DLLs
-          Write-Host "Searching for other dependency DLLs..."
-          Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Directory -Recurse -Filter "bin" -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -notlike "*qt*" } | ForEach-Object {
-              Get-ChildItem -Path $_.FullName -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
-                Write-Host "Copying $($_.Name)"
-                Copy-Item $_.FullName nodo-windows-x64/ -Force -ErrorAction SilentlyContinue
-              }
-            }
-          
-          # Also copy any DLLs in the build output directories
+          # Copy any additional runtime DLLs
           Get-ChildItem -Path "build/Release/nodo_studio/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
             Copy-Item $_.FullName nodo-windows-x64/ -Force
           }
@@ -215,8 +206,8 @@ jobs:
           }
           
           # List what we collected
-          Write-Host "`nCollected DLLs:"
-          Get-ChildItem -Path nodo-windows-x64 -Filter "*.dll" | ForEach-Object { Write-Host "  $($_.Name)" }
+          Write-Host "`nCollected files:"
+          Get-ChildItem -Path nodo-windows-x64 | ForEach-Object { Write-Host "  $($_.Name)" }
           
           # Create README
           @"
