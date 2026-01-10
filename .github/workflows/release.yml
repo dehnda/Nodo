@@ -62,7 +62,7 @@ jobs:
         run: |
           conan install . --output-folder=build/Release --build=missing -s build_type=Release -o system_qt=True
 
-      - name: Configure CMake
+      - name: Configure  CMake
         run: |
           TOOLCHAIN=$(find build/Release -name "conan_toolchain.cmake" -type f | head -1)
           cmake -S . -B build/Release \
