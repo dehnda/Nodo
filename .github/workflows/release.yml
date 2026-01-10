@@ -78,11 +78,11 @@ jobs:
           # Create release directory structure
           mkdir -p nodo-linux-x86_64/bin
           mkdir -p nodo-linux-x86_64/lib
-          
+
           # Copy binaries
           cp build/Release/nodo_studio/nodo_studio nodo-linux-x86_64/bin/
           cp build/Release/nodo_cli/nodo_cli nodo-linux-x86_64/bin/
-          
+
           # Copy all shared library dependencies (Qt + others)
           # Get all dependencies and copy them
           for binary in build/Release/nodo_studio/nodo_studio build/Release/nodo_cli/nodo_cli; do
@@ -94,7 +94,7 @@ jobs:
               fi
             done
           done
-          
+
           # Create launcher script that sets LD_LIBRARY_PATH
           cat > nodo-linux-x86_64/nodo_studio << 'EOF'
           #!/bin/bash
@@ -103,7 +103,7 @@ jobs:
           exec "$SCRIPT_DIR/bin/nodo_studio" "$@"
           EOF
           chmod +x nodo-linux-x86_64/nodo_studio
-          
+
           cat > nodo-linux-x86_64/nodo_cli << 'EOF'
           #!/bin/bash
           SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -111,20 +111,20 @@ jobs:
           exec "$SCRIPT_DIR/bin/nodo_cli" "$@"
           EOF
           chmod +x nodo-linux-x86_64/nodo_cli
-          
+
           # Create README
           cat > nodo-linux-x86_64/README.txt << 'EOF'
           Nodo - Node-based 3D Modeling Tool
-          
+
           To run:
             ./nodo_studio    # Launch GUI application
             ./nodo_cli       # Run CLI tool
-          
+
           Requirements:
             - Linux x86_64
             - OpenGL 3.3+ compatible graphics
           EOF
-          
+
           # Create tarball
           tar -czf nodo-linux-x86_64.tar.gz nodo-linux-x86_64/
 
@@ -169,60 +169,141 @@ jobs:
         run: |
           # Create package directory
           New-Item -ItemType Directory -Path nodo-windows-x64 -Force
-          
+
           # Copy executables
           Copy-Item build/Release/nodo_studio/Release/nodo_studio.exe nodo-windows-x64/
           Copy-Item build/Release/nodo_cli/Release/nodo_cli.exe nodo-windows-x64/
-          
-          # Use windeployqt to collect Qt dependencies
-          # First, find qmake to locate Qt installation
-          Write-Host "Searching for Qt installation..."
-          
-          # Qt should be in system PATH on Windows runner
-          $qtPath = (Get-Command qmake -ErrorAction SilentlyContinue).Source
-          if ($qtPath) {
-            $qtBinDir = Split-Path $qtPath -Parent
-            Write-Host "Found Qt at: $qtBinDir"
-            
-            # Use windeployqt to deploy Qt dependencies
-            & "$qtBinDir\windeployqt.exe" --release --no-translations nodo-windows-x64/nodo_studio.exe
-            Write-Host "windeployqt completed"
+
+          # Find Qt installation from Conan cache
+          $qtBinPath = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Filter "qt*" -Directory -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { Test-Path "$($_.FullName)\bin\windeployqt.exe" -or Test-Path "$($_.FullName)\p\bin\windeployqt.exe" } |
+              Select-Object -First 1
+
+          # Try different possible paths in Conan cache structure
+          $windeployqt = $null
+          $qtBinDir = $null
+
+          # Search for windeployqt in Conan cache
+          $windeployqtPaths = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Filter "windeployqt.exe" -Recurse -ErrorAction SilentlyContinue
+          if ($windeployqtPaths) {
+              $windeployqt = $windeployqtPaths[0].FullName
+              $qtBinDir = Split-Path $windeployqt -Parent
+              Write-Host "Found windeployqt at: $windeployqt"
+              Write-Host "Qt bin directory: $qtBinDir"
+          }
+
+          if ($windeployqt -and (Test-Path $windeployqt)) {
+              Write-Host "Using windeployqt to deploy Qt dependencies..."
+
+              # Add Qt bin directory to PATH so windeployqt can find Qt DLLs
+              $env:PATH = "$qtBinDir;$env:PATH"
+
+              # Run windeployqt on the main executable
+              & $windeployqt --release --no-translations --no-system-d3d-compiler --no-opengl-sw nodo-windows-x64/nodo_studio.exe
+
+              Write-Host "windeployqt completed"
           } else {
-            Write-Host "Qt not found in PATH, manually collecting DLLs..."
-            
-            # Fallback: Copy DLLs from build directories and runtime paths
-            Get-ChildItem -Path "build/Release" -Filter "*.dll" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
-              Write-Host "Copying $($_.Name) from $($_.DirectoryName)"
-              Copy-Item $_.FullName nodo-windows-x64/ -Force -ErrorAction SilentlyContinue
-            }
+              Write-Host "windeployqt not found, manually copying Qt DLLs..."
+
+              # Fallback: manually find and copy Qt DLLs from Conan cache
+              $qtDlls = @(
+                  "Qt6Core.dll",
+                  "Qt6Gui.dll",
+                  "Qt6Widgets.dll",
+                  "Qt6Svg.dll",
+                  "Qt6Concurrent.dll",
+                  "Qt6OpenGL.dll",
+                  "Qt6OpenGLWidgets.dll"
+              )
+
+              foreach ($dll in $qtDlls) {
+                  $found = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Filter $dll -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                  if ($found) {
+                      Write-Host "Found $dll at: $($found.FullName)"
+                      Copy-Item $found.FullName nodo-windows-x64/ -Force
+                  } else {
+                      Write-Host "WARNING: Could not find $dll"
+                  }
+              }
+
+              # Copy Qt plugins (required for Qt to work)
+              $pluginTypes = @("platforms", "styles", "imageformats", "iconengines")
+              foreach ($pluginType in $pluginTypes) {
+                  $pluginDir = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Filter $pluginType -Directory -Recurse -ErrorAction SilentlyContinue |
+                      Where-Object { $_.FullName -match "plugins" } | Select-Object -First 1
+                  if ($pluginDir) {
+                      Write-Host "Found $pluginType plugins at: $($pluginDir.FullName)"
+                      New-Item -ItemType Directory -Path "nodo-windows-x64/$pluginType" -Force | Out-Null
+                      Copy-Item "$($pluginDir.FullName)\*.dll" "nodo-windows-x64/$pluginType/" -Force -ErrorAction SilentlyContinue
+                  }
+              }
           }
-          
-          # Copy any additional runtime DLLs
-          Get-ChildItem -Path "build/Release/nodo_studio/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
-            Copy-Item $_.FullName nodo-windows-x64/ -Force
+
+          # Copy other non-Qt DLL dependencies from Conan cache
+          Write-Host "`nSearching for other dependencies..."
+
+          # Use dumpbin to find dependencies
+          $vctools = vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $dumpbin = Get-ChildItem -Path "$vctools\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          if ($dumpbin) {
+              $output = & $dumpbin.FullName /DEPENDENTS nodo-windows-x64/nodo_studio.exe 2>&1
+              $dlls = $output | Select-String "\.dll" | ForEach-Object {
+                  if ($_.Line.Trim() -match "^\s*(\S+\.dll)") {
+                      $matches[1]
+                  }
+              }
+
+              # Search paths for non-Qt DLLs
+              $searchPaths = @(
+                  "build/Release/nodo_studio/Release",
+                  "build/Release/nodo_cli/Release",
+                  "$env:USERPROFILE\.conan2\p"
+              )
+
+              foreach ($dll in $dlls) {
+                  # Skip system DLLs and Qt DLLs (already handled)
+                  if ($dll -match "^(KERNEL32|USER32|GDI32|ADVAPI32|ole32|SHELL32|WS2_32|msvcrt|MSVCP|VCRUNTIME|api-ms-|Qt6)") {
+                      continue
+                  }
+
+                  # Skip if already exists
+                  if (Test-Path "nodo-windows-x64/$dll") {
+                      continue
+                  }
+
+                  foreach ($searchPath in $searchPaths) {
+                      $found = Get-ChildItem -Path $searchPath -Filter $dll -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                      if ($found) {
+                          Write-Host "Found $dll at: $($found.FullName)"
+                          Copy-Item $found.FullName nodo-windows-x64/ -Force
+                          break
+                      }
+                  }
+              }
           }
-          Get-ChildItem -Path "build/Release/nodo_cli/Release" -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
-            Copy-Item $_.FullName nodo-windows-x64/ -Force
-          }
-          
+
           # List what we collected
           Write-Host "`nCollected files:"
-          Get-ChildItem -Path nodo-windows-x64 | ForEach-Object { Write-Host "  $($_.Name)" }
-          
+          Get-ChildItem -Path nodo-windows-x64 -Recurse | ForEach-Object {
+              $relativePath = $_.FullName.Replace((Get-Location).Path + "\nodo-windows-x64\", "")
+              Write-Host "  $relativePath"
+          }
+
           # Create README
           @"
           Nodo - Node-based 3D Modeling Tool
-          
+
           To run:
             Double-click nodo_studio.exe - Launch GUI application
             nodo_cli.exe - Run CLI tool from command prompt
-          
+
           Requirements:
             - Windows 10/11 x64
-            - Visual C++ Redistributable 2022 (should be included)
+            - Visual C++ Redistributable 2022 (may need to install from Microsoft)
             - OpenGL 3.3+ compatible graphics
           "@ | Out-File -FilePath nodo-windows-x64/README.txt -Encoding ASCII
-          
+
           # Create zip
           Compress-Archive -Path nodo-windows-x64/* -DestinationPath nodo-windows-x64.zip
 
