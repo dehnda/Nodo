@@ -129,7 +129,7 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
     }
 
     // Convert back to GeometryContainer
-    auto result = detail::PMPConverter::from_pmp_container(pmp_mesh, true);
+    auto result = detail::PMPConverter::from_pmp(pmp_mesh, true);
 
     // Extract geodesic distances from PMP's "geodesic:distance" property
     auto geodesic_prop = pmp_mesh.get_vertex_property<float>("geodesic:distance");

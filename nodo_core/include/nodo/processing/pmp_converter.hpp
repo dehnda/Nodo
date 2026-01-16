@@ -1,7 +1,6 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
-#include "nodo/core/mesh.hpp"
 
 #include <optional>
 
@@ -25,14 +24,6 @@ public:
   // ====================================================================
 
   /**
-   * @brief Convert Nodo Mesh to PMP SurfaceMesh
-   * @param mesh Input Nodo mesh
-   * @return PMP surface mesh
-   * @throws std::runtime_error if conversion fails
-   */
-  static pmp::SurfaceMesh to_pmp(const core::Mesh& mesh);
-
-  /**
    * @brief Convert Nodo GeometryContainer to PMP SurfaceMesh
    * @param container Input geometry container
    * @return PMP surface mesh
@@ -45,30 +36,16 @@ public:
   // ====================================================================
 
   /**
-   * @brief Convert PMP SurfaceMesh back to Nodo Mesh
-   * @param pmp_mesh Input PMP mesh
-   * @return Nodo mesh
-   */
-  static core::Mesh from_pmp(const pmp::SurfaceMesh& pmp_mesh);
-
-  /**
    * @brief Convert PMP SurfaceMesh back to Nodo GeometryContainer
    * @param pmp_mesh Input PMP mesh
    * @param preserve_attributes Try to preserve custom attributes
    * @return Geometry container with P, N attributes
    */
-  static core::GeometryContainer from_pmp_container(const pmp::SurfaceMesh& pmp_mesh, bool preserve_attributes = true);
+  static core::GeometryContainer from_pmp(const pmp::SurfaceMesh& pmp_mesh, bool preserve_attributes = true);
 
   // ====================================================================
   // Validation
   // ====================================================================
-
-  /**
-   * @brief Validate mesh is suitable for PMP processing
-   * @param mesh Mesh to validate
-   * @return Error message if invalid, empty string if valid
-   */
-  static std::string validate_for_pmp(const core::Mesh& mesh);
 
   /**
    * @brief Validate geometry container for PMP processing

@@ -63,7 +63,7 @@ std::optional<core::GeometryContainer> HoleFilling::fill_holes(const core::Geome
 
   if (boundary_halfedges.empty()) {
     fmt::print("HoleFilling: No holes found to fill\n");
-    return detail::PMPConverter::from_pmp_container(pmp_mesh);
+    return detail::PMPConverter::from_pmp(pmp_mesh);
   }
 
   fmt::print("HoleFilling: Filling {} holes\n", boundary_halfedges.size());
@@ -83,7 +83,7 @@ std::optional<core::GeometryContainer> HoleFilling::fill_holes(const core::Geome
   fmt::print("HoleFilling: Output mesh has {} vertices, {} faces\n", pmp_mesh.n_vertices(), pmp_mesh.n_faces());
 
   // Convert back to Nodo format
-  return detail::PMPConverter::from_pmp_container(pmp_mesh);
+  return detail::PMPConverter::from_pmp(pmp_mesh);
 }
 
 } // namespace nodo::processing

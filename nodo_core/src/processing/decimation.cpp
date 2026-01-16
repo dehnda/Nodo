@@ -59,7 +59,7 @@ std::optional<core::GeometryContainer> Decimation::decimate(const core::Geometry
                   params.preserve_topology, params.preserve_boundaries);
 
     // Convert back to Nodo format
-    auto result = detail::PMPConverter::from_pmp_container(pmp_mesh, true);
+    auto result = detail::PMPConverter::from_pmp(pmp_mesh, true);
 
     // Clear any previous error
     last_error_.clear();

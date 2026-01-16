@@ -70,7 +70,7 @@ std::optional<core::GeometryContainer> Subdivision::subdivide(const core::Geomet
     }
 
     // Convert back to GeometryContainer
-    return detail::PMPConverter::from_pmp_container(pmp_mesh);
+    return detail::PMPConverter::from_pmp(pmp_mesh);
 
   } catch (const std::exception& e) {
     if (error)

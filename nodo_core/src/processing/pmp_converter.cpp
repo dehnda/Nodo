@@ -13,36 +13,9 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing::detail {
 
-pmp::SurfaceMesh PMPConverter::to_pmp(const core::Mesh& mesh) {
-  pmp::SurfaceMesh result;
-
-  // Validate input
-  if (mesh.vertices().rows() == 0) {
-    throw std::runtime_error("Cannot convert empty mesh to PMP");
-  }
-
-  // Add vertices
-  std::vector<pmp::Vertex> vertices;
-  vertices.reserve(mesh.vertices().rows());
-
-  for (int i = 0; i < mesh.vertices().rows(); ++i) {
-    pmp::Point point(static_cast<float>(mesh.vertices()(i, 0)), static_cast<float>(mesh.vertices()(i, 1)),
-                     static_cast<float>(mesh.vertices()(i, 2)));
-    vertices.push_back(result.add_vertex(point));
-  }
-
-  // Add faces
-  for (int i = 0; i < mesh.faces().rows(); ++i) {
-    std::vector<pmp::Vertex> face_verts = {vertices[mesh.faces()(i, 0)], vertices[mesh.faces()(i, 1)],
-                                           vertices[mesh.faces()(i, 2)]};
-    result.add_face(face_verts);
-  }
-
-  // Compute normals
-  pmp::vertex_normals(result);
-
-  return result;
-}
+// ============================================================================
+// Primary API: GeometryContainer-based conversions
+// ============================================================================
 
 pmp::SurfaceMesh PMPConverter::to_pmp(const core::GeometryContainer& container) {
   pmp::SurfaceMesh result;
@@ -121,45 +94,7 @@ pmp::SurfaceMesh PMPConverter::to_pmp(const core::GeometryContainer& container) 
   return result;
 }
 
-core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh& pmp_mesh) {
-  core::Mesh result;
-
-  const size_t num_vertices = pmp_mesh.n_vertices();
-  const size_t num_faces = pmp_mesh.n_faces();
-
-  // Extract vertices
-  Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::RowMajor> vertices_matrix(num_vertices, 3);
-  auto points = pmp_mesh.get_vertex_property<pmp::Point>("v:point");
-
-  size_t vert_idx = 0;
-  for (auto vert : pmp_mesh.vertices()) {
-    const auto& point = points[vert];
-    vertices_matrix(vert_idx, 0) = static_cast<double>(point[0]);
-    vertices_matrix(vert_idx, 1) = static_cast<double>(point[1]);
-    vertices_matrix(vert_idx, 2) = static_cast<double>(point[2]);
-    ++vert_idx;
-  }
-
-  // Extract faces
-  Eigen::Matrix<int, Eigen::Dynamic, 3, Eigen::RowMajor> faces_matrix(num_faces, 3);
-
-  size_t face_idx = 0;
-  for (auto face : pmp_mesh.faces()) {
-    auto face_verts = pmp_mesh.vertices(face);
-    auto iter = face_verts.begin();
-    faces_matrix(face_idx, 0) = (*iter++).idx();
-    faces_matrix(face_idx, 1) = (*iter++).idx();
-    faces_matrix(face_idx, 2) = (*iter).idx();
-    ++face_idx;
-  }
-
-  result.vertices() = vertices_matrix;
-  result.faces() = faces_matrix;
-
-  return result;
-}
-
-core::GeometryContainer PMPConverter::from_pmp_container(const pmp::SurfaceMesh& pmp_mesh, bool preserve_attributes) {
+core::GeometryContainer PMPConverter::from_pmp(const pmp::SurfaceMesh& pmp_mesh, bool preserve_attributes) {
   core::GeometryContainer result;
 
   // Create mapping from PMP vertex indices to sequential indices
@@ -243,28 +178,6 @@ core::GeometryContainer PMPConverter::from_pmp_container(const pmp::SurfaceMesh&
 
   return result;
 }
-std::string PMPConverter::validate_for_pmp(const core::Mesh& mesh) {
-  if (mesh.vertices().rows() < 3) {
-    return "Mesh must have at least 3 vertices";
-  }
-
-  if (mesh.faces().rows() < 1) {
-    return "Mesh must have at least 1 face";
-  }
-
-  // Check face indices are valid
-  const int max_idx = static_cast<int>(mesh.vertices().rows());
-  for (int i = 0; i < mesh.faces().rows(); ++i) {
-    for (int j = 0; j < 3; ++j) {
-      int idx = mesh.faces()(i, j);
-      if (idx < 0 || idx >= max_idx) {
-        return "Face references invalid vertex index";
-      }
-    }
-  }
-
-  return ""; // Valid
-}
 
 std::string PMPConverter::validate_for_pmp(const core::GeometryContainer& container) {
   if (container.topology().point_count() < 3) {
@@ -285,6 +198,10 @@ std::string PMPConverter::validate_for_pmp(const core::GeometryContainer& contai
 
   return ""; // Valid
 }
+
+// ============================================================================
+// Helpers
+// ============================================================================
 
 void PMPConverter::compute_normals(pmp::SurfaceMesh& mesh) {
   if (!mesh.has_vertex_property("v:normal")) {

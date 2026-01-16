@@ -95,7 +95,7 @@ std::optional<core::GeometryContainer> Curvature::compute(const core::GeometryCo
 
     // Convert back to Nodo format
     fmt::print("Curvature: Converting to Nodo format...\n");
-    auto result = detail::PMPConverter::from_pmp_container(pmp_mesh);
+    auto result = detail::PMPConverter::from_pmp(pmp_mesh);
     fmt::print("Curvature: Converted, result has {} points\n", result.point_count());
 
     // Add extracted curvature attributes

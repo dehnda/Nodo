@@ -64,7 +64,7 @@ std::optional<core::GeometryContainer> Parameterization::parameterize(const core
     }
 
     // Convert back to GeometryContainer
-    auto result = detail::PMPConverter::from_pmp_container(pmp_mesh, true);
+    auto result = detail::PMPConverter::from_pmp(pmp_mesh, true);
 
     // Extract UV coordinates from PMP's "v:tex" property
     auto tex_coords = pmp_mesh.get_vertex_property<pmp::TexCoord>("v:tex");
