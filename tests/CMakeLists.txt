@@ -11,7 +11,6 @@ endif()
 add_executable(nodo_tests
     # Core Math & Utilities
     test_math.cpp
-    test_bvh.cpp
 
     # Mesh & Geometry Core
     test_mesh.cpp

@@ -93,9 +93,6 @@ set(NODO_CORE_SOURCES
     src/sop/uv_unwrap_sop.cpp
     src/sop/wrangle_sop.cpp
 
-    # Spatial
-    src/spatial/bvh.cpp
-
     # Expressions (M3.3 Phase 2)
     src/expressions/ExpressionEvaluator.cpp
 )
@@ -183,22 +180,22 @@ else()
     target_compile_options(benchmark_attributes PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Performance benchmark (M2.3)
-add_executable(performance_benchmark
-    src/benchmark/performance_benchmark.cpp
+# GeometryContainer benchmark
+add_executable(benchmark_geometry
+    src/benchmarks/benchmark_geometry.cpp
 )
 
-target_link_libraries(performance_benchmark
+target_link_libraries(benchmark_geometry
     PRIVATE
         nodo_core
 )
 
-target_compile_features(performance_benchmark PRIVATE cxx_std_20)
+target_compile_features(benchmark_geometry PRIVATE cxx_std_20)
 
 if(MSVC)
-    target_compile_options(performance_benchmark PRIVATE /W4)
+    target_compile_options(benchmark_geometry PRIVATE /W4)
 else()
-    target_compile_options(performance_benchmark PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(benchmark_geometry PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 # ============================================================================
