@@ -176,7 +176,7 @@ jobs:
 
           # Find Qt installation from Conan cache
           $qtBinPath = Get-ChildItem -Path "$env:USERPROFILE\.conan2\p" -Filter "qt*" -Directory -Recurse -ErrorAction SilentlyContinue |
-              Where-Object { Test-Path "$($_.FullName)\bin\windeployqt.exe" -or Test-Path "$($_.FullName)\p\bin\windeployqt.exe" } |
+              Where-Object { (Test-Path "$($_.FullName)\bin\windeployqt.exe") -or (Test-Path "$($_.FullName)\p\bin\windeployqt.exe") } |
               Select-Object -First 1
 
           # Try different possible paths in Conan cache structure
