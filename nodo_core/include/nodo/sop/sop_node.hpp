@@ -2,6 +2,7 @@
 
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/geometry_container.hpp"
+#include "nodo/core/geometry_handle.hpp"
 
 #include "node_port.hpp"
 
@@ -480,8 +481,8 @@ protected:
     return ParameterBuilder(def);
   }
 
-  auto define_group_selector_parameter(const std::string& name,
-                                       const std::string& default_value = "") -> ParameterBuilder {
+  auto define_group_selector_parameter(const std::string& name, const std::string& default_value = "")
+      -> ParameterBuilder {
     ParameterDefinition def(name, ParameterDefinition::Type::GroupSelector, default_value);
     return {def};
   }
@@ -539,6 +540,38 @@ protected:
    */
   std::shared_ptr<core::GeometryContainer> get_input_data(int port_index) const {
     return get_input_data(std::to_string(port_index));
+  }
+
+  /**
+   * @brief Get input as GeometryHandle (COW-aware, zero-copy for reads)
+   *
+   * Returns a handle that shares the input geometry. Multiple handles can
+   * share the same data until one needs to modify it (copy-on-write).
+   *
+   * @param port_index Port index (0-based)
+   * @return GeometryHandle wrapping input data (may be invalid if no input)
+   */
+  core::GeometryHandle get_input_handle(int port_index) const {
+    auto data = get_input_data(port_index);
+    if (data) {
+      return core::GeometryHandle(std::move(data));
+    }
+    return core::GeometryHandle(); // Empty handle
+  }
+
+  /**
+   * @brief Get writable input handle (triggers COW if shared)
+   *
+   * Convenience method that gets an input handle and immediately ensures
+   * it's unique (copyable). Use this when you know you'll modify the input.
+   *
+   * @param port_index Port index (0-based)
+   * @return GeometryHandle with exclusive ownership
+   */
+  core::GeometryHandle get_input_writable(int port_index) const {
+    auto handle = get_input_handle(port_index);
+    handle.make_unique(); // Force COW if shared
+    return handle;
   }
 
 public:

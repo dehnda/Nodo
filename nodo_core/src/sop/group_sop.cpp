@@ -97,12 +97,12 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   std::cerr << "  Input point_attributes().size() = " << input->point_attributes().size() << "\n";
   std::cerr << "  Input point_attributes().attribute_count() = " << input->point_attributes().attribute_count() << "\n";
 
-  // Clone input (groups are stored as attributes, geometry unchanged)
-  auto result = std::make_shared<core::GeometryContainer>(input->clone());
+  // Get writable handle (COW)
+  auto handle = get_input_handle(0);
+  auto& result = handle.write();
 
-  std::cerr << "  Cloned result has " << result->point_count() << " points, " << result->primitive_count()
-            << " primitives\n";
-  std::cerr << "  Point attributes size: " << result->point_attributes().size() << "\n";
+  std::cerr << "  Result has " << result.point_count() << " points, " << result.primitive_count() << " primitives\n";
+  std::cerr << "  Point attributes size: " << result.point_attributes().size() << "\n";
 
   // Get parameters
   std::string group_name = get_parameter<std::string>("group_name", "group1");
@@ -125,20 +125,20 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   std::cerr << "  Selection mode: " << selection_mode << ", Operation: " << operation << "\n";
 
   // Get element count
-  size_t elem_count = (elem_class == core::ElementClass::POINT) ? result->point_count() : result->primitive_count();
+  size_t elem_count = (elem_class == core::ElementClass::POINT) ? result.point_count() : result.primitive_count();
 
   // Create group if it doesn't exist (or if operation is Create/Replace)
-  bool group_exists = core::has_group(*result, group_name, elem_class);
+  bool group_exists = core::has_group(result, group_name, elem_class);
 
   if (operation == 0) { // Create/Replace
     if (group_exists) {
-      core::clear_group(*result, group_name, elem_class);
+      core::clear_group(result, group_name, elem_class);
     } else {
-      core::create_group(*result, group_name, elem_class);
+      core::create_group(result, group_name, elem_class);
     }
   } else if (!group_exists) {
     // For Add/Remove operations, create group if it doesn't exist
-    core::create_group(*result, group_name, elem_class);
+    core::create_group(result, group_name, elem_class);
   }
 
   // Build selection based on mode
@@ -184,10 +184,10 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
       // Note: We need to create a temp group, get elements, then apply
       // operation
       std::string temp_group = "__temp_random__";
-      core::create_group(*result, temp_group, elem_class);
-      core::select_random(*result, temp_group, elem_class, count, seed);
-      selection = core::get_group_elements(*result, temp_group, elem_class);
-      core::delete_group(*result, temp_group, elem_class);
+      core::create_group(result, temp_group, elem_class);
+      core::select_random(result, temp_group, elem_class, count, seed);
+      selection = core::get_group_elements(result, temp_group, elem_class);
+      core::delete_group(result, temp_group, elem_class);
       break;
     }
 
@@ -204,21 +204,21 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
 
   if (operation == 0 || operation == 1) {
     // Create/Replace or Add
-    bool success = core::add_to_group(*result, group_name, elem_class, selection);
+    bool success = core::add_to_group(result, group_name, elem_class, selection);
     std::cerr << "  add_to_group returned: " << (success ? "true" : "false") << "\n";
   } else if (operation == 2) {
     // Remove
-    core::remove_from_group(*result, group_name, elem_class, selection);
+    core::remove_from_group(result, group_name, elem_class, selection);
   }
 
   // Verify group contents
-  auto group_elements = core::get_group_elements(*result, group_name, elem_class);
+  auto group_elements = core::get_group_elements(result, group_name, elem_class);
   std::cerr << "  Group '" << group_name << "' now contains " << group_elements.size() << " elements\n";
 
   std::cerr << "  Group created successfully, returning result\n";
-  std::cerr << "  Result has " << result->point_count() << " points, " << result->primitive_count() << " primitives\n";
+  std::cerr << "  Result has " << result.point_count() << " points, " << result.primitive_count() << " primitives\n";
 
-  return result;
+  return std::make_shared<core::GeometryContainer>(std::move(result));
 }
 
 } // namespace nodo::sop

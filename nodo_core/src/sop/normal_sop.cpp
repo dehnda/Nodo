@@ -51,12 +51,12 @@ NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
 }
 
 std::shared_ptr<core::GeometryContainer> NormalSOP::execute() {
-  auto input = get_input_data(0);
-  if (!input) {
+  auto handle = get_input_handle(0);
+  if (!handle.is_valid()) {
     throw std::runtime_error("NormalSOP requires input geometry");
   }
 
-  auto result = std::make_shared<core::GeometryContainer>(input->clone());
+  auto& result = handle.write();
 
   int normal_type = get_parameter<int>("normal_type", 0);
   int weighting = get_parameter<int>("weighting", 0);
@@ -71,17 +71,17 @@ std::shared_ptr<core::GeometryContainer> NormalSOP::execute() {
 
   switch (normal_type) {
     case 0: // Vertex normals
-      compute_vertex_normals(*result, weighting, cusp_angle, reverse);
+      compute_vertex_normals(result, weighting, cusp_angle, reverse);
       break;
     case 1: // Face normals
-      compute_face_normals(*result, reverse);
+      compute_face_normals(result, reverse);
       break;
     case 2: // Point normals
-      compute_point_normals(*result, weighting, cusp_angle, reverse);
+      compute_point_normals(result, weighting, cusp_angle, reverse);
       break;
   }
 
-  return result;
+  return std::make_shared<core::GeometryContainer>(std::move(result));
 }
 
 void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo, int weighting, float cusp_angle,

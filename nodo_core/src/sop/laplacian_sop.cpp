@@ -144,13 +144,12 @@ LaplacianSOP::LaplacianSOP(const std::string& name) : SOPNode(name, "Laplacian")
 }
 
 std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
-  auto input = get_input_data(0);
-  if (!input) {
+  auto handle = get_input_handle(0);
+  if (!handle.is_valid()) {
     return nullptr;
   }
 
-  // Clone input for modification
-  auto output = std::make_shared<core::GeometryContainer>(input->clone());
+  auto& output = handle.write();
 
   // Get parameters
   const int iterations = get_parameter<int>("iterations", 5);
@@ -158,41 +157,41 @@ std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
   const int method = get_parameter<int>("method", 0);
 
   // Get P attribute (point positions)
-  auto* P_storage = output->get_point_attribute_typed<core::Vec3f>("P");
+  auto* P_storage = output.get_point_attribute_typed<core::Vec3f>("P");
   if (P_storage == nullptr) {
     std::cerr << "LaplacianSOP: No P attribute found\n";
-    return output;
+    return std::make_shared<core::GeometryContainer>(std::move(output));
   }
 
   // Check if we have any points to smooth
-  if (output->point_count() == 0) {
-    return output;
+  if (output.point_count() == 0) {
+    return std::make_shared<core::GeometryContainer>(std::move(output));
   }
 
   // Build point-to-point connectivity graph
   std::unordered_map<int, std::unordered_set<int>> point_neighbors;
-  build_point_connectivity(*output, point_neighbors);
+  build_point_connectivity(output, point_neighbors);
 
   // Build set of points to smooth based on group filter
   std::unordered_set<size_t> points_to_smooth;
-  for_each_point_in_group(output.get(), [&points_to_smooth](size_t i) { points_to_smooth.insert(i); });
+  for_each_point_in_group(&output, [&points_to_smooth](size_t i) { points_to_smooth.insert(i); });
 
   // Perform smoothing iterations
   for (int iter = 0; iter < iterations; ++iter) {
-    smooth_iteration(*output, P_storage, point_neighbors, lambda, method, points_to_smooth);
+    smooth_iteration(output, P_storage, point_neighbors, lambda, method, points_to_smooth);
   }
 
   // If we have vertex or point normals, recompute them after smoothing
   // (they may be pointing in wrong directions now)
-  auto* N_vertex = output->get_vertex_attribute_typed<core::Vec3f>("N");
-  auto* N_point = output->get_point_attribute_typed<core::Vec3f>("N");
+  auto* N_vertex = output.get_vertex_attribute_typed<core::Vec3f>("N");
+  auto* N_point = output.get_point_attribute_typed<core::Vec3f>("N");
 
   if (N_vertex != nullptr || N_point != nullptr) {
     // TODO: Optionally recompute normals here
     // For now, we'll leave them as-is and let downstream nodes handle it
   }
 
-  return output;
+  return std::make_shared<core::GeometryContainer>(std::move(output));
 }
 
 } // namespace nodo::sop

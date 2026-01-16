@@ -15,6 +15,7 @@ add_executable(nodo_tests
     # Mesh & Geometry Core
     test_element_topology.cpp
     test_geometry_container.cpp
+    test_geometry_handle.cpp
 
     # Processing (PMP Integration)
     test_pmp_converter.cpp
@@ -51,6 +52,7 @@ add_executable(nodo_tests
     test_wrangle_sop.cpp
     test_sop_group_filtering.cpp
     test_bevel_sop.cpp
+    test_transform_cow.cpp
 
     # Import/Export
     test_obj_export.cpp

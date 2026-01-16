@@ -61,33 +61,36 @@ std::shared_ptr<core::GeometryContainer> WrangleSOP::execute() {
   int run_over_mode = get_parameter<int>("run_over", 0);
   std::string expression_code = get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
 
+  // Get writable handle
+  auto handle = get_input_handle(0);
+
   // Compile expression
   if (!compile_expression(expression_code)) {
     // Failed to compile - return input unchanged
-    return std::make_shared<core::GeometryContainer>(input->clone());
+    return std::make_shared<core::GeometryContainer>(handle.read().clone());
   }
 
-  // Create output geometry (copy of input)
-  auto result = std::make_shared<core::GeometryContainer>(input->clone());
+  // Get writable access (triggers COW if shared)
+  auto& result = handle.write();
 
   // Execute based on mode
   RunOver mode = static_cast<RunOver>(run_over_mode);
   switch (mode) {
     case RunOver::POINTS:
-      execute_points_mode(result.get());
+      execute_points_mode(&result);
       break;
     case RunOver::PRIMITIVES:
-      execute_primitives_mode(result.get());
+      execute_primitives_mode(&result);
       break;
     case RunOver::VERTICES:
-      execute_vertices_mode(result.get());
+      execute_vertices_mode(&result);
       break;
     case RunOver::DETAIL:
-      execute_detail_mode(result.get());
+      execute_detail_mode(&result);
       break;
   }
 
-  return result;
+  return std::make_shared<core::GeometryContainer>(std::move(result));
 }
 
 bool WrangleSOP::compile_expression(const std::string& expr_code) {
