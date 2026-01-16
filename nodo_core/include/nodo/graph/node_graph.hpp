@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "nodo/core/mesh.hpp"
 #include "nodo/graph/graph_parameter.hpp"
 
 #include <array>
@@ -325,9 +324,6 @@ public:
   }
   const std::string& get_error_message() const { return error_message_; }
 
-  void set_output_mesh(std::shared_ptr<core::Mesh> mesh) { output_mesh_ = mesh; }
-  std::shared_ptr<core::Mesh> get_output_mesh() const { return output_mesh_; }
-
   double get_cook_time() const { return cook_time_ms_; }
   void set_cook_time(double time_ms) { cook_time_ms_ = time_ms; }
 
@@ -344,7 +340,6 @@ private:
   std::vector<NodePin> output_pins_;
 
   bool needs_update_ = true;
-  std::shared_ptr<core::Mesh> output_mesh_;
 
   bool display_flag_ = false;
   bool render_flag_ = false;

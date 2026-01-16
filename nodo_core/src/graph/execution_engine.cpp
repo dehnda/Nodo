@@ -38,43 +38,6 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::graph {
 
-// Temporary helper to convert GeometryContainer to core::Mesh
-// TODO: Remove this once all execution pipeline migrated to GeometryContainer
-static std::shared_ptr<core::Mesh> convert_container_to_mesh(const core::GeometryContainer& container) {
-  // Get positions from container
-  auto* positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
-  if (positions == nullptr) {
-    return std::make_shared<core::Mesh>(); // Empty mesh
-  }
-
-  size_t point_count = container.topology().point_count();
-  size_t prim_count = container.topology().primitive_count();
-
-  // Create mesh
-  core::Mesh::Vertices vertices(point_count, 3);
-  core::Mesh::Faces faces(prim_count, 3);
-
-  // Copy positions
-  for (size_t i = 0; i < point_count; ++i) {
-    const auto& pos = (*positions)[i];
-    vertices(i, 0) = pos.x();
-    vertices(i, 1) = pos.y();
-    vertices(i, 2) = pos.z();
-  }
-
-  // Copy face indices
-  for (size_t i = 0; i < prim_count; ++i) {
-    const auto prim_verts = container.topology().get_primitive_vertices(i);
-    if (prim_verts.size() >= 3) {
-      faces(i, 0) = prim_verts[0];
-      faces(i, 1) = prim_verts[1];
-      faces(i, 2) = prim_verts[2];
-    }
-  }
-
-  return std::make_shared<core::Mesh>(vertices, faces);
-}
-
 bool ExecutionEngine::execute_graph(NodeGraph& graph) {
   // Get display node (if set, only execute its dependencies)
   int display_node_id = graph.get_display_node();
@@ -171,9 +134,6 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
       // Cache GeometryContainer
       geometry_cache_[node_id] = geometry_result;
 
-      // Convert to Mesh for legacy API
-      auto mesh_result = convert_container_to_mesh(*geometry_result);
-      node->set_output_mesh(mesh_result);
       node->set_error(false); // Clear any previous error
       node->mark_updated();   // Mark as no longer needing update
 

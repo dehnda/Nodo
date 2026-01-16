@@ -9,6 +9,7 @@
 #include "nodo/expressions/ExpressionEvaluator.h"
 #include "nodo/graph/node_graph.hpp"
 
+#include <cmath>
 #include <optional>
 #include <regex>
 #include <string>
