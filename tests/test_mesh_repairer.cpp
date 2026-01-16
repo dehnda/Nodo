@@ -1,60 +1,11 @@
+#include "test_utils.hpp"
+
 #include <gtest/gtest.h>
 #include <nodo/geometry/box_generator.hpp>
 #include <nodo/geometry/mesh_repairer.hpp>
 #include <nodo/geometry/mesh_validator.hpp>
 
 using namespace nodo;
-
-// Helper to convert GeometryContainer to Mesh
-static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
-  const auto& topology = container.topology();
-
-  // Extract positions
-  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
-  if (!p_storage)
-    return core::Mesh();
-
-  Eigen::MatrixXd vertices(topology.point_count(), 3);
-  auto p_span = p_storage->values();
-  for (size_t i = 0; i < p_span.size(); ++i) {
-    vertices.row(i) = p_span[i].cast<double>();
-  }
-
-  // Extract faces and triangulate quads if needed
-  // Convert vertex indices to point indices
-  std::vector<Eigen::Vector3i> triangle_list;
-  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
-
-    // Convert vertex indices to point indices
-    std::vector<int> point_indices;
-    for (int vert_idx : vert_indices) {
-      point_indices.push_back(topology.get_vertex_point(vert_idx));
-    }
-
-    if (point_indices.size() == 3) {
-      // Triangle - add directly
-      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
-    } else if (point_indices.size() == 4) {
-      // Quad - triangulate (fan from first vertex)
-      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
-      triangle_list.emplace_back(point_indices[0], point_indices[2], point_indices[3]);
-    } else if (point_indices.size() > 4) {
-      // N-gon - triangulate (fan from first vertex)
-      for (size_t i = 1; i < point_indices.size() - 1; ++i) {
-        triangle_list.emplace_back(point_indices[0], point_indices[i], point_indices[i + 1]);
-      }
-    }
-  }
-
-  // Convert to Eigen matrix
-  Eigen::MatrixXi faces(triangle_list.size(), 3);
-  for (size_t i = 0; i < triangle_list.size(); ++i) {
-    faces.row(i) = triangle_list[i];
-  }
-
-  return core::Mesh(vertices, faces);
-}
 
 class MeshRepairerTest : public ::testing::Test {
 protected:
@@ -168,7 +119,7 @@ TEST_F(MeshRepairerTest, CleanMeshUnchanged) {
   // Generate a clean box mesh (now quad-based, will be triangulated)
   auto box_result = geometry::BoxGenerator::generate(1.0, 1.0, 1.0);
   ASSERT_TRUE(box_result.has_value());
-  auto clean_mesh = container_to_mesh(*box_result);
+  auto clean_mesh = test::container_to_mesh(*box_result);
 
   auto original_vertex_count = clean_mesh.vertices().rows();
   auto original_face_count = clean_mesh.faces().rows();

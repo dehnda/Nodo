@@ -4,6 +4,8 @@
 #include "nodo/geometry/box_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 
+#include "test_utils.hpp"
+
 #include <cmath>
 
 #include <gtest/gtest.h>
@@ -65,12 +67,12 @@ protected:
     auto box_result = BoxGenerator::generate(2.0, 2.0, 2.0);
     ASSERT_TRUE(box_result.has_value());
     box_geo_ = box_result.value().clone();
-    box_mesh_ = containerToMesh(box_geo_);
+    box_mesh_ = test::container_to_mesh(box_geo_);
 
     auto sphere_result = SphereGenerator::generate_uv_sphere(1.0, 32, 16);
     ASSERT_TRUE(sphere_result.has_value());
     sphere_geo_ = sphere_result.value().clone();
-    sphere_mesh_ = containerToMesh(sphere_geo_);
+    sphere_mesh_ = test::container_to_mesh(sphere_geo_);
   }
 
   core::GeometryContainer box_geo_;
