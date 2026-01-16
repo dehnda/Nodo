@@ -24,11 +24,9 @@ class RepairMeshSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit RepairMeshSOP(const std::string& node_name = "repair_mesh")
-      : SOPNode(node_name, "RepairMesh") {
+  explicit RepairMeshSOP(const std::string& node_name = "repair_mesh") : SOPNode(node_name, "RepairMesh") {
     // Add input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Minimum hole size
     register_parameter(define_int_parameter("min_hole_size", 0)
@@ -49,17 +47,14 @@ public:
                            .build());
 
     // Refine fill
-    register_parameter(
-        define_bool_parameter("refine_fill", true)
-            .label("Refine Fill")
-            .category("Hole Filling")
-            .description("Refine filled regions for better mesh quality")
-            .build());
+    register_parameter(define_bool_parameter("refine_fill", true)
+                           .label("Refine Fill")
+                           .category("Hole Filling")
+                           .description("Refine filled regions for better mesh quality")
+                           .build());
   }
 
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::SINGLE, 1, 1, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {

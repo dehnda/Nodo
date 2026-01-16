@@ -11,9 +11,7 @@ using namespace nodo::sop;
 
 class WrangleSOPTest : public ::testing::Test {
 protected:
-  void SetUp() override {
-    wrangle_sop = std::make_shared<WrangleSOP>("wrangle_test");
-  }
+  void SetUp() override { wrangle_sop = std::make_shared<WrangleSOP>("wrangle_test"); }
 
   std::shared_ptr<WrangleSOP> wrangle_sop;
 };
@@ -25,8 +23,7 @@ TEST_F(WrangleSOPTest, SimplePositionOffset) {
 
   // Add position attribute and fill it
   box_geo->add_point_attribute(standard_attrs::P, AttributeType::VEC3F);
-  auto* positions =
-      box_geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* positions = box_geo->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   auto pos_span = positions->values_writable();
   pos_span[0] = Vec3f(-0.5f, -0.5f, -0.5f);
   pos_span[1] = Vec3f(0.5f, -0.5f, -0.5f);
@@ -53,8 +50,7 @@ TEST_F(WrangleSOPTest, SimplePositionOffset) {
   EXPECT_GT(result->point_count(), 0);
 
   // Verify positions were modified
-  auto* result_positions =
-      result->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Check that Y values were offset
@@ -91,8 +87,7 @@ TEST_F(WrangleSOPTest, PointNumberAccess) {
   auto result = wrangle_sop->cook();
 
   ASSERT_NE(result, nullptr);
-  auto* result_positions =
-      result->get_point_attribute_typed<Vec3f>(standard_attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<Vec3f>(standard_attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Verify Y positions match point numbers
@@ -121,8 +116,7 @@ TEST_F(WrangleSOPTest, ColorAttribute) {
 
   // Set expression to create color
   wrangle_sop->set_parameter("run_over", 0);
-  wrangle_sop->set_parameter("expression",
-                             std::string("Cr = 1.0; Cg = 0.5; Cb = 0.0"));
+  wrangle_sop->set_parameter("expression", std::string("Cr = 1.0; Cg = 0.5; Cb = 0.0"));
 
   auto result = wrangle_sop->cook();
 
@@ -171,8 +165,7 @@ TEST_F(WrangleSOPTest, ExpressionError) {
 
   // Set invalid expression
   wrangle_sop->set_parameter("run_over", 0);
-  wrangle_sop->set_parameter("expression",
-                             std::string("this is not valid syntax"));
+  wrangle_sop->set_parameter("expression", std::string("this is not valid syntax"));
 
   auto result = wrangle_sop->cook();
 

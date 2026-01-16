@@ -39,9 +39,8 @@ public:
   /// @param input Input geometry
   /// @param params Curvature computation parameters
   /// @return Geometry with curvature attributes, or nullopt on error
-  static std::optional<core::GeometryContainer>
-  compute(const core::GeometryContainer& input,
-          const CurvatureParams& params = CurvatureParams{});
+  static std::optional<core::GeometryContainer> compute(const core::GeometryContainer& input,
+                                                        const CurvatureParams& params = CurvatureParams{});
 };
 
 } // namespace nodo::processing

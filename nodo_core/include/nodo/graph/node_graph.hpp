@@ -165,72 +165,42 @@ struct NodeParameter {
   std::vector<std::string> string_options; // For combo boxes (int type)
 
   // Category visibility control (optional)
-  std::string
-      category_control_param; // Name of the parameter that controls visibility
-  int category_control_value =
-      -1; // Value that makes this parameter visible (-1 = always visible)
+  std::string category_control_param; // Name of the parameter that controls visibility
+  int category_control_value = -1;    // Value that makes this parameter visible (-1 = always visible)
 
   // Constructors for different types
-  explicit NodeParameter(const std::string& name, float value,
-                         const std::string& label = "", float min = 0.01F,
+  explicit NodeParameter(const std::string& name, float value, const std::string& label = "", float min = 0.01F,
                          float max = 100.0F, const std::string& cat = "")
-      : type(Type::Float),
-        name(name),
-        label(label.empty() ? name : label),
-        category(cat),
-        float_value(value) {
+      : type(Type::Float), name(name), label(label.empty() ? name : label), category(cat), float_value(value) {
     ui_range.float_min = min;
     ui_range.float_max = max;
   }
 
-  explicit NodeParameter(const std::string& name, int value,
-                         const std::string& label = "", int min = 0,
-                         int max = 100, const std::string& cat = "")
-      : type(Type::Int),
-        name(name),
-        label(label.empty() ? name : label),
-        category(cat),
-        int_value(value) {
+  explicit NodeParameter(const std::string& name, int value, const std::string& label = "", int min = 0, int max = 100,
+                         const std::string& cat = "")
+      : type(Type::Int), name(name), label(label.empty() ? name : label), category(cat), int_value(value) {
     ui_range.int_min = min;
     ui_range.int_max = max;
   }
 
-  explicit NodeParameter(const std::string& name, bool value,
-                         const std::string& label = "",
+  explicit NodeParameter(const std::string& name, bool value, const std::string& label = "",
                          const std::string& cat = "")
-      : type(Type::Bool),
-        name(name),
-        label(label.empty() ? name : label),
-        category(cat),
-        bool_value(value) {}
+      : type(Type::Bool), name(name), label(label.empty() ? name : label), category(cat), bool_value(value) {}
 
-  explicit NodeParameter(const std::string& name, const std::string& value,
-                         const std::string& label = "",
+  explicit NodeParameter(const std::string& name, const std::string& value, const std::string& label = "",
                          const std::string& cat = "")
-      : type(Type::String),
-        name(name),
-        label(label.empty() ? name : label),
-        category(cat),
-        string_value(value) {}
+      : type(Type::String), name(name), label(label.empty() ? name : label), category(cat), string_value(value) {}
 
-  explicit NodeParameter(const std::string& name,
-                         const std::array<float, 3>& value,
-                         const std::string& label = "", float min = -100.0F,
-                         float max = 100.0F, const std::string& cat = "")
-      : type(Type::Vector3),
-        name(name),
-        label(label.empty() ? name : label),
-        category(cat),
-        vector3_value(value) {
+  explicit NodeParameter(const std::string& name, const std::array<float, 3>& value, const std::string& label = "",
+                         float min = -100.0F, float max = 100.0F, const std::string& cat = "")
+      : type(Type::Vector3), name(name), label(label.empty() ? name : label), category(cat), vector3_value(value) {
     ui_range.float_min = min;
     ui_range.float_max = max;
   }
 
   // Constructor for combo box (int with string options)
-  explicit NodeParameter(const std::string& name, int value,
-                         const std::vector<std::string>& options,
-                         const std::string& label = "",
-                         const std::string& cat = "")
+  explicit NodeParameter(const std::string& name, int value, const std::vector<std::string>& options,
+                         const std::string& label = "", const std::string& cat = "")
       : type(Type::Int),
         name(name),
         label(label.empty() ? name : label),
@@ -253,10 +223,7 @@ struct NodeParameter {
   /**
    * @brief Check if this parameter uses an expression
    */
-  bool has_expression() const {
-    return value_mode == ParameterValueMode::EXPRESSION &&
-           !expression_string.empty();
-  }
+  bool has_expression() const { return value_mode == ParameterValueMode::EXPRESSION && !expression_string.empty(); }
 
   /**
    * @brief Clear expression and return to literal value mode
@@ -330,9 +297,7 @@ public:
   void remove_parameter(const std::string& name);
   std::optional<NodeParameter> get_parameter(const std::string& name) const;
   void set_parameter(const std::string& name, const NodeParameter& param);
-  const std::vector<NodeParameter>& get_parameters() const {
-    return parameters_;
-  }
+  const std::vector<NodeParameter>& get_parameters() const { return parameters_; }
 
   const std::vector<NodePin>& get_input_pins() const { return input_pins_; }
   const std::vector<NodePin>& get_output_pins() const { return output_pins_; }
@@ -351,9 +316,7 @@ public:
   void set_bypass(bool bypass) { bypass_flag_ = bypass; }
 
   bool is_pass_through() const { return pass_through_flag_; }
-  void set_pass_through(bool pass_through) {
-    pass_through_flag_ = pass_through;
-  }
+  void set_pass_through(bool pass_through) { pass_through_flag_ = pass_through; }
 
   bool has_error() const { return has_error_; }
   void set_error(bool error, const std::string& message = "") {
@@ -362,9 +325,7 @@ public:
   }
   const std::string& get_error_message() const { return error_message_; }
 
-  void set_output_mesh(std::shared_ptr<core::Mesh> mesh) {
-    output_mesh_ = mesh;
-  }
+  void set_output_mesh(std::shared_ptr<core::Mesh> mesh) { output_mesh_ = mesh; }
   std::shared_ptr<core::Mesh> get_output_mesh() const { return output_mesh_; }
 
   double get_cook_time() const { return cook_time_ms_; }
@@ -415,20 +376,15 @@ public:
   bool remove_node(int node_id);
   GraphNode* get_node(int node_id);
   const GraphNode* get_node(int node_id) const;
-  const std::vector<std::unique_ptr<GraphNode>>& get_nodes() const {
-    return nodes_;
-  }
+  const std::vector<std::unique_ptr<GraphNode>>& get_nodes() const { return nodes_; }
 
   void set_next_node_id(int id) { next_node_id_ = id; }
   void set_next_connection_id(int id) { next_connection_id_ = id; }
 
-  int add_connection(int source_node_id, int source_pin, int target_node_id,
-                     int target_pin);
+  int add_connection(int source_node_id, int source_pin, int target_node_id, int target_pin);
   bool remove_connection(int connection_id);
   bool remove_connections_to_node(int node_id);
-  const std::vector<NodeConnection>& get_connections() const {
-    return connections_;
-  }
+  const std::vector<NodeConnection>& get_connections() const { return connections_; }
 
   std::vector<int> get_input_nodes(int node_id) const;
   std::vector<int> get_output_nodes(int node_id) const;
@@ -456,12 +412,8 @@ public:
   using NodeChangedCallback = std::function<void(int node_id)>;
   using ConnectionChangedCallback = std::function<void(int connection_id)>;
 
-  void set_node_changed_callback(NodeChangedCallback callback) {
-    node_changed_callback_ = callback;
-  }
-  void set_connection_changed_callback(ConnectionChangedCallback callback) {
-    connection_changed_callback_ = callback;
-  }
+  void set_node_changed_callback(NodeChangedCallback callback) { node_changed_callback_ = callback; }
+  void set_connection_changed_callback(ConnectionChangedCallback callback) { connection_changed_callback_ = callback; }
 
   /**
    * @brief Add or update a graph-level parameter
@@ -482,17 +434,14 @@ public:
    * @param name Parameter name
    * @return Pointer to parameter, or nullptr if not found
    */
-  const class GraphParameter*
-  get_graph_parameter(const std::string& name) const;
+  const class GraphParameter* get_graph_parameter(const std::string& name) const;
   class GraphParameter* get_graph_parameter(const std::string& name);
 
   /**
    * @brief Get all graph parameters
    * @return Vector of all graph parameters
    */
-  const std::vector<class GraphParameter>& get_graph_parameters() const {
-    return graph_parameters_;
-  }
+  const std::vector<class GraphParameter>& get_graph_parameters() const { return graph_parameters_; }
 
   /**
    * @brief Check if a parameter name exists
@@ -516,8 +465,7 @@ public:
    * - ch("/Sphere1/radius") → "5.0"
    * - ch("../Box1/width") → "2.0"
    */
-  std::optional<std::string>
-  resolve_parameter_path(int current_node_id, const std::string& path) const;
+  std::optional<std::string> resolve_parameter_path(int current_node_id, const std::string& path) const;
 
   /**
    * @brief Validate parameter name (for future subgraph compatibility)

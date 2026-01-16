@@ -29,9 +29,8 @@ class IntWidget : public BaseParameterWidget {
   Q_OBJECT
 
 public:
-  explicit IntWidget(const QString& label, int value = 0, int min = 0,
-                     int max = 100, const QString& description = QString(),
-                     QWidget* parent = nullptr);
+  explicit IntWidget(const QString& label, int value = 0, int min = 0, int max = 100,
+                     const QString& description = QString(), QWidget* parent = nullptr);
 
   // Get/set current value
   int getValue() const;

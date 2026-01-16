@@ -7,28 +7,24 @@
 
 namespace nodo::core {
 
-std::optional<GeometryContainer>
-GeometryContainer::delete_elements(const std::string& group_name,
-                                   ElementClass element_class,
-                                   bool delete_orphaned_points) const {
+std::optional<GeometryContainer> GeometryContainer::delete_elements(const std::string& group_name,
+                                                                    ElementClass element_class,
+                                                                    bool delete_orphaned_points) const {
   // Check if group exists
   if (!has_group(*this, group_name, element_class)) {
-    std::cerr << "GeometryContainer::delete_elements - Group '" << group_name
-              << "' does not exist\n";
+    std::cerr << "GeometryContainer::delete_elements - Group '" << group_name << "' does not exist\n";
     return std::nullopt;
   }
 
   // Get elements to delete
-  auto elements_to_delete =
-      get_group_elements(*this, group_name, element_class);
+  auto elements_to_delete = get_group_elements(*this, group_name, element_class);
   if (elements_to_delete.empty()) {
     // No elements to delete, return clone
     return this->clone();
   }
 
   // Convert to set for fast lookup
-  std::unordered_set<size_t> delete_set(elements_to_delete.begin(),
-                                        elements_to_delete.end());
+  std::unordered_set<size_t> delete_set(elements_to_delete.begin(), elements_to_delete.end());
 
   GeometryContainer result;
 
@@ -43,9 +39,8 @@ GeometryContainer::delete_elements(const std::string& group_name,
   return std::nullopt;
 }
 
-std::optional<GeometryContainer> GeometryContainer::delete_primitives(
-    const std::unordered_set<size_t>& delete_set,
-    bool delete_orphaned_points) const {
+std::optional<GeometryContainer> GeometryContainer::delete_primitives(const std::unordered_set<size_t>& delete_set,
+                                                                      bool delete_orphaned_points) const {
   GeometryContainer result;
 
   // Step 1: Copy all points first
@@ -95,8 +90,7 @@ std::optional<GeometryContainer> GeometryContainer::delete_primitives(
   return result;
 }
 
-std::optional<GeometryContainer> GeometryContainer::delete_points(
-    const std::unordered_set<size_t>& delete_set) const {
+std::optional<GeometryContainer> GeometryContainer::delete_points(const std::unordered_set<size_t>& delete_set) const {
   GeometryContainer result;
 
   // Step 1: Build point index mapping (old -> new)
@@ -164,13 +158,11 @@ std::optional<GeometryContainer> GeometryContainer::delete_points(
   return result;
 }
 
-std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(
-    const GeometryContainer& input) const {
+std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(const GeometryContainer& input) const {
   // Build set of used points
   std::unordered_set<size_t> used_points;
   for (size_t prim_idx = 0; prim_idx < input.primitive_count(); ++prim_idx) {
-    const auto& vert_indices =
-        input.topology().get_primitive_vertices(prim_idx);
+    const auto& vert_indices = input.topology().get_primitive_vertices(prim_idx);
     for (int vert_idx : vert_indices) {
       int point_idx = input.topology().get_vertex_point(vert_idx);
       used_points.insert(point_idx);
@@ -230,8 +222,7 @@ std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(
     result.add_primitive(new_verts);
   }
 
-  std::cerr << "Removed " << (input.point_count() - new_point_idx)
-            << " orphaned points\n";
+  std::cerr << "Removed " << (input.point_count() - new_point_idx) << " orphaned points\n";
 
   return result;
 }

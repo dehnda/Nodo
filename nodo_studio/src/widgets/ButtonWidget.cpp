@@ -5,11 +5,8 @@
 namespace nodo_studio {
 namespace widgets {
 
-ButtonWidget::ButtonWidget(const QString& label, const QString& description,
-                           QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      button_(nullptr),
-      clicked_callback_(nullptr) {
+ButtonWidget::ButtonWidget(const QString& label, const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent), button_(nullptr), clicked_callback_(nullptr) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }

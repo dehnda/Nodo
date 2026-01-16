@@ -29,10 +29,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  ColorWidget(const QString& label,
-              const QColor& initial_color = QColor(255, 255, 255),
-              bool enable_alpha = false, const QString& description = QString(),
-              QWidget* parent = nullptr);
+  ColorWidget(const QString& label, const QColor& initial_color = QColor(255, 255, 255), bool enable_alpha = false,
+              const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
   QColor getColor() const { return color_; }

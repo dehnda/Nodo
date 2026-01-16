@@ -12,8 +12,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   input->set_point_count(4);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Create a quad on XY plane
@@ -46,8 +45,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   EXPECT_GE(result->topology().primitive_count(), 6);
 
   // Verify positions exist
-  auto* result_positions =
-      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 }
 
@@ -57,8 +55,7 @@ TEST(ExtrudeSOPTest, ExtrudeWithInset) {
   input->set_point_count(3);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
   (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);
   (*positions)[2] = nodo::core::Vec3f(0.5F, 1.0F, 0.0F);
@@ -94,8 +91,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
   input->set_point_count(4);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
   (*positions)[1] = nodo::core::Vec3f(1.0F, 0.0F, 0.0F);
   (*positions)[2] = nodo::core::Vec3f(1.0F, 1.0F, 0.0F);

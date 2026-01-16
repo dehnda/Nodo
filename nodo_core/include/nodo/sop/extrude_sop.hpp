@@ -38,9 +38,7 @@ public:
    * @brief Set extrusion distance
    * @param distance How far to extrude (can be negative for inward)
    */
-  void set_distance(double distance) {
-    set_parameter("distance", static_cast<float>(distance));
-  }
+  void set_distance(double distance) { set_parameter("distance", static_cast<float>(distance)); }
 
   /**
    * @brief Get extrusion distance
@@ -62,8 +60,7 @@ public:
    * @brief Get extrusion direction
    */
   Eigen::Vector3d get_direction() const {
-    return Eigen::Vector3d(get_parameter<float>("direction_x", 0.0F),
-                           get_parameter<float>("direction_y", 0.0F),
+    return Eigen::Vector3d(get_parameter<float>("direction_x", 0.0F), get_parameter<float>("direction_y", 0.0F),
                            get_parameter<float>("direction_z", 1.0F));
   }
 
@@ -71,24 +68,18 @@ public:
    * @brief Set extrusion mode
    * @param mode Type of extrusion to perform
    */
-  void set_mode(ExtrusionMode mode) {
-    set_parameter("mode", static_cast<int>(mode));
-  }
+  void set_mode(ExtrusionMode mode) { set_parameter("mode", static_cast<int>(mode)); }
 
   /**
    * @brief Get extrusion mode
    */
-  ExtrusionMode get_mode() const {
-    return static_cast<ExtrusionMode>(get_parameter<int>("mode", 0));
-  }
+  ExtrusionMode get_mode() const { return static_cast<ExtrusionMode>(get_parameter<int>("mode", 0)); }
 
   /**
    * @brief Set inset amount for creating border around extruded faces
    * @param inset Inset distance (0.0 = no inset)
    */
-  void set_inset(double inset) {
-    set_parameter("inset", static_cast<float>(inset));
-  }
+  void set_inset(double inset) { set_parameter("inset", static_cast<float>(inset)); }
 
   /**
    * @brief Get inset amount

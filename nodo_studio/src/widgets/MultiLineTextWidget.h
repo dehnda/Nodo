@@ -27,10 +27,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  MultiLineTextWidget(const QString& label,
-                      const QString& initial_text = QString(),
-                      const QString& placeholder = QString(),
-                      const QString& description = QString(),
+  MultiLineTextWidget(const QString& label, const QString& initial_text = QString(),
+                      const QString& placeholder = QString(), const QString& description = QString(),
                       QWidget* parent = nullptr);
 
   // Value access

@@ -60,8 +60,7 @@ public:
     auto output_geo = std::make_shared<core::GeometryContainer>();
 
     // Generate scattered points using new attribute system
-    scatter_points_on_mesh(*input_data, *output_geo, point_count, seed, density,
-                           use_face_area);
+    scatter_points_on_mesh(*input_data, *output_geo, point_count, seed, density, use_face_area);
 
     return output_geo;
   }
@@ -69,18 +68,14 @@ public:
   /**
    * @brief Scatter points across mesh surface (new attribute system)
    */
-  void scatter_points_on_mesh(const core::GeometryContainer& input_geo,
-                              core::GeometryContainer& output_geo,
-                              int point_count, int seed, float density,
-                              bool use_face_area);
+  void scatter_points_on_mesh(const core::GeometryContainer& input_geo, core::GeometryContainer& output_geo,
+                              int point_count, int seed, float density, bool use_face_area);
 
 private:
   /**
    * @brief Generate random point on triangle face
    */
-  core::Vector3 random_point_on_triangle(const core::Vector3& v0,
-                                         const core::Vector3& v1,
-                                         const core::Vector3& v2,
+  core::Vector3 random_point_on_triangle(const core::Vector3& v0, const core::Vector3& v1, const core::Vector3& v2,
                                          std::mt19937& generator);
 };
 

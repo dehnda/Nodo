@@ -72,8 +72,7 @@ TEST_F(ExecutionEngineBridgeTest, MeshToContainerPreservesTopology) {
   EXPECT_GT(result->primitive_count(), 0);
 
   // Verify P attribute exists
-  auto* positions =
-      result->get_point_attribute_typed<Eigen::Vector3f>(standard_attrs::P);
+  auto* positions = result->get_point_attribute_typed<Eigen::Vector3f>(standard_attrs::P);
   ASSERT_NE(positions, nullptr);
   EXPECT_EQ(positions->size(), result->point_count());
 
@@ -141,6 +140,5 @@ TEST_F(ExecutionEngineBridgeTest, CachingAcrossBridgeConversions) {
   EXPECT_EQ(result1->primitive_count(), result2->primitive_count());
 
   // Cache should return same GeometryContainer pointer
-  EXPECT_EQ(result1.get(), result2.get())
-      << "Cached results should be identical pointers";
+  EXPECT_EQ(result1.get(), result2.get()) << "Cached results should be identical pointers";
 }

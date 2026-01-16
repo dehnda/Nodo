@@ -16,8 +16,7 @@ static std::string get_group_attr_name(std::string_view group_name) {
 }
 
 // Helper to get attribute set for element class
-static AttributeSet* get_attr_set(GeometryContainer& container,
-                                  ElementClass element_class) {
+static AttributeSet* get_attr_set(GeometryContainer& container, ElementClass element_class) {
   switch (element_class) {
     case ElementClass::POINT:
       return &container.point_attributes();
@@ -32,9 +31,7 @@ static AttributeSet* get_attr_set(GeometryContainer& container,
   return nullptr;
 }
 
-static const AttributeSet*
-get_attr_set_const(const GeometryContainer& container,
-                   ElementClass element_class) {
+static const AttributeSet* get_attr_set_const(const GeometryContainer& container, ElementClass element_class) {
   switch (element_class) {
     case ElementClass::POINT:
       return &container.point_attributes();
@@ -53,8 +50,7 @@ get_attr_set_const(const GeometryContainer& container,
 // Basic Group Management
 // ============================================================================
 
-bool create_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class) {
+bool create_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class) {
   const std::string attr_name = get_group_attr_name(group_name);
 
   bool success = false;
@@ -63,8 +59,7 @@ bool create_group(GeometryContainer& container, std::string_view group_name,
       success = container.add_point_attribute(attr_name, AttributeType::INT);
       break;
     case ElementClass::PRIMITIVE:
-      success =
-          container.add_primitive_attribute(attr_name, AttributeType::INT);
+      success = container.add_primitive_attribute(attr_name, AttributeType::INT);
       break;
     case ElementClass::VERTEX:
       success = container.add_vertex_attribute(attr_name, AttributeType::INT);
@@ -97,8 +92,7 @@ bool create_group(GeometryContainer& container, std::string_view group_name,
     }
 
     if (group_attr) {
-      std::cerr << "create_group: Created '" << attr_name
-                << "' with size=" << group_attr->size() << " (expected "
+      std::cerr << "create_group: Created '" << attr_name << "' with size=" << group_attr->size() << " (expected "
                 << expected_size << ")\n";
     }
   }
@@ -106,8 +100,7 @@ bool create_group(GeometryContainer& container, std::string_view group_name,
   return success;
 }
 
-bool delete_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class) {
+bool delete_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class) {
   const std::string attr_name = get_group_attr_name(group_name);
   auto* attr_set = get_attr_set(container, element_class);
 
@@ -118,8 +111,7 @@ bool delete_group(GeometryContainer& container, std::string_view group_name,
   return attr_set->remove_attribute(attr_name);
 }
 
-bool has_group(const GeometryContainer& container, std::string_view group_name,
-               ElementClass element_class) {
+bool has_group(const GeometryContainer& container, std::string_view group_name, ElementClass element_class) {
   const std::string attr_name = get_group_attr_name(group_name);
   const auto* attr_set = get_attr_set_const(container, element_class);
 
@@ -130,8 +122,8 @@ bool has_group(const GeometryContainer& container, std::string_view group_name,
   return attr_set->has_attribute(attr_name);
 }
 
-bool add_to_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class, size_t element_index) {
+bool add_to_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
+                  size_t element_index) {
   const std::string attr_name = get_group_attr_name(group_name);
 
   // Get the group attribute
@@ -164,8 +156,7 @@ bool add_to_group(GeometryContainer& container, std::string_view group_name,
   return true;
 }
 
-bool add_to_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class,
+bool add_to_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                   const std::vector<size_t>& element_indices) {
   const std::string attr_name = get_group_attr_name(group_name);
 
@@ -189,8 +180,8 @@ bool add_to_group(GeometryContainer& container, std::string_view group_name,
     return false;
   }
 
-  std::cerr << "add_to_group: group_attr size=" << group_attr->size()
-            << ", indices to add=" << element_indices.size() << "\n";
+  std::cerr << "add_to_group: group_attr size=" << group_attr->size() << ", indices to add=" << element_indices.size()
+            << "\n";
 
   auto* int_storage = dynamic_cast<AttributeStorage<int>*>(group_attr);
   if (!int_storage) {
@@ -213,8 +204,7 @@ bool add_to_group(GeometryContainer& container, std::string_view group_name,
   return true;
 }
 
-bool remove_from_group(GeometryContainer& container,
-                       std::string_view group_name, ElementClass element_class,
+bool remove_from_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                        size_t element_index) {
   const std::string attr_name = get_group_attr_name(group_name);
 
@@ -246,8 +236,7 @@ bool remove_from_group(GeometryContainer& container,
   return true;
 }
 
-bool remove_from_group(GeometryContainer& container,
-                       std::string_view group_name, ElementClass element_class,
+bool remove_from_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                        const std::vector<size_t>& element_indices) {
   const std::string attr_name = get_group_attr_name(group_name);
 
@@ -285,8 +274,7 @@ bool remove_from_group(GeometryContainer& container,
   return true;
 }
 
-bool is_in_group(const GeometryContainer& container,
-                 std::string_view group_name, ElementClass element_class,
+bool is_in_group(const GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                  size_t element_index) {
   const std::string attr_name = get_group_attr_name(group_name);
 
@@ -309,8 +297,7 @@ bool is_in_group(const GeometryContainer& container,
     return false;
   }
 
-  const auto* int_storage =
-      dynamic_cast<const AttributeStorage<int>*>(group_attr);
+  const auto* int_storage = dynamic_cast<const AttributeStorage<int>*>(group_attr);
   if (!int_storage) {
     return false;
   }
@@ -318,8 +305,7 @@ bool is_in_group(const GeometryContainer& container,
   return int_storage->values()[element_index] != 0;
 }
 
-std::vector<size_t> get_group_elements(const GeometryContainer& container,
-                                       std::string_view group_name,
+std::vector<size_t> get_group_elements(const GeometryContainer& container, std::string_view group_name,
                                        ElementClass element_class) {
   std::vector<size_t> result;
   const std::string attr_name = get_group_attr_name(group_name);
@@ -343,8 +329,7 @@ std::vector<size_t> get_group_elements(const GeometryContainer& container,
     return result;
   }
 
-  const auto* int_storage =
-      dynamic_cast<const AttributeStorage<int>*>(group_attr);
+  const auto* int_storage = dynamic_cast<const AttributeStorage<int>*>(group_attr);
   if (!int_storage) {
     return result;
   }
@@ -359,13 +344,11 @@ std::vector<size_t> get_group_elements(const GeometryContainer& container,
   return result;
 }
 
-size_t get_group_size(const GeometryContainer& container,
-                      std::string_view group_name, ElementClass element_class) {
+size_t get_group_size(const GeometryContainer& container, std::string_view group_name, ElementClass element_class) {
   return get_group_elements(container, group_name, element_class).size();
 }
 
-bool clear_group(GeometryContainer& container, std::string_view group_name,
-                 ElementClass element_class) {
+bool clear_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class) {
   const std::string attr_name = get_group_attr_name(group_name);
 
   IAttributeStorage* group_attr = nullptr;
@@ -402,9 +385,8 @@ bool clear_group(GeometryContainer& container, std::string_view group_name,
 // Group Operations
 // ============================================================================
 
-bool group_union(GeometryContainer& container, std::string_view group_a,
-                 std::string_view group_b, std::string_view result_group,
-                 ElementClass element_class) {
+bool group_union(GeometryContainer& container, std::string_view group_a, std::string_view group_b,
+                 std::string_view result_group, ElementClass element_class) {
   // Create result group if it doesn't exist
   if (!has_group(container, result_group, element_class)) {
     if (!create_group(container, result_group, element_class)) {
@@ -425,9 +407,8 @@ bool group_union(GeometryContainer& container, std::string_view group_a,
   return add_to_group(container, result_group, element_class, union_vec);
 }
 
-bool group_intersection(GeometryContainer& container, std::string_view group_a,
-                        std::string_view group_b, std::string_view result_group,
-                        ElementClass element_class) {
+bool group_intersection(GeometryContainer& container, std::string_view group_a, std::string_view group_b,
+                        std::string_view result_group, ElementClass element_class) {
   if (!has_group(container, result_group, element_class)) {
     if (!create_group(container, result_group, element_class)) {
       return false;
@@ -451,9 +432,8 @@ bool group_intersection(GeometryContainer& container, std::string_view group_a,
   return add_to_group(container, result_group, element_class, intersection);
 }
 
-bool group_difference(GeometryContainer& container, std::string_view group_a,
-                      std::string_view group_b, std::string_view result_group,
-                      ElementClass element_class) {
+bool group_difference(GeometryContainer& container, std::string_view group_a, std::string_view group_b,
+                      std::string_view result_group, ElementClass element_class) {
   if (!has_group(container, result_group, element_class)) {
     if (!create_group(container, result_group, element_class)) {
       return false;
@@ -477,8 +457,8 @@ bool group_difference(GeometryContainer& container, std::string_view group_a,
   return add_to_group(container, result_group, element_class, difference);
 }
 
-bool group_invert(GeometryContainer& container, std::string_view source_group,
-                  std::string_view result_group, ElementClass element_class) {
+bool group_invert(GeometryContainer& container, std::string_view source_group, std::string_view result_group,
+                  ElementClass element_class) {
   if (!has_group(container, result_group, element_class)) {
     if (!create_group(container, result_group, element_class)) {
       return false;
@@ -520,8 +500,8 @@ bool group_invert(GeometryContainer& container, std::string_view source_group,
 // Pattern-Based Selection
 // ============================================================================
 
-bool select_pattern(GeometryContainer& container, std::string_view group_name,
-                    ElementClass element_class, size_t step, size_t offset) {
+bool select_pattern(GeometryContainer& container, std::string_view group_name, ElementClass element_class, size_t step,
+                    size_t offset) {
   if (!has_group(container, group_name, element_class)) {
     if (!create_group(container, group_name, element_class)) {
       return false;
@@ -556,8 +536,8 @@ bool select_pattern(GeometryContainer& container, std::string_view group_name,
   return add_to_group(container, group_name, element_class, selected);
 }
 
-bool select_range(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class, size_t start, size_t end) {
+bool select_range(GeometryContainer& container, std::string_view group_name, ElementClass element_class, size_t start,
+                  size_t end) {
   if (!has_group(container, group_name, element_class)) {
     if (!create_group(container, group_name, element_class)) {
       return false;
@@ -590,8 +570,7 @@ bool select_range(GeometryContainer& container, std::string_view group_name,
   return add_to_group(container, group_name, element_class, selected);
 }
 
-bool select_random(GeometryContainer& container, std::string_view group_name,
-                   ElementClass element_class, size_t count,
+bool select_random(GeometryContainer& container, std::string_view group_name, ElementClass element_class, size_t count,
                    unsigned int seed) {
   if (!has_group(container, group_name, element_class)) {
     if (!create_group(container, group_name, element_class)) {
@@ -632,10 +611,8 @@ bool select_random(GeometryContainer& container, std::string_view group_name,
 
 // Template specializations for select_by_attribute
 template <typename T>
-bool select_by_attribute(GeometryContainer& container,
-                         std::string_view group_name,
-                         ElementClass element_class, std::string_view attr_name,
-                         std::function<bool(const T&)> predicate) {
+bool select_by_attribute(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
+                         std::string_view attr_name, std::function<bool(const T&)> predicate) {
   if (!has_group(container, group_name, element_class)) {
     if (!create_group(container, group_name, element_class)) {
       return false;
@@ -676,33 +653,27 @@ bool select_by_attribute(GeometryContainer& container,
 }
 
 // Explicit template instantiations
-template bool select_by_attribute<float>(GeometryContainer&, std::string_view,
-                                         ElementClass, std::string_view,
+template bool select_by_attribute<float>(GeometryContainer&, std::string_view, ElementClass, std::string_view,
                                          std::function<bool(const float&)>);
-template bool select_by_attribute<int>(GeometryContainer&, std::string_view,
-                                       ElementClass, std::string_view,
+template bool select_by_attribute<int>(GeometryContainer&, std::string_view, ElementClass, std::string_view,
                                        std::function<bool(const int&)>);
-template bool select_by_attribute<Vec3f>(GeometryContainer&, std::string_view,
-                                         ElementClass, std::string_view,
+template bool select_by_attribute<Vec3f>(GeometryContainer&, std::string_view, ElementClass, std::string_view,
                                          std::function<bool(const Vec3f&)>);
 
 // Grow and shrink are not implemented yet (require connectivity analysis)
-bool grow_group(GeometryContainer& /*container*/,
-                std::string_view /*group_name*/, ElementClass /*element_class*/,
+bool grow_group(GeometryContainer& /*container*/, std::string_view /*group_name*/, ElementClass /*element_class*/,
                 size_t /*iterations*/) {
   // TODO: Implement using connectivity information
   return false;
 }
 
-bool shrink_group(GeometryContainer& /*container*/,
-                  std::string_view /*group_name*/,
-                  ElementClass /*element_class*/, size_t /*iterations*/) {
+bool shrink_group(GeometryContainer& /*container*/, std::string_view /*group_name*/, ElementClass /*element_class*/,
+                  size_t /*iterations*/) {
   // TODO: Implement using connectivity information
   return false;
 }
 
-std::vector<std::string> get_group_names(const GeometryContainer& container,
-                                         ElementClass element_class) {
+std::vector<std::string> get_group_names(const GeometryContainer& container, ElementClass element_class) {
   std::vector<std::string> group_names;
 
   const AttributeSet* attr_set = get_attr_set_const(container, element_class);

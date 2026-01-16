@@ -16,9 +16,8 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-Geodesic::compute(const core::GeometryContainer& input,
-                  const GeodesicParams& params, std::string* error) {
+std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryContainer& input,
+                                                         const GeodesicParams& params, std::string* error) {
   try {
     // Validate input
     auto validation_error = detail::PMPConverter::validate_for_pmp(input);
@@ -38,8 +37,7 @@ Geodesic::compute(const core::GeometryContainer& input,
 
     if (params.seed_group.empty()) {
       // No group specified - use all vertices as seeds
-      fmt::print("Geodesic: seed_group is empty, using all {} vertices\n",
-                 pmp_mesh.n_vertices());
+      fmt::print("Geodesic: seed_group is empty, using all {} vertices\n", pmp_mesh.n_vertices());
       for (auto v : pmp_mesh.vertices()) {
         seeds.push_back(v);
       }
@@ -47,18 +45,15 @@ Geodesic::compute(const core::GeometryContainer& input,
       // Get seed vertices from group
       fmt::print("Geodesic: Looking for group '{}'\n", params.seed_group);
 
-      if (!core::has_group(input, params.seed_group,
-                           core::ElementClass::POINT)) {
+      if (!core::has_group(input, params.seed_group, core::ElementClass::POINT)) {
         if (error)
           *error = "Seed group '" + params.seed_group + "' not found";
         return std::nullopt;
       }
 
-      auto members = core::get_group_elements(input, params.seed_group,
-                                              core::ElementClass::POINT);
+      auto members = core::get_group_elements(input, params.seed_group, core::ElementClass::POINT);
 
-      fmt::print("Geodesic: seed_group='{}' has {} members\n",
-                 params.seed_group, members.size());
+      fmt::print("Geodesic: seed_group='{}' has {} members\n", params.seed_group, members.size());
 
       if (members.empty()) {
         if (error)
@@ -75,15 +70,13 @@ Geodesic::compute(const core::GeometryContainer& input,
         }
       }
 
-      fmt::print("Geodesic: converted {} members to {} seeds\n", members.size(),
-                 seeds.size());
+      fmt::print("Geodesic: converted {} members to {} seeds\n", members.size(), seeds.size());
 
       if (seeds.empty()) {
         if (error)
           *error = "No valid seed vertices found in group (all indices out of "
                    "range). Group has " +
-                   std::to_string(members.size()) +
-                   " members but mesh only has " +
+                   std::to_string(members.size()) + " members but mesh only has " +
                    std::to_string(pmp_mesh.n_vertices()) + " vertices";
         return std::nullopt;
       }
@@ -103,16 +96,10 @@ Geodesic::compute(const core::GeometryContainer& input,
         }
       }
 
-      float max_dist = params.max_distance > 0.0F
-                           ? params.max_distance
-                           : std::numeric_limits<float>::max();
-      unsigned int max_num = params.max_neighbors > 0
-                                 ? params.max_neighbors
-                                 : std::numeric_limits<unsigned int>::max();
+      float max_dist = params.max_distance > 0.0F ? params.max_distance : std::numeric_limits<float>::max();
+      unsigned int max_num = params.max_neighbors > 0 ? params.max_neighbors : std::numeric_limits<unsigned int>::max();
 
-      fmt::print(
-          "Calling pmp::geodesics with {} seeds, max_dist={}, max_num={}\n",
-          seeds.size(), max_dist, max_num);
+      fmt::print("Calling pmp::geodesics with {} seeds, max_dist={}, max_num={}\n", seeds.size(), max_dist, max_num);
 
       pmp::geodesics(pmp_mesh, seeds, max_dist, max_num);
 
@@ -145,20 +132,16 @@ Geodesic::compute(const core::GeometryContainer& input,
     auto result = detail::PMPConverter::from_pmp_container(pmp_mesh, true);
 
     // Extract geodesic distances from PMP's "geodesic:distance" property
-    auto geodesic_prop =
-        pmp_mesh.get_vertex_property<float>("geodesic:distance");
+    auto geodesic_prop = pmp_mesh.get_vertex_property<float>("geodesic:distance");
 
-    fmt::print("Checking for 'geodesic:distance' property: {}\n",
-               geodesic_prop ? "found" : "NOT FOUND");
+    fmt::print("Checking for 'geodesic:distance' property: {}\n", geodesic_prop ? "found" : "NOT FOUND");
 
     if (geodesic_prop) {
       const size_t n_vertices = pmp_mesh.n_vertices();
 
       // Create distance attribute
-      result.add_point_attribute(params.output_attribute,
-                                 core::AttributeType::FLOAT);
-      auto* dist_attr =
-          result.get_point_attribute_typed<float>(params.output_attribute);
+      result.add_point_attribute(params.output_attribute, core::AttributeType::FLOAT);
+      auto* dist_attr = result.get_point_attribute_typed<float>(params.output_attribute);
       dist_attr->resize(n_vertices);
       auto dist_writable = dist_attr->values_writable();
 
@@ -169,8 +152,7 @@ Geodesic::compute(const core::GeometryContainer& input,
         ++idx;
       }
 
-      fmt::print("Copied {} distance values to '{}' attribute\n", n_vertices,
-                 params.output_attribute);
+      fmt::print("Copied {} distance values to '{}' attribute\n", n_vertices, params.output_attribute);
     } else {
       if (error)
         *error = "Failed to retrieve geodesic distances from computation. "

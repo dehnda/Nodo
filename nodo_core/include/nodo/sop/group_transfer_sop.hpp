@@ -22,43 +22,36 @@ class GroupTransferSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupTransferSOP(const std::string& name = "group_transfer")
-      : SOPNode(name, "GroupTransfer") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
-    input_ports_.add_port("1", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+  explicit GroupTransferSOP(const std::string& name = "group_transfer") : SOPNode(name, "GroupTransfer") {
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("1", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Group name pattern to transfer
-    register_parameter(
-        define_string_parameter("pattern", "*")
-            .label("Group Pattern")
-            .category("Groups")
-            .description(
-                "Pattern for groups to transfer (supports * and ? wildcards)")
-            .build());
+    register_parameter(define_string_parameter("pattern", "*")
+                           .label("Group Pattern")
+                           .category("Groups")
+                           .description("Pattern for groups to transfer (supports * and ? wildcards)")
+                           .build());
 
     // Universal group type parameter (from SOPNode base class)
     add_group_type_parameter("element_class", "Group Type", "Groups");
 
     // Transfer method
-    register_parameter(
-        define_int_parameter("method", 0)
-            .label("Transfer Method")
-            .options({"By Index", "By Position"})
-            .category("Method")
-            .description("Match elements by index or closest position")
-            .build());
+    register_parameter(define_int_parameter("method", 0)
+                           .label("Transfer Method")
+                           .options({"By Index", "By Position"})
+                           .category("Method")
+                           .description("Match elements by index or closest position")
+                           .build());
 
     // Distance threshold for position-based matching
-    register_parameter(
-        define_float_parameter("threshold", 0.001F)
-            .label("Distance Threshold")
-            .range(0.0F, 10.0F)
-            .category("Method")
-            .visible_when("method", 1)
-            .description("Maximum distance for position-based matching")
-            .build());
+    register_parameter(define_float_parameter("threshold", 0.001F)
+                           .label("Distance Threshold")
+                           .range(0.0F, 10.0F)
+                           .category("Method")
+                           .visible_when("method", 1)
+                           .description("Maximum distance for position-based matching")
+                           .build());
   }
 
   ~GroupTransferSOP() override = default;
@@ -93,8 +86,8 @@ protected:
         escaped += ".*";
       } else if (c == '?') {
         escaped += ".";
-      } else if (c == '.' || c == '[' || c == ']' || c == '(' || c == ')' ||
-                 c == '+' || c == '^' || c == '$' || c == '\\') {
+      } else if (c == '.' || c == '[' || c == ']' || c == '(' || c == ')' || c == '+' || c == '^' || c == '$' ||
+                 c == '\\') {
         escaped += '\\';
         escaped += c;
       } else {
@@ -182,13 +175,11 @@ protected:
 
       // Transfer each group
       for (const auto& group_name : groups_to_transfer) {
-        auto* src_group =
-            source->get_primitive_attribute_typed<int>(group_name);
+        auto* src_group = source->get_primitive_attribute_typed<int>(group_name);
 
         // Create group on result
         result->add_primitive_attribute(group_name, core::AttributeType::INT);
-        auto* dst_group =
-            result->get_primitive_attribute_typed<int>(group_name);
+        auto* dst_group = result->get_primitive_attribute_typed<int>(group_name);
 
         if (method == 0) { // By Index
           // Direct index matching
@@ -205,16 +196,13 @@ protected:
           }
 
           // Calculate centroids for destination primitives
-          for (size_t dst_prim = 0; dst_prim < result->primitive_count();
-               ++dst_prim) {
-            const auto& dst_verts =
-                result->topology().get_primitive_vertices(dst_prim);
+          for (size_t dst_prim = 0; dst_prim < result->primitive_count(); ++dst_prim) {
+            const auto& dst_verts = result->topology().get_primitive_vertices(dst_prim);
 
             core::Vec3f dst_centroid(0.0F, 0.0F, 0.0F);
             for (int vert_idx : dst_verts) {
               int pt_idx = result->topology().get_vertex_point(vert_idx);
-              if (pt_idx >= 0 &&
-                  static_cast<size_t>(pt_idx) < dst_pos->size()) {
+              if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < dst_pos->size()) {
                 dst_centroid += (*dst_pos)[pt_idx];
               }
             }
@@ -226,16 +214,13 @@ protected:
             float min_dist = std::numeric_limits<float>::max();
             size_t closest_idx = 0;
 
-            for (size_t src_prim = 0; src_prim < source->primitive_count();
-                 ++src_prim) {
-              const auto& src_verts =
-                  source->topology().get_primitive_vertices(src_prim);
+            for (size_t src_prim = 0; src_prim < source->primitive_count(); ++src_prim) {
+              const auto& src_verts = source->topology().get_primitive_vertices(src_prim);
 
               core::Vec3f src_centroid(0.0F, 0.0F, 0.0F);
               for (int vert_idx : src_verts) {
                 int pt_idx = source->topology().get_vertex_point(vert_idx);
-                if (pt_idx >= 0 &&
-                    static_cast<size_t>(pt_idx) < src_pos->size()) {
+                if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < src_pos->size()) {
                   src_centroid += (*src_pos)[pt_idx];
                 }
               }

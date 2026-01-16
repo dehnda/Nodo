@@ -22,10 +22,8 @@ class GroupExpandSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupExpandSOP(const std::string& name = "group_expand")
-      : SOPNode(name, "GroupExpand") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+  explicit GroupExpandSOP(const std::string& name = "group_expand") : SOPNode(name, "GroupExpand") {
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Group name
     register_parameter(define_string_parameter("group_name", "group1")
@@ -38,23 +36,20 @@ public:
     add_group_type_parameter();
 
     // Operation
-    register_parameter(
-        define_int_parameter("operation", 0)
-            .label("Operation")
-            .options({"Expand", "Shrink"})
-            .category("Operation")
-            .description(
-                "Grow group by adding neighbors or shrink by removing boundary")
-            .build());
+    register_parameter(define_int_parameter("operation", 0)
+                           .label("Operation")
+                           .options({"Expand", "Shrink"})
+                           .category("Operation")
+                           .description("Grow group by adding neighbors or shrink by removing boundary")
+                           .build());
 
     // Iterations
-    register_parameter(
-        define_int_parameter("iterations", 1)
-            .label("Iterations")
-            .range(1, 100)
-            .category("Operation")
-            .description("Number of times to repeat expand/shrink operation")
-            .build());
+    register_parameter(define_int_parameter("iterations", 1)
+                           .label("Iterations")
+                           .range(1, 100)
+                           .category("Operation")
+                           .description("Number of times to repeat expand/shrink operation")
+                           .build());
   }
 
   ~GroupExpandSOP() override = default;
@@ -91,17 +86,14 @@ protected:
           // Find all points adjacent to group members
           std::set<size_t> new_members;
 
-          for (size_t prim_idx = 0; prim_idx < result->primitive_count();
-               ++prim_idx) {
-            const auto& prim_verts =
-                result->topology().get_primitive_vertices(prim_idx);
+          for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
+            const auto& prim_verts = result->topology().get_primitive_vertices(prim_idx);
 
             // Check if any vertex of this primitive is in the group
             bool has_group_point = false;
             for (int vert_idx : prim_verts) {
               int pt_idx = result->topology().get_vertex_point(vert_idx);
-              if (pt_idx >= 0 &&
-                  static_cast<size_t>(pt_idx) < group_attr->size()) {
+              if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < group_attr->size()) {
                 if ((*group_attr)[pt_idx] != 0) {
                   has_group_point = true;
                   break;
@@ -130,18 +122,15 @@ protected:
           // Find boundary points (connected to non-group points)
           std::set<size_t> boundary_points;
 
-          for (size_t prim_idx = 0; prim_idx < result->primitive_count();
-               ++prim_idx) {
-            const auto& prim_verts =
-                result->topology().get_primitive_vertices(prim_idx);
+          for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
+            const auto& prim_verts = result->topology().get_primitive_vertices(prim_idx);
 
             bool has_group_point = false;
             bool has_non_group_point = false;
 
             for (int vert_idx : prim_verts) {
               int pt_idx = result->topology().get_vertex_point(vert_idx);
-              if (pt_idx >= 0 &&
-                  static_cast<size_t>(pt_idx) < group_attr->size()) {
+              if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < group_attr->size()) {
                 if ((*group_attr)[pt_idx] != 0) {
                   has_group_point = true;
                 } else {
@@ -155,8 +144,7 @@ protected:
             if (has_group_point && has_non_group_point) {
               for (int vert_idx : prim_verts) {
                 int pt_idx = result->topology().get_vertex_point(vert_idx);
-                if (pt_idx >= 0 &&
-                    static_cast<size_t>(pt_idx) < group_attr->size()) {
+                if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < group_attr->size()) {
                   if ((*group_attr)[pt_idx] != 0) {
                     boundary_points.insert(pt_idx);
                   }
@@ -185,11 +173,9 @@ protected:
           // Find primitives adjacent to group members (sharing points)
           std::set<size_t> new_members;
 
-          for (size_t prim_idx = 0; prim_idx < result->primitive_count();
-               ++prim_idx) {
+          for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
             if ((*group_attr)[prim_idx] == 0) {
-              const auto& prim_verts =
-                  result->topology().get_primitive_vertices(prim_idx);
+              const auto& prim_verts = result->topology().get_primitive_vertices(prim_idx);
 
               // Check if any of its points are used by a grouped primitive
               bool adjacent_to_group = false;
@@ -197,14 +183,11 @@ protected:
                 int pt_idx = result->topology().get_vertex_point(vert_idx);
 
                 // Check all primitives using this point
-                for (size_t other_prim = 0;
-                     other_prim < result->primitive_count(); ++other_prim) {
+                for (size_t other_prim = 0; other_prim < result->primitive_count(); ++other_prim) {
                   if ((*group_attr)[other_prim] != 0) {
-                    const auto& other_verts =
-                        result->topology().get_primitive_vertices(other_prim);
+                    const auto& other_verts = result->topology().get_primitive_vertices(other_prim);
                     for (int other_vert : other_verts) {
-                      if (result->topology().get_vertex_point(other_vert) ==
-                          pt_idx) {
+                      if (result->topology().get_vertex_point(other_vert) == pt_idx) {
                         adjacent_to_group = true;
                         break;
                       }
@@ -231,25 +214,20 @@ protected:
           // Find boundary primitives (adjacent to non-group primitives)
           std::set<size_t> boundary_prims;
 
-          for (size_t prim_idx = 0; prim_idx < result->primitive_count();
-               ++prim_idx) {
+          for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
             if ((*group_attr)[prim_idx] != 0) {
-              const auto& prim_verts =
-                  result->topology().get_primitive_vertices(prim_idx);
+              const auto& prim_verts = result->topology().get_primitive_vertices(prim_idx);
 
               // Check if adjacent to any non-group primitive
               bool adjacent_to_non_group = false;
               for (int vert_idx : prim_verts) {
                 int pt_idx = result->topology().get_vertex_point(vert_idx);
 
-                for (size_t other_prim = 0;
-                     other_prim < result->primitive_count(); ++other_prim) {
+                for (size_t other_prim = 0; other_prim < result->primitive_count(); ++other_prim) {
                   if ((*group_attr)[other_prim] == 0) {
-                    const auto& other_verts =
-                        result->topology().get_primitive_vertices(other_prim);
+                    const auto& other_verts = result->topology().get_primitive_vertices(other_prim);
                     for (int other_vert : other_verts) {
-                      if (result->topology().get_vertex_point(other_vert) ==
-                          pt_idx) {
+                      if (result->topology().get_vertex_point(other_vert) == pt_idx) {
                         adjacent_to_non_group = true;
                         break;
                       }

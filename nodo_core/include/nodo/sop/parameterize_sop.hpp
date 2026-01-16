@@ -38,11 +38,9 @@ class ParameterizeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ParameterizeSOP(const std::string& node_name = "parameterize")
-      : SOPNode(node_name, "Parameterize") {
+  explicit ParameterizeSOP(const std::string& node_name = "parameterize") : SOPNode(node_name, "Parameterize") {
     // Add input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Parameterization method
     register_parameter(define_int_parameter("method", 0)
@@ -68,9 +66,7 @@ public:
                            .build());
   }
 
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::SINGLE, 1, 1, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
@@ -88,8 +84,7 @@ protected:
     switch (method_index) {
       case 0:
         params.method = processing::ParameterizationMethod::Harmonic;
-        params.use_uniform_weights =
-            get_parameter<bool>("use_uniform_weights", false);
+        params.use_uniform_weights = get_parameter<bool>("use_uniform_weights", false);
         break;
       case 1:
         params.method = processing::ParameterizationMethod::LSCM;
@@ -103,8 +98,7 @@ protected:
 
     // Compute parameterization
     std::string error;
-    auto result =
-        processing::Parameterization::parameterize(*input_data, params, &error);
+    auto result = processing::Parameterization::parameterize(*input_data, params, &error);
 
     if (!result) {
       fmt::print("ParameterizeSOP: {}\n", error);

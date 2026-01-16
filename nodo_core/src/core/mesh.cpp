@@ -6,8 +6,7 @@
 
 namespace nodo::core {
 
-Mesh::Mesh(Vertices vertices, Faces faces)
-    : vertices_(std::move(vertices)), faces_(std::move(faces)) {}
+Mesh::Mesh(Vertices vertices, Faces faces) : vertices_(std::move(vertices)), faces_(std::move(faces)) {}
 
 const Mesh::Normals& Mesh::face_normals() const {
   if (!face_normals_) {

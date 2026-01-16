@@ -25,11 +25,9 @@ class SmoothSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SmoothSOP(const std::string& node_name = "smooth")
-      : SOPNode(node_name, "Smooth") {
+  explicit SmoothSOP(const std::string& node_name = "smooth") : SOPNode(node_name, "Smooth") {
     // Add input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Smoothing method
     register_parameter(define_int_parameter("method", 0)
@@ -49,39 +47,33 @@ public:
                            .build());
 
     // Laplacian type
-    register_parameter(
-        define_int_parameter("laplace_type", 0)
-            .label("Laplacian Type")
-            .options({"Cotangent", "Uniform"})
-            .category("Advanced")
-            .description("Cotangent = geometry-aware, Uniform = simple average")
-            .build());
+    register_parameter(define_int_parameter("laplace_type", 0)
+                           .label("Laplacian Type")
+                           .options({"Cotangent", "Uniform"})
+                           .category("Advanced")
+                           .description("Cotangent = geometry-aware, Uniform = simple average")
+                           .build());
 
     // Timestep (implicit only)
-    register_parameter(
-        define_float_parameter("timestep", 0.001F)
-            .label("Timestep")
-            .range(0.0001F, 0.1F)
-            .category("Advanced")
-            .visible_when("method", 1)
-            .description(
-                "Time step for implicit smoothing (smaller = more stable)")
-            .build());
+    register_parameter(define_float_parameter("timestep", 0.001F)
+                           .label("Timestep")
+                           .range(0.0001F, 0.1F)
+                           .category("Advanced")
+                           .visible_when("method", 1)
+                           .description("Time step for implicit smoothing (smaller = more stable)")
+                           .build());
 
     // Rescale (implicit only)
-    register_parameter(
-        define_int_parameter("rescale", 1)
-            .label("Rescale")
-            .options({"Off", "On"})
-            .category("Advanced")
-            .visible_when("method", 1)
-            .description("Re-center and re-scale mesh after smoothing")
-            .build());
+    register_parameter(define_int_parameter("rescale", 1)
+                           .label("Rescale")
+                           .options({"Off", "On"})
+                           .category("Advanced")
+                           .visible_when("method", 1)
+                           .description("Re-center and re-scale mesh after smoothing")
+                           .build());
   }
 
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::SINGLE, 1, 1, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {

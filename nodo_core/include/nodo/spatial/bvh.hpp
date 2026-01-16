@@ -94,8 +94,7 @@ public:
     double t_min = 0.0;
     double t_max = std::numeric_limits<double>::infinity();
 
-    Ray(const Eigen::Vector3d& orig, const Eigen::Vector3d& dir)
-        : origin(orig), direction(dir.normalized()) {}
+    Ray(const Eigen::Vector3d& orig, const Eigen::Vector3d& dir) : origin(orig), direction(dir.normalized()) {}
   };
 
   /// @brief Hit information for ray queries
@@ -131,8 +130,7 @@ public:
   /// @brief Find closest point on mesh surface to given point
   /// @param point The query point
   /// @return Closest point and triangle index, or nullopt if mesh is empty
-  std::optional<std::pair<Eigen::Vector3d, int>>
-  closest_point(const Eigen::Vector3d& point) const;
+  std::optional<std::pair<Eigen::Vector3d, int>> closest_point(const Eigen::Vector3d& point) const;
 
   /// @brief Check if BVH has been built
   bool is_built() const { return root_ != nullptr; }
@@ -159,39 +157,31 @@ private:
   Stats stats_;
 
   /// @brief Recursive BVH build function
-  std::unique_ptr<BVHNode>
-  build_recursive(const std::vector<int>& triangle_indices,
-                  const AABB& node_bounds, int depth);
+  std::unique_ptr<BVHNode> build_recursive(const std::vector<int>& triangle_indices, const AABB& node_bounds,
+                                           int depth);
 
   /// @brief Calculate bounding box for a set of triangles
-  AABB
-  calculate_triangle_bounds(const std::vector<int>& triangle_indices) const;
+  AABB calculate_triangle_bounds(const std::vector<int>& triangle_indices) const;
 
   /// @brief Split triangles using Surface Area Heuristic
-  std::pair<std::vector<int>, std::vector<int>>
-  split_triangles_sah(const std::vector<int>& triangle_indices,
-                      const AABB& node_bounds) const;
+  std::pair<std::vector<int>, std::vector<int>> split_triangles_sah(const std::vector<int>& triangle_indices,
+                                                                    const AABB& node_bounds) const;
 
   /// @brief Simple midpoint split
-  std::pair<std::vector<int>, std::vector<int>>
-  split_triangles_midpoint(const std::vector<int>& triangle_indices,
-                           const AABB& node_bounds) const;
+  std::pair<std::vector<int>, std::vector<int>> split_triangles_midpoint(const std::vector<int>& triangle_indices,
+                                                                         const AABB& node_bounds) const;
 
   /// @brief Ray-AABB intersection test
-  bool ray_aabb_intersect(const Ray& ray, const AABB& aabb, double& t_near,
-                          double& t_far) const;
+  bool ray_aabb_intersect(const Ray& ray, const AABB& aabb, double& t_near, double& t_far) const;
 
   /// @brief Ray-triangle intersection test
-  bool ray_triangle_intersect(const Ray& ray, int triangle_index,
-                              RayHit& hit) const;
+  bool ray_triangle_intersect(const Ray& ray, int triangle_index, RayHit& hit) const;
 
   /// @brief Recursive ray intersection
-  bool intersect_ray_recursive(const BVHNode* node, const Ray& ray,
-                               RayHit& closest_hit) const;
+  bool intersect_ray_recursive(const BVHNode* node, const Ray& ray, RayHit& closest_hit) const;
 
   /// @brief Recursive AABB query
-  void query_aabb_recursive(const BVHNode* node, const AABB& query_aabb,
-                            std::vector<int>& results) const;
+  void query_aabb_recursive(const BVHNode* node, const AABB& query_aabb, std::vector<int>& results) const;
 };
 
 } // namespace nodo::spatial

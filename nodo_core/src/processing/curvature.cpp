@@ -12,9 +12,8 @@
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-Curvature::compute(const core::GeometryContainer& input,
-                   const CurvatureParams& params) {
+std::optional<core::GeometryContainer> Curvature::compute(const core::GeometryContainer& input,
+                                                          const CurvatureParams& params) {
   // Validate input
   auto validation_error = detail::PMPConverter::validate_for_pmp(input);
   if (!validation_error.empty()) {
@@ -25,9 +24,8 @@ Curvature::compute(const core::GeometryContainer& input,
   // Convert to PMP
   auto pmp_mesh = detail::PMPConverter::to_pmp(input);
 
-  fmt::print(
-      "Curvature: Computing curvature for mesh with {} vertices, {} faces\n",
-      pmp_mesh.n_vertices(), pmp_mesh.n_faces());
+  fmt::print("Curvature: Computing curvature for mesh with {} vertices, {} faces\n", pmp_mesh.n_vertices(),
+             pmp_mesh.n_faces());
 
   // Ensure normals are computed
   if (!pmp_mesh.has_vertex_property("v:normal")) {
@@ -37,14 +35,10 @@ Curvature::compute(const core::GeometryContainer& input,
   // Compute curvature
   try {
     // Determine which curvature types to compute
-    bool compute_mean = (params.type == CurvatureType::MEAN ||
-                         params.type == CurvatureType::ALL);
-    bool compute_gaussian = (params.type == CurvatureType::GAUSSIAN ||
-                             params.type == CurvatureType::ALL);
-    bool compute_min = (params.type == CurvatureType::MIN ||
-                        params.type == CurvatureType::ALL);
-    bool compute_max = (params.type == CurvatureType::MAX ||
-                        params.type == CurvatureType::ALL);
+    bool compute_mean = (params.type == CurvatureType::MEAN || params.type == CurvatureType::ALL);
+    bool compute_gaussian = (params.type == CurvatureType::GAUSSIAN || params.type == CurvatureType::ALL);
+    bool compute_min = (params.type == CurvatureType::MIN || params.type == CurvatureType::ALL);
+    bool compute_max = (params.type == CurvatureType::MAX || params.type == CurvatureType::ALL);
 
     int smoothing = params.smooth ? params.smoothing_iterations : 0;
 
@@ -102,8 +96,7 @@ Curvature::compute(const core::GeometryContainer& input,
     // Convert back to Nodo format
     fmt::print("Curvature: Converting to Nodo format...\n");
     auto result = detail::PMPConverter::from_pmp_container(pmp_mesh);
-    fmt::print("Curvature: Converted, result has {} points\n",
-               result.point_count());
+    fmt::print("Curvature: Converted, result has {} points\n", result.point_count());
 
     // Add extracted curvature attributes
     if (compute_mean) {
@@ -129,10 +122,8 @@ Curvature::compute(const core::GeometryContainer& input,
     }
 
     if (compute_gaussian) {
-      result.add_point_attribute("gaussian_curvature",
-                                 core::AttributeType::FLOAT);
-      auto* attr =
-          result.get_point_attribute_typed<float>("gaussian_curvature");
+      result.add_point_attribute("gaussian_curvature", core::AttributeType::FLOAT);
+      auto* attr = result.get_point_attribute_typed<float>("gaussian_curvature");
       attr->resize(n_verts);
 
       auto attr_span = attr->values_writable();
@@ -175,8 +166,8 @@ Curvature::compute(const core::GeometryContainer& input,
       fmt::print("  Added max_curvature attribute\n");
     }
 
-    fmt::print("Curvature: Result has {} points, {} point attributes\n",
-               result.point_count(), result.get_point_attribute_names().size());
+    fmt::print("Curvature: Result has {} points, {} point attributes\n", result.point_count(),
+               result.get_point_attribute_names().size());
 
     // Debug: Print all attribute names and verify they're accessible
     auto attr_names = result.get_point_attribute_names();
@@ -190,8 +181,7 @@ Curvature::compute(const core::GeometryContainer& input,
     if (compute_mean) {
       auto* attr = result.get_point_attribute_typed<float>("mean_curvature");
       if (attr) {
-        fmt::print("  mean_curvature: size={}, first value={}\n", attr->size(),
-                   attr->size() > 0 ? (*attr)[0] : 0.0f);
+        fmt::print("  mean_curvature: size={}, first value={}\n", attr->size(), attr->size() > 0 ? (*attr)[0] : 0.0f);
       } else {
         fmt::print("  mean_curvature: FAILED TO RETRIEVE!\n");
       }

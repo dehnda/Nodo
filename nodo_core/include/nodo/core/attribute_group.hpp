@@ -35,8 +35,7 @@ namespace nodo::core {
  * @param element_class Which element class (POINT or PRIMITIVE)
  * @return true if created successfully, false if group already exists
  */
-bool create_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class);
+bool create_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class);
 
 /**
  * @brief Delete a group attribute
@@ -46,14 +45,12 @@ bool create_group(GeometryContainer& container, std::string_view group_name,
  * @param element_class Which element class
  * @return true if deleted successfully, false if group doesn't exist
  */
-bool delete_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class);
+bool delete_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class);
 
 /**
  * @brief Check if a group exists
  */
-bool has_group(const GeometryContainer& container, std::string_view group_name,
-               ElementClass element_class);
+bool has_group(const GeometryContainer& container, std::string_view group_name, ElementClass element_class);
 
 /**
  * @brief Add an element to a group
@@ -64,35 +61,31 @@ bool has_group(const GeometryContainer& container, std::string_view group_name,
  * @param element_index Index of the element to add
  * @return true if successful
  */
-bool add_to_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class, size_t element_index);
+bool add_to_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
+                  size_t element_index);
 
 /**
  * @brief Add multiple elements to a group
  */
-bool add_to_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class,
+bool add_to_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                   const std::vector<size_t>& element_indices);
 
 /**
  * @brief Remove an element from a group
  */
-bool remove_from_group(GeometryContainer& container,
-                       std::string_view group_name, ElementClass element_class,
+bool remove_from_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                        size_t element_index);
 
 /**
  * @brief Remove multiple elements from a group
  */
-bool remove_from_group(GeometryContainer& container,
-                       std::string_view group_name, ElementClass element_class,
+bool remove_from_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                        const std::vector<size_t>& element_indices);
 
 /**
  * @brief Check if an element is in a group
  */
-bool is_in_group(const GeometryContainer& container,
-                 std::string_view group_name, ElementClass element_class,
+bool is_in_group(const GeometryContainer& container, std::string_view group_name, ElementClass element_class,
                  size_t element_index);
 
 /**
@@ -100,21 +93,18 @@ bool is_in_group(const GeometryContainer& container,
  *
  * @return Vector of element indices that are in the group
  */
-std::vector<size_t> get_group_elements(const GeometryContainer& container,
-                                       std::string_view group_name,
+std::vector<size_t> get_group_elements(const GeometryContainer& container, std::string_view group_name,
                                        ElementClass element_class);
 
 /**
  * @brief Get the size (number of elements) in a group
  */
-size_t get_group_size(const GeometryContainer& container,
-                      std::string_view group_name, ElementClass element_class);
+size_t get_group_size(const GeometryContainer& container, std::string_view group_name, ElementClass element_class);
 
 /**
  * @brief Clear all elements from a group (but keep the group)
  */
-bool clear_group(GeometryContainer& container, std::string_view group_name,
-                 ElementClass element_class);
+bool clear_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class);
 
 // ============================================================================
 // Group Operations (Boolean algebra on groups)
@@ -125,35 +115,32 @@ bool clear_group(GeometryContainer& container, std::string_view group_name,
  *
  * Elements in either group_a OR group_b will be in the result.
  */
-bool group_union(GeometryContainer& container, std::string_view group_a,
-                 std::string_view group_b, std::string_view result_group,
-                 ElementClass element_class);
+bool group_union(GeometryContainer& container, std::string_view group_a, std::string_view group_b,
+                 std::string_view result_group, ElementClass element_class);
 
 /**
  * @brief Intersection of two groups: result = A ∩ B
  *
  * Only elements in both group_a AND group_b will be in the result.
  */
-bool group_intersection(GeometryContainer& container, std::string_view group_a,
-                        std::string_view group_b, std::string_view result_group,
-                        ElementClass element_class);
+bool group_intersection(GeometryContainer& container, std::string_view group_a, std::string_view group_b,
+                        std::string_view result_group, ElementClass element_class);
 
 /**
  * @brief Difference of two groups: result = A - B
  *
  * Elements in group_a but NOT in group_b will be in the result.
  */
-bool group_difference(GeometryContainer& container, std::string_view group_a,
-                      std::string_view group_b, std::string_view result_group,
-                      ElementClass element_class);
+bool group_difference(GeometryContainer& container, std::string_view group_a, std::string_view group_b,
+                      std::string_view result_group, ElementClass element_class);
 
 /**
  * @brief Invert a group: result = ~A
  *
  * Elements NOT in the source group will be in the result.
  */
-bool group_invert(GeometryContainer& container, std::string_view source_group,
-                  std::string_view result_group, ElementClass element_class);
+bool group_invert(GeometryContainer& container, std::string_view source_group, std::string_view result_group,
+                  ElementClass element_class);
 
 // ============================================================================
 // Pattern-Based Selection
@@ -165,14 +152,14 @@ bool group_invert(GeometryContainer& container, std::string_view source_group,
  * @param step Select every Nth element (e.g., step=2 selects 0,2,4,6...)
  * @param offset Starting offset (e.g., offset=1, step=2 selects 1,3,5,7...)
  */
-bool select_pattern(GeometryContainer& container, std::string_view group_name,
-                    ElementClass element_class, size_t step, size_t offset = 0);
+bool select_pattern(GeometryContainer& container, std::string_view group_name, ElementClass element_class, size_t step,
+                    size_t offset = 0);
 
 /**
  * @brief Select a range of elements [start, end)
  */
-bool select_range(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class, size_t start, size_t end);
+bool select_range(GeometryContainer& container, std::string_view group_name, ElementClass element_class, size_t start,
+                  size_t end);
 
 /**
  * @brief Select random elements
@@ -180,8 +167,7 @@ bool select_range(GeometryContainer& container, std::string_view group_name,
  * @param count Number of elements to randomly select
  * @param seed Random seed for reproducibility
  */
-bool select_random(GeometryContainer& container, std::string_view group_name,
-                   ElementClass element_class, size_t count,
+bool select_random(GeometryContainer& container, std::string_view group_name, ElementClass element_class, size_t count,
                    unsigned int seed = 0);
 
 /**
@@ -195,10 +181,8 @@ bool select_random(GeometryContainer& container, std::string_view group_name,
  *       [](const Vec3f& P) { return P.y > 5.0f; });
  */
 template <typename T>
-bool select_by_attribute(GeometryContainer& container,
-                         std::string_view group_name,
-                         ElementClass element_class, std::string_view attr_name,
-                         std::function<bool(const T&)> predicate);
+bool select_by_attribute(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
+                         std::string_view attr_name, std::function<bool(const T&)> predicate);
 
 /**
  * @brief Grow group to include neighbors
@@ -208,16 +192,16 @@ bool select_by_attribute(GeometryContainer& container,
  *
  * @param iterations Number of times to grow (1 = immediate neighbors)
  */
-bool grow_group(GeometryContainer& container, std::string_view group_name,
-                ElementClass element_class, size_t iterations = 1);
+bool grow_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
+                size_t iterations = 1);
 
 /**
  * @brief Shrink group by removing boundary elements
  *
  * @param iterations Number of times to shrink
  */
-bool shrink_group(GeometryContainer& container, std::string_view group_name,
-                  ElementClass element_class, size_t iterations = 1);
+bool shrink_group(GeometryContainer& container, std::string_view group_name, ElementClass element_class,
+                  size_t iterations = 1);
 
 /**
  * @brief Get all group names for a specific element class
@@ -229,7 +213,6 @@ bool shrink_group(GeometryContainer& container, std::string_view group_name,
  * @param element_class Which element class (POINT or PRIMITIVE)
  * @return Vector of group names (without the "group_" prefix)
  */
-std::vector<std::string> get_group_names(const GeometryContainer& container,
-                                         ElementClass element_class);
+std::vector<std::string> get_group_names(const GeometryContainer& container, ElementClass element_class);
 
 } // namespace nodo::core

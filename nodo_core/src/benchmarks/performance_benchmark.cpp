@@ -20,16 +20,12 @@
 namespace nodo::benchmarks {
 
 // PerformanceBenchmark Implementation
-PerformanceBenchmark::PerformanceBenchmark(const BenchmarkConfig& config)
-    : config_(config) {}
+PerformanceBenchmark::PerformanceBenchmark(const BenchmarkConfig& config) : config_(config) {}
 
 const PerformanceBenchmark::BenchmarkResult*
-PerformanceBenchmark::BenchmarkSuite::find_result(
-    const std::string& name) const {
+PerformanceBenchmark::BenchmarkSuite::find_result(const std::string& name) const {
   auto it = std::find_if(results.begin(), results.end(),
-                         [&name](const BenchmarkResult& result) {
-                           return result.operation_name == name;
-                         });
+                         [&name](const BenchmarkResult& result) { return result.operation_name == name; });
   return (it != results.end()) ? &(*it) : nullptr;
 }
 
@@ -39,25 +35,19 @@ std::string PerformanceBenchmark::BenchmarkSuite::generate_report() const {
 
   report << "=== Nodo Performance Benchmark Report ===\n";
   auto timestamp_time_t = std::chrono::system_clock::to_time_t(timestamp);
-  report << "Timestamp: "
-         << std::put_time(std::localtime(&timestamp_time_t),
-                          "%Y-%m-%d %H:%M:%S")
-         << "\n";
+  report << "Timestamp: " << std::put_time(std::localtime(&timestamp_time_t), "%Y-%m-%d %H:%M:%S") << "\n";
   report << "Configuration: " << test_configuration << "\n\n";
 
   report << "Results Summary:\n";
-  report << std::setw(30) << "Operation" << std::setw(12) << "Avg (ms)"
-         << std::setw(12) << "Min (ms)" << std::setw(12) << "Max (ms)"
-         << std::setw(12) << "Std Dev" << std::setw(10) << "Iters"
-         << std::setw(12) << "Memory (KB)" << "\n";
+  report << std::setw(30) << "Operation" << std::setw(12) << "Avg (ms)" << std::setw(12) << "Min (ms)" << std::setw(12)
+         << "Max (ms)" << std::setw(12) << "Std Dev" << std::setw(10) << "Iters" << std::setw(12) << "Memory (KB)"
+         << "\n";
   report << std::string(100, '-') << "\n";
 
   for (const auto& result : results) {
-    report << std::setw(30) << result.operation_name << std::setw(12)
-           << result.average_time_ms << std::setw(12) << result.min_time_ms
-           << std::setw(12) << result.max_time_ms << std::setw(12)
-           << result.std_dev_ms << std::setw(10) << result.iterations
-           << std::setw(12) << (result.memory_usage_bytes / 1024) << "\n";
+    report << std::setw(30) << result.operation_name << std::setw(12) << result.average_time_ms << std::setw(12)
+           << result.min_time_ms << std::setw(12) << result.max_time_ms << std::setw(12) << result.std_dev_ms
+           << std::setw(10) << result.iterations << std::setw(12) << (result.memory_usage_bytes / 1024) << "\n";
 
     if (!result.additional_info.empty()) {
       report << "  Info: " << result.additional_info << "\n";
@@ -67,8 +57,7 @@ std::string PerformanceBenchmark::BenchmarkSuite::generate_report() const {
   return report.str();
 }
 
-void PerformanceBenchmark::BenchmarkSuite::export_csv(
-    const std::string& filename) const {
+void PerformanceBenchmark::BenchmarkSuite::export_csv(const std::string& filename) const {
   std::ofstream file(filename);
   if (!file.is_open())
     return;
@@ -79,16 +68,13 @@ void PerformanceBenchmark::BenchmarkSuite::export_csv(
 
   // Data rows
   for (const auto& result : results) {
-    file << result.operation_name << "," << result.average_time_ms << ","
-         << result.min_time_ms << "," << result.max_time_ms << ","
-         << result.std_dev_ms << "," << result.iterations << ","
-         << result.memory_usage_bytes << "," << "\"" << result.additional_info
-         << "\"\n";
+    file << result.operation_name << "," << result.average_time_ms << "," << result.min_time_ms << ","
+         << result.max_time_ms << "," << result.std_dev_ms << "," << result.iterations << ","
+         << result.memory_usage_bytes << "," << "\"" << result.additional_info << "\"\n";
   }
 }
 
-PerformanceBenchmark::BenchmarkSuite
-PerformanceBenchmark::run_bvh_benchmarks() {
+PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_bvh_benchmarks() {
   BenchmarkSuite suite;
   suite.test_configuration = "BVH Construction and Query Performance";
   suite.timestamp = std::chrono::system_clock::now();
@@ -116,13 +102,10 @@ PerformanceBenchmark::run_bvh_benchmarks() {
     spatial::BVH bvh;
     spatial::BVH::BuildParams params;
 
-    auto build_timings = time_function([&]() { bvh.build(test_mesh, params); },
-                                       config_.iterations);
+    auto build_timings = time_function([&]() { bvh.build(test_mesh, params); }, config_.iterations);
 
-    auto build_result =
-        calculate_statistics(build_timings, "BVH_Build_" + complexity_name);
-    build_result.additional_info =
-        "Triangles: " + std::to_string(test_mesh.faces().rows());
+    auto build_result = calculate_statistics(build_timings, "BVH_Build_" + complexity_name);
+    build_result.additional_info = "Triangles: " + std::to_string(test_mesh.faces().rows());
 
     if (config_.measure_memory) {
       build_result.memory_usage_bytes = estimate_memory_usage(bvh);
@@ -141,30 +124,24 @@ PerformanceBenchmark::run_bvh_benchmarks() {
     test_ray.t_min = 0.0;
     test_ray.t_max = 1000.0;
 
-    auto ray_timings = time_function([&]() { bvh.intersect_ray(test_ray); },
-                                     config_.iterations);
+    auto ray_timings = time_function([&]() { bvh.intersect_ray(test_ray); }, config_.iterations);
 
-    auto ray_result = calculate_statistics(ray_timings, "BVH_RayIntersect_" +
-                                                            complexity_name);
+    auto ray_result = calculate_statistics(ray_timings, "BVH_RayIntersect_" + complexity_name);
     suite.results.push_back(ray_result);
 
     // Benchmark AABB query
-    spatial::AABB query_aabb(Eigen::Vector3d(-0.5, -0.5, -0.5),
-                             Eigen::Vector3d(0.5, 0.5, 0.5));
+    spatial::AABB query_aabb(Eigen::Vector3d(-0.5, -0.5, -0.5), Eigen::Vector3d(0.5, 0.5, 0.5));
 
-    auto aabb_timings = time_function([&]() { bvh.query_aabb(query_aabb); },
-                                      config_.iterations);
+    auto aabb_timings = time_function([&]() { bvh.query_aabb(query_aabb); }, config_.iterations);
 
-    auto aabb_result =
-        calculate_statistics(aabb_timings, "BVH_AABBQuery_" + complexity_name);
+    auto aabb_result = calculate_statistics(aabb_timings, "BVH_AABBQuery_" + complexity_name);
     suite.results.push_back(aabb_result);
   }
 
   return suite;
 }
 
-PerformanceBenchmark::BenchmarkSuite
-PerformanceBenchmark::run_bvh_comparison_benchmarks() {
+PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_bvh_comparison_benchmarks() {
   BenchmarkSuite suite;
   suite.test_configuration = "BVH vs Brute Force Comparison";
   suite.timestamp = std::chrono::system_clock::now();
@@ -205,66 +182,52 @@ PerformanceBenchmark::run_bvh_comparison_benchmarks() {
     test_ray.t_max = 1000.0;
 
     // Benchmark BVH ray intersection
-    auto bvh_ray_timings = time_function([&]() { bvh.intersect_ray(test_ray); },
-                                         config_.iterations);
+    auto bvh_ray_timings = time_function([&]() { bvh.intersect_ray(test_ray); }, config_.iterations);
 
-    auto bvh_ray_result = calculate_statistics(
-        bvh_ray_timings, "BVH_RayIntersect_" + complexity_name);
+    auto bvh_ray_result = calculate_statistics(bvh_ray_timings, "BVH_RayIntersect_" + complexity_name);
     suite.results.push_back(bvh_ray_result);
 
     // Benchmark brute force ray intersection
-    auto brute_ray_timings = time_function(
-        [&]() { brute_force_ray_intersect(test_mesh, test_ray); },
-        std::min(config_.iterations,
-                 static_cast<size_t>(10))); // Fewer iterations for brute force
+    auto brute_ray_timings = time_function([&]() { brute_force_ray_intersect(test_mesh, test_ray); },
+                                           std::min(config_.iterations,
+                                                    static_cast<size_t>(10))); // Fewer iterations for brute force
 
-    auto brute_ray_result = calculate_statistics(
-        brute_ray_timings, "BruteForce_RayIntersect_" + complexity_name);
+    auto brute_ray_result = calculate_statistics(brute_ray_timings, "BruteForce_RayIntersect_" + complexity_name);
     suite.results.push_back(brute_ray_result);
 
     // Calculate speedup
     if (brute_ray_result.average_time_ms > 0) {
-      double speedup =
-          brute_ray_result.average_time_ms / bvh_ray_result.average_time_ms;
-      bvh_ray_result.additional_info =
-          "Speedup: " + std::to_string(speedup) + "x";
+      double speedup = brute_ray_result.average_time_ms / bvh_ray_result.average_time_ms;
+      bvh_ray_result.additional_info = "Speedup: " + std::to_string(speedup) + "x";
     }
 
     // Setup AABB query
-    spatial::AABB query_aabb(Eigen::Vector3d(-0.5, -0.5, -0.5),
-                             Eigen::Vector3d(0.5, 0.5, 0.5));
+    spatial::AABB query_aabb(Eigen::Vector3d(-0.5, -0.5, -0.5), Eigen::Vector3d(0.5, 0.5, 0.5));
 
     // Benchmark BVH AABB query
-    auto bvh_aabb_timings = time_function([&]() { bvh.query_aabb(query_aabb); },
-                                          config_.iterations);
+    auto bvh_aabb_timings = time_function([&]() { bvh.query_aabb(query_aabb); }, config_.iterations);
 
-    auto bvh_aabb_result = calculate_statistics(
-        bvh_aabb_timings, "BVH_AABBQuery_" + complexity_name);
+    auto bvh_aabb_result = calculate_statistics(bvh_aabb_timings, "BVH_AABBQuery_" + complexity_name);
     suite.results.push_back(bvh_aabb_result);
 
     // Benchmark brute force AABB query
-    auto brute_aabb_timings =
-        time_function([&]() { brute_force_aabb_query(test_mesh, query_aabb); },
-                      std::min(config_.iterations, static_cast<size_t>(10)));
+    auto brute_aabb_timings = time_function([&]() { brute_force_aabb_query(test_mesh, query_aabb); },
+                                            std::min(config_.iterations, static_cast<size_t>(10)));
 
-    auto brute_aabb_result = calculate_statistics(
-        brute_aabb_timings, "BruteForce_AABBQuery_" + complexity_name);
+    auto brute_aabb_result = calculate_statistics(brute_aabb_timings, "BruteForce_AABBQuery_" + complexity_name);
     suite.results.push_back(brute_aabb_result);
 
     // Calculate speedup
     if (brute_aabb_result.average_time_ms > 0) {
-      double speedup =
-          brute_aabb_result.average_time_ms / bvh_aabb_result.average_time_ms;
-      bvh_aabb_result.additional_info =
-          "Speedup: " + std::to_string(speedup) + "x";
+      double speedup = brute_aabb_result.average_time_ms / bvh_aabb_result.average_time_ms;
+      bvh_aabb_result.additional_info = "Speedup: " + std::to_string(speedup) + "x";
     }
   }
 
   return suite;
 }
 
-PerformanceBenchmark::BenchmarkSuite
-PerformanceBenchmark::run_boolean_benchmarks() {
+PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_boolean_benchmarks() {
   BenchmarkSuite suite;
   suite.test_configuration = "Boolean Operation Performance";
   suite.timestamp = std::chrono::system_clock::now();
@@ -293,15 +256,12 @@ PerformanceBenchmark::run_boolean_benchmarks() {
     spatial::EnhancedBooleanOps::BooleanParams params;
     params.build_bvh = true;
 
-    auto enhanced_union_timings = time_function(
-        [&]() {
-          spatial::EnhancedBooleanOps::union_meshes(mesh_a, mesh_b, params);
-        },
-        std::min(config_.iterations / 10,
-                 static_cast<size_t>(5))); // Boolean ops are expensive
+    auto enhanced_union_timings =
+        time_function([&]() { spatial::EnhancedBooleanOps::union_meshes(mesh_a, mesh_b, params); },
+                      std::min(config_.iterations / 10,
+                               static_cast<size_t>(5))); // Boolean ops are expensive
 
-    auto enhanced_union_result = calculate_statistics(
-        enhanced_union_timings, "Enhanced_Union_" + complexity_name);
+    auto enhanced_union_result = calculate_statistics(enhanced_union_timings, "Enhanced_Union_" + complexity_name);
     enhanced_union_result.additional_info = "BVH accelerated";
     suite.results.push_back(enhanced_union_result);
   }
@@ -309,8 +269,7 @@ PerformanceBenchmark::run_boolean_benchmarks() {
   return suite;
 }
 
-PerformanceBenchmark::BenchmarkSuite
-PerformanceBenchmark::run_parameter_optimization_benchmarks() {
+PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_parameter_optimization_benchmarks() {
   BenchmarkSuite suite;
   suite.test_configuration = "BVH Parameter Optimization";
   suite.timestamp = std::chrono::system_clock::now();
@@ -325,13 +284,10 @@ PerformanceBenchmark::run_parameter_optimization_benchmarks() {
     params.max_triangles_per_leaf = leaf_size;
     params.use_sah = true;
 
-    auto build_timings = time_function([&]() { bvh.build(test_mesh, params); },
-                                       config_.iterations / 2);
+    auto build_timings = time_function([&]() { bvh.build(test_mesh, params); }, config_.iterations / 2);
 
-    auto result = calculate_statistics(
-        build_timings, "BVH_Build_Leaf" + std::to_string(leaf_size));
-    result.additional_info =
-        "Max triangles per leaf: " + std::to_string(leaf_size);
+    auto result = calculate_statistics(build_timings, "BVH_Build_Leaf" + std::to_string(leaf_size));
+    result.additional_info = "Max triangles per leaf: " + std::to_string(leaf_size);
     suite.results.push_back(result);
   }
 
@@ -341,19 +297,16 @@ PerformanceBenchmark::run_parameter_optimization_benchmarks() {
   sah_params.use_sah = true;
   midpoint_params.use_sah = false;
 
-  auto sah_timings = time_function(
-      [&]() { bvh_sah.build(test_mesh, sah_params); }, config_.iterations / 2);
+  auto sah_timings = time_function([&]() { bvh_sah.build(test_mesh, sah_params); }, config_.iterations / 2);
 
   auto sah_result = calculate_statistics(sah_timings, "BVH_Build_SAH");
   sah_result.additional_info = "Surface Area Heuristic";
   suite.results.push_back(sah_result);
 
   auto midpoint_timings =
-      time_function([&]() { bvh_midpoint.build(test_mesh, midpoint_params); },
-                    config_.iterations / 2);
+      time_function([&]() { bvh_midpoint.build(test_mesh, midpoint_params); }, config_.iterations / 2);
 
-  auto midpoint_result =
-      calculate_statistics(midpoint_timings, "BVH_Build_Midpoint");
+  auto midpoint_result = calculate_statistics(midpoint_timings, "BVH_Build_Midpoint");
   midpoint_result.additional_info = "Midpoint splitting";
   suite.results.push_back(midpoint_result);
 
@@ -386,21 +339,17 @@ core::Mesh PerformanceBenchmark::create_test_mesh(size_t triangle_count) {
     current_triangles *= 4; // Each subdivision quadruples triangle count
   }
 
-  auto sphere_opt = geometry::MeshGenerator::sphere(Eigen::Vector3d::Zero(),
-                                                    1.0, subdivisions);
+  auto sphere_opt = geometry::MeshGenerator::sphere(Eigen::Vector3d::Zero(), 1.0, subdivisions);
 
   if (sphere_opt) {
     return *sphere_opt;
   }
 
   // Fallback to box if sphere generation fails
-  return geometry::MeshGenerator::box(Eigen::Vector3d(-1, -1, -1),
-                                      Eigen::Vector3d(1, 1, 1));
+  return geometry::MeshGenerator::box(Eigen::Vector3d(-1, -1, -1), Eigen::Vector3d(1, 1, 1));
 }
 
-std::vector<double>
-PerformanceBenchmark::time_function(std::function<void()> func,
-                                    size_t iterations) {
+std::vector<double> PerformanceBenchmark::time_function(std::function<void()> func, size_t iterations) {
   std::vector<double> timings;
   timings.reserve(iterations);
 
@@ -424,9 +373,8 @@ PerformanceBenchmark::time_function(std::function<void()> func,
   return timings;
 }
 
-PerformanceBenchmark::BenchmarkResult
-PerformanceBenchmark::calculate_statistics(const std::vector<double>& timings,
-                                           const std::string& operation_name) {
+PerformanceBenchmark::BenchmarkResult PerformanceBenchmark::calculate_statistics(const std::vector<double>& timings,
+                                                                                 const std::string& operation_name) {
   BenchmarkResult result;
   result.operation_name = operation_name;
   result.iterations = timings.size();
@@ -437,14 +385,12 @@ PerformanceBenchmark::calculate_statistics(const std::vector<double>& timings,
   // Calculate statistics
   result.min_time_ms = *std::min_element(timings.begin(), timings.end());
   result.max_time_ms = *std::max_element(timings.begin(), timings.end());
-  result.average_time_ms =
-      std::accumulate(timings.begin(), timings.end(), 0.0) / timings.size();
+  result.average_time_ms = std::accumulate(timings.begin(), timings.end(), 0.0) / timings.size();
 
   // Calculate standard deviation
   double variance = 0.0;
   for (double time : timings) {
-    variance +=
-        (time - result.average_time_ms) * (time - result.average_time_ms);
+    variance += (time - result.average_time_ms) * (time - result.average_time_ms);
   }
   variance /= timings.size();
   result.std_dev_ms = std::sqrt(variance);
@@ -452,9 +398,8 @@ PerformanceBenchmark::calculate_statistics(const std::vector<double>& timings,
   return result;
 }
 
-std::optional<spatial::BVH::RayHit>
-PerformanceBenchmark::brute_force_ray_intersect(const core::Mesh& mesh,
-                                                const spatial::BVH::Ray& ray) {
+std::optional<spatial::BVH::RayHit> PerformanceBenchmark::brute_force_ray_intersect(const core::Mesh& mesh,
+                                                                                    const spatial::BVH::Ray& ray) {
   spatial::BVH::RayHit closest_hit;
   closest_hit.t = ray.t_max;
   bool found_hit = false;
@@ -500,13 +445,10 @@ PerformanceBenchmark::brute_force_ray_intersect(const core::Mesh& mesh,
     }
   }
 
-  return found_hit ? std::optional<spatial::BVH::RayHit>(closest_hit)
-                   : std::nullopt;
+  return found_hit ? std::optional<spatial::BVH::RayHit>(closest_hit) : std::nullopt;
 }
 
-std::vector<int>
-PerformanceBenchmark::brute_force_aabb_query(const core::Mesh& mesh,
-                                             const spatial::AABB& aabb) {
+std::vector<int> PerformanceBenchmark::brute_force_aabb_query(const core::Mesh& mesh, const spatial::AABB& aabb) {
   std::vector<int> results;
 
   for (int tri_idx = 0; tri_idx < mesh.faces().rows(); ++tri_idx) {

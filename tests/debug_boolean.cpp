@@ -22,18 +22,14 @@ int main() {
     return 1;
   }
 
-  auto geo1 =
-      std::make_shared<core::GeometryContainer>(box1_result.value().clone());
-  auto geo2 =
-      std::make_shared<core::GeometryContainer>(box2_result.value().clone());
+  auto geo1 = std::make_shared<core::GeometryContainer>(box1_result.value().clone());
+  auto geo2 = std::make_shared<core::GeometryContainer>(box2_result.value().clone());
 
   std::cout << "Box1 points: " << geo1->topology().point_count() << "\n";
-  std::cout << "Box1 primitives: " << geo1->topology().primitive_count()
-            << "\n";
+  std::cout << "Box1 primitives: " << geo1->topology().primitive_count() << "\n";
 
   std::cout << "Box2 points: " << geo2->topology().point_count() << "\n";
-  std::cout << "Box2 primitives: " << geo2->topology().primitive_count()
-            << "\n";
+  std::cout << "Box2 primitives: " << geo2->topology().primitive_count() << "\n";
 
   // Create boolean node
   auto boolean_node = std::make_shared<sop::BooleanSOP>("test_boolean");
@@ -69,10 +65,8 @@ int main() {
     return 1;
   }
 
-  std::cout << "Success! Result points: " << result->topology().point_count()
-            << "\n";
-  std::cout << "Result primitives: " << result->topology().primitive_count()
-            << "\n";
+  std::cout << "Success! Result points: " << result->topology().point_count() << "\n";
+  std::cout << "Result primitives: " << result->topology().primitive_count() << "\n";
 
   return 0;
 }

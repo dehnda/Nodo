@@ -137,12 +137,10 @@ TEST_F(AttributePromotionTest, PromotePointToPrimitive_Average) {
   density_span[3] = 4.0f;
 
   // Promote to primitive (should average: (1+2+3+4)/4 = 2.5)
-  EXPECT_TRUE(
-      promote_point_to_primitive(*container, "density", "prim_density"));
+  EXPECT_TRUE(promote_point_to_primitive(*container, "density", "prim_density"));
 
   // Verify primitive attribute
-  auto* prim_density =
-      container->get_primitive_attribute_typed<float>("prim_density");
+  auto* prim_density = container->get_primitive_attribute_typed<float>("prim_density");
   ASSERT_NE(prim_density, nullptr);
   EXPECT_EQ(prim_density->size(), 1);
 
@@ -182,8 +180,7 @@ TEST_F(AttributePromotionTest, DemotePrimitiveToPoint_Distribute) {
   mat_span[0] = 42;
 
   // Demote to point (all points should get value 42)
-  EXPECT_TRUE(
-      demote_primitive_to_point(*container, "material_id", "point_mat"));
+  EXPECT_TRUE(demote_primitive_to_point(*container, "material_id", "point_mat"));
 
   // Verify all points got the value
   auto* point_mat = container->get_point_attribute_typed<int>("point_mat");
@@ -212,12 +209,10 @@ TEST_F(AttributePromotionTest, PromoteVertexToPrimitive_Average) {
   vweight_span[3] = 4.0f;
 
   // Promote to primitive (average = 2.5)
-  EXPECT_TRUE(
-      promote_vertex_to_primitive(*container, "vweight", "prim_weight"));
+  EXPECT_TRUE(promote_vertex_to_primitive(*container, "vweight", "prim_weight"));
 
   // Verify
-  auto* prim_weight =
-      container->get_primitive_attribute_typed<float>("prim_weight");
+  auto* prim_weight = container->get_primitive_attribute_typed<float>("prim_weight");
   ASSERT_NE(prim_weight, nullptr);
 
   auto prim_weight_span = prim_weight->values();
@@ -320,11 +315,9 @@ TEST_F(AttributePromotionTest, ComplexGeometry_TwoTriangles) {
   density_span[3] = 4.0f;
 
   // Promote to primitive
-  EXPECT_TRUE(
-      promote_point_to_primitive(*complex_geo, "density", "prim_density"));
+  EXPECT_TRUE(promote_point_to_primitive(*complex_geo, "density", "prim_density"));
 
-  auto* prim_density =
-      complex_geo->get_primitive_attribute_typed<float>("prim_density");
+  auto* prim_density = complex_geo->get_primitive_attribute_typed<float>("prim_density");
   ASSERT_NE(prim_density, nullptr);
   EXPECT_EQ(prim_density->size(), 2);
 

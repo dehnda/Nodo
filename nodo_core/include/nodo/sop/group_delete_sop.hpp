@@ -17,29 +17,23 @@ class GroupDeleteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupDeleteSOP(const std::string& name = "group_delete")
-      : SOPNode(name, "GroupDelete") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+  explicit GroupDeleteSOP(const std::string& name = "group_delete") : SOPNode(name, "GroupDelete") {
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Group name pattern (supports wildcards)
-    register_parameter(
-        define_string_parameter("pattern", "*")
-            .label("Pattern")
-            .category("Group")
-            .description(
-                "Group name pattern to delete (supports * and ? wildcards)")
-            .build());
+    register_parameter(define_string_parameter("pattern", "*")
+                           .label("Pattern")
+                           .category("Group")
+                           .description("Group name pattern to delete (supports * and ? wildcards)")
+                           .build());
 
     // Custom group type parameter (GroupDeleteSOP needs Edges and All options)
-    register_parameter(
-        define_int_parameter("element_class", 0)
-            .label("Group Type")
-            .options({"Points", "Primitives", "Edges", "All"})
-            .category("Group")
-            .description(
-                "Type of groups to delete (point, primitive, edge, or all)")
-            .build());
+    register_parameter(define_int_parameter("element_class", 0)
+                           .label("Group Type")
+                           .options({"Points", "Primitives", "Edges", "All"})
+                           .category("Group")
+                           .description("Type of groups to delete (point, primitive, edge, or all)")
+                           .build());
   }
 
   ~GroupDeleteSOP() override = default;
@@ -66,8 +60,8 @@ protected:
         escaped += ".*";
       } else if (c == '?') {
         escaped += ".";
-      } else if (c == '.' || c == '[' || c == ']' || c == '(' || c == ')' ||
-                 c == '+' || c == '^' || c == '$' || c == '\\') {
+      } else if (c == '.' || c == '[' || c == ']' || c == '(' || c == ')' || c == '+' || c == '^' || c == '$' ||
+                 c == '\\') {
         escaped += '\\';
         escaped += c;
       } else {

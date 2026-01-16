@@ -82,9 +82,7 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph& graph) {
             break;
           case NodeParameter::Type::Vector3:
             param_json["type"] = "vector3";
-            param_json["value"] = {param.vector3_value[0],
-                                   param.vector3_value[1],
-                                   param.vector3_value[2]};
+            param_json["value"] = {param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]};
             param_json["float_min"] = param.ui_range.float_min;
             param_json["float_max"] = param.ui_range.float_max;
             break;
@@ -155,8 +153,7 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph& graph) {
   }
 }
 
-std::optional<NodeGraph>
-GraphSerializer::deserialize_from_json(const std::string& json_data) {
+std::optional<NodeGraph> GraphSerializer::deserialize_from_json(const std::string& json_data) {
   try {
     json j = json::parse(json_data);
 
@@ -166,16 +163,14 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
     if (j.contains("version")) {
       std::string version = j["version"];
       if (version != "1.0") {
-        std::cerr << "Warning: JSON version " << version
-                  << " may not be fully supported\n";
+        std::cerr << "Warning: JSON version " << version << " may not be fully supported\n";
       }
     }
 
     // Deserialize nodes
     if (j.contains("nodes") && j["nodes"].is_array()) {
       for (const auto& node_json : j["nodes"]) {
-        if (!node_json.contains("type") || !node_json.contains("name") ||
-            !node_json.contains("id")) {
+        if (!node_json.contains("type") || !node_json.contains("name") || !node_json.contains("id")) {
           std::cerr << "Invalid node: missing type, name, or id\n";
           continue;
         }
@@ -199,9 +194,7 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
         }
 
         // Set position if available
-        if (node_json.contains("position") &&
-            node_json["position"].is_array() &&
-            node_json["position"].size() >= 2) {
+        if (node_json.contains("position") && node_json["position"].is_array() && node_json["position"].size() >= 2) {
           float pos_x = node_json["position"][0];
           float pos_y = node_json["position"][1];
           node->set_position(pos_x, pos_y);
@@ -219,11 +212,9 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
         }
 
         // Deserialize parameters
-        if (node_json.contains("parameters") &&
-            node_json["parameters"].is_array()) {
+        if (node_json.contains("parameters") && node_json["parameters"].is_array()) {
           for (const auto& param_json : node_json["parameters"]) {
-            if (!param_json.contains("name") || !param_json.contains("type") ||
-                !param_json.contains("value")) {
+            if (!param_json.contains("name") || !param_json.contains("type") || !param_json.contains("value")) {
               continue;
             }
 
@@ -240,8 +231,7 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
-                param.value_mode = static_cast<ParameterValueMode>(
-                    param_json["value_mode"].get<int>());
+                param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
               }
               if (param_json.contains("expression")) {
                 param.expression_string = param_json["expression"];
@@ -252,18 +242,13 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
               int value = param_json["value"];
 
               // Check if this is a combo box (has string_options)
-              if (param_json.contains("string_options") &&
-                  param_json["string_options"].is_array()) {
-                std::vector<std::string> options =
-                    param_json["string_options"]
-                        .get<std::vector<std::string>>();
-                NodeParameter param(param_name, value, options, label,
-                                    category);
+              if (param_json.contains("string_options") && param_json["string_options"].is_array()) {
+                std::vector<std::string> options = param_json["string_options"].get<std::vector<std::string>>();
+                NodeParameter param(param_name, value, options, label, category);
 
                 // Restore expression mode (M3.3)
                 if (param_json.contains("value_mode")) {
-                  param.value_mode = static_cast<ParameterValueMode>(
-                      param_json["value_mode"].get<int>());
+                  param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
                 }
                 if (param_json.contains("expression")) {
                   param.expression_string = param_json["expression"];
@@ -274,13 +259,11 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
                 // Regular int parameter
                 int min = param_json.value("int_min", 0);
                 int max = param_json.value("int_max", 100);
-                NodeParameter param(param_name, value, label, min, max,
-                                    category);
+                NodeParameter param(param_name, value, label, min, max, category);
 
                 // Restore expression mode (M3.3)
                 if (param_json.contains("value_mode")) {
-                  param.value_mode = static_cast<ParameterValueMode>(
-                      param_json["value_mode"].get<int>());
+                  param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
                 }
                 if (param_json.contains("expression")) {
                   param.expression_string = param_json["expression"];
@@ -294,8 +277,7 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
-                param.value_mode = static_cast<ParameterValueMode>(
-                    param_json["value_mode"].get<int>());
+                param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
               }
               if (param_json.contains("expression")) {
                 param.expression_string = param_json["expression"];
@@ -308,8 +290,7 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
-                param.value_mode = static_cast<ParameterValueMode>(
-                    param_json["value_mode"].get<int>());
+                param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
               }
               if (param_json.contains("expression")) {
                 param.expression_string = param_json["expression"];
@@ -323,28 +304,22 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
-                code_param.value_mode = static_cast<ParameterValueMode>(
-                    param_json["value_mode"].get<int>());
+                code_param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
               }
               if (param_json.contains("expression")) {
                 code_param.expression_string = param_json["expression"];
               }
 
               node->add_parameter(code_param);
-            } else if (param_type == "vector3" &&
-                       param_json["value"].is_array() &&
-                       param_json["value"].size() >= 3) {
-              std::array<float, 3> value = {param_json["value"][0],
-                                            param_json["value"][1],
-                                            param_json["value"][2]};
+            } else if (param_type == "vector3" && param_json["value"].is_array() && param_json["value"].size() >= 3) {
+              std::array<float, 3> value = {param_json["value"][0], param_json["value"][1], param_json["value"][2]};
               float min = param_json.value("float_min", -100.0F);
               float max = param_json.value("float_max", 100.0F);
               NodeParameter param(param_name, value, label, min, max, category);
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
-                param.value_mode = static_cast<ParameterValueMode>(
-                    param_json["value_mode"].get<int>());
+                param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
               }
               if (param_json.contains("expression")) {
                 param.expression_string = param_json["expression"];
@@ -360,8 +335,7 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
 
               // Restore expression mode (M3.3)
               if (param_json.contains("value_mode")) {
-                param.value_mode = static_cast<ParameterValueMode>(
-                    param_json["value_mode"].get<int>());
+                param.value_mode = static_cast<ParameterValueMode>(param_json["value_mode"].get<int>());
               }
               if (param_json.contains("expression")) {
                 param.expression_string = param_json["expression"];
@@ -386,12 +360,9 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
       // Deserialize connections
       if (j.contains("connections") && j["connections"].is_array()) {
         for (const auto& conn_json : j["connections"]) {
-          if (!conn_json.contains("source_node") ||
-              !conn_json.contains("source_pin") ||
-              !conn_json.contains("target_node") ||
-              !conn_json.contains("target_pin")) {
-            std::cerr
-                << "Skipping invalid connection: missing required fields\n";
+          if (!conn_json.contains("source_node") || !conn_json.contains("source_pin") ||
+              !conn_json.contains("target_node") || !conn_json.contains("target_pin")) {
+            std::cerr << "Skipping invalid connection: missing required fields\n";
             continue;
           }
 
@@ -402,22 +373,18 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
 
           // Verify nodes exist before creating connection
           if (!graph.get_node(source_node)) {
-            std::cerr << "Failed to create connection: source node "
-                      << source_node << " does not exist\n";
+            std::cerr << "Failed to create connection: source node " << source_node << " does not exist\n";
             continue;
           }
           if (!graph.get_node(target_node)) {
-            std::cerr << "Failed to create connection: target node "
-                      << target_node << " does not exist\n";
+            std::cerr << "Failed to create connection: target node " << target_node << " does not exist\n";
             continue;
           }
 
-          int conn_id = graph.add_connection(source_node, source_pin,
-                                             target_node, target_pin);
+          int conn_id = graph.add_connection(source_node, source_pin, target_node, target_pin);
           if (conn_id < 0) {
-            std::cerr << "Failed to create connection from node " << source_node
-                      << " pin " << source_pin << " to node " << target_node
-                      << " pin " << target_pin << "\n";
+            std::cerr << "Failed to create connection from node " << source_node << " pin " << source_pin << " to node "
+                      << target_node << " pin " << target_pin << "\n";
           }
         }
 
@@ -434,8 +401,7 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
       // Deserialize graph parameters (M3.2)
       if (j.contains("graph_parameters") && j["graph_parameters"].is_array()) {
         for (const auto& param_json : j["graph_parameters"]) {
-          if (!param_json.contains("name") || !param_json.contains("type") ||
-              !param_json.contains("value")) {
+          if (!param_json.contains("name") || !param_json.contains("type") || !param_json.contains("value")) {
             continue;
           }
 
@@ -469,12 +435,9 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
               }
               break;
             case GraphParameter::Type::Vector3:
-              if (param_json["value"].is_array() &&
-                  param_json["value"].size() >= 3) {
-                std::array<float, 3> vec = {
-                    param_json["value"][0].get<float>(),
-                    param_json["value"][1].get<float>(),
-                    param_json["value"][2].get<float>()};
+              if (param_json["value"].is_array() && param_json["value"].size() >= 3) {
+                std::array<float, 3> vec = {param_json["value"][0].get<float>(), param_json["value"][1].get<float>(),
+                                            param_json["value"][2].get<float>()};
                 param.set_value(vec);
               }
               break;
@@ -491,14 +454,12 @@ GraphSerializer::deserialize_from_json(const std::string& json_data) {
     std::cerr << "JSON parse error: " << error.what() << "\n";
     return std::nullopt;
   } catch (const std::exception& error) {
-    std::cerr << "Error deserializing graph from JSON: " << error.what()
-              << "\n";
+    std::cerr << "Error deserializing graph from JSON: " << error.what() << "\n";
     return std::nullopt;
   }
 }
 
-bool GraphSerializer::save_to_file(const NodeGraph& graph,
-                                   const std::string& file_path) {
+bool GraphSerializer::save_to_file(const NodeGraph& graph, const std::string& file_path) {
   try {
     std::ofstream file(file_path);
     if (!file.is_open()) {
@@ -517,8 +478,7 @@ bool GraphSerializer::save_to_file(const NodeGraph& graph,
   }
 }
 
-std::optional<NodeGraph>
-GraphSerializer::load_from_file(const std::string& file_path) {
+std::optional<NodeGraph> GraphSerializer::load_from_file(const std::string& file_path) {
   try {
     std::ifstream file(file_path);
     if (!file.is_open()) {
@@ -526,8 +486,7 @@ GraphSerializer::load_from_file(const std::string& file_path) {
       return std::nullopt;
     }
 
-    std::string json_str((std::istreambuf_iterator<char>(file)),
-                         std::istreambuf_iterator<char>());
+    std::string json_str((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
 
     return deserialize_from_json(json_str);
@@ -651,8 +610,7 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
   }
 }
 
-std::optional<NodeType>
-GraphSerializer::string_to_node_type(const std::string& type_str) {
+std::optional<NodeType> GraphSerializer::string_to_node_type(const std::string& type_str) {
   if (type_str == "Sphere")
     return NodeType::Sphere;
   if (type_str == "Box")
@@ -796,8 +754,7 @@ std::string GraphSerializer::parameter_to_json(const NodeParameter& param) {
       break;
     case NodeParameter::Type::Vector3:
       param_json["type"] = "vector3";
-      param_json["value"] = {param.vector3_value[0], param.vector3_value[1],
-                             param.vector3_value[2]};
+      param_json["value"] = {param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]};
       break;
     case NodeParameter::Type::GroupSelector:
       param_json["type"] = "group_selector";
@@ -808,21 +765,18 @@ std::string GraphSerializer::parameter_to_json(const NodeParameter& param) {
   return param_json.dump();
 }
 
-std::optional<NodeParameter>
-GraphSerializer::json_to_parameter(const std::string& json_obj) {
+std::optional<NodeParameter> GraphSerializer::json_to_parameter(const std::string& json_obj) {
   try {
     json param_json = json::parse(json_obj);
 
-    if (!param_json.contains("name") || !param_json.contains("type") ||
-        !param_json.contains("value")) {
+    if (!param_json.contains("name") || !param_json.contains("type") || !param_json.contains("value")) {
       return std::nullopt;
     }
 
     std::string name = param_json["name"];
     std::string type = param_json["type"];
 
-    bool has_expression_mode = param_json.contains("value_mode") &&
-                               param_json["value_mode"] == "expression";
+    bool has_expression_mode = param_json.contains("value_mode") && param_json["value_mode"] == "expression";
     std::string expression_str;
     if (has_expression_mode && param_json.contains("expression_string")) {
       expression_str = param_json["expression_string"];
@@ -847,18 +801,14 @@ GraphSerializer::json_to_parameter(const std::string& json_obj) {
       result_param = NodeParameter(name, value);
       // Mark as GroupSelector type (stored as string internally)
       result_param->type = NodeParameter::Type::GroupSelector;
-    } else if (type == "vector3" && param_json["value"].is_array() &&
-               param_json["value"].size() >= 3) {
-      std::array<float, 3> value = {param_json["value"][0],
-                                    param_json["value"][1],
-                                    param_json["value"][2]};
+    } else if (type == "vector3" && param_json["value"].is_array() && param_json["value"].size() >= 3) {
+      std::array<float, 3> value = {param_json["value"][0], param_json["value"][1], param_json["value"][2]};
       result_param = NodeParameter(name, value);
     } else {
       return std::nullopt;
     }
 
-    if (result_param.has_value() && has_expression_mode &&
-        !expression_str.empty()) {
+    if (result_param.has_value() && has_expression_mode && !expression_str.empty()) {
       result_param->set_expression(expression_str);
     }
 

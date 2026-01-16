@@ -72,8 +72,7 @@ TEST_F(MeshTest, MeshCopy) {
   // Verify the data is the same
   for (int i = 0; i < triangle_mesh_.vertices().rows(); ++i) {
     for (int j = 0; j < triangle_mesh_.vertices().cols(); ++j) {
-      EXPECT_DOUBLE_EQ(copied_mesh.vertices()(i, j),
-                       triangle_mesh_.vertices()(i, j));
+      EXPECT_DOUBLE_EQ(copied_mesh.vertices()(i, j), triangle_mesh_.vertices()(i, j));
     }
   }
 
@@ -95,8 +94,7 @@ TEST_F(MeshTest, MeshMove) {
   // Verify the data matches original
   for (int i = 0; i < original_mesh.vertices().rows(); ++i) {
     for (int j = 0; j < original_mesh.vertices().cols(); ++j) {
-      EXPECT_DOUBLE_EQ(moved_mesh.vertices()(i, j),
-                       original_mesh.vertices()(i, j));
+      EXPECT_DOUBLE_EQ(moved_mesh.vertices()(i, j), original_mesh.vertices()(i, j));
     }
   }
 }

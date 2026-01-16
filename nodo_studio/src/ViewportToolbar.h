@@ -56,10 +56,8 @@ signals:
 private:
   void setupUI();
   void applyStyles();
-  QToolButton* createToggleButton(const QString& icon_text,
-                                  const QString& tooltip, bool checked = true);
-  QToolButton* createIconButton(const QString& icon_name,
-                                const QString& tooltip, bool checkable);
+  QToolButton* createToggleButton(const QString& icon_text, const QString& tooltip, bool checked = true);
+  QToolButton* createIconButton(const QString& icon_name, const QString& tooltip, bool checkable);
 
   // Display toggle buttons (text icons)
   QToolButton* vertices_button_;

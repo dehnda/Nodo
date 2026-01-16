@@ -91,8 +91,7 @@ TEST_F(AttributeInterpolationTest, WeightedAverage_NonUniform) {
 }
 
 TEST_F(AttributeInterpolationTest, WeightedAverage_Vec3f) {
-  std::vector<Vec3f> values = {Vec3f{1.0f, 0.0f, 0.0f}, Vec3f{0.0f, 1.0f, 0.0f},
-                               Vec3f{0.0f, 0.0f, 1.0f}};
+  std::vector<Vec3f> values = {Vec3f{1.0f, 0.0f, 0.0f}, Vec3f{0.0f, 1.0f, 0.0f}, Vec3f{0.0f, 0.0f, 1.0f}};
   std::vector<float> weights = {1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f};
 
   Vec3f result = interpolate_weighted<Vec3f>(values, weights);
@@ -178,8 +177,7 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_EqualWeights) {
 
   // Blend points 0,1,2 into point 3 (should average to 2.0)
   std::vector<size_t> sources = {0, 1, 2};
-  EXPECT_TRUE(blend_attributes<float>(*geo, "height", ElementClass::POINT,
-                                      sources, 3, {}));
+  EXPECT_TRUE(blend_attributes<float>(*geo, "height", ElementClass::POINT, sources, 3, {}));
 
   auto result = height->values();
   EXPECT_FLOAT_EQ(result[3], 2.0f);
@@ -198,8 +196,7 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_CustomWeights) {
   // Blend with weights [0.25, 0.75]
   std::vector<size_t> sources = {0, 1};
   std::vector<float> weights = {0.25f, 0.75f};
-  EXPECT_TRUE(blend_attributes<float>(*geo, "value", ElementClass::POINT,
-                                      sources, 2, weights));
+  EXPECT_TRUE(blend_attributes<float>(*geo, "value", ElementClass::POINT, sources, 2, weights));
 
   auto result = value->values();
   EXPECT_FLOAT_EQ(result[2], 17.5f); // 10*0.25 + 20*0.75
@@ -217,8 +214,7 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_Vec3f) {
 
   // Equal blend should give purple
   std::vector<size_t> sources = {0, 1};
-  EXPECT_TRUE(
-      blend_attributes<Vec3f>(*geo, "Cd", ElementClass::POINT, sources, 2, {}));
+  EXPECT_TRUE(blend_attributes<Vec3f>(*geo, "Cd", ElementClass::POINT, sources, 2, {}));
 
   auto result = color->values();
   EXPECT_FLOAT_EQ(result[2].x(), 0.5f);
@@ -251,8 +247,7 @@ TEST_F(AttributeInterpolationTest, CopyAndInterpolateAll) {
   std::vector<size_t> sources = {0, 1};
   std::vector<float> weights = {0.5f, 0.5f};
 
-  EXPECT_TRUE(copy_and_interpolate_all_attributes(*geo, ElementClass::POINT,
-                                                  sources, 2, weights));
+  EXPECT_TRUE(copy_and_interpolate_all_attributes(*geo, ElementClass::POINT, sources, 2, weights));
 
   // Check height
   auto height_result = height->values();
@@ -282,12 +277,10 @@ TEST_F(AttributeInterpolationTest, ResampleCurve_Endpoints) {
   std::vector<int> curve = {0, 1, 2};
 
   // At start
-  EXPECT_FLOAT_EQ(resample_curve_attribute<float>(*geo, "value", curve, 0.0f),
-                  0.0f);
+  EXPECT_FLOAT_EQ(resample_curve_attribute<float>(*geo, "value", curve, 0.0f), 0.0f);
 
   // At end
-  EXPECT_FLOAT_EQ(resample_curve_attribute<float>(*geo, "value", curve, 1.0f),
-                  10.0f);
+  EXPECT_FLOAT_EQ(resample_curve_attribute<float>(*geo, "value", curve, 1.0f), 10.0f);
 }
 
 TEST_F(AttributeInterpolationTest, ResampleCurve_Midpoint) {
@@ -322,8 +315,7 @@ TEST_F(AttributeInterpolationTest, InterpolateNormal) {
   Vec3f result = interpolate_normal(n0, n1, 0.5f);
 
   // Result should be normalized
-  float length = std::sqrt(result.x() * result.x() + result.y() * result.y() +
-                           result.z() * result.z());
+  float length = std::sqrt(result.x() * result.x() + result.y() * result.y() + result.z() * result.z());
   EXPECT_NEAR(length, 1.0f, 1e-5f);
 
   // Should be roughly 45 degrees
@@ -388,16 +380,14 @@ TEST_F(AttributeInterpolationTest, BlendAttributes_EmptySources) {
   geo->add_point_attribute("value", AttributeType::FLOAT);
 
   std::vector<size_t> empty_sources;
-  EXPECT_FALSE(blend_attributes<float>(*geo, "value", ElementClass::POINT,
-                                       empty_sources, 0, {}));
+  EXPECT_FALSE(blend_attributes<float>(*geo, "value", ElementClass::POINT, empty_sources, 0, {}));
 }
 
 TEST_F(AttributeInterpolationTest, BlendAttributes_NonexistentAttribute) {
   geo->set_point_count(2);
 
   std::vector<size_t> sources = {0};
-  EXPECT_FALSE(blend_attributes<float>(*geo, "nonexistent", ElementClass::POINT,
-                                       sources, 1, {}));
+  EXPECT_FALSE(blend_attributes<float>(*geo, "nonexistent", ElementClass::POINT, sources, 1, {}));
 }
 
 TEST_F(AttributeInterpolationTest, ResampleCurve_TooFewPoints) {
@@ -448,8 +438,7 @@ TEST_F(AttributeInterpolationTest, ComplexWorkflow_PointAveraging) {
   std::vector<size_t> sources = {0, 1, 2};
   std::vector<float> weights = {1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f};
 
-  EXPECT_TRUE(copy_and_interpolate_all_attributes(*geo, ElementClass::POINT,
-                                                  sources, 3, weights));
+  EXPECT_TRUE(copy_and_interpolate_all_attributes(*geo, ElementClass::POINT, sources, 3, weights));
 
   // Check position
   auto pos_result = pos->values();

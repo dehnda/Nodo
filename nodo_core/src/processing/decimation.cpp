@@ -16,9 +16,8 @@ namespace nodo::processing {
 
 std::string Decimation::last_error_;
 
-std::optional<core::GeometryContainer>
-Decimation::decimate(const core::GeometryContainer& input,
-                     const DecimationParams& params) {
+std::optional<core::GeometryContainer> Decimation::decimate(const core::GeometryContainer& input,
+                                                            const DecimationParams& params) {
   // Basic validation
   if (input.topology().point_count() < 4) {
     set_error("Input mesh must have at least 4 vertices for decimation");
@@ -48,18 +47,15 @@ Decimation::decimate(const core::GeometryContainer& input,
     if (params.use_vertex_count) {
       target_vertices = static_cast<unsigned int>(params.target_vertex_count);
     } else {
-      const unsigned int original_count =
-          static_cast<unsigned int>(pmp_mesh.n_vertices());
-      target_vertices = static_cast<unsigned int>(
-          static_cast<float>(original_count) * params.target_percentage);
+      const unsigned int original_count = static_cast<unsigned int>(pmp_mesh.n_vertices());
+      target_vertices = static_cast<unsigned int>(static_cast<float>(original_count) * params.target_percentage);
     }
 
     // Ensure minimum vertex count
     target_vertices = std::max(target_vertices, 4U);
 
     // Perform decimation using PMP
-    pmp::decimate(pmp_mesh, target_vertices, params.aspect_ratio,
-                  params.edge_length, params.max_valence,
+    pmp::decimate(pmp_mesh, target_vertices, params.aspect_ratio, params.edge_length, params.max_valence,
                   params.preserve_topology, params.preserve_boundaries);
 
     // Convert back to Nodo format

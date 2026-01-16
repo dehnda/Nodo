@@ -11,9 +11,8 @@
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-HoleFilling::fill_holes(const core::GeometryContainer& input,
-                        const HoleFillingParams& params) {
+std::optional<core::GeometryContainer> HoleFilling::fill_holes(const core::GeometryContainer& input,
+                                                               const HoleFillingParams& params) {
   // Validate input
   auto validation_error = detail::PMPConverter::validate_for_pmp(input);
   if (!validation_error.empty()) {
@@ -24,8 +23,7 @@ HoleFilling::fill_holes(const core::GeometryContainer& input,
   // Convert to PMP
   auto pmp_mesh = detail::PMPConverter::to_pmp(input);
 
-  fmt::print("HoleFilling: Input mesh has {} vertices, {} faces\n",
-             pmp_mesh.n_vertices(), pmp_mesh.n_faces());
+  fmt::print("HoleFilling: Input mesh has {} vertices, {} faces\n", pmp_mesh.n_vertices(), pmp_mesh.n_faces());
 
   // Find all boundary halfedges (holes)
   std::vector<pmp::Halfedge> boundary_halfedges;
@@ -82,8 +80,7 @@ HoleFilling::fill_holes(const core::GeometryContainer& input,
   }
 
   fmt::print("HoleFilling: Successfully filled {} holes\n", filled_count);
-  fmt::print("HoleFilling: Output mesh has {} vertices, {} faces\n",
-             pmp_mesh.n_vertices(), pmp_mesh.n_faces());
+  fmt::print("HoleFilling: Output mesh has {} vertices, {} faces\n", pmp_mesh.n_vertices(), pmp_mesh.n_faces());
 
   // Convert back to Nodo format
   return detail::PMPConverter::from_pmp_container(pmp_mesh);

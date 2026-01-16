@@ -47,12 +47,8 @@ private:
   mutable bool cache_valid_ = false;
 
 public:
-  explicit NodePort(std::string name, Type port_type, DataType data_type,
-                    SOPNode* owner)
-      : name_(std::move(name)),
-        port_type_(port_type),
-        data_type_(data_type),
-        owner_node_(owner) {}
+  explicit NodePort(std::string name, Type port_type, DataType data_type, SOPNode* owner)
+      : name_(std::move(name)), port_type_(port_type), data_type_(data_type), owner_node_(owner) {}
 
   // Non-copyable but movable
   NodePort(const NodePort&) = delete;
@@ -86,8 +82,7 @@ public:
    * @return true if connection successful
    */
   bool connect_input(NodePort* output_port) {
-    if (!output_port || port_type_ != Type::INPUT ||
-        output_port->port_type_ != Type::OUTPUT ||
+    if (!output_port || port_type_ != Type::INPUT || output_port->port_type_ != Type::OUTPUT ||
         data_type_ != output_port->data_type_) {
       return false;
     }
@@ -112,8 +107,7 @@ public:
     if (port_type_ == Type::INPUT && connected_output_) {
       // Remove this input from output's connection list
       auto& inputs = connected_output_->connected_inputs_;
-      inputs.erase(std::remove(inputs.begin(), inputs.end(), this),
-                   inputs.end());
+      inputs.erase(std::remove(inputs.begin(), inputs.end(), this), inputs.end());
       connected_output_ = nullptr;
     } else if (port_type_ == Type::OUTPUT) {
       // Disconnect all connected inputs
@@ -143,9 +137,7 @@ public:
   /**
    * @brief Get connected input ports (for output ports)
    */
-  const std::vector<NodePort*>& get_connected_inputs() const {
-    return connected_inputs_;
-  }
+  const std::vector<NodePort*>& get_connected_inputs() const { return connected_inputs_; }
 
   /**
    * @brief Get geometry data from this port
@@ -210,8 +202,7 @@ public:
   /**
    * @brief Add a port to the collection
    */
-  NodePort* add_port(std::string name, NodePort::Type port_type,
-                     NodePort::DataType data_type, SOPNode* owner) {
+  NodePort* add_port(std::string name, NodePort::Type port_type, NodePort::DataType data_type, SOPNode* owner) {
     auto port = std::make_unique<NodePort>(name, port_type, data_type, owner);
     auto* port_ptr = port.get();
 
@@ -232,9 +223,7 @@ public:
   /**
    * @brief Get all ports
    */
-  const std::vector<std::unique_ptr<NodePort>>& get_all_ports() const {
-    return ports_;
-  }
+  const std::vector<std::unique_ptr<NodePort>>& get_all_ports() const { return ports_; }
 
   /**
    * @brief Get ports by type

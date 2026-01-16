@@ -36,14 +36,12 @@ class NodeCreationMenu;
  */
 class NodeGraphicsItem : public QGraphicsItem {
 public:
-  explicit NodeGraphicsItem(int node_id, const QString& node_name,
-                            int input_count, int output_count,
+  explicit NodeGraphicsItem(int node_id, const QString& node_name, int input_count, int output_count,
                             nodo::graph::NodeType node_type);
 
   // QGraphicsItem interface
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-             QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   // Node information
   int get_node_id() const { return node_id_; }
@@ -201,15 +199,12 @@ private:
  */
 class ConnectionGraphicsItem : public QGraphicsItem {
 public:
-  explicit ConnectionGraphicsItem(int connection_id,
-                                  NodeGraphicsItem* source_node, int source_pin,
-                                  NodeGraphicsItem* target_node,
-                                  int target_pin);
+  explicit ConnectionGraphicsItem(int connection_id, NodeGraphicsItem* source_node, int source_pin,
+                                  NodeGraphicsItem* target_node, int target_pin);
 
   QRectF boundingRect() const override;
   QPainterPath shape() const override; // For better hit testing
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-             QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   int get_connection_id() const { return connection_id_; }
 
@@ -247,9 +242,7 @@ public:
   nodo::graph::NodeGraph* get_graph() const { return graph_; }
 
   // Undo/Redo management
-  void set_undo_stack(nodo::studio::UndoStack* undo_stack) {
-    undo_stack_ = undo_stack;
-  }
+  void set_undo_stack(nodo::studio::UndoStack* undo_stack) { undo_stack_ = undo_stack; }
   nodo::studio::UndoStack* get_undo_stack() const { return undo_stack_; }
 
   // Rebuild visual representation from backend graph
@@ -259,8 +252,7 @@ public:
   void update_display_flags_from_graph();
 
   // Update node statistics (vertices, triangles, memory, cook time)
-  void update_node_stats(int node_id, int vertex_count, int triangle_count,
-                         int memory_kb, double cook_time_ms);
+  void update_node_stats(int node_id, int vertex_count, int triangle_count, int memory_kb, double cook_time_ms);
 
   // Update node parameters from backend
   void update_node_parameters(int node_id);
@@ -275,28 +267,21 @@ public:
   // Public wrappers for undo/redo commands
   void create_node_item_public(int node_id) { create_node_item(node_id); }
   void remove_node_item_public(int node_id) { remove_node_item(node_id); }
-  void create_connection_item_public(int connection_id) {
-    create_connection_item(connection_id);
-  }
-  void remove_connection_item_public(int connection_id) {
-    remove_connection_item(connection_id);
-  }
+  void create_connection_item_public(int connection_id) { create_connection_item(connection_id); }
+  void remove_connection_item_public(int connection_id) { remove_connection_item(connection_id); }
   NodeGraphicsItem* get_node_item_public(int node_id);
 
   // Select a node programmatically (for undo/redo of parameter changes)
   void select_node_public(int node_id);
 
   // Called by commands to emit signals for graph updates
-  void emit_connection_created_signal(int source_node, int source_pin,
-                                      int target_node, int target_pin) {
+  void emit_connection_created_signal(int source_node, int source_pin, int target_node, int target_pin) {
     emit connection_created(source_node, source_pin, target_node, target_pin);
   }
 
   void emit_parameter_changed_signal() { emit parameter_changed(); }
 
-  void emit_property_panel_refresh_signal() {
-    emit property_panel_refresh_needed();
-  }
+  void emit_property_panel_refresh_signal() { emit property_panel_refresh_needed(); }
 
   // Called by NodeGraphicsItem when display button is clicked
   void on_node_display_flag_changed(int node_id, bool display_flag);
@@ -313,8 +298,7 @@ public:
 signals:
   void node_selected(int node_id);
   void node_double_clicked(int node_id);
-  void connection_created(int source_node, int source_pin, int target_node,
-                          int target_pin);
+  void connection_created(int source_node, int source_pin, int target_node, int target_pin);
   void connections_deleted(QVector<int> connection_ids);
   void nodes_deleted(QVector<int> node_ids);
   void selection_changed();

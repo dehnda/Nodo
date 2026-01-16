@@ -27,8 +27,7 @@
 // NodeGraphicsItem Implementation
 // ============================================================================
 
-NodeGraphicsItem::NodeGraphicsItem(int node_id, const QString& node_name,
-                                   int input_count, int output_count,
+NodeGraphicsItem::NodeGraphicsItem(int node_id, const QString& node_name, int input_count, int output_count,
                                    nodo::graph::NodeType node_type)
     : node_id_(node_id),
       node_name_(node_name),
@@ -50,8 +49,7 @@ QRectF NodeGraphicsItem::boundingRect() const {
   // Include button toolbar width if not in compact mode
   float total_width = NODE_WIDTH;
   if (!compact_mode_) {
-    total_width +=
-        BUTTON_TOOLBAR_WIDTH + 8.0F; // 4px gap + toolbar + 4px padding
+    total_width += BUTTON_TOOLBAR_WIDTH + 8.0F; // 4px gap + toolbar + 4px padding
   }
 
   // Extend bounding rect to include pins (which are offset by PIN_RADIUS
@@ -59,8 +57,7 @@ QRectF NodeGraphicsItem::boundingRect() const {
   float top_offset = PIN_RADIUS + PADDING;    // Include input pins above node
   float bottom_offset = PIN_RADIUS + PADDING; // Include output pins below node
 
-  return QRectF(-PADDING, -top_offset, total_width + 2.0F * PADDING,
-                height + top_offset + bottom_offset);
+  return QRectF(-PADDING, -top_offset, total_width + 2.0F * PADDING, height + top_offset + bottom_offset);
 }
 
 QColor NodeGraphicsItem::getNodeColor() const {
@@ -126,9 +123,7 @@ QColor NodeGraphicsItem::getNodeColor() const {
   }
 }
 
-void NodeGraphicsItem::paint(QPainter* painter,
-                             const QStyleOptionGraphicsItem* /*option*/,
-                             QWidget* /*widget*/) {
+void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
   painter->setRenderHint(QPainter::Antialiasing);
 
   // Get total height and bounding rect
@@ -139,11 +134,9 @@ void NodeGraphicsItem::paint(QPainter* painter,
   if (selected_ && !has_error_flag_) {
     // Expand rect slightly for glow effect and use same corner radius
     QRectF glow_rect = node_rect.adjusted(-3.0, -3.0, 3.0, 3.0);
-    painter->setPen(
-        QPen(QColor(74, 158, 255, 40), 8.0)); // Blue glow, more transparent
+    painter->setPen(QPen(QColor(74, 158, 255, 40), 8.0)); // Blue glow, more transparent
     painter->setBrush(Qt::NoBrush);
-    painter->drawRoundedRect(
-        glow_rect, 10.0, 10.0); // Slightly larger radius to match expanded rect
+    painter->drawRoundedRect(glow_rect, 10.0, 10.0); // Slightly larger radius to match expanded rect
   }
 
   // Determine outline color based on error state or selection
@@ -190,8 +183,7 @@ void NodeGraphicsItem::paint(QPainter* painter,
 QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
   // Vertical flow: input pins at TOP, offset above the node
   const float center_x = NODE_WIDTH / 2.0F;
-  const float offset =
-      static_cast<float>(index) - (static_cast<float>(input_count_ - 1) / 2.0F);
+  const float offset = static_cast<float>(index) - (static_cast<float>(input_count_ - 1) / 2.0F);
   const float x = center_x + (offset * PIN_SPACING);
   return QPointF(x, -PIN_RADIUS); // Position above node edge
 }
@@ -199,8 +191,7 @@ QPointF NodeGraphicsItem::get_input_pin_pos(int index) const {
 QPointF NodeGraphicsItem::get_output_pin_pos(int index) const {
   // Vertical flow: output pins at BOTTOM, offset below the node
   const float center_x = NODE_WIDTH / 2.0F;
-  const float offset = static_cast<float>(index) -
-                       (static_cast<float>(output_count_ - 1) / 2.0F);
+  const float offset = static_cast<float>(index) - (static_cast<float>(output_count_ - 1) / 2.0F);
   const float x = center_x + (offset * PIN_SPACING);
   return QPointF(x, getTotalHeight() + PIN_RADIUS); // Position below node edge
 }
@@ -216,8 +207,7 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
       QRectF toolbar_rect = getButtonToolbarRect();
 
       if (toolbar_rect.contains(click_pos)) {
-        float button_x =
-            toolbar_rect.left() + (BUTTON_TOOLBAR_WIDTH - BUTTON_SIZE) / 2.0;
+        float button_x = toolbar_rect.left() + (BUTTON_TOOLBAR_WIDTH - BUTTON_SIZE) / 2.0;
         float button_y = toolbar_rect.top() + 4.0;
 
         // Helper to check if clicked on a button
@@ -236,8 +226,7 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
             for (QGraphicsView* view : scene()->views()) {
               NodeGraphWidget* widget = qobject_cast<NodeGraphWidget*>(view);
               if (widget) {
-                widget->on_node_display_flag_changed(node_id_,
-                                                     has_display_flag_);
+                widget->on_node_display_flag_changed(node_id_, has_display_flag_);
                 break;
               }
             }
@@ -258,8 +247,7 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
             for (QGraphicsView* view : scene()->views()) {
               NodeGraphWidget* widget = qobject_cast<NodeGraphWidget*>(view);
               if (widget) {
-                widget->on_node_wireframe_flag_changed(node_id_,
-                                                       wireframe_flag_);
+                widget->on_node_wireframe_flag_changed(node_id_, wireframe_flag_);
                 break;
               }
             }
@@ -280,8 +268,7 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
             for (QGraphicsView* view : scene()->views()) {
               NodeGraphWidget* widget = qobject_cast<NodeGraphWidget*>(view);
               if (widget) {
-                widget->on_node_pass_through_flag_changed(node_id_,
-                                                          pass_through_flag_);
+                widget->on_node_pass_through_flag_changed(node_id_, pass_through_flag_);
                 break;
               }
             }
@@ -373,16 +360,13 @@ void NodeGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
   QGraphicsItem::hoverLeaveEvent(event);
 }
 
-int NodeGraphicsItem::get_pin_at_position(const QPointF& pos,
-                                          bool& is_input) const {
-  constexpr float PIN_CLICK_RADIUS =
-      20.0F; // Increased for easier clicking and connection
+int NodeGraphicsItem::get_pin_at_position(const QPointF& pos, bool& is_input) const {
+  constexpr float PIN_CLICK_RADIUS = 20.0F; // Increased for easier clicking and connection
 
   // Check input pins
   for (int i = 0; i < input_count_; ++i) {
     QPointF pin_pos = get_input_pin_pos(i);
-    float distance = std::sqrt(std::pow(pos.x() - pin_pos.x(), 2.0F) +
-                               std::pow(pos.y() - pin_pos.y(), 2.0F));
+    float distance = std::sqrt(std::pow(pos.x() - pin_pos.x(), 2.0F) + std::pow(pos.y() - pin_pos.y(), 2.0F));
     if (distance <= PIN_CLICK_RADIUS) {
       is_input = true;
       return i;
@@ -392,8 +376,7 @@ int NodeGraphicsItem::get_pin_at_position(const QPointF& pos,
   // Check output pins
   for (int i = 0; i < output_count_; ++i) {
     QPointF pin_pos = get_output_pin_pos(i);
-    float distance = std::sqrt(std::pow(pos.x() - pin_pos.x(), 2.0F) +
-                               std::pow(pos.y() - pin_pos.y(), 2.0F));
+    float distance = std::sqrt(std::pow(pos.x() - pin_pos.x(), 2.0F) + std::pow(pos.y() - pin_pos.y(), 2.0F));
     if (distance <= PIN_CLICK_RADIUS) {
       is_input = false;
       return i;
@@ -429,10 +412,9 @@ QRectF NodeGraphicsItem::getFooterRect() const {
 
 QRectF NodeGraphicsItem::getButtonToolbarRect() const {
   // Button toolbar is to the right of the node, aligned with entire node
-  float toolbar_y = 0.0F; // Start at top of node (aligned with header)
+  float toolbar_y = 0.0F;                  // Start at top of node (aligned with header)
   float toolbar_height = getTotalHeight(); // Full node height
-  return QRectF(NODE_WIDTH + 4.0F, toolbar_y, BUTTON_TOOLBAR_WIDTH,
-                toolbar_height);
+  return QRectF(NODE_WIDTH + 4.0F, toolbar_y, BUTTON_TOOLBAR_WIDTH, toolbar_height);
 }
 
 void NodeGraphicsItem::drawHeader(QPainter* painter) {
@@ -457,8 +439,7 @@ void NodeGraphicsItem::drawHeader(QPainter* painter) {
   // Status indicator dot (left side) - blue dot like in screenshot
   float dot_x = 12.0;
   float dot_y = NODE_HEADER_HEIGHT / 2.0;
-  QColor dot_color = has_error_flag_ ? QColor(239, 68, 68)
-                                     : QColor(74, 158, 255); // Red or blue
+  QColor dot_color = has_error_flag_ ? QColor(239, 68, 68) : QColor(74, 158, 255); // Red or blue
   painter->setBrush(dot_color);
   painter->setPen(Qt::NoPen);
   painter->drawEllipse(QPointF(dot_x, dot_y), 5.0, 5.0);
@@ -469,8 +450,7 @@ void NodeGraphicsItem::drawHeader(QPainter* painter) {
   font.setPointSize(10);
   font.setBold(false);
   painter->setFont(font);
-  QRectF text_rect(dot_x + 16.0, 0, NODE_WIDTH - dot_x - 20.0,
-                   NODE_HEADER_HEIGHT);
+  QRectF text_rect(dot_x + 16.0, 0, NODE_WIDTH - dot_x - 20.0, NODE_HEADER_HEIGHT);
   painter->drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, node_name_);
 }
 
@@ -483,15 +463,11 @@ void NodeGraphicsItem::drawButtonToolbar(QPainter* painter) {
   painter->drawRoundedRect(toolbar_rect, 6.0, 6.0);
 
   // Calculate button positions (stacked vertically, centered in toolbar)
-  float button_x =
-      toolbar_rect.left() + (BUTTON_TOOLBAR_WIDTH - BUTTON_SIZE) / 2.0;
-  float button_y =
-      toolbar_rect.top() +
-      (toolbar_rect.height() - (3 * BUTTON_SIZE + 2 * BUTTON_SPACING)) / 2.0;
+  float button_x = toolbar_rect.left() + (BUTTON_TOOLBAR_WIDTH - BUTTON_SIZE) / 2.0;
+  float button_y = toolbar_rect.top() + (toolbar_rect.height() - (3 * BUTTON_SIZE + 2 * BUTTON_SPACING)) / 2.0;
 
   // Helper to draw a button with icon and optional text label
-  auto drawButton = [&](float y, bool active, const QColor& active_color,
-                        nodo_studio::IconManager::Icon icon) {
+  auto drawButton = [&](float y, bool active, const QColor& active_color, nodo_studio::IconManager::Icon icon) {
     QRectF button_rect(button_x, y, BUTTON_SIZE, BUTTON_SIZE);
     QColor bg_color = active ? active_color : QColor(50, 50, 55);
     painter->setBrush(bg_color);
@@ -507,20 +483,17 @@ void NodeGraphicsItem::drawButtonToolbar(QPainter* painter) {
   };
 
   // Display button (VIEW) - eye icon
-  drawButton(button_y, has_display_flag_, QColor(74, 158, 255),
-             nodo_studio::IconManager::Icon::Eye);
+  drawButton(button_y, has_display_flag_, QColor(74, 158, 255), nodo_studio::IconManager::Icon::Eye);
   button_y += BUTTON_SIZE + BUTTON_SPACING;
 
   // Wireframe button (WIRE) - shows node geometry in wireframe (yellow/gold
   // when active)
-  drawButton(button_y, wireframe_flag_, QColor(255, 204, 0),
-             nodo_studio::IconManager::Icon::Wireframe);
+  drawButton(button_y, wireframe_flag_, QColor(255, 204, 0), nodo_studio::IconManager::Icon::Wireframe);
   button_y += BUTTON_SIZE + BUTTON_SPACING;
 
   // Pass-through button - passes input geometry without processing (purple when
   // active)
-  drawButton(button_y, pass_through_flag_, QColor(180, 120, 255),
-             nodo_studio::IconManager::Icon::ForwardArrow);
+  drawButton(button_y, pass_through_flag_, QColor(180, 120, 255), nodo_studio::IconManager::Icon::ForwardArrow);
 }
 
 void NodeGraphicsItem::drawBody(QPainter* painter) {
@@ -558,8 +531,7 @@ void NodeGraphicsItem::drawFooter(QPainter* painter) {
   footer_path.arcTo(0, footer_rect.bottom() - 16.0, 16.0, 16.0, 180,
                     90); // Bottom-left corner
   footer_path.lineTo(NODE_WIDTH - 8.0, footer_rect.bottom());
-  footer_path.arcTo(NODE_WIDTH - 16.0, footer_rect.bottom() - 16.0, 16.0, 16.0,
-                    270, 90); // Bottom-right corner
+  footer_path.arcTo(NODE_WIDTH - 16.0, footer_rect.bottom() - 16.0, 16.0, 16.0, 270, 90); // Bottom-right corner
   footer_path.lineTo(NODE_WIDTH, footer_rect.top());
   footer_path.lineTo(0, footer_rect.top());
   painter->drawPath(footer_path);
@@ -572,8 +544,7 @@ void NodeGraphicsItem::drawFooter(QPainter* painter) {
   painter->setPen(QColor(130, 130, 140)); // Gray text
 
   // Helper to draw icon + stat value
-  auto drawStat = [&](float x, nodo_studio::IconManager::Icon icon,
-                      const QString& value) {
+  auto drawStat = [&](float x, nodo_studio::IconManager::Icon icon, const QString& value) {
     // Draw icon
     QColor icon_color = QColor(120, 120, 130);
     QPixmap icon_pixmap = nodo_studio::Icons::getPixmap(icon, 12, icon_color);
@@ -591,27 +562,21 @@ void NodeGraphicsItem::drawFooter(QPainter* painter) {
   float right_x = NODE_WIDTH - 60.0;
 
   // Left: Vertices (sphere icon represents geometry)
-  drawStat(left_x, nodo_studio::IconManager::Icon::Sphere,
-           QString::number(vertex_count_));
+  drawStat(left_x, nodo_studio::IconManager::Icon::Sphere, QString::number(vertex_count_));
 
   // Middle: Triangles (extrude icon represents faces/triangles)
-  drawStat(middle_x, nodo_studio::IconManager::Icon::Extrude,
-           QString::number(triangle_count_));
+  drawStat(middle_x, nodo_studio::IconManager::Icon::Extrude, QString::number(triangle_count_));
 
   // Right: Memory (file save icon represents data/memory)
-  drawStat(right_x, nodo_studio::IconManager::Icon::FileSave,
-           QString("%1KB").arg(memory_kb_));
+  drawStat(right_x, nodo_studio::IconManager::Icon::FileSave, QString("%1KB").arg(memory_kb_));
 }
 
 // ============================================================================
 // ConnectionGraphicsItem Implementation
 // ============================================================================
 
-ConnectionGraphicsItem::ConnectionGraphicsItem(int connection_id,
-                                               NodeGraphicsItem* source_node,
-                                               int source_pin,
-                                               NodeGraphicsItem* target_node,
-                                               int target_pin)
+ConnectionGraphicsItem::ConnectionGraphicsItem(int connection_id, NodeGraphicsItem* source_node, int source_pin,
+                                               NodeGraphicsItem* target_node, int target_pin)
     : connection_id_(connection_id),
       source_node_(source_node),
       source_pin_(source_pin),
@@ -635,9 +600,7 @@ QPainterPath ConnectionGraphicsItem::shape() const {
   return stroker.createStroke(path_);
 }
 
-void ConnectionGraphicsItem::paint(QPainter* painter,
-                                   const QStyleOptionGraphicsItem* option,
-                                   QWidget* /*widget*/) {
+void ConnectionGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* /*widget*/) {
   painter->setRenderHint(QPainter::Antialiasing);
 
   // Change color/width based on selection/hover state
@@ -678,10 +641,8 @@ void ConnectionGraphicsItem::update_path() {
   }
 
   // Get pin positions in scene coordinates
-  QPointF start =
-      source_node_->mapToScene(source_node_->get_output_pin_pos(source_pin_));
-  QPointF end =
-      target_node_->mapToScene(target_node_->get_input_pin_pos(target_pin_));
+  QPointF start = source_node_->mapToScene(source_node_->get_output_pin_pos(source_pin_));
+  QPointF end = target_node_->mapToScene(target_node_->get_input_pin_pos(target_pin_));
 
   // Create bezier curve for connection (VERTICAL flow: top-to-bottom)
   path_ = QPainterPath();
@@ -703,8 +664,7 @@ void ConnectionGraphicsItem::update_path() {
 // NodeGraphWidget Implementation
 // ============================================================================
 
-NodeGraphWidget::NodeGraphWidget(QWidget* parent)
-    : QGraphicsView(parent), scene_(new QGraphicsScene(this)) {
+NodeGraphWidget::NodeGraphWidget(QWidget* parent) : QGraphicsView(parent), scene_(new QGraphicsScene(this)) {
   setScene(scene_);
   setRenderHint(QPainter::Antialiasing);
   setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
@@ -729,13 +689,12 @@ NodeGraphWidget::NodeGraphWidget(QWidget* parent)
   centerOn(0, 0);
 
   // Connect to scene selection changes
-  connect(scene_, &QGraphicsScene::selectionChanged, this,
-          &NodeGraphWidget::on_scene_selection_changed);
+  connect(scene_, &QGraphicsScene::selectionChanged, this, &NodeGraphWidget::on_scene_selection_changed);
 
   // Create node creation menu
   node_creation_menu_ = new nodo_studio::NodeCreationMenu(this);
-  connect(node_creation_menu_, &nodo_studio::NodeCreationMenu::nodeSelected,
-          this, &NodeGraphWidget::on_node_menu_selected);
+  connect(node_creation_menu_, &nodo_studio::NodeCreationMenu::nodeSelected, this,
+          &NodeGraphWidget::on_node_menu_selected);
 }
 
 NodeGraphWidget::~NodeGraphWidget() {
@@ -746,8 +705,7 @@ NodeGraphWidget::~NodeGraphWidget() {
   // will handle others, but we are defensive due to prior assert involving
   // stale receivers)
   if (scene_ != nullptr) {
-    QObject::disconnect(scene_, &QGraphicsScene::selectionChanged, this,
-                        &NodeGraphWidget::on_scene_selection_changed);
+    QObject::disconnect(scene_, &QGraphicsScene::selectionChanged, this, &NodeGraphWidget::on_scene_selection_changed);
   }
 
   // Explicitly clear items to ensure their destructors run before ours fully
@@ -785,8 +743,7 @@ void NodeGraphWidget::update_display_flags_from_graph() {
   }
 }
 
-void NodeGraphWidget::update_node_stats(int node_id, int vertex_count,
-                                        int triangle_count, int memory_kb,
+void NodeGraphWidget::update_node_stats(int node_id, int vertex_count, int triangle_count, int memory_kb,
                                         double cook_time_ms) {
   auto it = node_items_.find(node_id);
   if (it != node_items_.end()) {
@@ -854,8 +811,7 @@ void NodeGraphWidget::rebuild_from_graph() {
     return; // Skip rebuild during teardown
   }
   scene_->blockSignals(true);
-  QObject::disconnect(scene_, &QGraphicsScene::selectionChanged, this,
-                      &NodeGraphWidget::on_scene_selection_changed);
+  QObject::disconnect(scene_, &QGraphicsScene::selectionChanged, this, &NodeGraphWidget::on_scene_selection_changed);
 
   // Clear existing visual items
   scene_->clear();
@@ -886,8 +842,7 @@ void NodeGraphWidget::rebuild_from_graph() {
   // Re-enable signals after rebuild is complete and reconnect handler
   if (!destroying_) {
     scene_->blockSignals(false);
-    QObject::connect(scene_, &QGraphicsScene::selectionChanged, this,
-                     &NodeGraphWidget::on_scene_selection_changed);
+    QObject::connect(scene_, &QGraphicsScene::selectionChanged, this, &NodeGraphWidget::on_scene_selection_changed);
   }
 }
 
@@ -908,8 +863,7 @@ void NodeGraphWidget::create_node_item(int node_id) {
   nodo::graph::NodeType node_type = node->get_type();
 
   // Create graphics item
-  auto* item =
-      new NodeGraphicsItem(node_id, name, input_count, output_count, node_type);
+  auto* item = new NodeGraphicsItem(node_id, name, input_count, output_count, node_type);
 
   // Set position from backend
   auto [x, y] = node->get_position();
@@ -935,9 +889,8 @@ void NodeGraphWidget::create_connection_item(int connection_id) {
 
   // Find connection in backend
   const auto& connections = graph_->get_connections();
-  auto conn_it = std::find_if(
-      connections.begin(), connections.end(),
-      [connection_id](const auto& conn) { return conn.id == connection_id; });
+  auto conn_it = std::find_if(connections.begin(), connections.end(),
+                              [connection_id](const auto& conn) { return conn.id == connection_id; });
 
   if (conn_it == connections.end()) {
     return;
@@ -952,9 +905,8 @@ void NodeGraphWidget::create_connection_item(int connection_id) {
   }
 
   // Create connection graphics item
-  auto* item = new ConnectionGraphicsItem(
-      connection_id, source_it->second, conn_it->source_pin_index,
-      target_it->second, conn_it->target_pin_index);
+  auto* item = new ConnectionGraphicsItem(connection_id, source_it->second, conn_it->source_pin_index,
+                                          target_it->second, conn_it->target_pin_index);
 
   scene_->addItem(item);
   connection_items_[connection_id] = item;
@@ -1053,8 +1005,7 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent* event) {
 
     if (node_item != nullptr) {
       bool is_input = false;
-      int pin_index = node_item->get_pin_at_position(
-          node_item->mapFromScene(scene_pos), is_input);
+      int pin_index = node_item->get_pin_at_position(node_item->mapFromScene(scene_pos), is_input);
 
       if (pin_index >= 0 && !is_input) {
         // Start creating connection from output pin
@@ -1067,8 +1018,7 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent* event) {
         temp_connection_line_->setPen(QPen(QColor(180, 180, 200), 2.5F));
         scene_->addItem(temp_connection_line_);
 
-        QPointF start_pos =
-            node_item->mapToScene(node_item->get_output_pin_pos(pin_index));
+        QPointF start_pos = node_item->mapToScene(node_item->get_output_pin_pos(pin_index));
         temp_connection_line_->setLine(QLineF(start_pos, scene_pos));
 
         event->accept();
@@ -1084,8 +1034,7 @@ void NodeGraphWidget::mousePressEvent(QMouseEvent* event) {
       // reflect the current physical keyboard state. QApplication
       // keyboardModifiers() is more reliable for modifier checks that
       // accompany mouse events.
-      bool is_ctrl_held =
-          (QApplication::keyboardModifiers() & Qt::ControlModifier) != 0;
+      bool is_ctrl_held = (QApplication::keyboardModifiers() & Qt::ControlModifier) != 0;
       bool node_already_selected = node_item->isSelected();
 
       // Block signals to prevent on_scene_selection_changed from being called
@@ -1173,12 +1122,11 @@ void NodeGraphWidget::mouseMoveEvent(QMouseEvent* event) {
     return;
   }
 
-  if (mode_ == InteractionMode::ConnectingPin &&
-      temp_connection_line_ != nullptr) {
+  if (mode_ == InteractionMode::ConnectingPin && temp_connection_line_ != nullptr) {
     // Update temporary connection line
     QPointF scene_pos = mapToScene(event->pos());
-    QPointF start_pos = connection_source_node_->mapToScene(
-        connection_source_node_->get_output_pin_pos(connection_source_pin_));
+    QPointF start_pos =
+        connection_source_node_->mapToScene(connection_source_node_->get_output_pin_pos(connection_source_pin_));
     temp_connection_line_->setLine(QLineF(start_pos, scene_pos));
     event->accept();
     return;
@@ -1254,19 +1202,16 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
 
     bool connection_made = false;
 
-    if (target_node_item != nullptr &&
-        target_node_item != connection_source_node_) {
+    if (target_node_item != nullptr && target_node_item != connection_source_node_) {
       bool is_input = false;
-      int pin_index = target_node_item->get_pin_at_position(
-          target_node_item->mapFromScene(scene_pos), is_input);
+      int pin_index = target_node_item->get_pin_at_position(target_node_item->mapFromScene(scene_pos), is_input);
 
       if (pin_index >= 0 && is_input) {
         // Valid connection target found - create connection using command
         if (graph_ != nullptr && undo_stack_ != nullptr) {
-          auto cmd = nodo::studio::create_connect_command(
-              this, graph_, connection_source_node_->get_node_id(),
-              connection_source_pin_, target_node_item->get_node_id(),
-              pin_index);
+          auto cmd =
+              nodo::studio::create_connect_command(this, graph_, connection_source_node_->get_node_id(),
+                                                   connection_source_pin_, target_node_item->get_node_id(), pin_index);
           undo_stack_->push(std::move(cmd));
 
           // Signal is now emitted from the command's execute() method
@@ -1280,8 +1225,7 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (!connection_made && connection_source_node_ != nullptr) {
       // Store pending connection info
       has_pending_connection_ = true;
-      pending_connection_source_node_id_ =
-          connection_source_node_->get_node_id();
+      pending_connection_source_node_id_ = connection_source_node_->get_node_id();
       pending_connection_source_pin_ = connection_source_pin_;
       pending_connection_target_pos_ = scene_pos;
 
@@ -1308,8 +1252,7 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
   }
 
   // Create move commands for any nodes that were dragged
-  if (event->button() == Qt::LeftButton &&
-      !node_drag_start_positions_.empty()) {
+  if (event->button() == Qt::LeftButton && !node_drag_start_positions_.empty()) {
     if (undo_stack_ != nullptr && graph_ != nullptr) {
       for (const auto& [node_id, start_pos] : node_drag_start_positions_) {
         // Get current position
@@ -1318,8 +1261,7 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
           QPointF current_pos = node_item->pos();
           // Only create command if position actually changed
           if ((current_pos - start_pos).manhattanLength() > 1.0) {
-            auto cmd = nodo::studio::create_move_node_command(
-                graph_, node_id, start_pos, current_pos);
+            auto cmd = nodo::studio::create_move_node_command(graph_, node_id, start_pos, current_pos);
             undo_stack_->push(std::move(cmd));
           }
         }
@@ -1370,8 +1312,7 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent* event) {
     // Delete connections using commands if undo_stack is available
     if (undo_stack_ != nullptr && graph_ != nullptr) {
       for (int conn_id : connection_ids_to_delete) {
-        auto cmd =
-            nodo::studio::create_disconnect_command(this, graph_, conn_id);
+        auto cmd = nodo::studio::create_disconnect_command(this, graph_, conn_id);
         undo_stack_->push(std::move(cmd));
       }
     } else {
@@ -1393,8 +1334,7 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent* event) {
     QVector<int> node_ids = get_selected_node_ids();
     if (undo_stack_ != nullptr && graph_ != nullptr && !node_ids.isEmpty()) {
       for (int node_id : node_ids) {
-        auto cmd =
-            nodo::studio::create_delete_node_command(this, graph_, node_id);
+        auto cmd = nodo::studio::create_delete_node_command(this, graph_, node_id);
         undo_stack_->push(std::move(cmd));
       }
       // Emit signal so MainWindow can update UI
@@ -1504,10 +1444,8 @@ void NodeGraphWidget::draw_grid(QPainter* painter, const QRectF& rect) {
   painter->setPen(QPen(QColor(50, 50, 55), 1.0F));
 
   // Fine grid
-  float left = static_cast<int>(rect.left()) -
-               (static_cast<int>(rect.left()) % static_cast<int>(GRID_SIZE));
-  float top = static_cast<int>(rect.top()) -
-              (static_cast<int>(rect.top()) % static_cast<int>(GRID_SIZE));
+  float left = static_cast<int>(rect.left()) - (static_cast<int>(rect.left()) % static_cast<int>(GRID_SIZE));
+  float top = static_cast<int>(rect.top()) - (static_cast<int>(rect.top()) % static_cast<int>(GRID_SIZE));
 
   for (float x = left; x < rect.right(); x += GRID_SIZE) {
     painter->drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()));
@@ -1520,10 +1458,8 @@ void NodeGraphWidget::draw_grid(QPainter* painter, const QRectF& rect) {
   // Coarse grid
   painter->setPen(QPen(QColor(60, 60, 65), 1.5F));
 
-  left = static_cast<int>(rect.left()) -
-         (static_cast<int>(rect.left()) % static_cast<int>(GRID_SIZE_LARGE));
-  top = static_cast<int>(rect.top()) -
-        (static_cast<int>(rect.top()) % static_cast<int>(GRID_SIZE_LARGE));
+  left = static_cast<int>(rect.left()) - (static_cast<int>(rect.left()) % static_cast<int>(GRID_SIZE_LARGE));
+  top = static_cast<int>(rect.top()) - (static_cast<int>(rect.top()) % static_cast<int>(GRID_SIZE_LARGE));
 
   for (float x = left; x < rect.right(); x += GRID_SIZE_LARGE) {
     painter->drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()));
@@ -1534,8 +1470,7 @@ void NodeGraphWidget::draw_grid(QPainter* painter, const QRectF& rect) {
   }
 }
 
-void NodeGraphWidget::draw_watermark_logo(QPainter* painter,
-                                          const QRectF& rect) {
+void NodeGraphWidget::draw_watermark_logo(QPainter* painter, const QRectF& rect) {
   // Load the horizontal logo
   static QSvgRenderer logo_renderer(QString(":/logo/nodo_horizontal.svg"));
   if (!logo_renderer.isValid()) {
@@ -1591,10 +1526,8 @@ void NodeGraphWidget::draw_watermark_logo(QPainter* painter,
 
   // Use system font stack with fallbacks for cross-platform support
   QFont font;
-  font.setFamilies(QStringList()
-                   << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell"
-                   << "Noto Sans" << "Liberation Sans" << "DejaVu Sans"
-                   << "sans-serif");
+  font.setFamilies(QStringList() << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell" << "Noto Sans"
+                                 << "Liberation Sans" << "DejaVu Sans" << "sans-serif");
   font.setWeight(QFont::DemiBold);
   font.setHintingPreference(QFont::PreferFullHinting);
   logo_painter.setFont(font);
@@ -1610,9 +1543,7 @@ void NodeGraphWidget::draw_watermark_logo(QPainter* painter,
   // Apply monochrome effect with bold enhancement
   QPainter mono_painter(&logo_pixmap);
   mono_painter.setCompositionMode(QPainter::CompositionMode_SourceAtop);
-  mono_painter.fillRect(
-      logo_pixmap.rect(),
-      QColor(255, 255, 255, 200)); // Slightly more opaque white
+  mono_painter.fillRect(logo_pixmap.rect(), QColor(255, 255, 255, 200)); // Slightly more opaque white
   mono_painter.end();
 
   // Draw the processed logo with a subtle shadow effect for boldness
@@ -1635,8 +1566,7 @@ void NodeGraphWidget::on_node_moved(NodeGraphicsItem* node) {
     auto* backend_node = graph_->get_node(node->get_node_id());
     if (backend_node != nullptr) {
       QPointF pos = node->pos();
-      backend_node->set_position(static_cast<float>(pos.x()),
-                                 static_cast<float>(pos.y()));
+      backend_node->set_position(static_cast<float>(pos.x()), static_cast<float>(pos.y()));
     }
   }
 
@@ -1644,8 +1574,7 @@ void NodeGraphWidget::on_node_moved(NodeGraphicsItem* node) {
   update_all_connections();
 }
 
-void NodeGraphWidget::create_node_at_position(nodo::graph::NodeType type,
-                                              const QPointF& pos) {
+void NodeGraphWidget::create_node_at_position(nodo::graph::NodeType type, const QPointF& pos) {
   if (graph_ == nullptr) {
     return;
   }
@@ -1665,8 +1594,7 @@ void NodeGraphWidget::create_node_at_position(nodo::graph::NodeType type,
     int node_id = graph_->add_node(type);
 
     if (auto* backend_node = graph_->get_node(node_id)) {
-      backend_node->set_position(static_cast<float>(pos.x()),
-                                 static_cast<float>(pos.y()));
+      backend_node->set_position(static_cast<float>(pos.x()), static_cast<float>(pos.y()));
     }
 
     create_node_item(node_id);
@@ -1696,8 +1624,7 @@ void NodeGraphWidget::on_scene_selection_changed() {
   emit selection_changed();
 }
 
-void NodeGraphWidget::on_node_display_flag_changed(int node_id,
-                                                   bool display_flag) {
+void NodeGraphWidget::on_node_display_flag_changed(int node_id, bool display_flag) {
   // Update the backend node's display flag
   if (graph_ != nullptr) {
     auto* node = graph_->get_node(node_id);
@@ -1710,8 +1637,7 @@ void NodeGraphWidget::on_node_display_flag_changed(int node_id,
   emit node_display_flag_changed(node_id, display_flag);
 }
 
-void NodeGraphWidget::on_node_wireframe_flag_changed(int node_id,
-                                                     bool wireframe_flag) {
+void NodeGraphWidget::on_node_wireframe_flag_changed(int node_id, bool wireframe_flag) {
   // Update the backend node's render flag
   if (graph_ != nullptr) {
     auto* node = graph_->get_node(node_id);
@@ -1724,8 +1650,7 @@ void NodeGraphWidget::on_node_wireframe_flag_changed(int node_id,
   emit node_wireframe_flag_changed(node_id, wireframe_flag);
 }
 
-void NodeGraphWidget::on_node_pass_through_flag_changed(
-    int node_id, bool pass_through_flag) {
+void NodeGraphWidget::on_node_pass_through_flag_changed(int node_id, bool pass_through_flag) {
   // Update the backend node's pass-through flag
   if (graph_ != nullptr) {
     auto* node = graph_->get_node(node_id);
@@ -1756,9 +1681,8 @@ void NodeGraphWidget::on_node_menu_selected(const QString& type_id) {
       // Check if the new node has at least one input pin
       if (new_node != nullptr && !new_node->get_input_pins().empty()) {
         // Connect to the first input pin (index 0)
-        auto cmd = nodo::studio::create_connect_command(
-            this, graph_, pending_connection_source_node_id_,
-            pending_connection_source_pin_, new_node_id, 0);
+        auto cmd = nodo::studio::create_connect_command(this, graph_, pending_connection_source_node_id_,
+                                                        pending_connection_source_pin_, new_node_id, 0);
         undo_stack_->push(std::move(cmd));
       }
     }
@@ -1771,8 +1695,7 @@ void NodeGraphWidget::on_node_menu_selected(const QString& type_id) {
   }
 }
 
-nodo::graph::NodeType
-NodeGraphWidget::string_to_node_type(const QString& type_id) const {
+nodo::graph::NodeType NodeGraphWidget::string_to_node_type(const QString& type_id) const {
   using nodo::graph::NodeType;
 
   // Convert the integer string (from NodeType enum value) back to enum

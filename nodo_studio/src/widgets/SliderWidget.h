@@ -30,9 +30,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  SliderWidget(const QString& label, double value = 0.0, double min = 0.0,
-               double max = 1.0, const QString& description = QString(),
-               QWidget* parent = nullptr);
+  SliderWidget(const QString& label, double value = 0.0, double min = 0.0, double max = 1.0,
+               const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
   double getValue() const;

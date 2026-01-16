@@ -8,8 +8,7 @@ namespace nodo::sop {
 
 GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
   // Single input (using standard "0" port name)
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Group name parameter
   register_parameter(define_string_parameter("group_name", "group1")
@@ -22,24 +21,20 @@ GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
   add_group_type_parameter();
 
   // Operation mode
-  register_parameter(
-      define_int_parameter("operation", 0)
-          .label("Operation")
-          .options(
-              {"Create/Replace", "Add to Existing", "Remove from Existing"})
-          .category("Group")
-          .description("How to modify existing group (create, add, or remove)")
-          .build());
+  register_parameter(define_int_parameter("operation", 0)
+                         .label("Operation")
+                         .options({"Create/Replace", "Add to Existing", "Remove from Existing"})
+                         .category("Group")
+                         .description("How to modify existing group (create, add, or remove)")
+                         .build());
 
   // Selection method - dropdown
-  register_parameter(
-      define_int_parameter("selection_mode", 0)
-          .label("Selection Mode")
-          .options({"Range", "Every Nth", "Random", "All"})
-          .category("Selection")
-          .description(
-              "Method for selecting elements (range, pattern, random, or all)")
-          .build());
+  register_parameter(define_int_parameter("selection_mode", 0)
+                         .label("Selection Mode")
+                         .options({"Range", "Every Nth", "Random", "All"})
+                         .category("Selection")
+                         .description("Method for selecting elements (range, pattern, random, or all)")
+                         .build());
 
   // Range parameters
   register_parameter(define_int_parameter("range_start", 0)
@@ -57,13 +52,12 @@ GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
                          .build());
 
   // Pattern parameters (Every Nth)
-  register_parameter(
-      define_int_parameter("pattern_step", 2)
-          .label("Step")
-          .range(1, 100)
-          .category("Pattern")
-          .description("Select every Nth element (e.g., 2 = every other)")
-          .build());
+  register_parameter(define_int_parameter("pattern_step", 2)
+                         .label("Step")
+                         .range(1, 100)
+                         .category("Pattern")
+                         .description("Select every Nth element (e.g., 2 = every other)")
+                         .build());
 
   register_parameter(define_int_parameter("pattern_offset", 0)
                          .label("Offset")
@@ -99,20 +93,16 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
     return nullptr;
   }
 
-  std::cerr << "  Input has " << input->point_count() << " points, "
-            << input->primitive_count() << " primitives\n";
-  std::cerr << "  Input point_attributes().size() = "
-            << input->point_attributes().size() << "\n";
-  std::cerr << "  Input point_attributes().attribute_count() = "
-            << input->point_attributes().attribute_count() << "\n";
+  std::cerr << "  Input has " << input->point_count() << " points, " << input->primitive_count() << " primitives\n";
+  std::cerr << "  Input point_attributes().size() = " << input->point_attributes().size() << "\n";
+  std::cerr << "  Input point_attributes().attribute_count() = " << input->point_attributes().attribute_count() << "\n";
 
   // Clone input (groups are stored as attributes, geometry unchanged)
   auto result = std::make_shared<core::GeometryContainer>(input->clone());
 
-  std::cerr << "  Cloned result has " << result->point_count() << " points, "
-            << result->primitive_count() << " primitives\n";
-  std::cerr << "  Point attributes size: " << result->point_attributes().size()
-            << "\n";
+  std::cerr << "  Cloned result has " << result->point_count() << " points, " << result->primitive_count()
+            << " primitives\n";
+  std::cerr << "  Point attributes size: " << result->point_attributes().size() << "\n";
 
   // Get parameters
   std::string group_name = get_parameter<std::string>("group_name", "group1");
@@ -125,23 +115,17 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   }
 
   int elem_class_int = get_parameter<int>("element_class", 0);
-  core::ElementClass elem_class = (elem_class_int == 0)
-                                      ? core::ElementClass::POINT
-                                      : core::ElementClass::PRIMITIVE;
+  core::ElementClass elem_class = (elem_class_int == 0) ? core::ElementClass::POINT : core::ElementClass::PRIMITIVE;
 
-  std::cerr << "  Element class: "
-            << (elem_class_int == 0 ? "Points" : "Primitives") << "\n";
+  std::cerr << "  Element class: " << (elem_class_int == 0 ? "Points" : "Primitives") << "\n";
 
   int selection_mode = get_parameter<int>("selection_mode", 0);
   int operation = get_parameter<int>("operation", 0);
 
-  std::cerr << "  Selection mode: " << selection_mode
-            << ", Operation: " << operation << "\n";
+  std::cerr << "  Selection mode: " << selection_mode << ", Operation: " << operation << "\n";
 
   // Get element count
-  size_t elem_count = (elem_class == core::ElementClass::POINT)
-                          ? result->point_count()
-                          : result->primitive_count();
+  size_t elem_count = (elem_class == core::ElementClass::POINT) ? result->point_count() : result->primitive_count();
 
   // Create group if it doesn't exist (or if operation is Create/Replace)
   bool group_exists = core::has_group(*result, group_name, elem_class);
@@ -216,29 +200,23 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   }
 
   // Apply operation
-  std::cerr << "  Applying operation with " << selection.size()
-            << " elements selected\n";
+  std::cerr << "  Applying operation with " << selection.size() << " elements selected\n";
 
   if (operation == 0 || operation == 1) {
     // Create/Replace or Add
-    bool success =
-        core::add_to_group(*result, group_name, elem_class, selection);
-    std::cerr << "  add_to_group returned: " << (success ? "true" : "false")
-              << "\n";
+    bool success = core::add_to_group(*result, group_name, elem_class, selection);
+    std::cerr << "  add_to_group returned: " << (success ? "true" : "false") << "\n";
   } else if (operation == 2) {
     // Remove
     core::remove_from_group(*result, group_name, elem_class, selection);
   }
 
   // Verify group contents
-  auto group_elements =
-      core::get_group_elements(*result, group_name, elem_class);
-  std::cerr << "  Group '" << group_name << "' now contains "
-            << group_elements.size() << " elements\n";
+  auto group_elements = core::get_group_elements(*result, group_name, elem_class);
+  std::cerr << "  Group '" << group_name << "' now contains " << group_elements.size() << " elements\n";
 
   std::cerr << "  Group created successfully, returning result\n";
-  std::cerr << "  Result has " << result->point_count() << " points, "
-            << result->primitive_count() << " primitives\n";
+  std::cerr << "  Result has " << result->point_count() << " points, " << result->primitive_count() << " primitives\n";
 
   return result;
 }

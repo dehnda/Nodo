@@ -19,19 +19,15 @@ namespace nodo::performance {
 class ScopedTimer {
 public:
   ScopedTimer(const std::string& name, bool print_on_destroy = true)
-      : name_(name),
-        print_(print_on_destroy),
-        start_(std::chrono::high_resolution_clock::now()) {}
+      : name_(name), print_(print_on_destroy), start_(std::chrono::high_resolution_clock::now()) {}
 
   ~ScopedTimer() {
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
     duration_us_ = duration.count();
 
     if (print_) {
-      std::cout << "[TIMER] " << name_ << ": " << duration_us_ / 1000.0
-                << " ms\n";
+      std::cout << "[TIMER] " << name_ << ": " << duration_us_ / 1000.0 << " ms\n";
     }
   }
 
@@ -62,9 +58,7 @@ public:
 
   size_t sample_count() const { return samples_.size(); }
   double total_time() const { return total_time_ms_; }
-  double average_time() const {
-    return samples_.empty() ? 0.0 : total_time_ms_ / samples_.size();
-  }
+  double average_time() const { return samples_.empty() ? 0.0 : total_time_ms_ / samples_.size(); }
   double min_time() const { return min_time_ms_; }
   double max_time() const { return max_time_ms_; }
 
@@ -87,9 +81,7 @@ public:
     return inst;
   }
 
-  void record(const std::string& section_name, double duration_ms) {
-    sections_[section_name].add_sample(duration_ms);
-  }
+  void record(const std::string& section_name, double duration_ms) { sections_[section_name].add_sample(duration_ms); }
 
   void clear() { sections_.clear(); }
 
@@ -99,16 +91,11 @@ public:
       return;
     }
 
-    std::cout
-        << "\n╔═══════════════════════════════════════════════════════════╗\n";
-    std::cout
-        << "║           NODO PERFORMANCE PROFILER REPORT                ║\n";
-    std::cout
-        << "╠═══════════════════════════════════════════════════════════╣\n";
-    std::cout
-        << "║ Section                  │  Avg  │  Min  │  Max  │ Calls ║\n";
-    std::cout
-        << "╠══════════════════════════╪═══════╪═══════╪═══════╪═══════╣\n";
+    std::cout << "\n╔═══════════════════════════════════════════════════════════╗\n";
+    std::cout << "║           NODO PERFORMANCE PROFILER REPORT                ║\n";
+    std::cout << "╠═══════════════════════════════════════════════════════════╣\n";
+    std::cout << "║ Section                  │  Avg  │  Min  │  Max  │ Calls ║\n";
+    std::cout << "╠══════════════════════════╪═══════╪═══════╪═══════╪═══════╣\n";
 
     // Calculate total time
     double total_time = 0.0;
@@ -121,36 +108,27 @@ public:
     for (const auto& [name, section] : sections_) {
       sorted.push_back({name, &section});
     }
-    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) {
-      return a.second->total_time() > b.second->total_time();
-    });
+    std::sort(sorted.begin(), sorted.end(),
+              [](const auto& a, const auto& b) { return a.second->total_time() > b.second->total_time(); });
 
     // Print each section
     for (const auto& [name, section] : sorted) {
       // double percent = (section->total_time() / total_time) * 100.0;
 
       char line[200];
-      snprintf(line, sizeof(line),
-               "║ %-24s │ %5.1fms │ %5.1fms │ %5.1fms │ %5zu ║", name.c_str(),
-               section->average_time(), section->min_time(),
-               section->max_time(), section->sample_count());
+      snprintf(line, sizeof(line), "║ %-24s │ %5.1fms │ %5.1fms │ %5.1fms │ %5zu ║", name.c_str(),
+               section->average_time(), section->min_time(), section->max_time(), section->sample_count());
       std::cout << line << "\n";
     }
 
-    std::cout
-        << "╠═══════════════════════════════════════════════════════════╣\n";
+    std::cout << "╠═══════════════════════════════════════════════════════════╣\n";
     char total_line[200];
-    snprintf(total_line, sizeof(total_line),
-             "║ TOTAL TIME: %8.2f ms                                   ║",
-             total_time);
+    snprintf(total_line, sizeof(total_line), "║ TOTAL TIME: %8.2f ms                                   ║", total_time);
     std::cout << total_line << "\n";
-    std::cout
-        << "╚═══════════════════════════════════════════════════════════╝\n\n";
+    std::cout << "╚═══════════════════════════════════════════════════════════╝\n\n";
   }
 
-  const std::map<std::string, ProfilerSection>& get_sections() const {
-    return sections_;
-  }
+  const std::map<std::string, ProfilerSection>& get_sections() const { return sections_; }
 
 private:
   Profiler() = default;
@@ -163,13 +141,11 @@ private:
 class AutoProfiler {
 public:
   AutoProfiler(const std::string& section_name)
-      : name_(section_name),
-        start_(std::chrono::high_resolution_clock::now()) {}
+      : name_(section_name), start_(std::chrono::high_resolution_clock::now()) {}
 
   ~AutoProfiler() {
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start_);
     double duration_ms = duration.count() / 1000.0;
     Profiler::instance().record(name_, duration_ms);
   }
@@ -180,8 +156,7 @@ private:
 };
 
 // Convenience macro for profiling a code block
-#define NODO_PROFILE(name)                                                     \
-  nodo::performance::AutoProfiler _profiler_##__LINE__(name)
+#define NODO_PROFILE(name) nodo::performance::AutoProfiler _profiler_##__LINE__(name)
 
 // Conditional profiling (only when enabled)
 #ifdef NODO_ENABLE_PROFILING

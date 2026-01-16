@@ -18,9 +18,8 @@
 namespace nodo_studio {
 namespace widgets {
 
-Vector3Widget::Vector3Widget(const QString& label, double x, double y, double z,
-                             double min, double max, const QString& description,
-                             QWidget* parent)
+Vector3Widget::Vector3Widget(const QString& label, double x, double y, double z, double min, double max,
+                             const QString& description, QWidget* parent)
     : BaseParameterWidget(label, description, parent), values_{x, y, z} {
   min_values_.fill(min);
   max_values_.fill(max);
@@ -40,9 +39,7 @@ QWidget* Vector3Widget::createControlWidget() {
   numeric_layout->setSpacing(4);
 
   const char* component_names[] = {"X", "Y", "Z"};
-  const char* component_colors[] = {
-      "#f48771", "#89d185",
-      "#4a9eff"}; // Red, Green, Blue (matches HTML design)
+  const char* component_colors[] = {"#f48771", "#89d185", "#4a9eff"}; // Red, Green, Blue (matches HTML design)
 
   for (int i = 0; i < 3; ++i) {
     // Component label (e.g., "X:", "Y:", "Z:")
@@ -86,8 +83,8 @@ QWidget* Vector3Widget::createControlWidget() {
                                      .arg(COLOR_ACCENT)
                                      .arg(COLOR_PANEL));
 
-    connect(spinboxes_[i], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-            this, [this, i](double value) { onSpinBoxValueChanged(i, value); });
+    connect(spinboxes_[i], QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            [this, i](double value) { onSpinBoxValueChanged(i, value); });
 
     numeric_layout->addWidget(spinboxes_[i]);
   }
@@ -133,44 +130,41 @@ QWidget* Vector3Widget::createControlWidget() {
   expression_edit_ = new QLineEdit(expression_container_);
   expression_edit_->setPlaceholderText("Enter expression (e.g. $x, $y, $z or "
                                        "$offset or ch(\"/node/param\"), 0, 0)");
-  expression_edit_->setStyleSheet(
-      QString("QLineEdit { "
-              "  background: %1; "
-              "  border: 1px solid %2; "
-              "  border-radius: 3px; "
-              "  padding: 4px 8px; "
-              "  color: %3; "
-              "  font-size: 11px; "
-              "  font-family: 'Consolas', 'Monaco', monospace; "
-              "}"
-              "QLineEdit:hover { "
-              "  border-color: %4; "
-              "}"
-              "QLineEdit:focus { "
-              "  border-color: %4; "
-              "  background: %5; "
-              "}")
-          .arg(COLOR_INPUT_BG)
-          .arg(COLOR_INPUT_BORDER)
-          .arg(COLOR_TEXT_PRIMARY)
-          .arg(COLOR_ACCENT)
-          .arg(COLOR_PANEL));
+  expression_edit_->setStyleSheet(QString("QLineEdit { "
+                                          "  background: %1; "
+                                          "  border: 1px solid %2; "
+                                          "  border-radius: 3px; "
+                                          "  padding: 4px 8px; "
+                                          "  color: %3; "
+                                          "  font-size: 11px; "
+                                          "  font-family: 'Consolas', 'Monaco', monospace; "
+                                          "}"
+                                          "QLineEdit:hover { "
+                                          "  border-color: %4; "
+                                          "}"
+                                          "QLineEdit:focus { "
+                                          "  border-color: %4; "
+                                          "  background: %5; "
+                                          "}")
+                                      .arg(COLOR_INPUT_BG)
+                                      .arg(COLOR_INPUT_BORDER)
+                                      .arg(COLOR_TEXT_PRIMARY)
+                                      .arg(COLOR_ACCENT)
+                                      .arg(COLOR_PANEL));
 
   expression_completer_ = new ExpressionCompleter(expression_edit_, this);
 
   validation_timer_ = new QTimer(this);
   validation_timer_->setSingleShot(true);
   validation_timer_->setInterval(500); // 500ms debounce
-  connect(validation_timer_, &QTimer::timeout, this,
-          &Vector3Widget::onValidationTimerTimeout);
+  connect(validation_timer_, &QTimer::timeout, this, &Vector3Widget::onValidationTimerTimeout);
 
   // Connect text changed to restart validation timer
   connect(expression_edit_, &QLineEdit::textChanged, this, [this]() {
     validation_timer_->start(); // Restart timer on each keystroke
   });
 
-  connect(expression_edit_, &QLineEdit::editingFinished, this,
-          &Vector3Widget::onExpressionEditingFinished);
+  connect(expression_edit_, &QLineEdit::editingFinished, this, &Vector3Widget::onExpressionEditingFinished);
 
   expr_layout->addWidget(expression_edit_);
 
@@ -200,8 +194,7 @@ QWidget* Vector3Widget::createControlWidget() {
                                          .arg(COLOR_TEXT_PRIMARY)
                                          .arg(COLOR_ACCENT));
 
-  connect(mode_toggle_button_, &QPushButton::clicked, this,
-          &Vector3Widget::onModeToggleClicked);
+  connect(mode_toggle_button_, &QPushButton::clicked, this, &Vector3Widget::onModeToggleClicked);
 
   // Add to main layout: mode toggle button + active container
   main_layout->addWidget(mode_toggle_button_);
@@ -272,8 +265,7 @@ void Vector3Widget::setUniformEnabled(bool enabled) {
   uniform_button_->setChecked(enabled);
 }
 
-void Vector3Widget::setValueChangedCallback(
-    std::function<void(double, double, double)> callback) {
+void Vector3Widget::setValueChangedCallback(std::function<void(double, double, double)> callback) {
   value_changed_callback_ = callback;
 }
 
@@ -281,8 +273,7 @@ void Vector3Widget::onSpinBoxValueChanged(int component, double value) {
   updateComponent(component, value);
 }
 
-void Vector3Widget::updateComponent(int component, double value,
-                                    bool emit_signal) {
+void Vector3Widget::updateComponent(int component, double value, bool emit_signal) {
   if (component < 0 || component >= 3)
     return;
 
@@ -334,10 +325,8 @@ void Vector3Widget::setExpressionMode(bool enabled) {
     } else {
       // Convert current numeric values to comma-separated string (no
       // parentheses)
-      expression_edit_->setText(QString("%1, %2, %3")
-                                    .arg(values_[0], 0, 'g', 6)
-                                    .arg(values_[1], 0, 'g', 6)
-                                    .arg(values_[2], 0, 'g', 6));
+      expression_edit_->setText(
+          QString("%1, %2, %3").arg(values_[0], 0, 'g', 6).arg(values_[1], 0, 'g', 6).arg(values_[2], 0, 'g', 6));
     }
 
     expression_completer_->setEnabled(true);
@@ -368,16 +357,14 @@ void Vector3Widget::onExpressionEditingFinished() {
 
     if (result.is_valid) {
       // Try to evaluate if it's pure math (no references)
-      bool has_references =
-          expression_text_.contains('$') || expression_text_.contains("ch(");
+      bool has_references = expression_text_.contains('$') || expression_text_.contains("ch(");
 
       if (!has_references) {
         // Pure math - try to evaluate
         // (For Vector3, we just validate the expression format for now)
         nodo::graph::NodeGraph empty_graph;
         nodo::graph::ParameterExpressionResolver resolver(empty_graph);
-        auto eval_result =
-            resolver.resolve_float(expression_text_.toStdString());
+        auto eval_result = resolver.resolve_float(expression_text_.toStdString());
         // Note: Vector3 expression evaluation will be enhanced later
       }
 
@@ -405,64 +392,59 @@ void Vector3Widget::onModeToggleClicked() {
 void Vector3Widget::updateExpressionVisuals() {
   if (!is_expression_mode_ || expression_text_.isEmpty()) {
     // Reset to default styling
-    expression_edit_->setStyleSheet(
-        QString("QLineEdit { "
-                "  background: %1; "
-                "  border: 1px solid %2; "
-                "  border-radius: 3px; "
-                "  padding: 4px 8px; "
-                "  color: %3; "
-                "  font-size: 11px; "
-                "  font-family: 'Consolas', 'Monaco', monospace; "
-                "}")
-            .arg(COLOR_INPUT_BG)
-            .arg(COLOR_INPUT_BORDER)
-            .arg(COLOR_TEXT_PRIMARY));
+    expression_edit_->setStyleSheet(QString("QLineEdit { "
+                                            "  background: %1; "
+                                            "  border: 1px solid %2; "
+                                            "  border-radius: 3px; "
+                                            "  padding: 4px 8px; "
+                                            "  color: %3; "
+                                            "  font-size: 11px; "
+                                            "  font-family: 'Consolas', 'Monaco', monospace; "
+                                            "}")
+                                        .arg(COLOR_INPUT_BG)
+                                        .arg(COLOR_INPUT_BORDER)
+                                        .arg(COLOR_TEXT_PRIMARY));
     expression_edit_->setToolTip("");
     return;
   }
 
   // Check if expression contains $ or ch(
-  bool has_expression =
-      expression_text_.contains('$') || expression_text_.contains("ch(");
+  bool has_expression = expression_text_.contains('$') || expression_text_.contains("ch(");
 
   if (has_expression) {
     // Valid expression - subtle blue tint
-    expression_edit_->setStyleSheet(
-        QString("QLineEdit { "
-                "  background: #1a1d23; "
-                "  border: 1px solid #1a8cd8; "
-                "  border-radius: 3px; "
-                "  padding: 4px 8px; "
-                "  color: %1; "
-                "  font-size: 11px; "
-                "  font-family: 'Consolas', 'Monaco', monospace; "
-                "}")
-            .arg(COLOR_TEXT_PRIMARY));
+    expression_edit_->setStyleSheet(QString("QLineEdit { "
+                                            "  background: #1a1d23; "
+                                            "  border: 1px solid #1a8cd8; "
+                                            "  border-radius: 3px; "
+                                            "  padding: 4px 8px; "
+                                            "  color: %1; "
+                                            "  font-size: 11px; "
+                                            "  font-family: 'Consolas', 'Monaco', monospace; "
+                                            "}")
+                                        .arg(COLOR_TEXT_PRIMARY));
 
     // Set tooltip showing the expression
-    QString tooltip =
-        QString("<b>Expression:</b> %1<br><b>Resolved value:</b> (%2, %3, %4)")
-            .arg(expression_text_)
-            .arg(values_[0], 0, 'g', 6)
-            .arg(values_[1], 0, 'g', 6)
-            .arg(values_[2], 0, 'g', 6);
+    QString tooltip = QString("<b>Expression:</b> %1<br><b>Resolved value:</b> (%2, %3, %4)")
+                          .arg(expression_text_)
+                          .arg(values_[0], 0, 'g', 6)
+                          .arg(values_[1], 0, 'g', 6)
+                          .arg(values_[2], 0, 'g', 6);
     expression_edit_->setToolTip(tooltip);
   } else {
     // Numeric value in expression field - default styling
-    expression_edit_->setStyleSheet(
-        QString("QLineEdit { "
-                "  background: %1; "
-                "  border: 1px solid %2; "
-                "  border-radius: 3px; "
-                "  padding: 4px 8px; "
-                "  color: %3; "
-                "  font-size: 11px; "
-                "  font-family: 'Consolas', 'Monaco', monospace; "
-                "}")
-            .arg(COLOR_INPUT_BG)
-            .arg(COLOR_INPUT_BORDER)
-            .arg(COLOR_TEXT_PRIMARY));
+    expression_edit_->setStyleSheet(QString("QLineEdit { "
+                                            "  background: %1; "
+                                            "  border: 1px solid %2; "
+                                            "  border-radius: 3px; "
+                                            "  padding: 4px 8px; "
+                                            "  color: %3; "
+                                            "  font-size: 11px; "
+                                            "  font-family: 'Consolas', 'Monaco', monospace; "
+                                            "}")
+                                        .arg(COLOR_INPUT_BG)
+                                        .arg(COLOR_INPUT_BORDER)
+                                        .arg(COLOR_TEXT_PRIMARY));
     expression_edit_->setToolTip("");
   }
 }
@@ -480,23 +462,20 @@ void Vector3Widget::setExpressionError(const QString& error) {
   }
 
   // Show error with red border
-  expression_edit_->setStyleSheet(
-      QString("QLineEdit { "
-              "  background: %1; "
-              "  border: 2px solid #e74c3c; "
-              "  border-radius: 3px; "
-              "  padding: 4px 8px; "
-              "  color: %2; "
-              "  font-size: 11px; "
-              "  font-family: 'Consolas', 'Monaco', monospace; "
-              "}")
-          .arg(COLOR_INPUT_BG)
-          .arg(COLOR_TEXT_PRIMARY));
+  expression_edit_->setStyleSheet(QString("QLineEdit { "
+                                          "  background: %1; "
+                                          "  border: 2px solid #e74c3c; "
+                                          "  border-radius: 3px; "
+                                          "  padding: 4px 8px; "
+                                          "  color: %2; "
+                                          "  font-size: 11px; "
+                                          "  font-family: 'Consolas', 'Monaco', monospace; "
+                                          "}")
+                                      .arg(COLOR_INPUT_BG)
+                                      .arg(COLOR_TEXT_PRIMARY));
 
   // Set error tooltip
-  expression_edit_->setToolTip(
-      QString("<span style='color: #e74c3c;'><b>Error:</b> %1</span>")
-          .arg(error));
+  expression_edit_->setToolTip(QString("<span style='color: #e74c3c;'><b>Error:</b> %1</span>").arg(error));
 }
 
 void Vector3Widget::onXChanged() {}

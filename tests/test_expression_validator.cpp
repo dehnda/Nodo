@@ -193,8 +193,7 @@ TEST(ExpressionValidatorTest, FullValidation) {
   expressions["circumference"] = "$diameter * 3.14159";
 
   // Valid expression
-  auto result = validator.validate("$circumference / 2", "halfCircumference",
-                                   expressions);
+  auto result = validator.validate("$circumference / 2", "halfCircumference", expressions);
   EXPECT_TRUE(result.is_valid);
   EXPECT_FALSE(result.has_circular_reference);
 
@@ -226,8 +225,7 @@ TEST(ExpressionValidatorTest, ValidationWithChReferences) {
   expressions["radius"] = "5.0";
 
   // ch() references are considered valid (can't resolve without graph)
-  auto result =
-      validator.validate("ch('../sphere/radius') * 2", "test", expressions);
+  auto result = validator.validate("ch('../sphere/radius') * 2", "test", expressions);
   EXPECT_TRUE(result.is_valid);
   EXPECT_EQ(result.referenced_parameters.size(), 1);
   EXPECT_TRUE(result.referenced_parameters.contains("../sphere/radius"));

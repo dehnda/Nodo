@@ -7,24 +7,20 @@ namespace attrs = nodo::core::standard_attrs;
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error BoxGenerator::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error BoxGenerator::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-std::optional<core::GeometryContainer>
-BoxGenerator::generate(double width, double height, double depth,
-                       int width_segments, int height_segments,
-                       int depth_segments) {
+std::optional<core::GeometryContainer> BoxGenerator::generate(double width, double height, double depth,
+                                                              int width_segments, int height_segments,
+                                                              int depth_segments) {
   if (width <= 0.0 || height <= 0.0 || depth <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Box dimensions must be positive"});
     return std::nullopt;
   }
 
   if (width_segments < 1 || height_segments < 1 || depth_segments < 1) {
-    set_last_error(core::Error{
-        core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
-        "Box requires at least 1 segment in each dimension"});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
+                               "Box requires at least 1 segment in each dimension"});
     return std::nullopt;
   }
 
@@ -32,45 +28,39 @@ BoxGenerator::generate(double width, double height, double depth,
   const double half_height = height * 0.5;
   const double half_depth = depth * 0.5;
 
-  return generate_from_bounds(
-      Eigen::Vector3d(-half_width, -half_height, -half_depth),
-      Eigen::Vector3d(half_width, half_height, half_depth), width_segments,
-      height_segments, depth_segments);
+  return generate_from_bounds(Eigen::Vector3d(-half_width, -half_height, -half_depth),
+                              Eigen::Vector3d(half_width, half_height, half_depth), width_segments, height_segments,
+                              depth_segments);
 }
 
-std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
-    const Eigen::Vector3d& min_corner, const Eigen::Vector3d& max_corner,
-    int width_segments, int height_segments, int depth_segments) {
+std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(const Eigen::Vector3d& min_corner,
+                                                                          const Eigen::Vector3d& max_corner,
+                                                                          int width_segments, int height_segments,
+                                                                          int depth_segments) {
   if ((max_corner.array() <= min_corner.array()).any()) {
-    set_last_error(core::Error{
-        core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
-        "Max corner must be greater than min corner in all dimensions"});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
+                               "Max corner must be greater than min corner in all dimensions"});
     return std::nullopt;
   }
 
   if (width_segments < 1 || height_segments < 1 || depth_segments < 1) {
-    set_last_error(core::Error{
-        core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
-        "Box requires at least 1 segment in each dimension"});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
+                               "Box requires at least 1 segment in each dimension"});
     return std::nullopt;
   }
 
   // Calculate total vertices and faces
-  auto vertices_per_face = [](int u_seg, int v_seg) {
-    return (u_seg + 1) * (v_seg + 1);
-  };
+  auto vertices_per_face = [](int u_seg, int v_seg) { return (u_seg + 1) * (v_seg + 1); };
 
-  [[maybe_unused]] const int total_vertices =
-      2 * vertices_per_face(width_segments, height_segments) + // front + back
-      2 * vertices_per_face(depth_segments, height_segments) + // left + right
-      2 * vertices_per_face(width_segments, depth_segments);   // top + bottom
+  [[maybe_unused]] const int total_vertices = 2 * vertices_per_face(width_segments, height_segments) + // front + back
+                                              2 * vertices_per_face(depth_segments, height_segments) + // left + right
+                                              2 * vertices_per_face(width_segments, depth_segments);   // top + bottom
 
   auto faces_per_face = [](int u_seg, int v_seg) { return u_seg * v_seg * 2; };
 
-  [[maybe_unused]] const int total_faces =
-      2 * faces_per_face(width_segments, height_segments) + // front + back
-      2 * faces_per_face(depth_segments, height_segments) + // left + right
-      2 * faces_per_face(width_segments, depth_segments);   // top + bottom
+  [[maybe_unused]] const int total_faces = 2 * faces_per_face(width_segments, height_segments) + // front + back
+                                           2 * faces_per_face(depth_segments, height_segments) + // left + right
+                                           2 * faces_per_face(width_segments, depth_segments);   // top + bottom
 
   // Create GeometryContainer
   core::GeometryContainer container;
@@ -92,12 +82,9 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
 
   // Helper to compute position for grid coordinate
   auto grid_pos = [&](int x_idx, int y_idx, int z_idx) -> core::Vec3f {
-    double x_pos =
-        lerp(min_corner.x(), max_corner.x(), double(x_idx) / double(num_x - 1));
-    double y_pos =
-        lerp(min_corner.y(), max_corner.y(), double(y_idx) / double(num_y - 1));
-    double z_pos =
-        lerp(min_corner.z(), max_corner.z(), double(z_idx) / double(num_z - 1));
+    double x_pos = lerp(min_corner.x(), max_corner.x(), double(x_idx) / double(num_x - 1));
+    double y_pos = lerp(min_corner.y(), max_corner.y(), double(y_idx) / double(num_y - 1));
+    double z_pos = lerp(min_corner.z(), max_corner.z(), double(z_idx) / double(num_z - 1));
     return core::Vec3f(float(x_pos), float(y_pos), float(z_pos));
   };
 
@@ -214,33 +201,26 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(
   return container;
 }
 
-void BoxGenerator::generate_face(
-    std::vector<core::Vec3f>& positions,
-    std::vector<std::vector<int>>& primitive_vertices, int& vertex_index,
-    const Eigen::Vector3d& corner1, const Eigen::Vector3d& corner2,
-    const Eigen::Vector3d& corner3, const Eigen::Vector3d& corner4,
-    int u_segments, int v_segments, bool flip_normal) {
+void BoxGenerator::generate_face(std::vector<core::Vec3f>& positions, std::vector<std::vector<int>>& primitive_vertices,
+                                 int& vertex_index, const Eigen::Vector3d& corner1, const Eigen::Vector3d& corner2,
+                                 const Eigen::Vector3d& corner3, const Eigen::Vector3d& corner4, int u_segments,
+                                 int v_segments, bool flip_normal) {
   const int start_vertex = vertex_index;
 
   // Generate vertices for this face
   for (int v_idx = 0; v_idx <= v_segments; ++v_idx) {
-    const double v_ratio =
-        static_cast<double>(v_idx) / static_cast<double>(v_segments);
+    const double v_ratio = static_cast<double>(v_idx) / static_cast<double>(v_segments);
 
     for (int u_idx = 0; u_idx <= u_segments; ++u_idx) {
-      const double u_ratio =
-          static_cast<double>(u_idx) / static_cast<double>(u_segments);
+      const double u_ratio = static_cast<double>(u_idx) / static_cast<double>(u_segments);
 
       // Bilinear interpolation
-      const Eigen::Vector3d bottom_edge =
-          corner1 + u_ratio * (corner2 - corner1);
+      const Eigen::Vector3d bottom_edge = corner1 + u_ratio * (corner2 - corner1);
       const Eigen::Vector3d top_edge = corner4 + u_ratio * (corner3 - corner4);
-      const Eigen::Vector3d vertex_pos =
-          bottom_edge + v_ratio * (top_edge - bottom_edge);
+      const Eigen::Vector3d vertex_pos = bottom_edge + v_ratio * (top_edge - bottom_edge);
 
-      positions.push_back({static_cast<float>(vertex_pos.x()),
-                           static_cast<float>(vertex_pos.y()),
-                           static_cast<float>(vertex_pos.z())});
+      positions.push_back(
+          {static_cast<float>(vertex_pos.x()), static_cast<float>(vertex_pos.y()), static_cast<float>(vertex_pos.z())});
       ++vertex_index;
     }
   }
@@ -256,11 +236,9 @@ void BoxGenerator::generate_face(
       const int top_right = top_left + 1;
 
       if (flip_normal) {
-        primitive_vertices.push_back(
-            {bottom_right, bottom_left, top_left, top_right});
+        primitive_vertices.push_back({bottom_right, bottom_left, top_left, top_right});
       } else {
-        primitive_vertices.push_back(
-            {bottom_left, bottom_right, top_right, top_left});
+        primitive_vertices.push_back({bottom_left, bottom_right, top_right, top_left});
       }
     }
   }

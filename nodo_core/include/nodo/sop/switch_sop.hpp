@@ -12,12 +12,10 @@ class SwitchSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SwitchSOP(const std::string& node_name = "switch")
-      : SOPNode(node_name, "Switch") {
+  explicit SwitchSOP(const std::string& node_name = "switch") : SOPNode(node_name, "Switch") {
     // Multiple geometry inputs (up to 10)
     for (int i = 0; i < 10; ++i) {
-      input_ports_.add_port(std::to_string(i), NodePort::Type::INPUT,
-                            NodePort::DataType::GEOMETRY, this);
+      input_ports_.add_port(std::to_string(i), NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
     }
 
     // Index parameter
@@ -30,9 +28,7 @@ public:
   }
 
   // Multi-input node - requires at least 1 input, accepts up to 10
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::MULTI_FIXED, 1, 10, 2);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::MULTI_FIXED, 1, 10, 2); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
@@ -56,8 +52,8 @@ protected:
 
     // Check if index is valid
     if (index < 0 || index >= static_cast<int>(inputs.size())) {
-      set_error("Switch index " + std::to_string(index) + " out of range [0, " +
-                std::to_string(inputs.size() - 1) + "]");
+      set_error("Switch index " + std::to_string(index) + " out of range [0, " + std::to_string(inputs.size() - 1) +
+                "]");
       return nullptr;
     }
 

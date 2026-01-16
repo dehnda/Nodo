@@ -23,31 +23,26 @@ class SplitSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit SplitSOP(const std::string& node_name = "split")
-      : SOPNode(node_name, "Split") {
+  explicit SplitSOP(const std::string& node_name = "split") : SOPNode(node_name, "Split") {
     // Single geometry input
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Split method
-    register_parameter(
-        define_int_parameter("method", 0)
-            .label("Split By")
-            .options({"Connectivity", "Attribute"})
-            .category("Split")
-            .description(
-                "Method to split geometry (by connectivity or attribute value)")
-            .build());
+    register_parameter(define_int_parameter("method", 0)
+                           .label("Split By")
+                           .options({"Connectivity", "Attribute"})
+                           .category("Split")
+                           .description("Method to split geometry (by connectivity or attribute value)")
+                           .build());
 
     // Attribute name (for attribute-based splitting)
-    register_parameter(
-        define_string_parameter("attribute", "")
-            .label("Attribute")
-            .category("Split")
-            .visible_when("method", 1)
-            .description("Attribute name to split by (primitives with same "
-                         "value stay together)")
-            .build());
+    register_parameter(define_string_parameter("attribute", "")
+                           .label("Attribute")
+                           .category("Split")
+                           .visible_when("method", 1)
+                           .description("Attribute name to split by (primitives with same "
+                                        "value stay together)")
+                           .build());
 
     // Create groups
     register_parameter(define_int_parameter("create_groups", 1)
@@ -59,13 +54,12 @@ public:
                            .build());
 
     // Add piece attribute
-    register_parameter(
-        define_int_parameter("add_piece_attribute", 1)
-            .label("Add Piece Attribute")
-            .options({"Off", "On"})
-            .category("Output")
-            .description("Add integer 'piece' attribute to primitives")
-            .build());
+    register_parameter(define_int_parameter("add_piece_attribute", 1)
+                           .label("Add Piece Attribute")
+                           .options({"Off", "On"})
+                           .category("Output")
+                           .description("Add integer 'piece' attribute to primitives")
+                           .build());
   }
 
 protected:
@@ -82,8 +76,7 @@ protected:
     // Get parameters
     const int method = get_parameter<int>("method", 0);
     const bool create_groups = get_parameter<int>("create_groups", 1) != 0;
-    const bool add_piece_attr =
-        get_parameter<int>("add_piece_attribute", 1) != 0;
+    const bool add_piece_attr = get_parameter<int>("add_piece_attribute", 1) != 0;
 
     if (method == 0) {
       // Split by connectivity
@@ -100,8 +93,7 @@ protected:
   }
 
 private:
-  void split_by_connectivity(std::shared_ptr<core::GeometryContainer>& geo,
-                             bool create_groups, bool add_piece_attr) {
+  void split_by_connectivity(std::shared_ptr<core::GeometryContainer>& geo, bool create_groups, bool add_piece_attr) {
     const size_t prim_count = geo->topology().primitive_count();
     if (prim_count == 0)
       return;
@@ -166,13 +158,11 @@ private:
     }
 
     // Apply results
-    apply_piece_results(geo, piece_ids, current_piece, create_groups,
-                        add_piece_attr);
+    apply_piece_results(geo, piece_ids, current_piece, create_groups, add_piece_attr);
   }
 
-  void split_by_attribute(std::shared_ptr<core::GeometryContainer>& geo,
-                          const std::string& attr_name, bool create_groups,
-                          bool add_piece_attr) {
+  void split_by_attribute(std::shared_ptr<core::GeometryContainer>& geo, const std::string& attr_name,
+                          bool create_groups, bool add_piece_attr) {
     // Check if attribute exists
     if (!geo->has_primitive_attribute(attr_name)) {
       set_error("Attribute '" + attr_name + "' not found on primitives");
@@ -182,8 +172,7 @@ private:
     // Get attribute (assuming integer for now)
     auto* attr = geo->get_primitive_attribute_typed<int>(attr_name);
     if (!attr) {
-      set_error("Attribute '" + attr_name +
-                "' must be integer type for splitting");
+      set_error("Attribute '" + attr_name + "' must be integer type for splitting");
       return;
     }
 
@@ -201,13 +190,11 @@ private:
     }
 
     // Apply results
-    apply_piece_results(geo, piece_ids, current_piece, create_groups,
-                        add_piece_attr);
+    apply_piece_results(geo, piece_ids, current_piece, create_groups, add_piece_attr);
   }
 
-  void apply_piece_results(std::shared_ptr<core::GeometryContainer>& geo,
-                           const std::vector<int>& piece_ids, int num_pieces,
-                           bool create_groups, bool add_piece_attr) {
+  void apply_piece_results(std::shared_ptr<core::GeometryContainer>& geo, const std::vector<int>& piece_ids,
+                           int num_pieces, bool create_groups, bool add_piece_attr) {
     // Add piece attribute
     if (add_piece_attr) {
       if (!geo->has_primitive_attribute("piece")) {

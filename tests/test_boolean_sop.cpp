@@ -19,10 +19,8 @@ protected:
     ASSERT_TRUE(box1_result.has_value());
     ASSERT_TRUE(box2_result.has_value());
 
-    geo1_ =
-        std::make_shared<core::GeometryContainer>(box1_result.value().clone());
-    geo2_ =
-        std::make_shared<core::GeometryContainer>(box2_result.value().clone());
+    geo1_ = std::make_shared<core::GeometryContainer>(box1_result.value().clone());
+    geo2_ = std::make_shared<core::GeometryContainer>(box2_result.value().clone());
   }
 
   std::shared_ptr<core::GeometryContainer> geo1_;
@@ -85,10 +83,8 @@ TEST_F(BooleanSOPTest, DifferenceOperation) {
   ASSERT_TRUE(box1_result.has_value());
   ASSERT_TRUE(box2_result.has_value());
 
-  auto geo1 =
-      std::make_shared<core::GeometryContainer>(box1_result.value().clone());
-  auto geo2 =
-      std::make_shared<core::GeometryContainer>(box2_result.value().clone());
+  auto geo1 = std::make_shared<core::GeometryContainer>(box1_result.value().clone());
+  auto geo2 = std::make_shared<core::GeometryContainer>(box2_result.value().clone());
 
   // Connect inputs
   auto* port_a = boolean_node->get_input_ports().get_port("0");
@@ -156,19 +152,15 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
   // topology
   constexpr int u_segments = 32;
   constexpr int v_segments = 16;
-  auto sphere1_result = geometry::SphereGenerator::generate_uv_sphere(
-      1.0, u_segments, v_segments);
-  auto sphere2_result = geometry::SphereGenerator::generate_uv_sphere(
-      1.0, u_segments, v_segments);
+  auto sphere1_result = geometry::SphereGenerator::generate_uv_sphere(1.0, u_segments, v_segments);
+  auto sphere2_result = geometry::SphereGenerator::generate_uv_sphere(1.0, u_segments, v_segments);
 
   ASSERT_TRUE(sphere1_result.has_value());
   ASSERT_TRUE(sphere2_result.has_value());
 
   // Create geometry containers
-  auto geo1 =
-      std::make_shared<core::GeometryContainer>(sphere1_result.value().clone());
-  auto geo2 =
-      std::make_shared<core::GeometryContainer>(sphere2_result.value().clone());
+  auto geo1 = std::make_shared<core::GeometryContainer>(sphere1_result.value().clone());
+  auto geo2 = std::make_shared<core::GeometryContainer>(sphere2_result.value().clone());
 
   // Offset second sphere by 0.5 units in X to create overlap
   constexpr float offset = 0.5F;
@@ -180,8 +172,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
 
   // Test UNION operation
   {
-    auto boolean_node =
-        std::make_shared<sop::BooleanSOP>("test_union_manifold");
+    auto boolean_node = std::make_shared<sop::BooleanSOP>("test_union_manifold");
     auto* port_a = boolean_node->get_input_ports().get_port("0");
     auto* port_b = boolean_node->get_input_ports().get_port("1");
 
@@ -232,10 +223,8 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
     // Edge count of 2 means it's an internal manifold edge (ideal)
     // Edge count > 2 means non-manifold (BAD - indicates internal geometry)
     for (const auto& [edge, count] : edge_count) {
-      EXPECT_LE(count, 2) << "Non-manifold edge detected between vertices "
-                          << edge.first << " and " << edge.second
-                          << " (shared by " << count << " faces). "
-                          << "This indicates internal geometry!";
+      EXPECT_LE(count, 2) << "Non-manifold edge detected between vertices " << edge.first << " and " << edge.second
+                          << " (shared by " << count << " faces). " << "This indicates internal geometry!";
     }
 
     // Additional check: For closed meshes (like sphere unions),
@@ -248,9 +237,8 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
       }
     }
 
-    EXPECT_EQ(non_manifold_edges, 0)
-        << "Found " << non_manifold_edges << " non-manifold edges, "
-        << "indicating internal faces/geometry that should have been removed!";
+    EXPECT_EQ(non_manifold_edges, 0) << "Found " << non_manifold_edges << " non-manifold edges, "
+                                     << "indicating internal faces/geometry that should have been removed!";
   }
 
   // Test DIFFERENCE operation (more likely to create complex topology)
@@ -297,8 +285,7 @@ TEST_F(BooleanSOPTest, NoInternalGeometry) {
       }
     }
 
-    EXPECT_EQ(non_manifold_edges, 0)
-        << "DIFFERENCE operation produced " << non_manifold_edges
-        << " non-manifold edges!";
+    EXPECT_EQ(non_manifold_edges, 0) << "DIFFERENCE operation produced " << non_manifold_edges
+                                     << " non-manifold edges!";
   }
 }

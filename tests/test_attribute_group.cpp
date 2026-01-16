@@ -90,8 +90,7 @@ TEST_F(AttributeGroupTest, AddMultipleElementsToGroup) {
   create_group(*geo, "corners", ElementClass::POINT);
 
   std::vector<size_t> corner_indices = {0, 2, 5, 7};
-  EXPECT_TRUE(
-      add_to_group(*geo, "corners", ElementClass::POINT, corner_indices));
+  EXPECT_TRUE(add_to_group(*geo, "corners", ElementClass::POINT, corner_indices));
 
   for (size_t idx : corner_indices) {
     EXPECT_TRUE(is_in_group(*geo, "corners", ElementClass::POINT, idx));
@@ -158,8 +157,7 @@ TEST_F(AttributeGroupTest, GroupUnion) {
   add_to_group(*geo, "group_a", ElementClass::POINT, {0, 1, 2});
   add_to_group(*geo, "group_b", ElementClass::POINT, {2, 3, 4});
 
-  EXPECT_TRUE(
-      group_union(*geo, "group_a", "group_b", "result", ElementClass::POINT));
+  EXPECT_TRUE(group_union(*geo, "group_a", "group_b", "result", ElementClass::POINT));
 
   auto result = get_group_elements(*geo, "result", ElementClass::POINT);
   std::sort(result.begin(), result.end());
@@ -179,8 +177,7 @@ TEST_F(AttributeGroupTest, GroupIntersection) {
   add_to_group(*geo, "group_a", ElementClass::POINT, {0, 1, 2, 3});
   add_to_group(*geo, "group_b", ElementClass::POINT, {2, 3, 4, 5});
 
-  EXPECT_TRUE(group_intersection(*geo, "group_a", "group_b", "result",
-                                 ElementClass::POINT));
+  EXPECT_TRUE(group_intersection(*geo, "group_a", "group_b", "result", ElementClass::POINT));
 
   auto result = get_group_elements(*geo, "result", ElementClass::POINT);
   std::sort(result.begin(), result.end());
@@ -197,8 +194,7 @@ TEST_F(AttributeGroupTest, GroupDifference) {
   add_to_group(*geo, "group_a", ElementClass::POINT, {0, 1, 2, 3, 4});
   add_to_group(*geo, "group_b", ElementClass::POINT, {2, 3});
 
-  EXPECT_TRUE(group_difference(*geo, "group_a", "group_b", "result",
-                               ElementClass::POINT));
+  EXPECT_TRUE(group_difference(*geo, "group_a", "group_b", "result", ElementClass::POINT));
 
   auto result = get_group_elements(*geo, "result", ElementClass::POINT);
   std::sort(result.begin(), result.end());
@@ -311,8 +307,7 @@ TEST_F(AttributeGroupTest, SelectByAttribute_Float) {
 
   // Select points with height > 3.5
   EXPECT_TRUE(
-      select_by_attribute<float>(*geo, "tall", ElementClass::POINT, "height",
-                                 [](const float& h) { return h > 3.5f; }));
+      select_by_attribute<float>(*geo, "tall", ElementClass::POINT, "height", [](const float& h) { return h > 3.5f; }));
 
   auto tall_points = get_group_elements(*geo, "tall", ElementClass::POINT);
   std::sort(tall_points.begin(), tall_points.end());
@@ -326,9 +321,8 @@ TEST_F(AttributeGroupTest, SelectByAttribute_Float) {
 
 TEST_F(AttributeGroupTest, SelectByAttribute_Vec3f) {
   // Select points on the top face (y > 0.5)
-  EXPECT_TRUE(select_by_attribute<Vec3f>(
-      *geo, "top_face", ElementClass::POINT, standard_attrs::P,
-      [](const Vec3f& p) { return p.y() > 0.5f; }));
+  EXPECT_TRUE(select_by_attribute<Vec3f>(*geo, "top_face", ElementClass::POINT, standard_attrs::P,
+                                         [](const Vec3f& p) { return p.y() > 0.5f; }));
 
   auto top_points = get_group_elements(*geo, "top_face", ElementClass::POINT);
   std::sort(top_points.begin(), top_points.end());
@@ -361,8 +355,7 @@ TEST_F(AttributeGroupTest, PrimitiveGroups) {
 
 TEST_F(AttributeGroupTest, PrimitiveGroupPattern) {
   // Select every other primitive
-  EXPECT_TRUE(
-      select_pattern(*geo, "alternating", ElementClass::PRIMITIVE, 2, 0));
+  EXPECT_TRUE(select_pattern(*geo, "alternating", ElementClass::PRIMITIVE, 2, 0));
 
   auto prims = get_group_elements(*geo, "alternating", ElementClass::PRIMITIVE);
   std::sort(prims.begin(), prims.end());
@@ -406,21 +399,17 @@ TEST_F(AttributeGroupTest, ErrorHandling_CreateDuplicateGroup) {
 
 TEST_F(AttributeGroupTest, ComplexWorkflow_SelectAndModify) {
   // 1. Create a group of top points
-  EXPECT_TRUE(select_by_attribute<Vec3f>(
-      *geo, "top", ElementClass::POINT, standard_attrs::P,
-      [](const Vec3f& p) { return p.y() > 0.5f; }));
+  EXPECT_TRUE(select_by_attribute<Vec3f>(*geo, "top", ElementClass::POINT, standard_attrs::P,
+                                         [](const Vec3f& p) { return p.y() > 0.5f; }));
 
   // 2. Create a group of right points
-  EXPECT_TRUE(select_by_attribute<Vec3f>(
-      *geo, "right", ElementClass::POINT, standard_attrs::P,
-      [](const Vec3f& p) { return p.x() > 0.5f; }));
+  EXPECT_TRUE(select_by_attribute<Vec3f>(*geo, "right", ElementClass::POINT, standard_attrs::P,
+                                         [](const Vec3f& p) { return p.x() > 0.5f; }));
 
   // 3. Find intersection (top-right corner points)
-  EXPECT_TRUE(group_intersection(*geo, "top", "right", "top_right",
-                                 ElementClass::POINT));
+  EXPECT_TRUE(group_intersection(*geo, "top", "right", "top_right", ElementClass::POINT));
 
-  auto corner_points =
-      get_group_elements(*geo, "top_right", ElementClass::POINT);
+  auto corner_points = get_group_elements(*geo, "top_right", ElementClass::POINT);
   std::sort(corner_points.begin(), corner_points.end());
 
   // Points 2 and 6 have both y>0.5 and x>0.5
@@ -439,8 +428,7 @@ TEST_F(AttributeGroupTest, ComplexWorkflow_MultipleOperations) {
   add_to_group(*geo, "remove", ElementClass::POINT, {1, 3, 5});
 
   // Difference: all - remove
-  EXPECT_TRUE(
-      group_difference(*geo, "all", "remove", "keep", ElementClass::POINT));
+  EXPECT_TRUE(group_difference(*geo, "all", "remove", "keep", ElementClass::POINT));
 
   auto keep = get_group_elements(*geo, "keep", ElementClass::POINT);
   std::sort(keep.begin(), keep.end());

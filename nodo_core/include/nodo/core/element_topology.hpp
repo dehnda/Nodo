@@ -56,8 +56,7 @@ public:
 
   // Primitive → Vertex mapping (which vertices form this primitive?)
   const std::vector<int>& get_primitive_vertices(size_t prim_idx) const;
-  void set_primitive_vertices(size_t prim_idx,
-                              const std::vector<int>& vertices);
+  void set_primitive_vertices(size_t prim_idx, const std::vector<int>& vertices);
 
   /**
    * @brief Add a new primitive with the given vertices

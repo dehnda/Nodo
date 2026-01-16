@@ -6,11 +6,9 @@
 
 namespace nodo::studio {
 
-GeometryTableModel::GeometryTableModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+GeometryTableModel::GeometryTableModel(QObject* parent) : QAbstractTableModel(parent) {}
 
-void GeometryTableModel::setGeometry(
-    std::shared_ptr<core::GeometryContainer> geometry) {
+void GeometryTableModel::setGeometry(std::shared_ptr<core::GeometryContainer> geometry) {
   beginResetModel();
   geometry_ = geometry;
   columns_.clear();
@@ -60,9 +58,7 @@ QVariant GeometryTableModel::data(const QModelIndex& index, int role) const {
   return QVariant();
 }
 
-QVariant GeometryTableModel::headerData(int section,
-                                        Qt::Orientation orientation,
-                                        int role) const {
+QVariant GeometryTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
   if (role != Qt::DisplayRole)
     return QVariant();
 
@@ -80,8 +76,7 @@ QVariant GeometryTableModel::headerData(int section,
   return QVariant();
 }
 
-void GeometryTableModel::addAttributeColumns(const std::string& attr_name,
-                                             core::AttributeType type) {
+void GeometryTableModel::addAttributeColumns(const std::string& attr_name, core::AttributeType type) {
   using core::AttributeType;
 
   switch (type) {
@@ -101,8 +96,7 @@ void GeometryTableModel::addAttributeColumns(const std::string& attr_name,
         col.attribute_name = attr_name;
         col.type = type;
         col.component_index = i;
-        col.display_name =
-            QString::fromStdString(attr_name) + "." + (i == 0 ? "x" : "y");
+        col.display_name = QString::fromStdString(attr_name) + "." + (i == 0 ? "x" : "y");
         columns_.push_back(col);
       }
       break;
@@ -115,8 +109,7 @@ void GeometryTableModel::addAttributeColumns(const std::string& attr_name,
         col.attribute_name = attr_name;
         col.type = type;
         col.component_index = i;
-        col.display_name =
-            QString::fromStdString(attr_name) + "." + components[i];
+        col.display_name = QString::fromStdString(attr_name) + "." + components[i];
         columns_.push_back(col);
       }
       break;
@@ -129,8 +122,7 @@ void GeometryTableModel::addAttributeColumns(const std::string& attr_name,
         col.attribute_name = attr_name;
         col.type = type;
         col.component_index = i;
-        col.display_name =
-            QString::fromStdString(attr_name) + "." + components[i];
+        col.display_name = QString::fromStdString(attr_name) + "." + components[i];
         columns_.push_back(col);
       }
       break;
@@ -169,8 +161,7 @@ QString GeometryTableModel::formatValue(const QVariant& value) const {
   return value.toString();
 }
 
-PointAttributeTableModel::PointAttributeTableModel(QObject* parent)
-    : GeometryTableModel(parent) {}
+PointAttributeTableModel::PointAttributeTableModel(QObject* parent) : GeometryTableModel(parent) {}
 
 void PointAttributeTableModel::buildColumns() {
   if (!geometry_)
@@ -191,9 +182,7 @@ size_t PointAttributeTableModel::getElementCount() const {
   return geometry_ ? geometry_->point_count() : 0;
 }
 
-QVariant
-PointAttributeTableModel::getElementData(size_t element_index,
-                                         const ColumnInfo& column) const {
+QVariant PointAttributeTableModel::getElementData(size_t element_index, const ColumnInfo& column) const {
   using core::AttributeType;
 
   auto attr = geometry_->get_point_attribute(column.attribute_name);
@@ -209,24 +198,21 @@ PointAttributeTableModel::getElementData(size_t element_index,
     }
 
     case AttributeType::VEC2F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 2)
         return (*typed)[element_index][column.component_index];
       break;
     }
 
     case AttributeType::VEC3F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 3)
         return (*typed)[element_index][column.component_index];
       break;
     }
 
     case AttributeType::VEC4F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 4)
         return (*typed)[element_index][column.component_index];
       break;
@@ -253,8 +239,7 @@ PointAttributeTableModel::getElementData(size_t element_index,
   return QVariant();
 }
 
-VertexAttributeTableModel::VertexAttributeTableModel(QObject* parent)
-    : GeometryTableModel(parent) {}
+VertexAttributeTableModel::VertexAttributeTableModel(QObject* parent) : GeometryTableModel(parent) {}
 
 void VertexAttributeTableModel::buildColumns() {
   if (!geometry_)
@@ -273,9 +258,7 @@ size_t VertexAttributeTableModel::getElementCount() const {
   return geometry_ ? geometry_->vertex_count() : 0;
 }
 
-QVariant
-VertexAttributeTableModel::getElementData(size_t element_index,
-                                          const ColumnInfo& column) const {
+QVariant VertexAttributeTableModel::getElementData(size_t element_index, const ColumnInfo& column) const {
   using core::AttributeType;
 
   auto attr = geometry_->get_vertex_attribute(column.attribute_name);
@@ -291,24 +274,21 @@ VertexAttributeTableModel::getElementData(size_t element_index,
     }
 
     case AttributeType::VEC2F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 2)
         return (*typed)[element_index][column.component_index];
       break;
     }
 
     case AttributeType::VEC3F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 3)
         return (*typed)[element_index][column.component_index];
       break;
     }
 
     case AttributeType::VEC4F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 4)
         return (*typed)[element_index][column.component_index];
       break;
@@ -335,8 +315,7 @@ VertexAttributeTableModel::getElementData(size_t element_index,
   return QVariant();
 }
 
-PrimitiveAttributeTableModel::PrimitiveAttributeTableModel(QObject* parent)
-    : GeometryTableModel(parent) {}
+PrimitiveAttributeTableModel::PrimitiveAttributeTableModel(QObject* parent) : GeometryTableModel(parent) {}
 
 void PrimitiveAttributeTableModel::buildColumns() {
   if (!geometry_)
@@ -355,16 +334,14 @@ size_t PrimitiveAttributeTableModel::getElementCount() const {
   return geometry_ ? geometry_->primitive_count() : 0;
 }
 
-QVariant
-PrimitiveAttributeTableModel::getElementData(size_t element_index,
-                                             const ColumnInfo& column) const {
+QVariant PrimitiveAttributeTableModel::getElementData(size_t element_index, const ColumnInfo& column) const {
   using core::AttributeType;
 
   auto attr = geometry_->get_primitive_attribute(column.attribute_name);
 
   if (column.attribute_name.find("group_") == 0) {
-    std::cerr << "PrimitiveAttributeTableModel::getElementData for '"
-              << column.attribute_name << "' element " << element_index;
+    std::cerr << "PrimitiveAttributeTableModel::getElementData for '" << column.attribute_name << "' element "
+              << element_index;
     if (attr) {
       std::cerr << ", attr->size()=" << attr->size();
     } else {
@@ -385,24 +362,21 @@ PrimitiveAttributeTableModel::getElementData(size_t element_index,
     }
 
     case AttributeType::VEC2F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 2)
         return (*typed)[element_index][column.component_index];
       break;
     }
 
     case AttributeType::VEC3F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 3)
         return (*typed)[element_index][column.component_index];
       break;
     }
 
     case AttributeType::VEC4F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 4)
         return (*typed)[element_index][column.component_index];
       break;
@@ -429,8 +403,7 @@ PrimitiveAttributeTableModel::getElementData(size_t element_index,
   return QVariant();
 }
 
-DetailAttributeTableModel::DetailAttributeTableModel(QObject* parent)
-    : GeometryTableModel(parent) {}
+DetailAttributeTableModel::DetailAttributeTableModel(QObject* parent) : GeometryTableModel(parent) {}
 
 void DetailAttributeTableModel::buildColumns() {
   if (!geometry_)
@@ -450,9 +423,7 @@ size_t DetailAttributeTableModel::getElementCount() const {
   return geometry_ && !columns_.empty() ? 1 : 0;
 }
 
-QVariant
-DetailAttributeTableModel::getElementData(size_t element_index,
-                                          const ColumnInfo& column) const {
+QVariant DetailAttributeTableModel::getElementData(size_t element_index, const ColumnInfo& column) const {
   using core::AttributeType;
 
   if (element_index != 0)
@@ -471,24 +442,21 @@ DetailAttributeTableModel::getElementData(size_t element_index,
     }
 
     case AttributeType::VEC2F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector2f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 2)
         return (*typed)[0][column.component_index];
       break;
     }
 
     case AttributeType::VEC3F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 3)
         return (*typed)[0][column.component_index];
       break;
     }
 
     case AttributeType::VEC4F: {
-      auto* typed =
-          dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
+      auto* typed = dynamic_cast<core::AttributeStorage<Eigen::Vector4f>*>(attr);
       if (typed && column.component_index >= 0 && column.component_index < 4)
         return (*typed)[0][column.component_index];
       break;

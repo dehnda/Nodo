@@ -169,8 +169,7 @@ inline QIcon get(IconManager::Icon icon, const QColor& color = QColor()) {
   return IconManager::instance().getIcon(icon, color);
 }
 
-inline QPixmap getPixmap(IconManager::Icon icon, int size = 24,
-                         const QColor& color = QColor()) {
+inline QPixmap getPixmap(IconManager::Icon icon, int size = 24, const QColor& color = QColor()) {
   return IconManager::instance().getPixmap(icon, size, color);
 }
 

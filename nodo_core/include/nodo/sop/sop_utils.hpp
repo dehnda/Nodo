@@ -35,8 +35,7 @@ inline Eigen::MatrixXd get_positions(const core::GeometryContainer& container) {
     return Eigen::MatrixXd(); // Return empty matrix
   }
 
-  const auto* pos_attr =
-      container.get_point_attribute_typed<Eigen::Vector3f>("P");
+  const auto* pos_attr = container.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (pos_attr == nullptr) {
     return Eigen::MatrixXd();
   }
@@ -46,8 +45,7 @@ inline Eigen::MatrixXd get_positions(const core::GeometryContainer& container) {
 
   Eigen::MatrixXd result(static_cast<Eigen::Index>(num_points), 3);
   for (size_t i = 0; i < num_points; ++i) {
-    result.row(static_cast<Eigen::Index>(i)) =
-        positions[i].template cast<double>().transpose();
+    result.row(static_cast<Eigen::Index>(i)) = positions[i].template cast<double>().transpose();
   }
 
   return result;
@@ -61,8 +59,7 @@ inline Eigen::MatrixXd get_positions(const core::GeometryContainer& container) {
  *
  * Creates or updates the "P" point attribute with the provided positions.
  */
-inline void set_positions(core::GeometryContainer& container,
-                          const Eigen::MatrixXd& positions) {
+inline void set_positions(core::GeometryContainer& container, const Eigen::MatrixXd& positions) {
   const size_t num_points = static_cast<size_t>(positions.rows());
 
   // Create attribute if it doesn't exist
@@ -78,9 +75,7 @@ inline void set_positions(core::GeometryContainer& container,
   // Copy data
   auto pos_writable = pos_attr->values_writable();
   for (size_t i = 0; i < num_points; ++i) {
-    pos_writable[i] = positions.row(static_cast<Eigen::Index>(i))
-                          .template cast<float>()
-                          .transpose();
+    pos_writable[i] = positions.row(static_cast<Eigen::Index>(i)).template cast<float>().transpose();
   }
 }
 
@@ -101,8 +96,7 @@ inline void compute_face_normals(core::GeometryContainer& container) {
     throw std::runtime_error("Cannot compute normals: no position attribute");
   }
 
-  const auto* pos_attr =
-      container.get_point_attribute_typed<Eigen::Vector3f>("P");
+  const auto* pos_attr = container.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (pos_attr == nullptr) {
     throw std::runtime_error("Position attribute has wrong type");
   }
@@ -115,8 +109,7 @@ inline void compute_face_normals(core::GeometryContainer& container) {
     container.add_primitive_attribute("N", core::AttributeType::VEC3F);
   }
 
-  auto* normal_attr =
-      container.get_primitive_attribute_typed<Eigen::Vector3f>("N");
+  auto* normal_attr = container.get_primitive_attribute_typed<Eigen::Vector3f>("N");
   if (normal_attr == nullptr) {
     throw std::runtime_error("Failed to create normal attribute");
   }
@@ -160,8 +153,7 @@ inline void compute_face_normals(core::GeometryContainer& container) {
  * Uses area-weighted averaging (unnormalized face normals).
  * Stores result in point attribute "N" (Eigen::Vector3f).
  */
-inline void compute_vertex_normals(core::GeometryContainer& container,
-                                   bool normalize = true) {
+inline void compute_vertex_normals(core::GeometryContainer& container, bool normalize = true) {
   const auto& topology = container.topology();
 
   // Get positions
@@ -169,8 +161,7 @@ inline void compute_vertex_normals(core::GeometryContainer& container,
     throw std::runtime_error("Cannot compute normals: no position attribute");
   }
 
-  const auto* pos_attr =
-      container.get_point_attribute_typed<Eigen::Vector3f>("P");
+  const auto* pos_attr = container.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (pos_attr == nullptr) {
     throw std::runtime_error("Position attribute has wrong type");
   }
@@ -249,9 +240,8 @@ inline void compute_vertex_normals(core::GeometryContainer& container,
  * If point attribute "N" exists and force_recompute is false, returns it.
  * Otherwise, computes vertex normals and stores them.
  */
-inline core::AttributeStorage<Eigen::Vector3f>*
-get_or_create_normals(core::GeometryContainer& container,
-                      bool force_recompute = false) {
+inline core::AttributeStorage<Eigen::Vector3f>* get_or_create_normals(core::GeometryContainer& container,
+                                                                      bool force_recompute = false) {
   // Check if normals already exist
   if (!force_recompute && container.has_point_attribute("N")) {
     return container.get_point_attribute_typed<Eigen::Vector3f>("N");
@@ -295,8 +285,7 @@ get_or_create_normals(core::GeometryContainer& container,
  * - Each vertex gets the face normal as a vertex attribute
  * - Topology is rebuilt with new vertex references
  */
-inline void compute_hard_edge_normals(core::GeometryContainer& container,
-                                      bool normalize = true) {
+inline void compute_hard_edge_normals(core::GeometryContainer& container, bool normalize = true) {
   const auto& old_topology = container.topology();
 
   // Get positions
@@ -304,8 +293,7 @@ inline void compute_hard_edge_normals(core::GeometryContainer& container,
     throw std::runtime_error("Cannot compute normals: no position attribute");
   }
 
-  const auto* pos_attr =
-      container.get_point_attribute_typed<Eigen::Vector3f>("P");
+  const auto* pos_attr = container.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (pos_attr == nullptr) {
     throw std::runtime_error("Position attribute has wrong type");
   }
@@ -329,8 +317,7 @@ inline void compute_hard_edge_normals(core::GeometryContainer& container,
   // Save old vertex-to-point mapping
   std::vector<int> old_vertex_points;
   const auto old_vertex_points_span = old_topology.get_vertex_points();
-  old_vertex_points.assign(old_vertex_points_span.begin(),
-                           old_vertex_points_span.end());
+  old_vertex_points.assign(old_vertex_points_span.begin(), old_vertex_points_span.end());
 
   const size_t num_points = old_topology.point_count();
 
@@ -421,8 +408,7 @@ inline void compute_hard_edge_normals(core::GeometryContainer& container,
     container.add_vertex_attribute("N", core::AttributeType::VEC3F);
   }
 
-  auto* normal_attr =
-      container.get_vertex_attribute_typed<Eigen::Vector3f>("N");
+  auto* normal_attr = container.get_vertex_attribute_typed<Eigen::Vector3f>("N");
   if (normal_attr == nullptr) {
     throw std::runtime_error("Failed to create vertex normal attribute");
   }
@@ -442,15 +428,13 @@ inline void compute_hard_edge_normals(core::GeometryContainer& container,
  * Copies point, vertex, and primitive attributes.
  * Assumes topology is compatible (same number of elements).
  */
-inline void copy_attributes(const core::GeometryContainer& src,
-                            core::GeometryContainer& dst) {
+inline void copy_attributes(const core::GeometryContainer& src, core::GeometryContainer& dst) {
   // Note: This is a placeholder for now
   // Full implementation would need AttributeSet::copy_from() or similar
   // For now, this serves as documentation of the intended utility
   (void)src;
   (void)dst;
-  throw std::runtime_error(
-      "copy_attributes not yet implemented - needs AttributeSet API");
+  throw std::runtime_error("copy_attributes not yet implemented - needs AttributeSet API");
 }
 
 } // namespace utils

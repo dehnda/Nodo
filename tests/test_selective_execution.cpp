@@ -94,8 +94,7 @@ TEST_F(SelectiveExecutionTest, UpstreamDependenciesComplexGraph) {
   int sphere1_id = graph->add_node(NodeType::Sphere, "Sphere1");
   int sphere2_id = graph->add_node(NodeType::Sphere, "Sphere2");
   int box_id = graph->add_node(NodeType::Box, "Box");
-  int cylinder_id =
-      graph->add_node(NodeType::Cylinder, "Cylinder"); // Unconnected
+  int cylinder_id = graph->add_node(NodeType::Cylinder, "Cylinder"); // Unconnected
 
   int transform1_id = graph->add_node(NodeType::Transform, "Transform1");
   int transform2_id = graph->add_node(NodeType::Transform, "Transform2");

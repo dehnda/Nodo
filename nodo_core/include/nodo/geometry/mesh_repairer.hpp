@@ -42,12 +42,7 @@ public:
     int faces_reoriented;
     ValidationReport final_report;
 
-    RepairResult()
-        : success(false),
-          faces_removed(0),
-          vertices_merged(0),
-          vertices_removed(0),
-          faces_reoriented(0) {}
+    RepairResult() : success(false), faces_removed(0), vertices_merged(0), vertices_removed(0), faces_reoriented(0) {}
 
     /// @brief Get summary of repair operations
     std::string summary() const;
@@ -57,8 +52,7 @@ public:
   /// @param mesh The mesh to repair (will be modified in place)
   /// @param options Repair options
   /// @return Repair result with statistics
-  static RepairResult repair(core::Mesh& mesh,
-                             const RepairOptions& options = RepairOptions{});
+  static RepairResult repair(core::Mesh& mesh, const RepairOptions& options = RepairOptions{});
 
   /// @brief Remove degenerate faces from mesh
   /// @param mesh The mesh to repair (will be modified in place)
@@ -69,9 +63,7 @@ public:
   /// @param mesh The mesh to repair (will be modified in place)
   /// @param tolerance Distance tolerance for merging
   /// @return Number of vertices merged
-  static int
-  merge_duplicate_vertices(core::Mesh& mesh,
-                           double tolerance = DEFAULT_VERTEX_MERGE_TOLERANCE);
+  static int merge_duplicate_vertices(core::Mesh& mesh, double tolerance = DEFAULT_VERTEX_MERGE_TOLERANCE);
 
   /// @brief Remove unreferenced vertices
   /// @param mesh The mesh to repair (will be modified in place)
@@ -102,12 +94,10 @@ private:
   static thread_local core::Error last_error_;
 
   /// @brief Compact mesh by removing unused vertices and reindexing faces
-  static void compact_mesh(core::Mesh& mesh,
-                           const std::vector<bool>& vertex_keep_mask);
+  static void compact_mesh(core::Mesh& mesh, const std::vector<bool>& vertex_keep_mask);
 
   /// @brief Build vertex mapping after merging duplicates
-  static std::vector<int> build_vertex_mapping(const core::Mesh& mesh,
-                                               double tolerance);
+  static std::vector<int> build_vertex_mapping(const core::Mesh& mesh, double tolerance);
 };
 
 } // namespace nodo::geometry

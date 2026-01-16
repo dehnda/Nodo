@@ -18,10 +18,9 @@ public:
   /// @param top_cap Whether to include the top cap
   /// @param bottom_cap Whether to include the bottom cap
   /// @return Generated cylinder as GeometryContainer or nullopt on error
-  static std::optional<core::GeometryContainer>
-  generate(double radius = 1.0, double height = 2.0, int radial_segments = 32,
-           int height_segments = 1, bool top_cap = true,
-           bool bottom_cap = true);
+  static std::optional<core::GeometryContainer> generate(double radius = 1.0, double height = 2.0,
+                                                         int radial_segments = 32, int height_segments = 1,
+                                                         bool top_cap = true, bool bottom_cap = true);
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error

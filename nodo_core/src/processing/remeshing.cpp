@@ -9,9 +9,8 @@
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-Remeshing::remesh(const core::GeometryContainer& container,
-                  const RemeshingParams& params, std::string* error) {
+std::optional<core::GeometryContainer> Remeshing::remesh(const core::GeometryContainer& container,
+                                                         const RemeshingParams& params, std::string* error) {
   // Validate input
   if (container.point_count() < 3) {
     if (error)
@@ -41,13 +40,11 @@ Remeshing::remesh(const core::GeometryContainer& container,
     // Perform remeshing
     if (params.use_adaptive) {
       // Adaptive remeshing - adjusts to curvature
-      pmp::adaptive_remeshing(pmp_mesh, params.min_edge_length,
-                              params.max_edge_length, params.approx_error,
+      pmp::adaptive_remeshing(pmp_mesh, params.min_edge_length, params.max_edge_length, params.approx_error,
                               params.iterations, true);
     } else {
       // Uniform remeshing - constant edge length
-      pmp::uniform_remeshing(pmp_mesh, params.target_edge_length,
-                             params.iterations, params.preserve_boundaries);
+      pmp::uniform_remeshing(pmp_mesh, params.target_edge_length, params.iterations, params.preserve_boundaries);
     }
 
     // Convert back to GeometryContainer

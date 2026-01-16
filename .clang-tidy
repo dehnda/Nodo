@@ -34,7 +34,17 @@ CheckOptions:
   - key: readability-identifier-naming.VariableCase
     value: lower_case
   - key: readability-identifier-naming.FunctionCase
-    value: lower_case
+    value: camelBack
+  - key: readability-identifier-naming.MethodCase
+    value: camelBack
+  - key: readability-identifier-naming.ClassMethodCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMethodCase
+    value: camelBack
+  - key: readability-identifier-naming.ProtectedMethodCase
+    value: camelBack
+  - key: readability-identifier-naming.StaticMethodCase
+    value: camelBack
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-identifier-naming.PrivateMemberSuffix

@@ -20,8 +20,7 @@ class ButtonWidget : public BaseParameterWidget {
   Q_OBJECT
 
 public:
-  explicit ButtonWidget(const QString& label, const QString& description = "",
-                        QWidget* parent = nullptr);
+  explicit ButtonWidget(const QString& label, const QString& description = "", QWidget* parent = nullptr);
 
   /**
    * @brief Set the callback to execute when button is clicked

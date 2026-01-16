@@ -23,8 +23,7 @@ private:
   };
 
 public:
-  explicit TorusSOP(const std::string& node_name = "torus")
-      : SOPNode(node_name, "Torus") {
+  explicit TorusSOP(const std::string& node_name = "torus") : SOPNode(node_name, "Torus") {
     // Universal: Primitive Type
     register_parameter(define_int_parameter("primitive_type", 0)
                            .label("Primitive Type")
@@ -33,44 +32,38 @@ public:
                            .build());
 
     // Radius parameters
-    register_parameter(
-        define_float_parameter("major_radius", DEFAULT_MAJOR_RADIUS)
-            .label("Major Radius")
-            .range(0.01, 100.0)
-            .category("Size")
-            .description("Distance from torus center to tube center")
-            .build());
+    register_parameter(define_float_parameter("major_radius", DEFAULT_MAJOR_RADIUS)
+                           .label("Major Radius")
+                           .range(0.01, 100.0)
+                           .category("Size")
+                           .description("Distance from torus center to tube center")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("minor_radius", DEFAULT_MINOR_RADIUS)
-            .label("Minor Radius")
-            .range(0.01, 100.0)
-            .category("Size")
-            .description("Radius of the tube cross-section")
-            .build());
+    register_parameter(define_float_parameter("minor_radius", DEFAULT_MINOR_RADIUS)
+                           .label("Minor Radius")
+                           .range(0.01, 100.0)
+                           .category("Size")
+                           .description("Radius of the tube cross-section")
+                           .build());
 
     // Resolution parameters
-    register_parameter(
-        define_int_parameter("major_segments", DEFAULT_MAJOR_SEGMENTS)
-            .label("Major Segments")
-            .range(3, 256)
-            .category("Resolution")
-            .description("Number of segments around the major circle")
-            .build());
+    register_parameter(define_int_parameter("major_segments", DEFAULT_MAJOR_SEGMENTS)
+                           .label("Major Segments")
+                           .range(3, 256)
+                           .category("Resolution")
+                           .description("Number of segments around the major circle")
+                           .build());
 
-    register_parameter(
-        define_int_parameter("minor_segments", DEFAULT_MINOR_SEGMENTS)
-            .label("Minor Segments")
-            .range(3, 128)
-            .category("Resolution")
-            .description("Number of segments around the tube cross-section")
-            .build());
+    register_parameter(define_int_parameter("minor_segments", DEFAULT_MINOR_SEGMENTS)
+                           .label("Minor Segments")
+                           .range(3, 128)
+                           .category("Resolution")
+                           .description("Number of segments around the tube cross-section")
+                           .build());
   }
 
   // Generator node - no inputs required
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::NONE, 0, 0, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
   void set_radii(float major_radius, float minor_radius) {
     set_parameter("major_radius", major_radius);
@@ -84,29 +77,22 @@ public:
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
-    const auto major_radius =
-        get_parameter<float>("major_radius", DEFAULT_MAJOR_RADIUS);
-    const auto minor_radius =
-        get_parameter<float>("minor_radius", DEFAULT_MINOR_RADIUS);
-    const auto major_segments =
-        get_parameter<int>("major_segments", DEFAULT_MAJOR_SEGMENTS);
-    const auto minor_segments =
-        get_parameter<int>("minor_segments", DEFAULT_MINOR_SEGMENTS);
-    const auto primitive_type =
-        static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
+    const auto major_radius = get_parameter<float>("major_radius", DEFAULT_MAJOR_RADIUS);
+    const auto minor_radius = get_parameter<float>("minor_radius", DEFAULT_MINOR_RADIUS);
+    const auto major_segments = get_parameter<int>("major_segments", DEFAULT_MAJOR_SEGMENTS);
+    const auto minor_segments = get_parameter<int>("minor_segments", DEFAULT_MINOR_SEGMENTS);
+    const auto primitive_type = static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
 
     try {
       auto result = geometry::TorusGenerator::generate(
-          static_cast<double>(major_radius), static_cast<double>(minor_radius),
-          major_segments, minor_segments);
+          static_cast<double>(major_radius), static_cast<double>(minor_radius), major_segments, minor_segments);
 
       if (!result.has_value()) {
         set_error("Torus generation failed");
         return nullptr;
       }
 
-      auto container =
-          std::make_shared<core::GeometryContainer>(std::move(result.value()));
+      auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
         auto& topology = container->topology();
@@ -116,8 +102,7 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during torus generation: " +
-                std::string(exception.what()));
+      set_error("Exception during torus generation: " + std::string(exception.what()));
       return nullptr;
     }
   }

@@ -6,9 +6,7 @@
 namespace nodo_studio {
 namespace widgets {
 
-BaseParameterWidget::BaseParameterWidget(const QString& label,
-                                         const QString& description,
-                                         QWidget* parent)
+BaseParameterWidget::BaseParameterWidget(const QString& label, const QString& description, QWidget* parent)
     : QWidget(parent), description_(description) {
   // Create grid layout (label left, control right - matches HTML design)
   main_layout_ = new QVBoxLayout(this);
@@ -89,14 +87,13 @@ void BaseParameterWidget::setDescription(const QString& description) {
 
 void BaseParameterWidget::setEnabled(bool enabled) {
   QWidget::setEnabled(enabled);
-  label_widget_->setStyleSheet(
-      QString("QLabel { "
-              "  color: %1; "
-              "  font-size: 11px; "
-              "  font-weight: 500; "
-              "  letter-spacing: 0.3px; "
-              "}")
-          .arg(enabled ? COLOR_TEXT_PRIMARY : COLOR_TEXT_DISABLED));
+  label_widget_->setStyleSheet(QString("QLabel { "
+                                       "  color: %1; "
+                                       "  font-size: 11px; "
+                                       "  font-weight: 500; "
+                                       "  letter-spacing: 0.3px; "
+                                       "}")
+                                   .arg(enabled ? COLOR_TEXT_PRIMARY : COLOR_TEXT_DISABLED));
 
   if (control_widget_) {
     control_widget_->setEnabled(enabled);

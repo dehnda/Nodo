@@ -70,27 +70,21 @@ Matrix3 rotation_z(double radians);
 
 Vector3 apply_rotation(const Vector3& point, const Matrix3& rotation);
 Vector3 apply_translation(const Vector3& point, const Vector3& offset);
-Vector3 apply_transform(const Vector3& point, const Matrix3& rotation,
-                        const Vector3& offset);
+Vector3 apply_transform(const Vector3& point, const Matrix3& rotation, const Vector3& offset);
 
 // Mirror/Reflection operations
-Vector3 mirror_point_across_plane(const Vector3& point,
-                                  const Vector3& plane_point,
-                                  const Vector3& plane_normal);
+Vector3 mirror_point_across_plane(const Vector3& point, const Vector3& plane_point, const Vector3& plane_normal);
 
 // Basic geometric utilities
 Vector3 midpoint(const Vector3& point_a, const Vector3& point_b);
-Vector3 triangle_centroid(const Vector3& vertex_a, const Vector3& vertex_b,
-                          const Vector3& vertex_c);
+Vector3 triangle_centroid(const Vector3& vertex_a, const Vector3& vertex_b, const Vector3& vertex_c);
 
 // Circular/polar utilities
-Vector3 point_on_circle(double radius, double angle_radians,
-                        const Vector3& center = Vector3::Zero());
+Vector3 point_on_circle(double radius, double angle_radians, const Vector3& center = Vector3::Zero());
 Vector3 circular_offset_2d(double radius, double angle_radians);
 
 // Vector operations
-Vector3 displace_along_direction(const Vector3& point, const Vector3& direction,
-                                 double amount);
+Vector3 displace_along_direction(const Vector3& point, const Vector3& direction, double amount);
 
 // ============================================================================
 // High-Level Mesh Operations (forward declaration to avoid circular dependency)
@@ -98,9 +92,8 @@ Vector3 displace_along_direction(const Vector3& point, const Vector3& direction,
 
 /// Transform a range of vertices - implementation will use Eigen matrices
 /// directly
-void transform_vertices_range(
-    const double* input_vertices, // Raw pointer to avoid circular dependency
-    double* output_vertices, int vertex_count, const Matrix3& rotation,
-    const Vector3& offset);
+void transform_vertices_range(const double* input_vertices, // Raw pointer to avoid circular dependency
+                              double* output_vertices, int vertex_count, const Matrix3& rotation,
+                              const Vector3& offset);
 
 } // namespace nodo::core::math

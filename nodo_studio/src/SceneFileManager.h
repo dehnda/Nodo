@@ -45,12 +45,8 @@ public:
 
   // Setters for dependencies
   void setNodeGraph(nodo::graph::NodeGraph* graph) { node_graph_ = graph; }
-  void setExecutionEngine(nodo::graph::ExecutionEngine* engine) {
-    execution_engine_ = engine;
-  }
-  void setNodeGraphWidget(NodeGraphWidget* widget) {
-    node_graph_widget_ = widget;
-  }
+  void setExecutionEngine(nodo::graph::ExecutionEngine* engine) { execution_engine_ = engine; }
+  void setNodeGraphWidget(NodeGraphWidget* widget) { node_graph_widget_ = widget; }
 
   // File tracking
   QString getCurrentFilePath() const { return current_file_path_; }

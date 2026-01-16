@@ -6,8 +6,7 @@
 
 namespace nodo::io {
 
-std::optional<core::Mesh>
-ObjImporter::import_mesh(const std::string& filename) {
+std::optional<core::Mesh> ObjImporter::import_mesh(const std::string& filename) {
   auto content = read_file(filename);
   if (!content) {
     return std::nullopt;
@@ -16,8 +15,7 @@ ObjImporter::import_mesh(const std::string& filename) {
   return import_from_string(*content);
 }
 
-std::optional<core::Mesh>
-ObjImporter::import_from_string(const std::string& obj_content) {
+std::optional<core::Mesh> ObjImporter::import_from_string(const std::string& obj_content) {
   auto parsed = parse_obj_content(obj_content);
   if (!parsed || parsed->vertices.empty()) {
     return std::nullopt;
@@ -46,8 +44,7 @@ ObjImporter::import_from_string(const std::string& obj_content) {
   return mesh;
 }
 
-std::optional<ObjImporter::ParsedData>
-ObjImporter::parse_obj_content(const std::string& content) {
+std::optional<ObjImporter::ParsedData> ObjImporter::parse_obj_content(const std::string& content) {
   ParsedData data;
   std::istringstream stream(content);
   std::string line;
@@ -93,8 +90,7 @@ ObjImporter::parse_obj_content(const std::string& content) {
   return data;
 }
 
-bool ObjImporter::parse_vertex_line(const std::string& line,
-                                    Eigen::Vector3d& vertex) {
+bool ObjImporter::parse_vertex_line(const std::string& line, Eigen::Vector3d& vertex) {
   std::istringstream iss(line.substr(2)); // Skip "v "
   double x = 0.0;
   double y = 0.0;
@@ -107,8 +103,7 @@ bool ObjImporter::parse_vertex_line(const std::string& line,
   return false;
 }
 
-bool ObjImporter::parse_normal_line(const std::string& line,
-                                    Eigen::Vector3d& normal) {
+bool ObjImporter::parse_normal_line(const std::string& line, Eigen::Vector3d& normal) {
   std::istringstream iss(line.substr(3)); // Skip "vn "
   double x = 0.0;
   double y = 0.0;
@@ -121,8 +116,7 @@ bool ObjImporter::parse_normal_line(const std::string& line,
   return false;
 }
 
-bool ObjImporter::parse_face_line(const std::string& line,
-                                  std::vector<Eigen::Vector3i>& face_indices) {
+bool ObjImporter::parse_face_line(const std::string& line, std::vector<Eigen::Vector3i>& face_indices) {
   std::istringstream iss(line.substr(2)); // Skip "f "
   std::vector<int> vertex_indices;
   std::string vertex_data;
@@ -131,9 +125,7 @@ bool ObjImporter::parse_face_line(const std::string& line,
   while (iss >> vertex_data) {
     // Extract first number (vertex index)
     size_t slash_pos = vertex_data.find('/');
-    std::string vertex_index_str = (slash_pos != std::string::npos)
-                                       ? vertex_data.substr(0, slash_pos)
-                                       : vertex_data;
+    std::string vertex_index_str = (slash_pos != std::string::npos) ? vertex_data.substr(0, slash_pos) : vertex_data;
 
     try {
       int v_idx = std::stoi(vertex_index_str);
@@ -152,19 +144,15 @@ bool ObjImporter::parse_face_line(const std::string& line,
   // Triangulate if quad (4 vertices)
   if (vertex_indices.size() == 3) {
     // Simple triangle
-    face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[1],
-                                           vertex_indices[2]));
+    face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[1], vertex_indices[2]));
   } else if (vertex_indices.size() == 4) {
     // Triangulate quad: split into two triangles
-    face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[1],
-                                           vertex_indices[2]));
-    face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[2],
-                                           vertex_indices[3]));
+    face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[1], vertex_indices[2]));
+    face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[2], vertex_indices[3]));
   } else if (vertex_indices.size() > 4) {
     // Fan triangulation for n-gons (n > 4)
     for (size_t i = 1; i < vertex_indices.size() - 1; ++i) {
-      face_indices.push_back(Eigen::Vector3i(
-          vertex_indices[0], vertex_indices[i], vertex_indices[i + 1]));
+      face_indices.push_back(Eigen::Vector3i(vertex_indices[0], vertex_indices[i], vertex_indices[i + 1]));
     }
   }
 

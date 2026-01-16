@@ -24,44 +24,38 @@ class CacheSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit CacheSOP(const std::string& node_name = "cache")
-      : SOPNode(node_name, "Cache") {
+  explicit CacheSOP(const std::string& node_name = "cache") : SOPNode(node_name, "Cache") {
     // Single geometry input
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Enable caching
-    register_parameter(
-        define_int_parameter("enable_cache", 0)
-            .label("Enable Cache")
-            .options({"Off", "On"})
-            .category("Cache")
-            .description("Store cooked geometry to avoid recomputation")
-            .build());
+    register_parameter(define_int_parameter("enable_cache", 0)
+                           .label("Enable Cache")
+                           .options({"Off", "On"})
+                           .category("Cache")
+                           .description("Store cooked geometry to avoid recomputation")
+                           .build());
 
     // Lock cache (prevents auto-clearing)
-    register_parameter(
-        define_int_parameter("lock_cache", 0)
-            .label("Lock Cache")
-            .options({"Off", "On"})
-            .category("Cache")
-            .description("Prevent cache from being automatically cleared")
-            .build());
+    register_parameter(define_int_parameter("lock_cache", 0)
+                           .label("Lock Cache")
+                           .options({"Off", "On"})
+                           .category("Cache")
+                           .description("Prevent cache from being automatically cleared")
+                           .build());
 
     // Clear cache button (int acting as button)
-    register_parameter(
-        define_int_parameter("clear_cache", 0)
-            .label("Clear Cache")
-            .category("Cache")
-            .description("Force refresh by clearing cached geometry")
-            .build());
+    register_parameter(define_int_parameter("clear_cache", 0)
+                           .label("Clear Cache")
+                           .category("Cache")
+                           .description("Force refresh by clearing cached geometry")
+                           .build());
   }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
     const bool cache_enabled = get_parameter<int>("enable_cache", 0) != 0;
-    [[maybe_unused]] const bool cache_locked =
-        get_parameter<int>("lock_cache", 0) != 0;
+    [[maybe_unused]] const bool cache_locked = get_parameter<int>("lock_cache", 0) != 0;
     const bool should_clear = get_parameter<int>("clear_cache", 0) != 0;
 
     // Reset clear button
@@ -86,8 +80,7 @@ protected:
     // Cache the result if caching is enabled
     if (cache_enabled) {
       // Clone the geometry to avoid sharing pointers
-      cached_geometry_ =
-          std::make_shared<core::GeometryContainer>(input->clone());
+      cached_geometry_ = std::make_shared<core::GeometryContainer>(input->clone());
       return cached_geometry_;
     }
 

@@ -34,10 +34,8 @@ class FloatWidget : public BaseParameterWidget {
   Q_OBJECT
 
 public:
-  explicit FloatWidget(const QString& label, float value = 0.0f,
-                       float min = 0.0f, float max = 100.0f,
-                       const QString& description = QString(),
-                       QWidget* parent = nullptr);
+  explicit FloatWidget(const QString& label, float value = 0.0f, float min = 0.0f, float max = 100.0f,
+                       const QString& description = QString(), QWidget* parent = nullptr);
 
   // Get/set current value
   float getValue() const;

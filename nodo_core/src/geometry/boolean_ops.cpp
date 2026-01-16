@@ -12,39 +12,32 @@ using namespace manifold;
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error BooleanOps::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error BooleanOps::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-std::optional<core::Mesh> BooleanOps::union_meshes(const core::Mesh& a,
-                                                   const core::Mesh& b) {
+std::optional<core::Mesh> BooleanOps::union_meshes(const core::Mesh& a, const core::Mesh& b) {
   if (!are_compatible(a, b)) {
-    set_last_error(core::Error{
-        core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
-        "Meshes are not compatible for boolean operations"});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
+                               "Meshes are not compatible for boolean operations"});
     return std::nullopt;
   }
 
   return manifold_boolean_operation(a, b, 0); // 0 = union
 }
 
-std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh& a,
-                                                       const core::Mesh& b) {
+std::optional<core::Mesh> BooleanOps::intersect_meshes(const core::Mesh& a, const core::Mesh& b) {
   if (!are_compatible(a, b)) {
-    set_last_error(core::Error{
-        core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
-        "Meshes are not compatible for boolean operations"});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
+                               "Meshes are not compatible for boolean operations"});
     return std::nullopt;
   }
 
   return manifold_boolean_operation(a, b, 1); // 1 = intersection
 }
 
-std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh& a,
-                                                        const core::Mesh& b) {
+std::optional<core::Mesh> BooleanOps::difference_meshes(const core::Mesh& a, const core::Mesh& b) {
   if (!are_compatible(a, b)) {
-    set_last_error(core::Error{
-        core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
-        "Meshes are not compatible for boolean operations"});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
+                               "Meshes are not compatible for boolean operations"});
     return std::nullopt;
   }
 
@@ -55,15 +48,13 @@ const core::Error& BooleanOps::last_error() {
   return last_error_;
 }
 
-bool BooleanOps::are_compatible(const core::Mesh& a,
-                                const core::Mesh& b) noexcept {
+bool BooleanOps::are_compatible(const core::Mesh& a, const core::Mesh& b) noexcept {
   return validate_mesh(a) && validate_mesh(b);
 }
 
 bool BooleanOps::validate_mesh(const core::Mesh& mesh) {
   if (mesh.vertices().rows() < 3 || mesh.faces().rows() < 1) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::EmptyMesh,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::EmptyMesh,
                                "Mesh has insufficient vertices or faces"});
     return false;
   }
@@ -73,8 +64,7 @@ bool BooleanOps::validate_mesh(const core::Mesh& mesh) {
   for (int i = 0; i < mesh.faces().rows(); ++i) {
     for (int j = 0; j < 3; ++j) {
       if (mesh.faces()(i, j) >= num_vertices || mesh.faces()(i, j) < 0) {
-        set_last_error(core::Error{core::ErrorCategory::Validation,
-                                   core::ErrorCode::InvalidMesh,
+        set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
                                    "Face references invalid vertex index"});
         return false;
       }
@@ -101,12 +91,9 @@ static Manifold eigen_to_manifold(const core::Mesh& mesh) {
   const int num_faces = mesh.faces().rows();
   manifold_mesh.triVerts.resize(num_faces * 3);
   for (int i = 0; i < num_faces; ++i) {
-    manifold_mesh.triVerts[i * 3 + 0] =
-        static_cast<uint32_t>(mesh.faces()(i, 0));
-    manifold_mesh.triVerts[i * 3 + 1] =
-        static_cast<uint32_t>(mesh.faces()(i, 1));
-    manifold_mesh.triVerts[i * 3 + 2] =
-        static_cast<uint32_t>(mesh.faces()(i, 2));
+    manifold_mesh.triVerts[i * 3 + 0] = static_cast<uint32_t>(mesh.faces()(i, 0));
+    manifold_mesh.triVerts[i * 3 + 1] = static_cast<uint32_t>(mesh.faces()(i, 1));
+    manifold_mesh.triVerts[i * 3 + 2] = static_cast<uint32_t>(mesh.faces()(i, 2));
   }
 
   // Set number of properties per vertex (x, y, z = 3)
@@ -119,10 +106,8 @@ static Manifold eigen_to_manifold(const core::Mesh& mesh) {
   if (result.Status() == Manifold::Error::NoError && result.Genus() >= 0) {
     // Manifold should handle this automatically, but let's verify
     [[maybe_unused]] auto bounds = result.BoundingBox();
-    std::cout << "    [eigen_to_manifold] Created manifold with status="
-              << static_cast<int>(result.Status())
-              << ", genus=" << result.Genus() << ", NumTri=" << result.NumTri()
-              << std::endl;
+    std::cout << "    [eigen_to_manifold] Created manifold with status=" << static_cast<int>(result.Status())
+              << ", genus=" << result.Genus() << ", NumTri=" << result.NumTri() << std::endl;
   }
 
   return result;
@@ -138,12 +123,9 @@ static core::Mesh manifold_to_eigen(const Manifold& manifold) {
   const size_t num_verts = manifold_mesh.NumVert();
   Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::RowMajor> V(num_verts, 3);
   for (size_t i = 0; i < num_verts; ++i) {
-    V(i, 0) = static_cast<double>(
-        manifold_mesh.vertProperties[(i * manifold_mesh.numProp) + 0]);
-    V(i, 1) = static_cast<double>(
-        manifold_mesh.vertProperties[(i * manifold_mesh.numProp) + 1]);
-    V(i, 2) = static_cast<double>(
-        manifold_mesh.vertProperties[(i * manifold_mesh.numProp) + 2]);
+    V(i, 0) = static_cast<double>(manifold_mesh.vertProperties[(i * manifold_mesh.numProp) + 0]);
+    V(i, 1) = static_cast<double>(manifold_mesh.vertProperties[(i * manifold_mesh.numProp) + 1]);
+    V(i, 2) = static_cast<double>(manifold_mesh.vertProperties[(i * manifold_mesh.numProp) + 2]);
   }
 
   // Convert faces from flat array to Eigen
@@ -161,9 +143,8 @@ static core::Mesh manifold_to_eigen(const Manifold& manifold) {
   return result;
 }
 
-std::optional<core::Mesh>
-BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
-                                       int operation_type) {
+std::optional<core::Mesh> BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
+                                                                 int operation_type) {
   try {
     // Convert to Manifold format
     manifold::Manifold mesh_a = eigen_to_manifold(a);
@@ -171,8 +152,7 @@ BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
 
     // Check if meshes are valid
     if (mesh_a.IsEmpty() || mesh_b.IsEmpty()) {
-      set_last_error(core::Error{core::ErrorCategory::Validation,
-                                 core::ErrorCode::EmptyMesh,
+      set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::EmptyMesh,
                                  "One or both meshes are empty or invalid"});
       return std::nullopt;
     }
@@ -183,47 +163,35 @@ BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
     double volume_a = mesh_a.Volume();
     double volume_b = mesh_b.Volume();
 
-    std::cout << "Input mesh A: status=" << static_cast<int>(status_a)
-              << ", genus=" << mesh_a.Genus()
-              << ", NumVert=" << mesh_a.NumVert()
-              << ", NumTri=" << mesh_a.NumTri() << ", volume=" << volume_a
+    std::cout << "Input mesh A: status=" << static_cast<int>(status_a) << ", genus=" << mesh_a.Genus()
+              << ", NumVert=" << mesh_a.NumVert() << ", NumTri=" << mesh_a.NumTri() << ", volume=" << volume_a
               << std::endl;
 
     auto bounds_a = mesh_a.BoundingBox();
-    std::cout << "  Bounds A: min(" << bounds_a.min.x << "," << bounds_a.min.y
-              << "," << bounds_a.min.z << ") max(" << bounds_a.max.x << ","
-              << bounds_a.max.y << "," << bounds_a.max.z << ")" << std::endl;
+    std::cout << "  Bounds A: min(" << bounds_a.min.x << "," << bounds_a.min.y << "," << bounds_a.min.z << ") max("
+              << bounds_a.max.x << "," << bounds_a.max.y << "," << bounds_a.max.z << ")" << std::endl;
 
-    std::cout << "Input mesh B: status=" << static_cast<int>(status_b)
-              << ", genus=" << mesh_b.Genus()
-              << ", NumVert=" << mesh_b.NumVert()
-              << ", NumTri=" << mesh_b.NumTri() << ", volume=" << volume_b
+    std::cout << "Input mesh B: status=" << static_cast<int>(status_b) << ", genus=" << mesh_b.Genus()
+              << ", NumVert=" << mesh_b.NumVert() << ", NumTri=" << mesh_b.NumTri() << ", volume=" << volume_b
               << std::endl;
 
     // Check for negative volumes (inside-out meshes)
     if (volume_a < 0) {
-      std::cout << "  ❌ ERROR: Mesh A has NEGATIVE volume (" << volume_a
-                << ") - faces are inside-out!" << std::endl;
+      std::cout << "  ❌ ERROR: Mesh A has NEGATIVE volume (" << volume_a << ") - faces are inside-out!" << std::endl;
     }
     if (volume_b < 0) {
-      std::cout << "  ❌ ERROR: Mesh B has NEGATIVE volume (" << volume_b
-                << ") - faces are inside-out!" << std::endl;
+      std::cout << "  ❌ ERROR: Mesh B has NEGATIVE volume (" << volume_b << ") - faces are inside-out!" << std::endl;
     }
 
     auto bounds_b = mesh_b.BoundingBox();
-    std::cout << "  Bounds B: min(" << bounds_b.min.x << "," << bounds_b.min.y
-              << "," << bounds_b.min.z << ") max(" << bounds_b.max.x << ","
-              << bounds_b.max.y << "," << bounds_b.max.z << ")" << std::endl;
+    std::cout << "  Bounds B: min(" << bounds_b.min.x << "," << bounds_b.min.y << "," << bounds_b.min.z << ") max("
+              << bounds_b.max.x << "," << bounds_b.max.y << "," << bounds_b.max.z << ")" << std::endl;
 
     // Check if they overlap
-    bool overlaps =
-        (bounds_a.min.x <= bounds_b.max.x &&
-         bounds_a.max.x >= bounds_b.min.x) &&
-        (bounds_a.min.y <= bounds_b.max.y &&
-         bounds_a.max.y >= bounds_b.min.y) &&
-        (bounds_a.min.z <= bounds_b.max.z && bounds_a.max.z >= bounds_b.min.z);
-    std::cout << "  Meshes " << (overlaps ? "DO" : "DO NOT")
-              << " overlap in bounding boxes" << std::endl;
+    bool overlaps = (bounds_a.min.x <= bounds_b.max.x && bounds_a.max.x >= bounds_b.min.x) &&
+                    (bounds_a.min.y <= bounds_b.max.y && bounds_a.max.y >= bounds_b.min.y) &&
+                    (bounds_a.min.z <= bounds_b.max.z && bounds_a.max.z >= bounds_b.min.z);
+    std::cout << "  Meshes " << (overlaps ? "DO" : "DO NOT") << " overlap in bounding boxes" << std::endl;
 
     if (status_a != manifold::Manifold::Error::NoError) {
       std::cout << "⚠️  Warning: Input mesh A has issues!" << std::endl;
@@ -238,94 +206,74 @@ BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
     switch (operation_type) {
       case 0: // Union
         result = mesh_a + mesh_b;
-        std::cout << "Boolean UNION: " << mesh_a.NumTri() << " + "
-                  << mesh_b.NumTri() << " = " << result.NumTri() << " triangles"
-                  << std::endl;
+        std::cout << "Boolean UNION: " << mesh_a.NumTri() << " + " << mesh_b.NumTri() << " = " << result.NumTri()
+                  << " triangles" << std::endl;
         break;
       case 1: // Intersection
         result = mesh_a ^ mesh_b;
-        std::cout << "Boolean INTERSECTION: " << mesh_a.NumTri() << " ^ "
-                  << mesh_b.NumTri() << " = " << result.NumTri() << " triangles"
-                  << std::endl;
+        std::cout << "Boolean INTERSECTION: " << mesh_a.NumTri() << " ^ " << mesh_b.NumTri() << " = " << result.NumTri()
+                  << " triangles" << std::endl;
         break;
       case 2: // Difference
         result = mesh_a - mesh_b;
-        std::cout << "Boolean DIFFERENCE: " << mesh_a.NumTri() << " - "
-                  << mesh_b.NumTri() << " = " << result.NumTri()
+        std::cout << "Boolean DIFFERENCE: " << mesh_a.NumTri() << " - " << mesh_b.NumTri() << " = " << result.NumTri()
                   << " triangles (raw)" << std::endl;
 
         // Check if the result is actually manifold and has proper genus
-        std::cout << "  Raw result status: "
-                  << static_cast<int>(result.Status())
-                  << ", genus: " << result.Genus()
+        std::cout << "  Raw result status: " << static_cast<int>(result.Status()) << ", genus: " << result.Genus()
                   << ", volume: " << result.Volume() << std::endl;
 
         // Try AsOriginal() to resolve the mesh (genus -1 indicates non-manifold
         // intermediate)
         result = result.AsOriginal();
-        std::cout << "  After AsOriginal(): " << result.NumTri() << " triangles"
-                  << std::endl;
-        std::cout << "  Result genus: " << result.Genus()
-                  << ", NumVert: " << result.NumVert()
-                  << ", NumEdge: " << result.NumEdge()
-                  << ", Status: " << static_cast<int>(result.Status())
+        std::cout << "  After AsOriginal(): " << result.NumTri() << " triangles" << std::endl;
+        std::cout << "  Result genus: " << result.Genus() << ", NumVert: " << result.NumVert()
+                  << ", NumEdge: " << result.NumEdge() << ", Status: " << static_cast<int>(result.Status())
                   << ", Volume: " << result.Volume() << std::endl;
 
         // Expected: A difference should have MORE triangles than A alone
         // because it includes interior cavity faces
         if (result.NumTri() < mesh_a.NumTri()) {
-          std::cout << "  ⚠️  WARNING: Result has FEWER triangles than input A!"
-                    << std::endl;
-          std::cout << "  This suggests interior faces are missing!"
-                    << std::endl;
+          std::cout << "  ⚠️  WARNING: Result has FEWER triangles than input A!" << std::endl;
+          std::cout << "  This suggests interior faces are missing!" << std::endl;
         } else {
-          std::cout
-              << "  ✓ Result has more triangles (includes cavity surfaces)"
-              << std::endl;
+          std::cout << "  ✓ Result has more triangles (includes cavity surfaces)" << std::endl;
         }
 
         // Check if volume is positive (correct orientation)
         if (result.Volume() < 0) {
-          std::cout << "  ⚠️  WARNING: Result has NEGATIVE volume - inside out!"
-                    << std::endl;
+          std::cout << "  ⚠️  WARNING: Result has NEGATIVE volume - inside out!" << std::endl;
         }
         break;
       default:
-        set_last_error(core::Error{core::ErrorCategory::Geometry,
-                                   core::ErrorCode::Unknown,
-                                   "Unknown boolean operation type"});
+        set_last_error(
+            core::Error{core::ErrorCategory::Geometry, core::ErrorCode::Unknown, "Unknown boolean operation type"});
         return std::nullopt;
     }
 
     // Check result
     if (result.IsEmpty()) {
-      set_last_error(core::Error{core::ErrorCategory::Geometry,
-                                 core::ErrorCode::BooleanOperationFailed,
+      set_last_error(core::Error{core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
                                  "Boolean operation returned empty result"});
       return std::nullopt;
     }
 
     // Check if result has multiple components (disconnected meshes)
     auto decomposed = result.Decompose();
-    std::cout << "  Result has " << decomposed.size() << " component(s)"
-              << std::endl;
+    std::cout << "  Result has " << decomposed.size() << " component(s)" << std::endl;
 
     if (decomposed.size() > 1) {
-      std::cout << "  ⚠️  WARNING: Result has multiple disconnected components!"
-                << std::endl;
+      std::cout << "  ⚠️  WARNING: Result has multiple disconnected components!" << std::endl;
 
       // List all components with bounding boxes to understand what each
       // represents
       for (size_t i = 0; i < decomposed.size(); ++i) {
         size_t tri_count = decomposed[i].NumTri();
         auto comp_bounds = decomposed[i].BoundingBox();
-        std::cout << "    Component " << i << ": " << decomposed[i].NumVert()
-                  << " verts, " << tri_count
-                  << " tris, genus=" << decomposed[i].Genus()
-                  << "\n      Bounds: min(" << comp_bounds.min.x << ","
-                  << comp_bounds.min.y << "," << comp_bounds.min.z << ") max("
-                  << comp_bounds.max.x << "," << comp_bounds.max.y << ","
-                  << comp_bounds.max.z << ")" << std::endl;
+        std::cout << "    Component " << i << ": " << decomposed[i].NumVert() << " verts, " << tri_count
+                  << " tris, genus=" << decomposed[i].Genus() << "\n      Bounds: min(" << comp_bounds.min.x << ","
+                  << comp_bounds.min.y << "," << comp_bounds.min.z << ") max(" << comp_bounds.max.x << ","
+                  << comp_bounds.max.y << "," << comp_bounds.max.z << ")" << std::endl;
       }
 
       // IMPORTANT: For difference operations, Manifold sometimes incorrectly
@@ -352,20 +300,16 @@ BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
         const auto& V = debug_mesh.vertices();
         const auto& F = debug_mesh.faces();
         for (int i = 0; i < static_cast<int>(V.rows()); ++i) {
-          obj_out << "v " << V(i, 0) << " " << V(i, 1) << " " << V(i, 2)
-                  << "\n";
+          obj_out << "v " << V(i, 0) << " " << V(i, 1) << " " << V(i, 2) << "\n";
         }
         // Write faces (1-based indices for OBJ)
         for (int fi = 0; fi < static_cast<int>(F.rows()); ++fi) {
-          obj_out << "f " << (F(fi, 0) + 1) << " " << (F(fi, 1) + 1) << " "
-                  << (F(fi, 2) + 1) << "\n";
+          obj_out << "f " << (F(fi, 0) + 1) << " " << (F(fi, 1) + 1) << " " << (F(fi, 2) + 1) << "\n";
         }
         obj_out.close();
-        std::cout << "Diagnostic OBJ written to /tmp/boolean_result.obj"
-                  << std::endl;
+        std::cout << "Diagnostic OBJ written to /tmp/boolean_result.obj" << std::endl;
       } else {
-        std::cout << "Failed to open /tmp/boolean_result.obj for writing"
-                  << std::endl;
+        std::cout << "Failed to open /tmp/boolean_result.obj for writing" << std::endl;
       }
     } catch (const std::exception& e) {
       std::cout << "Failed to export diagnostic OBJ: " << e.what() << std::endl;
@@ -375,8 +319,7 @@ BooleanOps::manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
     return manifold_to_eigen(result);
 
   } catch (const std::exception& e) {
-    set_last_error(core::Error{core::ErrorCategory::Geometry,
-                               core::ErrorCode::Unknown,
+    set_last_error(core::Error{core::ErrorCategory::Geometry, core::ErrorCode::Unknown,
                                std::string("Manifold exception: ") + e.what()});
     return std::nullopt;
   }

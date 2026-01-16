@@ -33,10 +33,9 @@ public:
 
   // Corner patch topology when in Vertex mode
   enum class CornerStyle : std::uint8_t {
-    ApexFan = 0, // Current behavior: apex vertex + fan + ring quads
-    RingStart =
-        1,   // Remove apex fan; start patch at first ring (n-gon or quads)
-    Grid = 2 // (Planned) Grid style spherical-ish patch (segments^2 like)
+    ApexFan = 0,   // Current behavior: apex vertex + fan + ring quads
+    RingStart = 1, // Remove apex fan; start patch at first ring (n-gon or quads)
+    Grid = 2       // (Planned) Grid style spherical-ish patch (segments^2 like)
   };
 
   enum class LimitMethod : std::uint8_t {

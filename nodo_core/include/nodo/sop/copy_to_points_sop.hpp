@@ -25,9 +25,7 @@ public:
   explicit CopyToPointsSOP(const std::string& node_name = "copy_to_points");
 
   // Dual-input node - requires exactly 2 inputs
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::DUAL, 2, 2, 2);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::DUAL, 2, 2, 2); }
 
   /**
    * @brief Copy template geometry to all point locations

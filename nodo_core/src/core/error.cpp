@@ -6,8 +6,7 @@ namespace nodo::core {
 
 std::string Error::description() const {
   std::ostringstream oss;
-  oss << "[" << ErrorUtils::category_to_string(category) << "] "
-      << ErrorUtils::code_to_string(code) << ": " << message;
+  oss << "[" << ErrorUtils::category_to_string(category) << "] " << ErrorUtils::code_to_string(code) << ": " << message;
   if (!context.empty()) {
     oss << " (" << context << ")";
   }
@@ -111,8 +110,7 @@ std::string ErrorUtils::code_to_string(ErrorCode code) {
   return "Unknown error"; // Default case
 }
 
-Error ErrorUtils::make_error(ErrorCategory category, ErrorCode code,
-                             const std::string& message,
+Error ErrorUtils::make_error(ErrorCategory category, ErrorCode code, const std::string& message,
                              const std::string& context) {
   return Error(category, code, message, context);
 }

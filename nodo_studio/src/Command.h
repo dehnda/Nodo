@@ -81,41 +81,30 @@ class DisconnectCommand;
 class BypassNodesCommand;
 
 // Factory functions to create commands
-std::unique_ptr<Command> create_add_node_command(NodeGraphWidget* widget,
-                                                 nodo::graph::NodeGraph* graph,
-                                                 nodo::graph::NodeType type,
-                                                 const QPointF& position);
+std::unique_ptr<Command> create_add_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                 nodo::graph::NodeType type, const QPointF& position);
 
-std::unique_ptr<Command>
-create_delete_node_command(NodeGraphWidget* widget,
-                           nodo::graph::NodeGraph* graph, int node_id);
+std::unique_ptr<Command> create_delete_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                    int node_id);
 
-std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph,
-                                                  int node_id,
-                                                  const QPointF& old_pos,
+std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph, int node_id, const QPointF& old_pos,
                                                   const QPointF& new_pos);
 
-std::unique_ptr<Command> create_change_parameter_command(
-    NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int node_id,
-    const std::string& param_name, const nodo::graph::NodeParameter& old_value,
-    const nodo::graph::NodeParameter& new_value);
+std::unique_ptr<Command> create_change_parameter_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                         int node_id, const std::string& param_name,
+                                                         const nodo::graph::NodeParameter& old_value,
+                                                         const nodo::graph::NodeParameter& new_value);
 
-std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget,
-                                                nodo::graph::NodeGraph* graph,
-                                                int source_id, int source_pin,
-                                                int target_id, int target_pin);
+std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int source_id,
+                                                int source_pin, int target_id, int target_pin);
 
-std::unique_ptr<Command>
-create_disconnect_command(NodeGraphWidget* widget,
-                          nodo::graph::NodeGraph* graph, int connection_id);
+std::unique_ptr<Command> create_disconnect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                   int connection_id);
 
-std::unique_ptr<Command> create_paste_nodes_command(
-    NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-    const std::string& json_data, float offset_x, float offset_y);
+std::unique_ptr<Command> create_paste_nodes_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                    const std::string& json_data, float offset_x, float offset_y);
 
-std::unique_ptr<Command>
-create_bypass_nodes_command(NodeGraphWidget* widget,
-                            nodo::graph::NodeGraph* graph,
-                            const QVector<int>& node_ids);
+std::unique_ptr<Command> create_bypass_nodes_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                     const QVector<int>& node_ids);
 
 } // namespace nodo::studio

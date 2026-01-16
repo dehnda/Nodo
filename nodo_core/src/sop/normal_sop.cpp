@@ -13,8 +13,7 @@ namespace nodo::sop {
 
 NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
   // Single geometry input
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Normal type
   register_parameter(define_int_parameter("normal_type", 0)
@@ -25,24 +24,22 @@ NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
                          .build());
 
   // Weighting method (for vertex/point normals)
-  register_parameter(
-      define_int_parameter("weighting", 0)
-          .label("Weighting")
-          .options({"Equal", "By Area", "By Angle"})
-          .category("Normal")
-          .visible_when("normal_type", 0) // Only for vertex
-          .description("How to weight normal contributions from adjacent faces")
-          .build());
+  register_parameter(define_int_parameter("weighting", 0)
+                         .label("Weighting")
+                         .options({"Equal", "By Area", "By Angle"})
+                         .category("Normal")
+                         .visible_when("normal_type", 0) // Only for vertex
+                         .description("How to weight normal contributions from adjacent faces")
+                         .build());
 
   // Cusp angle (for splitting normals at sharp edges)
-  register_parameter(
-      define_float_parameter("cusp_angle", 60.0f)
-          .label("Cusp Angle")
-          .range(0.0f, 180.0f)
-          .category("Normal")
-          .visible_when("normal_type", 0)
-          .description("Angle threshold for splitting normals at sharp edges")
-          .build());
+  register_parameter(define_float_parameter("cusp_angle", 60.0f)
+                         .label("Cusp Angle")
+                         .range(0.0f, 180.0f)
+                         .category("Normal")
+                         .visible_when("normal_type", 0)
+                         .description("Angle threshold for splitting normals at sharp edges")
+                         .build());
 
   // Reverse normals
   register_parameter(define_int_parameter("reverse", 0)
@@ -87,8 +84,7 @@ std::shared_ptr<core::GeometryContainer> NormalSOP::execute() {
   return result;
 }
 
-void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
-                                       int weighting, float cusp_angle,
+void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo, int weighting, float cusp_angle,
                                        bool reverse) const {
   using namespace core;
   const auto& topo = geo.topology();
@@ -109,11 +105,9 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
     return;
   }
 
-  float cusp_cos =
-      std::cos(cusp_angle * static_cast<float>(nodo::core::math::PI) / 180.0f);
+  float cusp_cos = std::cos(cusp_angle * static_cast<float>(nodo::core::math::PI) / 180.0f);
 
-  std::cerr << "NormalSOP: Cusp angle = " << cusp_angle
-            << "°, cos = " << cusp_cos << "\n";
+  std::cerr << "NormalSOP: Cusp angle = " << cusp_angle << "°, cos = " << cusp_cos << "\n";
 
   // First, compute face normals
   std::vector<Eigen::Vector3f> face_normals(topo.primitive_count());
@@ -186,8 +180,7 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
     if (cusp_angle < 180.0f && adjacent_prims.size() > 1) {
       // Check all pairs of adjacent face normals
       for (size_t i = 0; i < adjacent_prims.size() && !has_hard_edge; ++i) {
-        for (size_t j = i + 1; j < adjacent_prims.size() && !has_hard_edge;
-             ++j) {
+        for (size_t j = i + 1; j < adjacent_prims.size() && !has_hard_edge; ++j) {
           const Eigen::Vector3f& normal_i = face_normals[adjacent_prims[i]];
           const Eigen::Vector3f& normal_j = face_normals[adjacent_prims[j]];
           float dot = normal_i.dot(normal_j);
@@ -203,8 +196,7 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
 
     if (vert_idx < 10 && hard_edge_count > 0) {
       std::cerr << "  Vertex " << vert_idx << ": " << adjacent_prims.size()
-                << " faces, hard edge detected (count: " << hard_edge_count
-                << ")\n";
+                << " faces, hard edge detected (count: " << hard_edge_count << ")\n";
     }
 
     Eigen::Vector3f final_normal;
@@ -215,8 +207,7 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
       // topology changes
       final_normal = face_normals[adjacent_prims[0]];
       if (vert_idx < 5) {
-        std::cerr << "    Vertex " << vert_idx
-                  << ": Using hard edge (first face normal)\n";
+        std::cerr << "    Vertex " << vert_idx << ": Using hard edge (first face normal)\n";
       }
     } else {
       // Smooth edge - weighted average of all adjacent face normals
@@ -239,8 +230,7 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
         avg_normal.normalize();
         final_normal = avg_normal;
         if (vert_idx < 5) {
-          std::cerr << "    Vertex " << vert_idx
-                    << ": Using smooth average from " << adjacent_prims.size()
+          std::cerr << "    Vertex " << vert_idx << ": Using smooth average from " << adjacent_prims.size()
                     << " faces\n";
         }
       } else {
@@ -251,19 +241,16 @@ void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo,
     (*vertex_normals)[vert_idx] = final_normal;
   }
 
-  std::cerr << "NormalSOP: Computed " << topo.vertex_count()
-            << " vertex normals\n";
+  std::cerr << "NormalSOP: Computed " << topo.vertex_count() << " vertex normals\n";
 }
 
-void NormalSOP::compute_face_normals(core::GeometryContainer& geo,
-                                     bool reverse) const {
+void NormalSOP::compute_face_normals(core::GeometryContainer& geo, bool reverse) const {
   using namespace core;
   const auto& topo = geo.topology();
 
   // Debug: Check primitive count
   std::cerr << "NormalSOP: Geometry has " << topo.primitive_count()
-            << " primitives, primitive_attrs size: "
-            << geo.primitive_attributes().size() << "\n";
+            << " primitives, primitive_attrs size: " << geo.primitive_attributes().size() << "\n";
 
   // Add primitive normal attribute
   if (!geo.has_primitive_attribute("N")) {
@@ -282,16 +269,13 @@ void NormalSOP::compute_face_normals(core::GeometryContainer& geo,
     return;
   }
 
-  std::cerr << "NormalSOP: Computing face normals for "
-            << topo.primitive_count()
-            << " primitives, prim_normals size: " << prim_normals->size()
-            << "\n";
+  std::cerr << "NormalSOP: Computing face normals for " << topo.primitive_count()
+            << " primitives, prim_normals size: " << prim_normals->size() << "\n";
 
   // Safety check: ensure the attribute is properly sized
   if (prim_normals->size() != topo.primitive_count()) {
-    std::cerr << "NormalSOP: WARNING - prim_normals size mismatch! Expected "
-              << topo.primitive_count() << ", got " << prim_normals->size()
-              << ". Manually resizing...\n";
+    std::cerr << "NormalSOP: WARNING - prim_normals size mismatch! Expected " << topo.primitive_count() << ", got "
+              << prim_normals->size() << ". Manually resizing...\n";
     prim_normals->resize(topo.primitive_count());
   }
 
@@ -327,13 +311,10 @@ void NormalSOP::compute_face_normals(core::GeometryContainer& geo,
     (*prim_normals)[prim_idx] = normal;
   }
 
-  std::cerr << "NormalSOP: Computed " << topo.primitive_count()
-            << " face normals\n";
+  std::cerr << "NormalSOP: Computed " << topo.primitive_count() << " face normals\n";
 }
 
-void NormalSOP::compute_point_normals(core::GeometryContainer& geo,
-                                      int weighting,
-                                      [[maybe_unused]] float cusp_angle,
+void NormalSOP::compute_point_normals(core::GeometryContainer& geo, int weighting, [[maybe_unused]] float cusp_angle,
                                       bool reverse) const {
   using namespace core;
   const auto& topo = geo.topology();
@@ -429,8 +410,7 @@ void NormalSOP::compute_point_normals(core::GeometryContainer& geo,
     (*point_normals)[pt_idx] = avg_normal;
   }
 
-  std::cerr << "NormalSOP: Computed " << topo.point_count()
-            << " point normals\n";
+  std::cerr << "NormalSOP: Computed " << topo.point_count() << " point normals\n";
 }
 
 } // namespace nodo::sop

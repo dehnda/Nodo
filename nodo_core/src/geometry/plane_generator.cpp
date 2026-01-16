@@ -5,36 +5,31 @@ namespace attrs = nodo::core::standard_attrs;
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error PlaneGenerator::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error PlaneGenerator::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown,
+                                                     "No error"};
 
-std::optional<core::GeometryContainer>
-PlaneGenerator::generate(double width, double height, int width_segments,
-                         int height_segments) {
+std::optional<core::GeometryContainer> PlaneGenerator::generate(double width, double height, int width_segments,
+                                                                int height_segments) {
   if (width <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
-                               "Plane width must be positive"});
+    set_last_error(
+        core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat, "Plane width must be positive"});
     return std::nullopt;
   }
 
   if (height <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
-                               "Plane height must be positive"});
+    set_last_error(
+        core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat, "Plane height must be positive"});
     return std::nullopt;
   }
 
   if (width_segments < 1) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Plane requires at least 1 width segment"});
     return std::nullopt;
   }
 
   if (height_segments < 1) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Plane requires at least 1 height segment"});
     return std::nullopt;
   }
@@ -64,16 +59,10 @@ PlaneGenerator::generate(double width, double height, int width_segments,
   const double half_height = height * 0.5;
 
   for (int row = 0; row < vertices_per_col; ++row) {
-    const double coord_z =
-        -half_height +
-        (static_cast<double>(row) / static_cast<double>(height_segments)) *
-            height;
+    const double coord_z = -half_height + (static_cast<double>(row) / static_cast<double>(height_segments)) * height;
 
     for (int col = 0; col < vertices_per_row; ++col) {
-      const double coord_x =
-          -half_width +
-          (static_cast<double>(col) / static_cast<double>(width_segments)) *
-              width;
+      const double coord_x = -half_width + (static_cast<double>(col) / static_cast<double>(width_segments)) * width;
 
       positions.push_back({static_cast<float>(coord_x),
                            0.0F, // Plane lies in XZ plane

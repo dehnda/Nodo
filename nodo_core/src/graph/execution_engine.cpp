@@ -40,8 +40,7 @@ namespace nodo::graph {
 
 // Temporary helper to convert GeometryContainer to core::Mesh
 // TODO: Remove this once all execution pipeline migrated to GeometryContainer
-static std::shared_ptr<core::Mesh>
-convert_container_to_mesh(const core::GeometryContainer& container) {
+static std::shared_ptr<core::Mesh> convert_container_to_mesh(const core::GeometryContainer& container) {
   // Get positions from container
   auto* positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (positions == nullptr) {
@@ -117,8 +116,7 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
     // Check if this node is already cached and valid
     // Only use cache if node doesn't need update
     auto cached_it = geometry_cache_.find(node_id);
-    bool has_valid_cache =
-        (cached_it != geometry_cache_.end()) && !node->needs_update();
+    bool has_valid_cache = (cached_it != geometry_cache_.end()) && !node->needs_update();
 
     // Skip execution if already cached and doesn't need update
     if (has_valid_cache) {
@@ -136,8 +134,7 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
 
     if (!sop) {
       // Unsupported node type (e.g., Switch)
-      std::cout << "⚠️ Node type not supported: " << node->get_name()
-                << std::endl;
+      std::cout << "⚠️ Node type not supported: " << node->get_name() << std::endl;
       continue;
     }
 
@@ -163,8 +160,7 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
 
     // End timing and calculate duration
     auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
-        end_time - start_time);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
     double cook_time_ms = duration.count() / 1000.0; // Convert to milliseconds
 
     // Store cook time in node
@@ -190,8 +186,7 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
         error_msg = "Execution failed - no result generated";
       }
 
-      std::cout << "❌ Node " << node_id << " (" << sop->get_type()
-                << ") execution failed: " << error_msg << std::endl;
+      std::cout << "❌ Node " << node_id << " (" << sop->get_type() << ") execution failed: " << error_msg << std::endl;
       node->set_error(true, error_msg);
       notify_error(error_msg, node_id);
       return false;
@@ -204,8 +199,7 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
   return true;
 }
 
-std::shared_ptr<core::GeometryContainer>
-ExecutionEngine::get_node_geometry(int node_id) const {
+std::shared_ptr<core::GeometryContainer> ExecutionEngine::get_node_geometry(int node_id) const {
   auto it = geometry_cache_.find(node_id);
   return it != geometry_cache_.end() ? it->second : nullptr;
 }
@@ -228,20 +222,16 @@ void ExecutionEngine::invalidate_node(NodeGraph& graph, int node_id) {
 
     // Check if this node depends on the invalidated node
     auto dependencies = graph.get_upstream_dependencies(other_id);
-    if (std::find(dependencies.begin(), dependencies.end(), node_id) !=
-        dependencies.end()) {
+    if (std::find(dependencies.begin(), dependencies.end(), node_id) != dependencies.end()) {
       // This node depends on the invalidated node, so invalidate it too
       geometry_cache_.erase(other_id);
     }
   }
 }
 
-void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
-                                          sop::SOPNode& sop_node,
-                                          const NodeGraph& graph) {
+void ExecutionEngine::transfer_parameters(const GraphNode& graph_node, sop::SOPNode& sop_node, const NodeGraph& graph) {
   const auto& node_params = graph_node.get_parameters();
-  ParameterExpressionResolver resolver(graph, &node_params,
-                                       graph_node.get_id());
+  ParameterExpressionResolver resolver(graph, &node_params, graph_node.get_id());
 
   // Iterate over all parameters in GraphNode and transfer to SOPNode
   for (const auto& param : node_params) {
@@ -345,9 +335,7 @@ void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
               vec3[2] = z_val.value_or(param.vector3_value[2]);
             } else {
               // Fallback to literal
-              vec3 = Eigen::Vector3f(param.vector3_value[0],
-                                     param.vector3_value[1],
-                                     param.vector3_value[2]);
+              vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]);
             }
           } else {
             // Single expression - use for all components
@@ -357,8 +345,7 @@ void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
           }
         } else {
           // Use literal value
-          vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1],
-                                 param.vector3_value[2]);
+          vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]);
         }
 
         sop_node.set_parameter(param.name, vec3);
@@ -368,8 +355,7 @@ void ExecutionEngine::transfer_parameters(const GraphNode& graph_node,
   }
 }
 
-void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode& sop_node,
-                                               GraphNode& graph_node) {
+void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode& sop_node, GraphNode& graph_node) {
   // Completely rebuild GraphNode parameters from SOP definitions
   // This handles both adding new parameters and removing obsolete ones
 
@@ -436,9 +422,8 @@ void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode& sop_node,
     }
 
     // New parameter - add it
-    NodeParameter new_param = NodeParameter(
-        sop_param.name, 0.0F, sop_param.label, sop_param.float_min,
-        sop_param.float_max, sop_param.category);
+    NodeParameter new_param = NodeParameter(sop_param.name, 0.0F, sop_param.label, sop_param.float_min,
+                                            sop_param.float_max, sop_param.category);
 
     // Update with actual type and default value
     if (std::holds_alternative<float>(sop_param.default_value)) {
@@ -455,8 +440,7 @@ void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode& sop_node,
 
 std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
 ExecutionEngine::gather_input_geometries(const NodeGraph& graph, int node_id) {
-  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
-      input_geometries;
+  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>> input_geometries;
 
   // Get all connections that target this node
   const auto& connections = graph.get_connections();
@@ -475,19 +459,15 @@ ExecutionEngine::gather_input_geometries(const NodeGraph& graph, int node_id) {
     // For pins with multiple connections (MULTI_DYNAMIC nodes),
     // assign them to sequential input indices in order of connection ID
     std::sort(pin_connections.begin(), pin_connections.end(),
-              [](const NodeConnection& a, const NodeConnection& b) {
-                return a.id < b.id;
-              });
+              [](const NodeConnection& a, const NodeConnection& b) { return a.id < b.id; });
 
     for (const auto& connection : pin_connections) {
       // Find the geometry from the source node
       auto geometry_iterator = geometry_cache_.find(connection.source_node_id);
-      if (geometry_iterator != geometry_cache_.end() &&
-          geometry_iterator->second != nullptr) {
+      if (geometry_iterator != geometry_cache_.end() && geometry_iterator->second != nullptr) {
         // For single connection to pin: use pin index directly
         // For multiple connections to same pin: use sequential indices
-        int mapped_index =
-            (pin_connections.size() > 1) ? input_index++ : pin_index;
+        int mapped_index = (pin_connections.size() > 1) ? input_index++ : pin_index;
         input_geometries[mapped_index] = geometry_iterator->second;
       }
     }
@@ -504,10 +484,8 @@ void ExecutionEngine::notify_progress(int completed, int total) {
 
   // Call host interface progress reporting (M2.1)
   if (host_interface_ != nullptr) {
-    std::string message = "Executing node " + std::to_string(completed) +
-                          " of " + std::to_string(total);
-    bool continue_execution =
-        host_interface_->report_progress(completed, total, message);
+    std::string message = "Executing node " + std::to_string(completed) + " of " + std::to_string(total);
+    bool continue_execution = host_interface_->report_progress(completed, total, message);
     // Note: cancellation check would need to propagate up to execute_graph
     // For now, just report progress without cancellation support
     (void)continue_execution; // Suppress unused variable warning

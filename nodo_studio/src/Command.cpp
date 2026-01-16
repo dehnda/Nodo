@@ -26,14 +26,9 @@ class BypassNodesCommand;
  */
 class AddNodeCommand : public Command {
 public:
-  AddNodeCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                 nodo::graph::NodeType type, const QPointF& position)
-      : Command("Add Node"),
-        widget_(widget),
-        graph_(graph),
-        node_type_(type),
-        position_(position),
-        node_id_(-1) {}
+  AddNodeCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, nodo::graph::NodeType type,
+                 const QPointF& position)
+      : Command("Add Node"), widget_(widget), graph_(graph), node_type_(type), position_(position), node_id_(-1) {}
 
   void execute() override {
     // First time: add node to graph (generates new ID)
@@ -112,12 +107,8 @@ private:
  */
 class DeleteNodeCommand : public Command {
 public:
-  DeleteNodeCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                    int node_id)
-      : Command("Delete Node"),
-        widget_(widget),
-        graph_(graph),
-        node_id_(node_id) {
+  DeleteNodeCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int node_id)
+      : Command("Delete Node"), widget_(widget), graph_(graph), node_id_(node_id) {
     // Capture node state before deletion
     auto* node = graph_->get_node(node_id_);
     if (node != nullptr) {
@@ -168,8 +159,7 @@ public:
 
     // Restore connections
     for (const auto& conn : connections_) {
-      graph_->add_connection(conn.source_node_id, conn.source_pin_index,
-                             conn.target_node_id, conn.target_pin_index);
+      graph_->add_connection(conn.source_node_id, conn.source_pin_index, conn.target_node_id, conn.target_pin_index);
       widget_->create_connection_item_public(conn.id);
     }
 
@@ -202,13 +192,8 @@ private:
  */
 class MoveNodeCommand : public Command {
 public:
-  MoveNodeCommand(nodo::graph::NodeGraph* graph, int node_id,
-                  const QPointF& old_pos, const QPointF& new_pos)
-      : Command("Move Node"),
-        graph_(graph),
-        node_id_(node_id),
-        old_position_(old_pos),
-        new_position_(new_pos) {}
+  MoveNodeCommand(nodo::graph::NodeGraph* graph, int node_id, const QPointF& old_pos, const QPointF& new_pos)
+      : Command("Move Node"), graph_(graph), node_id_(node_id), old_position_(old_pos), new_position_(new_pos) {}
 
   void execute() override {
     auto* node = graph_->get_node(node_id_);
@@ -248,9 +233,8 @@ private:
  */
 class ChangeParameterCommand : public Command {
 public:
-  ChangeParameterCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                         int node_id, const std::string& param_name,
-                         const nodo::graph::NodeParameter& old_value,
+  ChangeParameterCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int node_id,
+                         const std::string& param_name, const nodo::graph::NodeParameter& old_value,
                          const nodo::graph::NodeParameter& new_value)
       : Command("Change Parameter"),
         widget_(widget),
@@ -310,8 +294,7 @@ public:
 
   bool can_merge_with(const Command* other) const override {
     auto* other_param = dynamic_cast<const ChangeParameterCommand*>(other);
-    return (other_param != nullptr) && (other_param->node_id_ == node_id_) &&
-           (other_param->param_name_ == param_name_);
+    return (other_param != nullptr) && (other_param->node_id_ == node_id_) && (other_param->param_name_ == param_name_);
   }
 
   void merge_with(const Command* other) override {
@@ -348,8 +331,8 @@ private:
  */
 class ConnectCommand : public Command {
 public:
-  ConnectCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                 int source_id, int source_pin, int target_id, int target_pin)
+  ConnectCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int source_id, int source_pin, int target_id,
+                 int target_pin)
       : Command("Connect Nodes"),
         widget_(widget),
         graph_(graph),
@@ -362,16 +345,13 @@ public:
     // Check if target node allows multiple connections to the same pin
     auto* target_node = graph_->get_node(target_id);
     if (target_node) {
-      auto config =
-          nodo::sop::SOPFactory::get_input_config(target_node->get_type());
-      bool allows_multiple =
-          (config.type == nodo::sop::SOPNode::InputType::MULTI_DYNAMIC);
+      auto config = nodo::sop::SOPFactory::get_input_config(target_node->get_type());
+      bool allows_multiple = (config.type == nodo::sop::SOPNode::InputType::MULTI_DYNAMIC);
 
       if (!allows_multiple) {
         // Only check for replacement if node doesn't allow multiple connections
         for (const auto& conn : graph_->get_connections()) {
-          if (conn.target_node_id == target_id &&
-              conn.target_pin_index == target_pin) {
+          if (conn.target_node_id == target_id && conn.target_pin_index == target_pin) {
             replaced_connection_id_ = conn.id;
             replaced_connection_info_ = conn;
             break;
@@ -389,8 +369,7 @@ public:
     }
 
     // Create connection in graph
-    connection_id_ = graph_->add_connection(source_node_id_, source_pin_,
-                                            target_node_id_, target_pin_);
+    connection_id_ = graph_->add_connection(source_node_id_, source_pin_, target_node_id_, target_pin_);
 
     // Mark all downstream nodes for update to ensure proper re-execution
     auto* target_node = graph_->get_node(target_node_id_);
@@ -410,8 +389,7 @@ public:
     widget_->create_connection_item_public(connection_id_);
 
     // Emit signal to trigger viewport update
-    widget_->emit_connection_created_signal(source_node_id_, source_pin_,
-                                            target_node_id_, target_pin_);
+    widget_->emit_connection_created_signal(source_node_id_, source_pin_, target_node_id_, target_pin_);
   }
 
   void undo() override {
@@ -424,10 +402,8 @@ public:
     // Restore the replaced connection if there was one
     if (replaced_connection_id_ != -1) {
       replaced_connection_id_ =
-          graph_->add_connection(replaced_connection_info_.source_node_id,
-                                 replaced_connection_info_.source_pin_index,
-                                 replaced_connection_info_.target_node_id,
-                                 replaced_connection_info_.target_pin_index);
+          graph_->add_connection(replaced_connection_info_.source_node_id, replaced_connection_info_.source_pin_index,
+                                 replaced_connection_info_.target_node_id, replaced_connection_info_.target_pin_index);
       widget_->create_connection_item_public(replaced_connection_id_);
     }
   }
@@ -440,7 +416,7 @@ private:
   int target_node_id_;
   int target_pin_;
   int connection_id_;
-  int replaced_connection_id_; // ID of connection that was replaced, if any
+  int replaced_connection_id_;                           // ID of connection that was replaced, if any
   nodo::graph::NodeConnection replaced_connection_info_; // Info for undo
 };
 
@@ -449,12 +425,8 @@ private:
  */
 class DisconnectCommand : public Command {
 public:
-  DisconnectCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                    int connection_id)
-      : Command("Disconnect Nodes"),
-        widget_(widget),
-        graph_(graph),
-        connection_id_(connection_id) {
+  DisconnectCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int connection_id)
+      : Command("Disconnect Nodes"), widget_(widget), graph_(graph), connection_id_(connection_id) {
     // Store connection info before deletion
     for (const auto& conn : graph_->get_connections()) {
       if (conn.id == connection_id) {
@@ -474,9 +446,8 @@ public:
 
   void undo() override {
     // Restore connection
-    connection_id_ = graph_->add_connection(
-        connection_info_.source_node_id, connection_info_.source_pin_index,
-        connection_info_.target_node_id, connection_info_.target_pin_index);
+    connection_id_ = graph_->add_connection(connection_info_.source_node_id, connection_info_.source_pin_index,
+                                            connection_info_.target_node_id, connection_info_.target_pin_index);
 
     // Restore visual item
     widget_->create_connection_item_public(connection_id_);
@@ -490,45 +461,35 @@ private:
 };
 
 // Factory function implementations
-std::unique_ptr<Command> create_add_node_command(NodeGraphWidget* widget,
-                                                 nodo::graph::NodeGraph* graph,
-                                                 nodo::graph::NodeType type,
-                                                 const QPointF& position) {
+std::unique_ptr<Command> create_add_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                 nodo::graph::NodeType type, const QPointF& position) {
   return std::make_unique<AddNodeCommand>(widget, graph, type, position);
 }
 
-std::unique_ptr<Command>
-create_delete_node_command(NodeGraphWidget* widget,
-                           nodo::graph::NodeGraph* graph, int node_id) {
+std::unique_ptr<Command> create_delete_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                    int node_id) {
   return std::make_unique<DeleteNodeCommand>(widget, graph, node_id);
 }
 
-std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph,
-                                                  int node_id,
-                                                  const QPointF& old_pos,
+std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph, int node_id, const QPointF& old_pos,
                                                   const QPointF& new_pos) {
   return std::make_unique<MoveNodeCommand>(graph, node_id, old_pos, new_pos);
 }
 
-std::unique_ptr<Command> create_change_parameter_command(
-    NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int node_id,
-    const std::string& param_name, const nodo::graph::NodeParameter& old_value,
-    const nodo::graph::NodeParameter& new_value) {
-  return std::make_unique<ChangeParameterCommand>(
-      widget, graph, node_id, param_name, old_value, new_value);
+std::unique_ptr<Command> create_change_parameter_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                         int node_id, const std::string& param_name,
+                                                         const nodo::graph::NodeParameter& old_value,
+                                                         const nodo::graph::NodeParameter& new_value) {
+  return std::make_unique<ChangeParameterCommand>(widget, graph, node_id, param_name, old_value, new_value);
 }
 
-std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget,
-                                                nodo::graph::NodeGraph* graph,
-                                                int source_id, int source_pin,
-                                                int target_id, int target_pin) {
-  return std::make_unique<ConnectCommand>(widget, graph, source_id, source_pin,
-                                          target_id, target_pin);
+std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int source_id,
+                                                int source_pin, int target_id, int target_pin) {
+  return std::make_unique<ConnectCommand>(widget, graph, source_id, source_pin, target_id, target_pin);
 }
 
-std::unique_ptr<Command>
-create_disconnect_command(NodeGraphWidget* widget,
-                          nodo::graph::NodeGraph* graph, int connection_id) {
+std::unique_ptr<Command> create_disconnect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                   int connection_id) {
   return std::make_unique<DisconnectCommand>(widget, graph, connection_id);
 }
 
@@ -536,8 +497,7 @@ create_disconnect_command(NodeGraphWidget* widget,
 // CompositeCommand Implementation
 // ============================================================================
 
-CompositeCommand::CompositeCommand(const QString& description)
-    : Command(description) {}
+CompositeCommand::CompositeCommand(const QString& description) : Command(description) {}
 
 void CompositeCommand::execute() {
   for (auto& cmd : commands_) {
@@ -562,9 +522,8 @@ void CompositeCommand::add_command(std::unique_ptr<Command> cmd) {
 
 class PasteNodesCommand : public Command {
 public:
-  PasteNodesCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                    const std::string& json_data, float offset_x,
-                    float offset_y)
+  PasteNodesCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, const std::string& json_data,
+                    float offset_x, float offset_y)
       : Command("Paste Nodes"),
         widget_(widget),
         graph_(graph),
@@ -574,8 +533,7 @@ public:
 
   void execute() override {
     // Parse clipboard JSON
-    auto clipboard_graph_opt =
-        nodo::graph::GraphSerializer::deserialize_from_json(json_data_);
+    auto clipboard_graph_opt = nodo::graph::GraphSerializer::deserialize_from_json(json_data_);
 
     if (!clipboard_graph_opt) {
       return;
@@ -631,14 +589,12 @@ public:
 
       // Paste connections
       for (const auto& conn : clipboard_graph.get_connections()) {
-        if (old_to_new_id_map.contains(conn.source_node_id) &&
-            old_to_new_id_map.contains(conn.target_node_id)) {
+        if (old_to_new_id_map.contains(conn.source_node_id) && old_to_new_id_map.contains(conn.target_node_id)) {
           int new_source_id = old_to_new_id_map[conn.source_node_id];
           int new_target_id = old_to_new_id_map[conn.target_node_id];
 
           int new_conn_id =
-              graph_->add_connection(new_source_id, conn.source_pin_index,
-                                     new_target_id, conn.target_pin_index);
+              graph_->add_connection(new_source_id, conn.source_pin_index, new_target_id, conn.target_pin_index);
 
           if (new_conn_id >= 0) {
             widget_->create_connection_item_public(new_conn_id);
@@ -678,9 +634,8 @@ public:
 
       // Restore connections
       for (const auto& conn_info : connection_info_) {
-        graph_->add_connection(
-            conn_info.source_node_id, conn_info.source_pin_index,
-            conn_info.target_node_id, conn_info.target_pin_index);
+        graph_->add_connection(conn_info.source_node_id, conn_info.source_pin_index, conn_info.target_node_id,
+                               conn_info.target_pin_index);
         widget_->create_connection_item_public(conn_info.connection_id);
       }
     }
@@ -733,12 +688,8 @@ private:
 
 class BypassNodesCommand : public Command {
 public:
-  BypassNodesCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                     const QVector<int>& node_ids)
-      : Command("Toggle Bypass"),
-        widget_(widget),
-        graph_(graph),
-        node_ids_(node_ids) {
+  BypassNodesCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, const QVector<int>& node_ids)
+      : Command("Toggle Bypass"), widget_(widget), graph_(graph), node_ids_(node_ids) {
     // Store current bypass states
     for (int node_id : node_ids_) {
       auto* node_item = widget_->get_node_item_public(node_id);
@@ -780,17 +731,13 @@ private:
 // Factory Functions
 // ============================================================================
 
-std::unique_ptr<Command> create_paste_nodes_command(
-    NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-    const std::string& json_data, float offset_x, float offset_y) {
-  return std::make_unique<PasteNodesCommand>(widget, graph, json_data, offset_x,
-                                             offset_y);
+std::unique_ptr<Command> create_paste_nodes_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                    const std::string& json_data, float offset_x, float offset_y) {
+  return std::make_unique<PasteNodesCommand>(widget, graph, json_data, offset_x, offset_y);
 }
 
-std::unique_ptr<Command>
-create_bypass_nodes_command(NodeGraphWidget* widget,
-                            nodo::graph::NodeGraph* graph,
-                            const QVector<int>& node_ids) {
+std::unique_ptr<Command> create_bypass_nodes_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
+                                                     const QVector<int>& node_ids) {
   return std::make_unique<BypassNodesCommand>(widget, graph, node_ids);
 }
 

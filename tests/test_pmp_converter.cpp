@@ -15,8 +15,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   core::Mesh mesh;
 
   // Get positions
-  const auto* positions =
-      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!positions) {
     return mesh;
   }
@@ -83,10 +82,8 @@ TEST_F(PMPConverterTest, MeshToPMP) {
   auto pmp_mesh = PMPConverter::to_pmp(sphere_mesh_);
 
   // Verify vertex and face counts match
-  EXPECT_EQ(pmp_mesh.n_vertices(),
-            static_cast<size_t>(sphere_mesh_.vertices().rows()));
-  EXPECT_EQ(pmp_mesh.n_faces(),
-            static_cast<size_t>(sphere_mesh_.faces().rows()));
+  EXPECT_EQ(pmp_mesh.n_vertices(), static_cast<size_t>(sphere_mesh_.vertices().rows()));
+  EXPECT_EQ(pmp_mesh.n_faces(), static_cast<size_t>(sphere_mesh_.faces().rows()));
 
   // Verify PMP mesh is valid
   EXPECT_FALSE(pmp_mesh.is_empty());
@@ -126,10 +123,8 @@ TEST_F(PMPConverterTest, PMPToContainer) {
   auto result_container = PMPConverter::from_pmp_container(pmp_mesh);
 
   // Verify dimensions match
-  EXPECT_EQ(result_container.topology().point_count(),
-            sphere_container_.topology().point_count());
-  EXPECT_EQ(result_container.topology().primitive_count(),
-            sphere_container_.topology().primitive_count());
+  EXPECT_EQ(result_container.topology().point_count(), sphere_container_.topology().point_count());
+  EXPECT_EQ(result_container.topology().primitive_count(), sphere_container_.topology().primitive_count());
 
   // Verify position attribute exists
   EXPECT_TRUE(result_container.has_point_attribute(attrs::P));
@@ -152,8 +147,7 @@ TEST_F(PMPConverterTest, RoundTripMesh) {
   const double tolerance = 1e-5;
   for (int i = 0; i < sphere_mesh_.vertices().rows(); ++i) {
     for (int j = 0; j < 3; ++j) {
-      EXPECT_NEAR(result_mesh.vertices()(i, j), sphere_mesh_.vertices()(i, j),
-                  tolerance)
+      EXPECT_NEAR(result_mesh.vertices()(i, j), sphere_mesh_.vertices()(i, j), tolerance)
           << "Mismatch at vertex " << i << " coordinate " << j;
     }
   }
@@ -161,8 +155,7 @@ TEST_F(PMPConverterTest, RoundTripMesh) {
   // Face indices should match exactly
   for (int i = 0; i < sphere_mesh_.faces().rows(); ++i) {
     for (int j = 0; j < 3; ++j) {
-      EXPECT_EQ(result_mesh.faces()(i, j), sphere_mesh_.faces()(i, j))
-          << "Mismatch at face " << i << " vertex " << j;
+      EXPECT_EQ(result_mesh.faces()(i, j), sphere_mesh_.faces()(i, j)) << "Mismatch at face " << i << " vertex " << j;
     }
   }
 }
@@ -173,18 +166,14 @@ TEST_F(PMPConverterTest, RoundTripContainer) {
   auto result_container = PMPConverter::from_pmp_container(pmp_mesh);
 
   // Verify counts
-  EXPECT_EQ(result_container.topology().point_count(),
-            sphere_container_.topology().point_count());
-  EXPECT_EQ(result_container.topology().primitive_count(),
-            sphere_container_.topology().primitive_count());
+  EXPECT_EQ(result_container.topology().point_count(), sphere_container_.topology().point_count());
+  EXPECT_EQ(result_container.topology().primitive_count(), sphere_container_.topology().primitive_count());
 
   // Verify position attribute
   ASSERT_TRUE(result_container.has_point_attribute(attrs::P));
 
-  const auto* orig_pos =
-      sphere_container_.get_point_attribute_typed<core::Vec3f>(attrs::P);
-  const auto* result_pos =
-      result_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* orig_pos = sphere_container_.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* result_pos = result_container.get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   ASSERT_NE(orig_pos, nullptr);
   ASSERT_NE(result_pos, nullptr);
@@ -218,8 +207,7 @@ TEST_F(PMPConverterTest, RoundTripMultipleTimes) {
   const double tolerance = 1e-4; // Slightly larger tolerance
   for (int i = 0; i < sphere_mesh_.vertices().rows(); ++i) {
     for (int j = 0; j < 3; ++j) {
-      EXPECT_NEAR(current.vertices()(i, j), sphere_mesh_.vertices()(i, j),
-                  tolerance);
+      EXPECT_NEAR(current.vertices()(i, j), sphere_mesh_.vertices()(i, j), tolerance);
     }
   }
 }
@@ -244,11 +232,9 @@ TEST_F(PMPConverterTest, PreservesNormals) {
 
   auto norm_span = normals->values();
   for (size_t i = 0; i < norm_span.size(); ++i) {
-    float length = std::sqrt(norm_span[i](0) * norm_span[i](0) +
-                             norm_span[i](1) * norm_span[i](1) +
+    float length = std::sqrt(norm_span[i](0) * norm_span[i](0) + norm_span[i](1) * norm_span[i](1) +
                              norm_span[i](2) * norm_span[i](2));
-    EXPECT_NEAR(length, 1.0f, 1e-5f)
-        << "Normal at vertex " << i << " is not unit length";
+    EXPECT_NEAR(length, 1.0f, 1e-5f) << "Normal at vertex " << i << " is not unit length";
   }
 }
 
@@ -343,8 +329,7 @@ TEST_F(PMPConverterTest, ThrowsOnNonTriangles) {
   }
 
   // Add positions
-  std::vector<core::Vec3f> positions = {
-      {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}};
+  std::vector<core::Vec3f> positions = {{0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}};
   container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
   auto* pos_attr = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   pos_attr->resize(4);
@@ -381,11 +366,9 @@ TEST_F(PMPConverterTest, LargeMeshConversion) {
 
   // Spot check a few vertices
   const double tolerance = 1e-5;
-  for (int i = 0;
-       i < std::min(10, static_cast<int>(large_mesh.vertices().rows())); ++i) {
+  for (int i = 0; i < std::min(10, static_cast<int>(large_mesh.vertices().rows())); ++i) {
     for (int j = 0; j < 3; ++j) {
-      EXPECT_NEAR(result_mesh.vertices()(i, j), large_mesh.vertices()(i, j),
-                  tolerance);
+      EXPECT_NEAR(result_mesh.vertices()(i, j), large_mesh.vertices()(i, j), tolerance);
     }
   }
 }
@@ -405,11 +388,9 @@ TEST_F(PMPConverterTest, ConversionPerformance) {
   }
 
   auto end = std::chrono::high_resolution_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
   // Should be reasonably fast (< 1 second for 100 iterations of small mesh)
-  EXPECT_LT(duration.count(), 1000)
-      << "Conversion is too slow: " << duration.count() << "ms for "
-      << iterations << " iterations";
+  EXPECT_LT(duration.count(), 1000) << "Conversion is too slow: " << duration.count() << "ms for " << iterations
+                                    << " iterations";
 }

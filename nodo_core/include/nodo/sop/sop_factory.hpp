@@ -35,16 +35,14 @@ public:
    * @param name Node name
    * @return Shared pointer to created SOP, or nullptr if type not supported
    */
-  static std::shared_ptr<SOPNode> create(graph::NodeType type,
-                                         const std::string& name = "node");
+  static std::shared_ptr<SOPNode> create(graph::NodeType type, const std::string& name = "node");
 
   /**
    * @brief Get parameter definitions for a node type without instantiating
    * @param type The node type to query
    * @return Vector of parameter definitions
    */
-  static std::vector<SOPNode::ParameterDefinition>
-  get_parameter_schema(graph::NodeType type);
+  static std::vector<SOPNode::ParameterDefinition> get_parameter_schema(graph::NodeType type);
 
   /**
    * @brief Check if a node type is supported by SOP system

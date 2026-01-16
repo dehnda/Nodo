@@ -41,8 +41,7 @@ struct EdgeKey {
   int point_index_b{};
   EdgeKey() = default;
   EdgeKey(int a_index, int b_index)
-      : point_index_a(std::min(a_index, b_index)),
-        point_index_b(std::max(a_index, b_index)) {}
+      : point_index_a(std::min(a_index, b_index)), point_index_b(std::max(a_index, b_index)) {}
   bool operator<(const EdgeKey& other) const {
     if (point_index_a != other.point_index_a)
       return point_index_a < other.point_index_a;
@@ -63,22 +62,19 @@ struct CornerReuseMap {
 // Utility helpers
 // ---------------------------------------------------------------------------
 static inline float shape_profile_t(float t_value, float profile) {
-  float gamma = (profile <= PROFILE_MID) ? (PROFILE_MID + profile)
-                                         : (profile + PROFILE_MID);
+  float gamma = (profile <= PROFILE_MID) ? (PROFILE_MID + profile) : (profile + PROFILE_MID);
   gamma = std::clamp(gamma, GAMMA_MIN, GAMMA_MAX);
   float t_clamped = std::clamp(t_value, 0.0F, 1.0F);
   return std::pow(t_clamped, gamma);
 }
 
-static size_t append_points(core::GeometryContainer& geo,
-                            core::AttributeStorage<Eigen::Vector3f>*& positions,
+static size_t append_points(core::GeometryContainer& geo, core::AttributeStorage<Eigen::Vector3f>*& positions,
                             const std::vector<Eigen::Vector3f>& new_points) {
   if (new_points.empty())
     return geo.point_count();
   size_t base_point_count = geo.point_count();
   geo.set_point_count(base_point_count + new_points.size());
-  positions =
-      geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+  positions = geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   if (positions == nullptr)
     return base_point_count;
   for (size_t i = 0; i < new_points.size(); ++i)
@@ -87,40 +83,31 @@ static size_t append_points(core::GeometryContainer& geo,
 }
 
 // Compute primitive normals & centroids (Newell)
-static void compute_prim_normals_centroids(
-    const core::GeometryContainer& input,
-    const core::AttributeStorage<Eigen::Vector3f>* positions_attr,
-    std::vector<Eigen::Vector3f>& out_normals,
-    std::vector<Eigen::Vector3f>& out_centroids) {
+static void compute_prim_normals_centroids(const core::GeometryContainer& input,
+                                           const core::AttributeStorage<Eigen::Vector3f>* positions_attr,
+                                           std::vector<Eigen::Vector3f>& out_normals,
+                                           std::vector<Eigen::Vector3f>& out_centroids) {
   auto newell_normal = [&](size_t primitive_index) -> Eigen::Vector3f {
-    const auto& primitive_vertices =
-        input.topology().get_primitive_vertices(primitive_index);
+    const auto& primitive_vertices = input.topology().get_primitive_vertices(primitive_index);
     if (primitive_vertices.size() < 3)
       return Eigen::Vector3f(0, 0, 0);
     Eigen::Vector3f accum(0, 0, 0);
     for (size_t i = 0; i < primitive_vertices.size(); ++i) {
       int vertex_index_current = primitive_vertices[i];
-      int vertex_index_next =
-          primitive_vertices[(i + 1) % primitive_vertices.size()];
-      int point_index_current =
-          input.topology().get_vertex_point(vertex_index_current);
-      int point_index_next =
-          input.topology().get_vertex_point(vertex_index_next);
+      int vertex_index_next = primitive_vertices[(i + 1) % primitive_vertices.size()];
+      int point_index_current = input.topology().get_vertex_point(vertex_index_current);
+      int point_index_next = input.topology().get_vertex_point(vertex_index_next);
       const auto& pos_current = (*positions_attr)[point_index_current];
       const auto& pos_next = (*positions_attr)[point_index_next];
-      accum.x() +=
-          (pos_current.y() - pos_next.y()) * (pos_current.z() + pos_next.z());
-      accum.y() +=
-          (pos_current.z() - pos_next.z()) * (pos_current.x() + pos_next.x());
-      accum.z() +=
-          (pos_current.x() - pos_next.x()) * (pos_current.y() + pos_next.y());
+      accum.x() += (pos_current.y() - pos_next.y()) * (pos_current.z() + pos_next.z());
+      accum.y() += (pos_current.z() - pos_next.z()) * (pos_current.x() + pos_next.x());
+      accum.z() += (pos_current.x() - pos_next.x()) * (pos_current.y() + pos_next.y());
     }
     float len = accum.norm();
     return (len < EPS_VERY_TINY) ? Eigen::Vector3f(0, 0, 0) : accum / len;
   };
   auto compute_centroid = [&](size_t primitive_index) -> Eigen::Vector3f {
-    const auto& primitive_vertices =
-        input.topology().get_primitive_vertices(primitive_index);
+    const auto& primitive_vertices = input.topology().get_primitive_vertices(primitive_index);
     if (primitive_vertices.empty())
       return Eigen::Vector3f(0, 0, 0);
     Eigen::Vector3f centroid(0, 0, 0);
@@ -139,30 +126,23 @@ static void compute_prim_normals_centroids(
   }
 }
 
-static void build_edge_map(const core::GeometryContainer& input,
-                           std::map<EdgeKey, EdgeInfo>& edge_map) {
-  for (size_t primitive_index = 0; primitive_index < input.primitive_count();
-       ++primitive_index) {
-    const auto& primitive_vertices =
-        input.topology().get_primitive_vertices(primitive_index);
+static void build_edge_map(const core::GeometryContainer& input, std::map<EdgeKey, EdgeInfo>& edge_map) {
+  for (size_t primitive_index = 0; primitive_index < input.primitive_count(); ++primitive_index) {
+    const auto& primitive_vertices = input.topology().get_primitive_vertices(primitive_index);
     size_t vertex_count = primitive_vertices.size();
     for (size_t i = 0; i < vertex_count; ++i) {
       int vertex_index_current = primitive_vertices[i];
       int vertex_index_next = primitive_vertices[(i + 1) % vertex_count];
-      int point_index_current =
-          input.topology().get_vertex_point(vertex_index_current);
-      int point_index_next =
-          input.topology().get_vertex_point(vertex_index_next);
+      int point_index_current = input.topology().get_vertex_point(vertex_index_current);
+      int point_index_next = input.topology().get_vertex_point(vertex_index_next);
       EdgeKey key(point_index_current, point_index_next);
       edge_map[key].faces.push_back(static_cast<int>(primitive_index));
     }
   }
 }
 
-static std::vector<EdgeKey>
-find_sharp_edges(const std::map<EdgeKey, EdgeInfo>& edge_map,
-                 const std::vector<Eigen::Vector3f>& prim_normals,
-                 float angle_threshold) {
+static std::vector<EdgeKey> find_sharp_edges(const std::map<EdgeKey, EdgeInfo>& edge_map,
+                                             const std::vector<Eigen::Vector3f>& prim_normals, float angle_threshold) {
   std::vector<EdgeKey> result;
   for (const auto& edge_entry : edge_map) {
     const EdgeKey& key = edge_entry.first;
@@ -182,22 +162,18 @@ find_sharp_edges(const std::map<EdgeKey, EdgeInfo>& edge_map,
 // Primitive normals recompute
 static void recompute_primitive_normals(core::GeometryContainer& geo) {
   geo.ensure_position_attribute();
-  auto* positions_attr =
-      geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+  auto* positions_attr = geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   if (positions_attr == nullptr)
     return;
   if (!geo.has_primitive_attribute(core::standard_attrs::primitive_N)) {
-    geo.add_primitive_attribute(core::standard_attrs::primitive_N,
-                                core::AttributeType::VEC3F);
+    geo.add_primitive_attribute(core::standard_attrs::primitive_N, core::AttributeType::VEC3F);
   }
-  auto* prim_normals_attr = geo.get_primitive_attribute_typed<Eigen::Vector3f>(
-      core::standard_attrs::primitive_N);
+  auto* prim_normals_attr = geo.get_primitive_attribute_typed<Eigen::Vector3f>(core::standard_attrs::primitive_N);
   if (prim_normals_attr == nullptr)
     return;
   prim_normals_attr->resize(geo.primitive_count());
   for (size_t prim_i = 0; prim_i < geo.primitive_count(); ++prim_i) {
-    const auto& primitive_vertices =
-        geo.topology().get_primitive_vertices(prim_i);
+    const auto& primitive_vertices = geo.topology().get_primitive_vertices(prim_i);
     if (primitive_vertices.size() < 3) {
       (*prim_normals_attr)[prim_i] = Eigen::Vector3f(0, 0, 0);
       continue;
@@ -205,32 +181,25 @@ static void recompute_primitive_normals(core::GeometryContainer& geo) {
     Eigen::Vector3f accum(0, 0, 0);
     for (size_t i = 0; i < primitive_vertices.size(); ++i) {
       int vertex_index_current = primitive_vertices[i];
-      int vertex_index_next =
-          primitive_vertices[(i + 1) % primitive_vertices.size()];
-      int point_index_current =
-          geo.topology().get_vertex_point(vertex_index_current);
+      int vertex_index_next = primitive_vertices[(i + 1) % primitive_vertices.size()];
+      int point_index_current = geo.topology().get_vertex_point(vertex_index_current);
       int point_index_next = geo.topology().get_vertex_point(vertex_index_next);
       const auto& pos_current = (*positions_attr)[point_index_current];
       const auto& pos_next = (*positions_attr)[point_index_next];
-      accum.x() +=
-          (pos_current.y() - pos_next.y()) * (pos_current.z() + pos_next.z());
-      accum.y() +=
-          (pos_current.z() - pos_next.z()) * (pos_current.x() + pos_next.x());
-      accum.z() +=
-          (pos_current.x() - pos_next.x()) * (pos_current.y() + pos_next.y());
+      accum.x() += (pos_current.y() - pos_next.y()) * (pos_current.z() + pos_next.z());
+      accum.y() += (pos_current.z() - pos_next.z()) * (pos_current.x() + pos_next.x());
+      accum.z() += (pos_current.x() - pos_next.x()) * (pos_current.y() + pos_next.y());
     }
     float len = accum.norm();
-    (*prim_normals_attr)[prim_i] =
-        (len < EPS_VERY_TINY) ? Eigen::Vector3f(0, 0, 0) : accum / len;
+    (*prim_normals_attr)[prim_i] = (len < EPS_VERY_TINY) ? Eigen::Vector3f(0, 0, 0) : accum / len;
   }
 }
 
 // Edge bevel (quad and multi-seg stub)
-static void add_chamfer_quad_for_edge(
-    core::GeometryContainer& geo,
-    core::AttributeStorage<Eigen::Vector3f>* positions_attr,
-    const std::vector<Eigen::Vector3f>& prim_normals, const EdgeKey& edge_key,
-    const EdgeInfo& info, float bevel_width) {
+static void add_chamfer_quad_for_edge(core::GeometryContainer& geo,
+                                      core::AttributeStorage<Eigen::Vector3f>* positions_attr,
+                                      const std::vector<Eigen::Vector3f>& prim_normals, const EdgeKey& edge_key,
+                                      const EdgeInfo& info, float bevel_width) {
   if (positions_attr == nullptr || info.faces.size() != 2)
     return;
   int point_index_a = edge_key.point_index_a;
@@ -245,8 +214,7 @@ static void add_chamfer_quad_for_edge(
   Eigen::Vector3f a_offset_face_b = pos_a + bevel_width * normal_face_b;
   size_t base_point = geo.point_count();
   geo.set_point_count(base_point + 4);
-  positions_attr =
-      geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+  positions_attr = geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   (*positions_attr)[base_point + 0] = a_offset_face_a;
   (*positions_attr)[base_point + 1] = b_offset_face_a;
   (*positions_attr)[base_point + 2] = b_offset_face_b;
@@ -254,29 +222,22 @@ static void add_chamfer_quad_for_edge(
   size_t base_vertex = geo.vertex_count();
   geo.set_vertex_count(base_vertex + 4);
   auto& topology = geo.topology();
-  topology.set_vertex_point(static_cast<int>(base_vertex + 0),
-                            static_cast<int>(base_point + 0));
-  topology.set_vertex_point(static_cast<int>(base_vertex + 1),
-                            static_cast<int>(base_point + 1));
-  topology.set_vertex_point(static_cast<int>(base_vertex + 2),
-                            static_cast<int>(base_point + 2));
-  topology.set_vertex_point(static_cast<int>(base_vertex + 3),
-                            static_cast<int>(base_point + 3));
-  geo.add_primitive(
-      {static_cast<int>(base_vertex + 0), static_cast<int>(base_vertex + 1),
-       static_cast<int>(base_vertex + 2), static_cast<int>(base_vertex + 3)});
+  topology.set_vertex_point(static_cast<int>(base_vertex + 0), static_cast<int>(base_point + 0));
+  topology.set_vertex_point(static_cast<int>(base_vertex + 1), static_cast<int>(base_point + 1));
+  topology.set_vertex_point(static_cast<int>(base_vertex + 2), static_cast<int>(base_point + 2));
+  topology.set_vertex_point(static_cast<int>(base_vertex + 3), static_cast<int>(base_point + 3));
+  geo.add_primitive({static_cast<int>(base_vertex + 0), static_cast<int>(base_vertex + 1),
+                     static_cast<int>(base_vertex + 2), static_cast<int>(base_vertex + 3)});
 }
 
-static void add_chamfer_strip_for_edge(
-    core::GeometryContainer& geo,
-    core::AttributeStorage<Eigen::Vector3f>*& positions_attr,
-    const core::AttributeStorage<Eigen::Vector3f>* /*input_positions*/,
-    const std::vector<Eigen::Vector3f>& prim_normals, const EdgeKey& edge_key,
-    const EdgeInfo& info, int segments, float bevel_width, float profile,
-    bool /*clamp*/) {
+static void add_chamfer_strip_for_edge(core::GeometryContainer& geo,
+                                       core::AttributeStorage<Eigen::Vector3f>*& positions_attr,
+                                       const core::AttributeStorage<Eigen::Vector3f>* /*input_positions*/,
+                                       const std::vector<Eigen::Vector3f>& prim_normals, const EdgeKey& edge_key,
+                                       const EdgeInfo& info, int segments, float bevel_width, float profile,
+                                       bool /*clamp*/) {
   // Build a rounded strip by interpolating normals between the two faces.
-  if (positions_attr == nullptr || info.faces.size() != 2 || segments < 1 ||
-      bevel_width <= 0.0F) {
+  if (positions_attr == nullptr || info.faces.size() != 2 || segments < 1 || bevel_width <= 0.0F) {
     return;
   }
 
@@ -287,10 +248,8 @@ static void add_chamfer_strip_for_edge(
 
   Eigen::Vector3f normal_face_0 = prim_normals[info.faces[0]];
   Eigen::Vector3f normal_face_1 = prim_normals[info.faces[1]];
-  if (normal_face_0.norm() < EPS_VERY_TINY ||
-      normal_face_1.norm() < EPS_VERY_TINY) {
-    add_chamfer_quad_for_edge(geo, positions_attr, prim_normals, edge_key, info,
-                              bevel_width);
+  if (normal_face_0.norm() < EPS_VERY_TINY || normal_face_1.norm() < EPS_VERY_TINY) {
+    add_chamfer_quad_for_edge(geo, positions_attr, prim_normals, edge_key, info, bevel_width);
     return;
   }
   normal_face_0.normalize();
@@ -301,12 +260,10 @@ static void add_chamfer_strip_for_edge(
   std::vector<Eigen::Vector3f> strip_points;
   strip_points.reserve(static_cast<size_t>((segments + 1) * 2));
   for (int segment_index = 0; segment_index <= segments; ++segment_index) {
-    float param_t =
-        static_cast<float>(segment_index) / static_cast<float>(segments);
+    float param_t = static_cast<float>(segment_index) / static_cast<float>(segments);
     float t_shaped = shape_profile_t(param_t, profile);
     // Interpolate normals (simple lerp then normalize)
-    Eigen::Vector3f blended_normal =
-        ((1.0F - t_shaped) * normal_face_0) + (t_shaped * normal_face_1);
+    Eigen::Vector3f blended_normal = ((1.0F - t_shaped) * normal_face_0) + (t_shaped * normal_face_1);
     if (blended_normal.norm() < EPS_VERY_TINY) {
       blended_normal = normal_face_0; // fallback
     } else {
@@ -326,10 +283,8 @@ static void add_chamfer_strip_for_edge(
   for (int segment_index = 0; segment_index < segments; ++segment_index) {
     int a0_point_index = static_cast<int>(base_point + (2 * segment_index));
     int b0_point_index = static_cast<int>(base_point + (2 * segment_index) + 1);
-    int a1_point_index =
-        static_cast<int>(base_point + (2 * (segment_index + 1)));
-    int b1_point_index =
-        static_cast<int>(base_point + (2 * (segment_index + 1)) + 1);
+    int a1_point_index = static_cast<int>(base_point + (2 * (segment_index + 1)));
+    int b1_point_index = static_cast<int>(base_point + (2 * (segment_index + 1)) + 1);
 
     size_t base_vertex = geo.vertex_count();
     geo.set_vertex_count(base_vertex + 4);
@@ -337,8 +292,7 @@ static void add_chamfer_strip_for_edge(
     int vertex_index_1 = static_cast<int>(base_vertex + 1);
     int vertex_index_2 = static_cast<int>(base_vertex + 2);
     int vertex_index_3 = static_cast<int>(base_vertex + 3);
-    geo.add_primitive(
-        {vertex_index_0, vertex_index_1, vertex_index_2, vertex_index_3});
+    geo.add_primitive({vertex_index_0, vertex_index_1, vertex_index_2, vertex_index_3});
     topology.set_vertex_point(vertex_index_0, a0_point_index);
     topology.set_vertex_point(vertex_index_1, b0_point_index);
     topology.set_vertex_point(vertex_index_2, b1_point_index);
@@ -352,19 +306,17 @@ enum class VertexPatchMode : std::uint8_t {
   RingStart = 1
 };
 
-static void add_vertex_bevel_patch_apexfan(
-    core::GeometryContainer& geo,
-    core::AttributeStorage<Eigen::Vector3f>*& result_positions,
-    const core::AttributeStorage<Eigen::Vector3f>* input_positions,
-    const std::vector<Eigen::Vector3f>& prim_normals, int point_index,
-    const std::vector<int>& incident_faces,
-    const std::vector<int>& neighbor_points, float bevel_width, int segments,
-    float profile) {
+static void add_vertex_bevel_patch_apexfan(core::GeometryContainer& geo,
+                                           core::AttributeStorage<Eigen::Vector3f>*& result_positions,
+                                           const core::AttributeStorage<Eigen::Vector3f>* input_positions,
+                                           const std::vector<Eigen::Vector3f>& prim_normals, int point_index,
+                                           const std::vector<int>& incident_faces,
+                                           const std::vector<int>& neighbor_points, float bevel_width, int segments,
+                                           float profile) {
   if (segments < 1 || bevel_width <= 0.0F)
     return;
   const Eigen::Vector3f& origin = (*input_positions)[point_index];
-  float min_half_edge =
-      std::numeric_limits<float>::infinity(); // Initialize min_half_edge
+  float min_half_edge = std::numeric_limits<float>::infinity(); // Initialize min_half_edge
   for (int neighbor_index : neighbor_points) {
     float distance = ((*input_positions)[neighbor_index] - origin).norm();
     min_half_edge = std::min(min_half_edge, (HALF * distance) - CLAMP_EPS);
@@ -388,13 +340,9 @@ static void add_vertex_bevel_patch_apexfan(
   }
   if (normals.size() < 2)
     return;
-  Eigen::Vector3f average_normal = (normal_accum.norm() < EPS_VERY_TINY)
-                                       ? normals[0]
-                                       : normal_accum.normalized();
+  Eigen::Vector3f average_normal = (normal_accum.norm() < EPS_VERY_TINY) ? normals[0] : normal_accum.normalized();
   Eigen::Vector3f helper_vec =
-      (std::fabs(average_normal.x()) < BASIS_HELPER_THRESHOLD)
-          ? Eigen::Vector3f(1, 0, 0)
-          : Eigen::Vector3f(0, 1, 0);
+      (std::fabs(average_normal.x()) < BASIS_HELPER_THRESHOLD) ? Eigen::Vector3f(1, 0, 0) : Eigen::Vector3f(0, 1, 0);
   Eigen::Vector3f tangent_vec = average_normal.cross(helper_vec);
   if (tangent_vec.norm() < EPS_VERY_TINY)
     tangent_vec = average_normal.cross(Eigen::Vector3f(0, 0, 1));
@@ -414,9 +362,7 @@ static void add_vertex_bevel_patch_apexfan(
     ordered_dirs.push_back({angle, face_normal});
   }
   std::sort(ordered_dirs.begin(), ordered_dirs.end(),
-            [](const OrderedDir& lhs, const OrderedDir& rhs) {
-              return lhs.angle < rhs.angle;
-            });
+            [](const OrderedDir& lhs, const OrderedDir& rhs) { return lhs.angle < rhs.angle; });
   int direction_count = static_cast<int>(ordered_dirs.size());
   std::vector<Eigen::Vector3f> ring_points;
   ring_points.reserve(static_cast<size_t>(direction_count * segments));
@@ -434,22 +380,18 @@ static void add_vertex_bevel_patch_apexfan(
   topology.set_vertex_point(base_vertex, point_index); // apex
   size_t first_ring_vertex_start = base_vertex + 1;
   for (size_t i = 0; i < ring_points.size(); ++i)
-    topology.set_vertex_point(first_ring_vertex_start + i,
-                              static_cast<int>(base_point + i));
+    topology.set_vertex_point(first_ring_vertex_start + i, static_cast<int>(base_point + i));
   if (segments >= 1) {
     for (int dir_i = 0; dir_i < direction_count; ++dir_i) {
       int v_apex = static_cast<int>(base_vertex);
       int v_curr = static_cast<int>(first_ring_vertex_start + dir_i);
-      int v_next = static_cast<int>(first_ring_vertex_start +
-                                    ((dir_i + 1) % direction_count));
+      int v_next = static_cast<int>(first_ring_vertex_start + ((dir_i + 1) % direction_count));
       geo.add_primitive({v_apex, v_curr, v_next});
     }
   }
   for (int ring_i = 1; ring_i < segments; ++ring_i) {
-    size_t prev_start = first_ring_vertex_start +
-                        static_cast<size_t>((ring_i - 1) * direction_count);
-    size_t curr_start =
-        first_ring_vertex_start + static_cast<size_t>(ring_i * direction_count);
+    size_t prev_start = first_ring_vertex_start + static_cast<size_t>((ring_i - 1) * direction_count);
+    size_t curr_start = first_ring_vertex_start + static_cast<size_t>(ring_i * direction_count);
     for (int dir_i = 0; dir_i < direction_count; ++dir_i) {
       int dir_next = (dir_i + 1) % direction_count;
       int v_prev0 = static_cast<int>(prev_start + dir_i);
@@ -463,14 +405,13 @@ static void add_vertex_bevel_patch_apexfan(
 
 // Grid variant: per-ring grid sampling between adjacent face normals (angular
 // subdivisions)
-static void add_vertex_bevel_patch_grid(
-    core::GeometryContainer& geo,
-    core::AttributeStorage<Eigen::Vector3f>*& result_positions,
-    const core::AttributeStorage<Eigen::Vector3f>* input_positions,
-    const std::vector<Eigen::Vector3f>& prim_normals, int point_index,
-    const std::vector<int>& incident_faces,
-    const std::vector<int>& neighbor_points, float bevel_width, int segments,
-    float profile, const CornerReuseMap* reuse = nullptr) {
+static void add_vertex_bevel_patch_grid(core::GeometryContainer& geo,
+                                        core::AttributeStorage<Eigen::Vector3f>*& result_positions,
+                                        const core::AttributeStorage<Eigen::Vector3f>* input_positions,
+                                        const std::vector<Eigen::Vector3f>& prim_normals, int point_index,
+                                        const std::vector<int>& incident_faces, const std::vector<int>& neighbor_points,
+                                        float bevel_width, int segments, float profile,
+                                        const CornerReuseMap* reuse = nullptr) {
   if (segments < 1 || bevel_width <= 0.0F)
     return;
   const Eigen::Vector3f& origin = (*input_positions)[point_index];
@@ -503,14 +444,10 @@ static void add_vertex_bevel_patch_grid(
   }
   if (face_dirs.size() < 2)
     return;
-  Eigen::Vector3f average_normal = (normal_accum.norm() < EPS_VERY_TINY)
-                                       ? face_dirs[0].n
-                                       : normal_accum.normalized();
+  Eigen::Vector3f average_normal = (normal_accum.norm() < EPS_VERY_TINY) ? face_dirs[0].n : normal_accum.normalized();
 
   Eigen::Vector3f helper_vec =
-      (std::fabs(average_normal.x()) < BASIS_HELPER_THRESHOLD)
-          ? Eigen::Vector3f(1, 0, 0)
-          : Eigen::Vector3f(0, 1, 0);
+      (std::fabs(average_normal.x()) < BASIS_HELPER_THRESHOLD) ? Eigen::Vector3f(1, 0, 0) : Eigen::Vector3f(0, 1, 0);
   Eigen::Vector3f tangent_vec = average_normal.cross(helper_vec);
   if (tangent_vec.norm() < EPS_VERY_TINY)
     tangent_vec = average_normal.cross(Eigen::Vector3f(0, 0, 1));
@@ -532,9 +469,7 @@ static void add_vertex_bevel_patch_grid(
     ordered.push_back({ang, fd_entry.face, fd_entry.n});
   }
   std::sort(ordered.begin(), ordered.end(),
-            [](const OrderedFD& left, const OrderedFD& right) {
-              return left.angle < right.angle;
-            });
+            [](const OrderedFD& left, const OrderedFD& right) { return left.angle < right.angle; });
   int direction_count = static_cast<int>(ordered.size());
   if (direction_count < 2)
     return;
@@ -564,8 +499,7 @@ static void add_vertex_bevel_patch_grid(
       int u_sub = k % u_divs_per_wedge;
       const OrderedFD& fd0 = ordered[wedge_idx];
       const OrderedFD& fd1 = ordered[(wedge_idx + 1) % direction_count];
-      float u_t =
-          static_cast<float>(u_sub) / static_cast<float>(u_divs_per_wedge);
+      float u_t = static_cast<float>(u_sub) / static_cast<float>(u_divs_per_wedge);
       Eigen::Vector3f blended_dir = ((1.0F - u_t) * fd0.dir) + (u_t * fd1.dir);
       if (blended_dir.norm() < EPS_VERY_TINY)
         blended_dir = fd0.dir;
@@ -590,14 +524,12 @@ static void add_vertex_bevel_patch_grid(
         add_positions.push_back(pend.pos);
       size_t base_point = append_points(geo, result_positions, add_positions);
       for (size_t i = 0; i < pending.size(); ++i) {
-        point_ids[static_cast<size_t>(pending[i].k)] =
-            static_cast<int>(base_point + i);
+        point_ids[static_cast<size_t>(pending[i].k)] = static_cast<int>(base_point + i);
       }
     }
 
     size_t base_vertex = geo.vertex_count();
-    geo.set_vertex_count(base_vertex +
-                         static_cast<size_t>(total_angular_samples));
+    geo.set_vertex_count(base_vertex + static_cast<size_t>(total_angular_samples));
     std::vector<int> ring_vert_ids;
     ring_vert_ids.reserve(static_cast<size_t>(total_angular_samples));
     for (int k = 0; k < total_angular_samples; ++k) {
@@ -624,14 +556,13 @@ static void add_vertex_bevel_patch_grid(
 
 // RingStart variant: omit apex fan; build only ring quads starting from first
 // ring
-static void add_vertex_bevel_patch_ringstart(
-    core::GeometryContainer& geo,
-    core::AttributeStorage<Eigen::Vector3f>*& result_positions,
-    const core::AttributeStorage<Eigen::Vector3f>* input_positions,
-    const std::vector<Eigen::Vector3f>& prim_normals, int point_index,
-    const std::vector<int>& incident_faces,
-    const std::vector<int>& neighbor_points, float bevel_width, int segments,
-    float profile, const CornerReuseMap* reuse = nullptr) {
+static void add_vertex_bevel_patch_ringstart(core::GeometryContainer& geo,
+                                             core::AttributeStorage<Eigen::Vector3f>*& result_positions,
+                                             const core::AttributeStorage<Eigen::Vector3f>* input_positions,
+                                             const std::vector<Eigen::Vector3f>& prim_normals, int point_index,
+                                             const std::vector<int>& incident_faces,
+                                             const std::vector<int>& neighbor_points, float bevel_width, int segments,
+                                             float profile, const CornerReuseMap* reuse = nullptr) {
   if (segments < 1 || bevel_width <= 0.0F)
     return;
   const Eigen::Vector3f& origin = (*input_positions)[point_index];
@@ -663,13 +594,9 @@ static void add_vertex_bevel_patch_ringstart(
   }
   if (face_dirs.size() < 2)
     return;
-  Eigen::Vector3f average_normal = (normal_accum.norm() < EPS_VERY_TINY)
-                                       ? face_dirs[0].n
-                                       : normal_accum.normalized();
+  Eigen::Vector3f average_normal = (normal_accum.norm() < EPS_VERY_TINY) ? face_dirs[0].n : normal_accum.normalized();
   Eigen::Vector3f helper_vec =
-      (std::fabs(average_normal.x()) < BASIS_HELPER_THRESHOLD)
-          ? Eigen::Vector3f(1, 0, 0)
-          : Eigen::Vector3f(0, 1, 0);
+      (std::fabs(average_normal.x()) < BASIS_HELPER_THRESHOLD) ? Eigen::Vector3f(1, 0, 0) : Eigen::Vector3f(0, 1, 0);
   Eigen::Vector3f tangent_vec = average_normal.cross(helper_vec);
   if (tangent_vec.norm() < EPS_VERY_TINY)
     tangent_vec = average_normal.cross(Eigen::Vector3f(0, 0, 1));
@@ -689,9 +616,7 @@ static void add_vertex_bevel_patch_ringstart(
     ordered_dirs.push_back({angle, face_dir_entry.n});
   }
   std::sort(ordered_dirs.begin(), ordered_dirs.end(),
-            [](const OrderedDir& lhs, const OrderedDir& rhs) {
-              return lhs.angle < rhs.angle;
-            });
+            [](const OrderedDir& lhs, const OrderedDir& rhs) { return lhs.angle < rhs.angle; });
   int direction_count = static_cast<int>(ordered_dirs.size());
 
   auto& topology = geo.topology();
@@ -726,13 +651,11 @@ static void add_vertex_bevel_patch_ringstart(
         // best
         float best_dot = -1.0F;
         for (int face_index : incident_faces) {
-          Eigen::Vector3f face_nrm =
-              prim_normals[static_cast<size_t>(face_index)];
+          Eigen::Vector3f face_nrm = prim_normals[static_cast<size_t>(face_index)];
           if (face_nrm.norm() < EPS_VERY_TINY)
             continue;
           face_nrm.normalize();
-          float dot_candidate =
-              std::clamp(face_nrm.dot(entry.dir), -1.0F, 1.0F);
+          float dot_candidate = std::clamp(face_nrm.dot(entry.dir), -1.0F, 1.0F);
           if (dot_candidate > best_dot) {
             best_dot = dot_candidate;
             matched_face = face_index;
@@ -794,10 +717,10 @@ static void add_vertex_bevel_patch_ringstart(
 }
 
 // Bevel modes
-static std::shared_ptr<core::GeometryContainer>
-bevel_edges(const core::GeometryContainer& input, float bevel_width,
-            int segments, float angle_threshold, float profile,
-            bool clamp_overlap, CornerReuseMap* corner_reuse = nullptr) {
+static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::GeometryContainer& input, float bevel_width,
+                                                            int segments, float angle_threshold, float profile,
+                                                            bool clamp_overlap,
+                                                            CornerReuseMap* corner_reuse = nullptr) {
   std::cout << "\n=== Edge Bevel Mode ===\n";
   if (bevel_width <= 0.0F || segments < 1)
     return std::make_shared<core::GeometryContainer>(input.clone());
@@ -805,30 +728,26 @@ bevel_edges(const core::GeometryContainer& input, float bevel_width,
     std::cerr << "Edge Bevel: Missing position attribute P\n";
     return nullptr;
   }
-  const auto* positions_attr =
-      input.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+  const auto* positions_attr = input.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   if (positions_attr == nullptr) {
     std::cerr << "Edge Bevel: Position attribute retrieval failed\n";
     return nullptr;
   }
   auto result = std::make_shared<core::GeometryContainer>(input.clone());
   result->ensure_position_attribute();
-  auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(
-      core::standard_attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   if (result_positions == nullptr) {
     std::cerr << "Edge Bevel: Failed to access result positions\n";
     return result;
   }
   std::vector<Eigen::Vector3f> prim_normals;
   std::vector<Eigen::Vector3f> prim_centroids;
-  compute_prim_normals_centroids(input, positions_attr, prim_normals,
-                                 prim_centroids);
+  compute_prim_normals_centroids(input, positions_attr, prim_normals, prim_centroids);
   std::map<EdgeKey, EdgeInfo> edge_map;
   build_edge_map(input, edge_map);
   auto sharp_edges = find_sharp_edges(edge_map, prim_normals, angle_threshold);
   if (sharp_edges.empty()) {
-    std::cout << "Edge Bevel: No sharp edges above threshold ("
-              << angle_threshold << "°)\n";
+    std::cout << "Edge Bevel: No sharp edges above threshold (" << angle_threshold << "°)\n";
     return std::make_shared<core::GeometryContainer>(input.clone());
   }
   for (const auto& edge_key : sharp_edges) {
@@ -845,8 +764,7 @@ bevel_edges(const core::GeometryContainer& input, float bevel_width,
       width_for_edge = std::max(width_for_edge, 0.0F);
     }
     if (segs == 1) {
-      add_chamfer_quad_for_edge(*result, result_positions, prim_normals,
-                                edge_key, info, width_for_edge);
+      add_chamfer_quad_for_edge(*result, result_positions, prim_normals, edge_key, info, width_for_edge);
       // Record endpoints for corner stitching
       if (corner_reuse != nullptr) {
         // Points were appended last 4; stash mapping per original corner per
@@ -859,29 +777,22 @@ bevel_edges(const core::GeometryContainer& input, float bevel_width,
       }
     } else {
       size_t before_points = result->point_count();
-      add_chamfer_strip_for_edge(*result, result_positions, positions_attr,
-                                 prim_normals, edge_key, info, segs,
+      add_chamfer_strip_for_edge(*result, result_positions, positions_attr, prim_normals, edge_key, info, segs,
                                  width_for_edge, profile, clamp_overlap);
       if (corner_reuse != nullptr) {
         // First slice offsets: two points added at indices before_points and
         // before_points+1
         if (result->point_count() >= before_points + 2) {
-          corner_reuse->map[edge_key.point_index_a][info.faces[0]] =
-              static_cast<int>(before_points + 0);
-          corner_reuse->map[edge_key.point_index_b][info.faces[0]] =
-              static_cast<int>(before_points + 1);
+          corner_reuse->map[edge_key.point_index_a][info.faces[0]] = static_cast<int>(before_points + 0);
+          corner_reuse->map[edge_key.point_index_b][info.faces[0]] = static_cast<int>(before_points + 1);
         }
         // Last slice offsets: two points at end of strip
         size_t expected_points = static_cast<size_t>((segments + 1) * 2);
         if (result->point_count() >= before_points + expected_points) {
-          size_t last_a =
-              before_points + static_cast<size_t>((2 * segments) + 0);
-          size_t last_b =
-              before_points + static_cast<size_t>((2 * segments) + 1);
-          corner_reuse->map[edge_key.point_index_a][info.faces[1]] =
-              static_cast<int>(last_a);
-          corner_reuse->map[edge_key.point_index_b][info.faces[1]] =
-              static_cast<int>(last_b);
+          size_t last_a = before_points + static_cast<size_t>((2 * segments) + 0);
+          size_t last_b = before_points + static_cast<size_t>((2 * segments) + 1);
+          corner_reuse->map[edge_key.point_index_a][info.faces[1]] = static_cast<int>(last_a);
+          corner_reuse->map[edge_key.point_index_b][info.faces[1]] = static_cast<int>(last_b);
         }
       }
     }
@@ -891,60 +802,49 @@ bevel_edges(const core::GeometryContainer& input, float bevel_width,
 }
 
 static std::shared_ptr<core::GeometryContainer>
-bevel_vertices(const core::GeometryContainer& input, float bevel_width,
-               int segments, float angle_threshold, float profile,
-               BevelSOP::CornerStyle corner_style,
-               const CornerReuseMap* reuse = nullptr,
+bevel_vertices(const core::GeometryContainer& input, float bevel_width, int segments, float angle_threshold,
+               float profile, BevelSOP::CornerStyle corner_style, const CornerReuseMap* reuse = nullptr,
                const core::GeometryContainer* topology_source = nullptr) {
   std::cout << "\n=== Vertex Bevel Mode (multi-ring prototype) ===\n";
   if (bevel_width <= 0.0F || segments < 1)
     return std::make_shared<core::GeometryContainer>(input.clone());
   // Use separate topology source (original pre-edge geometry) when provided for
   // candidate analysis
-  const core::GeometryContainer& analysis_geo =
-      (topology_source != nullptr) ? *topology_source : input;
+  const core::GeometryContainer& analysis_geo = (topology_source != nullptr) ? *topology_source : input;
   if (!analysis_geo.has_point_attribute(core::standard_attrs::P)) {
     std::cerr << "Vertex Bevel: Missing position attribute P\n";
     return nullptr;
   }
-  const auto* positions_attr =
-      analysis_geo.get_point_attribute_typed<Eigen::Vector3f>(
-          core::standard_attrs::P);
+  const auto* positions_attr = analysis_geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   if (positions_attr == nullptr) {
     std::cerr << "Vertex Bevel: Position attribute retrieval failed\n";
     return nullptr;
   }
   auto result = std::make_shared<core::GeometryContainer>(input.clone());
   result->ensure_position_attribute();
-  auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(
-      core::standard_attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
   if (result_positions == nullptr) {
     std::cerr << "Vertex Bevel: Failed to access result positions\n";
     return result;
   }
   std::vector<Eigen::Vector3f> prim_normals;
   std::vector<Eigen::Vector3f> prim_centroids;
-  compute_prim_normals_centroids(analysis_geo, positions_attr, prim_normals,
-                                 prim_centroids);
+  compute_prim_normals_centroids(analysis_geo, positions_attr, prim_normals, prim_centroids);
   std::map<EdgeKey, EdgeInfo> edge_map;
   build_edge_map(analysis_geo, edge_map);
   auto sharp_edges = find_sharp_edges(edge_map, prim_normals, angle_threshold);
   std::vector<std::vector<int>> point_faces(analysis_geo.point_count());
   std::vector<std::vector<int>> point_neighbors(analysis_geo.point_count());
-  for (size_t prim_index = 0; prim_index < analysis_geo.primitive_count();
-       ++prim_index) {
-    const auto& primitive_vertices =
-        analysis_geo.topology().get_primitive_vertices(prim_index);
+  for (size_t prim_index = 0; prim_index < analysis_geo.primitive_count(); ++prim_index) {
+    const auto& primitive_vertices = analysis_geo.topology().get_primitive_vertices(prim_index);
     for (int vertex_index : primitive_vertices) {
       int point_index = analysis_geo.topology().get_vertex_point(vertex_index);
       point_faces[point_index].push_back(static_cast<int>(prim_index));
     }
   }
   for (const auto& edge_entry : edge_map) {
-    point_neighbors[edge_entry.first.point_index_a].push_back(
-        edge_entry.first.point_index_b);
-    point_neighbors[edge_entry.first.point_index_b].push_back(
-        edge_entry.first.point_index_a);
+    point_neighbors[edge_entry.first.point_index_a].push_back(edge_entry.first.point_index_b);
+    point_neighbors[edge_entry.first.point_index_b].push_back(edge_entry.first.point_index_a);
   }
   std::set<int> points_to_bevel;
   for (const auto& edge_key : sharp_edges) {
@@ -960,70 +860,60 @@ bevel_vertices(const core::GeometryContainer& input, float bevel_width,
     }
     points_to_bevel = std::move(restricted);
   }
-  std::cout << "Vertex Bevel: candidate points = " << points_to_bevel.size()
-            << "\n";
+  std::cout << "Vertex Bevel: candidate points = " << points_to_bevel.size() << "\n";
   for (int point_index : points_to_bevel) {
     if (corner_style == BevelSOP::CornerStyle::RingStart) {
-      add_vertex_bevel_patch_ringstart(
-          *result, result_positions, positions_attr, prim_normals, point_index,
-          point_faces[point_index], point_neighbors[point_index], bevel_width,
-          segments, profile, reuse);
+      add_vertex_bevel_patch_ringstart(*result, result_positions, positions_attr, prim_normals, point_index,
+                                       point_faces[point_index], point_neighbors[point_index], bevel_width, segments,
+                                       profile, reuse);
     } else if (corner_style == BevelSOP::CornerStyle::Grid) {
-      add_vertex_bevel_patch_grid(
-          *result, result_positions, positions_attr, prim_normals, point_index,
-          point_faces[point_index], point_neighbors[point_index], bevel_width,
-          segments, profile, reuse);
+      add_vertex_bevel_patch_grid(*result, result_positions, positions_attr, prim_normals, point_index,
+                                  point_faces[point_index], point_neighbors[point_index], bevel_width, segments,
+                                  profile, reuse);
     } else { // default ApexFan
-      add_vertex_bevel_patch_apexfan(
-          *result, result_positions, positions_attr, prim_normals, point_index,
-          point_faces[point_index], point_neighbors[point_index], bevel_width,
-          segments, profile);
+      add_vertex_bevel_patch_apexfan(*result, result_positions, positions_attr, prim_normals, point_index,
+                                     point_faces[point_index], point_neighbors[point_index], bevel_width, segments,
+                                     profile);
     }
   }
   recompute_primitive_normals(*result);
   return result;
 }
 
-static std::shared_ptr<core::GeometryContainer>
-bevel_faces(const core::GeometryContainer& input, float /*bevel_width*/,
-            int /*segments*/, float /*angle_threshold*/) {
+static std::shared_ptr<core::GeometryContainer> bevel_faces(const core::GeometryContainer& input, float /*bevel_width*/,
+                                                            int /*segments*/, float /*angle_threshold*/) {
   std::cout << "Face Bevel: not implemented yet, pass-through\n";
   return std::make_shared<core::GeometryContainer>(input.clone());
 }
 
 // BevelSOP implementation
 BevelSOP::BevelSOP(const std::string& name) : SOPNode(name, "Bevel") {
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
   register_parameter(define_float_parameter("width", BevelSOP::DEFAULT_WIDTH)
                          .label("Width")
                          .category("Bevel")
                          .description("Bevel width")
                          .range(0.0, MAX_WIDTH_RANGE)
                          .build());
-  register_parameter(
-      define_int_parameter("segments", BevelSOP::DEFAULT_SEGMENTS)
-          .label("Segments")
-          .category("Bevel")
-          .description("Rounded bevel segments")
-          .range(1, MAX_SEGMENTS_RANGE)
-          .build());
-  register_parameter(
-      define_float_parameter("profile", BevelSOP::DEFAULT_PROFILE)
-          .label("Profile")
-          .category("Bevel")
-          .description("Profile shape (0=soft,1=sharp)")
-          .range(0.0, 1.0)
-          .build());
-  register_parameter(
-      define_int_parameter("mode", static_cast<int>(BevelType::Edge))
-          .label("Mode")
-          .category("Bevel")
-          .description("Bevel mode")
-          .options({"Vertex", "Edge", "Face", "EdgeVertex"})
-          .build());
-  register_parameter(define_int_parameter(
-                         "corner_style", static_cast<int>(CornerStyle::ApexFan))
+  register_parameter(define_int_parameter("segments", BevelSOP::DEFAULT_SEGMENTS)
+                         .label("Segments")
+                         .category("Bevel")
+                         .description("Rounded bevel segments")
+                         .range(1, MAX_SEGMENTS_RANGE)
+                         .build());
+  register_parameter(define_float_parameter("profile", BevelSOP::DEFAULT_PROFILE)
+                         .label("Profile")
+                         .category("Bevel")
+                         .description("Profile shape (0=soft,1=sharp)")
+                         .range(0.0, 1.0)
+                         .build());
+  register_parameter(define_int_parameter("mode", static_cast<int>(BevelType::Edge))
+                         .label("Mode")
+                         .category("Bevel")
+                         .description("Bevel mode")
+                         .options({"Vertex", "Edge", "Face", "EdgeVertex"})
+                         .build());
+  register_parameter(define_int_parameter("corner_style", static_cast<int>(CornerStyle::ApexFan))
                          .label("Corner Style")
                          .category("Bevel")
                          .description("Vertex corner patch topology")
@@ -1050,58 +940,46 @@ std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
   }
   float bevel_width = get_parameter<float>("width", BevelSOP::DEFAULT_WIDTH);
   int segments = get_parameter<int>("segments", BevelSOP::DEFAULT_SEGMENTS);
-  float angle_threshold =
-      get_parameter<float>("angle_limit", DEFAULT_ANGLE_LIMIT);
+  float angle_threshold = get_parameter<float>("angle_limit", DEFAULT_ANGLE_LIMIT);
   bool clamp_overlap = get_parameter<bool>("clamp_overlap", true);
   float profile = get_parameter<float>("profile", BevelSOP::DEFAULT_PROFILE);
-  auto mode = static_cast<BevelType>(
-      get_parameter<int>("mode", static_cast<int>(BevelType::Edge)));
-  auto corner_style = static_cast<CornerStyle>(get_parameter<int>(
-      "corner_style", static_cast<int>(CornerStyle::ApexFan)));
+  auto mode = static_cast<BevelType>(get_parameter<int>("mode", static_cast<int>(BevelType::Edge)));
+  auto corner_style =
+      static_cast<CornerStyle>(get_parameter<int>("corner_style", static_cast<int>(CornerStyle::ApexFan)));
   std::cout << "\n=== Bevel SOP ===\n";
-  std::cout << "Input: " << input->point_count() << " pts, "
-            << input->primitive_count() << " prims\n";
-  std::cout << "Width=" << bevel_width << " Segments=" << segments
-            << " AngleLimit=" << angle_threshold
+  std::cout << "Input: " << input->point_count() << " pts, " << input->primitive_count() << " prims\n";
+  std::cout << "Width=" << bevel_width << " Segments=" << segments << " AngleLimit=" << angle_threshold
             << " Mode=" << static_cast<int>(mode) << "\n";
   std::shared_ptr<core::GeometryContainer> result;
   switch (mode) {
     case BevelType::Vertex:
       std::cout << "CornerStyle=" << static_cast<int>(corner_style) << "\n";
-      result = bevel_vertices(*input, bevel_width, segments, angle_threshold,
-                              profile, corner_style, nullptr);
+      result = bevel_vertices(*input, bevel_width, segments, angle_threshold, profile, corner_style, nullptr);
       break;
     case BevelType::Edge:
-      result = bevel_edges(*input, bevel_width, segments, angle_threshold,
-                           profile, clamp_overlap);
+      result = bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap);
       break;
     case BevelType::Face:
       result = bevel_faces(*input, bevel_width, segments, angle_threshold);
       break;
     case BevelType::EdgeVertex: {
       CornerReuseMap reuse;
-      auto after_edges =
-          bevel_edges(*input, bevel_width, segments, angle_threshold, profile,
-                      clamp_overlap, &reuse);
+      auto after_edges = bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap, &reuse);
       if (!after_edges) {
         result = nullptr;
         break;
       }
       // For stitching, prefer RingStart so outer ring can reuse edge endpoints.
-      auto effective_corner_style = (corner_style == CornerStyle::ApexFan)
-                                        ? CornerStyle::RingStart
-                                        : corner_style;
+      auto effective_corner_style = (corner_style == CornerStyle::ApexFan) ? CornerStyle::RingStart : corner_style;
       // Restrict vertex bevel candidates to ORIGINAL corners (use 'input' as
       // analysis topology)
-      result =
-          bevel_vertices(*after_edges, bevel_width, segments, angle_threshold,
-                         profile, effective_corner_style, &reuse, input.get());
+      result = bevel_vertices(*after_edges, bevel_width, segments, angle_threshold, profile, effective_corner_style,
+                              &reuse, input.get());
       break;
     }
   }
   if (result) {
-    std::cout << "Result: " << result->point_count() << " pts, "
-              << result->primitive_count() << " prims\n";
+    std::cout << "Result: " << result->point_count() << " pts, " << result->primitive_count() << " prims\n";
   }
   std::cout << "================================\n";
   return result;

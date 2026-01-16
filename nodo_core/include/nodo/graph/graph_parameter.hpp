@@ -33,13 +33,11 @@ public:
   };
 
   // Value type - matches NodeParameter value types
-  using ValueType =
-      std::variant<int, float, std::string, bool, std::array<float, 3>>;
+  using ValueType = std::variant<int, float, std::string, bool, std::array<float, 3>>;
 
   GraphParameter() = default;
 
-  GraphParameter(const std::string& name, Type type,
-                 const std::string& description = "")
+  GraphParameter(const std::string& name, Type type, const std::string& description = "")
       : name_(name), type_(type), description_(description) {}
 
   // Getters
@@ -90,13 +88,11 @@ public:
       value_ = value;
     } else if (std::holds_alternative<float>(value) && type_ == Type::Float) {
       value_ = value;
-    } else if (std::holds_alternative<std::string>(value) &&
-               type_ == Type::String) {
+    } else if (std::holds_alternative<std::string>(value) && type_ == Type::String) {
       value_ = value;
     } else if (std::holds_alternative<bool>(value) && type_ == Type::Bool) {
       value_ = value;
-    } else if (std::holds_alternative<std::array<float, 3>>(value) &&
-               type_ == Type::Vector3) {
+    } else if (std::holds_alternative<std::array<float, 3>>(value) && type_ == Type::Vector3) {
       value_ = value;
     }
     // Silently ignore type mismatches (defensive)

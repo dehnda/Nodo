@@ -55,14 +55,11 @@ Vector3 apply_rotation(const Vector3& point, const Matrix3& rotation) {
 Vector3 apply_translation(const Vector3& point, const Vector3& offset) {
   return point + offset;
 }
-Vector3 apply_transform(const Vector3& point, const Matrix3& rotation,
-                        const Vector3& offset) {
+Vector3 apply_transform(const Vector3& point, const Matrix3& rotation, const Vector3& offset) {
   return apply_translation(apply_rotation(point, rotation), offset);
 }
 
-Vector3 mirror_point_across_plane(const Vector3& point,
-                                  const Vector3& plane_point,
-                                  const Vector3& plane_normal) {
+Vector3 mirror_point_across_plane(const Vector3& point, const Vector3& plane_point, const Vector3& plane_normal) {
   // Vector from plane point to the point being mirrored
   Vector3 to_point = point - plane_point;
 
@@ -83,8 +80,7 @@ Vector3 midpoint(const Vector3& point_a, const Vector3& point_b) {
   return (point_a + point_b) / MIDPOINT_FACTOR;
 }
 
-Vector3 triangle_centroid(const Vector3& vertex_a, const Vector3& vertex_b,
-                          const Vector3& vertex_c) {
+Vector3 triangle_centroid(const Vector3& vertex_a, const Vector3& vertex_b, const Vector3& vertex_c) {
   constexpr double TRIANGLE_VERTEX_COUNT = 3.0;
   return (vertex_a + vertex_b + vertex_c) / TRIANGLE_VERTEX_COUNT;
 }
@@ -93,30 +89,26 @@ Vector3 triangle_centroid(const Vector3& vertex_a, const Vector3& vertex_b,
 // Circular/Polar Utilities
 // ============================================================================
 
-Vector3 point_on_circle(double radius, double angle_radians,
-                        const Vector3& center) {
+Vector3 point_on_circle(double radius, double angle_radians, const Vector3& center) {
   Vector3 offset = circular_offset_2d(radius, angle_radians);
   return center + offset;
 }
 
 Vector3 circular_offset_2d(double radius, double angle_radians) {
-  return Vector3(radius * std::cos(angle_radians),
-                 radius * std::sin(angle_radians), 0.0);
+  return Vector3(radius * std::cos(angle_radians), radius * std::sin(angle_radians), 0.0);
 }
 
 // ============================================================================
 // Vector Operations
 // ============================================================================
 
-Vector3 displace_along_direction(const Vector3& point, const Vector3& direction,
-                                 double amount) {
+Vector3 displace_along_direction(const Vector3& point, const Vector3& direction, double amount) {
   return point + direction * amount;
 }
 
-void transform_vertices_range(
-    const double* input_vertices, // Raw pointer to avoid circular dependency
-    double* output_vertices, int vertex_count, const Matrix3& rotation,
-    const Vector3& offset) {
+void transform_vertices_range(const double* input_vertices, // Raw pointer to avoid circular dependency
+                              double* output_vertices, int vertex_count, const Matrix3& rotation,
+                              const Vector3& offset) {
   for (int v = 0; v < vertex_count; ++v) {
     ConstVector3Map input_point(input_vertices + v * 3);
     Vector3 transformed = apply_transform(input_point, rotation, offset);

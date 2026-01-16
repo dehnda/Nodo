@@ -57,9 +57,7 @@ public:
    * @param preserve_attributes Try to preserve custom attributes
    * @return Geometry container with P, N attributes
    */
-  static core::GeometryContainer
-  from_pmp_container(const pmp::SurfaceMesh& pmp_mesh,
-                     bool preserve_attributes = true);
+  static core::GeometryContainer from_pmp_container(const pmp::SurfaceMesh& pmp_mesh, bool preserve_attributes = true);
 
   // ====================================================================
   // Validation
@@ -81,12 +79,10 @@ public:
 
 private:
   // Helper: Extract positions from GeometryContainer
-  static std::vector<Eigen::Vector3d>
-  extract_positions(const core::GeometryContainer& container);
+  static std::vector<Eigen::Vector3d> extract_positions(const core::GeometryContainer& container);
 
   // Helper: Extract face indices from GeometryContainer
-  static std::vector<std::array<int, 3>>
-  extract_faces(const core::GeometryContainer& container);
+  static std::vector<std::array<int, 3>> extract_faces(const core::GeometryContainer& container);
 
   // Helper: Compute normals if not present
   static void compute_normals(pmp::SurfaceMesh& mesh);

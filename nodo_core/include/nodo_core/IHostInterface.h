@@ -33,8 +33,7 @@ public:
    * Called during graph execution, mesh processing, etc.
    * Host can display progress bar, update UI, or cancel operation.
    */
-  virtual bool report_progress(int current, int total,
-                               const std::string& message = "") {
+  virtual bool report_progress(int current, int total, const std::string& message = "") {
     return true; // Default: continue without displaying progress
   }
 

@@ -9,8 +9,7 @@ class NoiseDisplacementTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Generate a test sphere (now returns GeometryContainer)
-    auto sphere_result =
-        geometry::SphereGenerator::generate_uv_sphere(1.0, 16, 8);
+    auto sphere_result = geometry::SphereGenerator::generate_uv_sphere(1.0, 16, 8);
     ASSERT_TRUE(sphere_result.has_value());
 
     // Convert GeometryContainer to Mesh for testing
@@ -18,8 +17,7 @@ protected:
     const auto& topology = container.topology();
 
     // Extract positions
-    auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(
-        core::standard_attrs::P);
+    auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
     ASSERT_NE(p_storage, nullptr);
 
     Eigen::MatrixXd vertices(topology.point_count(), 3);
@@ -30,8 +28,7 @@ protected:
 
     // Extract faces
     Eigen::MatrixXi faces(topology.primitive_count(), 3);
-    for (size_t prim_idx = 0; prim_idx < topology.primitive_count();
-         ++prim_idx) {
+    for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
       const auto& verts = topology.get_primitive_vertices(prim_idx);
       for (size_t j = 0; j < 3 && j < verts.size(); ++j) {
         faces(prim_idx, j) = verts[j];

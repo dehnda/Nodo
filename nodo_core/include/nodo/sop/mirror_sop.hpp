@@ -46,25 +46,20 @@ public:
    * @brief Set the mirror plane
    * @param plane The plane to mirror across
    */
-  void set_plane(MirrorPlane plane) {
-    set_parameter("plane", static_cast<int>(plane));
-  }
+  void set_plane(MirrorPlane plane) { set_parameter("plane", static_cast<int>(plane)); }
 
   /**
    * @brief Get the current mirror plane
    * @return The current plane
    */
-  MirrorPlane get_plane() const {
-    return static_cast<MirrorPlane>(get_parameter<int>("plane", 2));
-  }
+  MirrorPlane get_plane() const { return static_cast<MirrorPlane>(get_parameter<int>("plane", 2)); }
 
   /**
    * @brief Set custom mirror plane (for CUSTOM plane type)
    * @param point A point on the plane
    * @param normal The plane normal vector
    */
-  void set_custom_plane(const core::Vector3& point,
-                        const core::Vector3& normal) {
+  void set_custom_plane(const core::Vector3& point, const core::Vector3& normal) {
     set_parameter("custom_point_x", static_cast<float>(point.x()));
     set_parameter("custom_point_y", static_cast<float>(point.y()));
     set_parameter("custom_point_z", static_cast<float>(point.z()));
@@ -77,9 +72,7 @@ public:
    * @brief Set whether to keep the original geometry
    * @param keep_original If true, result includes both original and mirrored
    */
-  void set_keep_original(bool keep_original) {
-    set_parameter("keep_original", keep_original ? 1 : 0);
-  }
+  void set_keep_original(bool keep_original) { set_parameter("keep_original", keep_original ? 1 : 0); }
 
   /**
    * @brief Get whether original geometry is kept
@@ -108,10 +101,8 @@ private:
    * @param plane_normal Normal of the mirror plane
    * @return Mirrored vertices
    */
-  std::vector<core::Vector3>
-  mirror_vertices(const std::vector<core::Vector3>& vertices,
-                  const core::Vector3& plane_point,
-                  const core::Vector3& plane_normal) const;
+  std::vector<core::Vector3> mirror_vertices(const std::vector<core::Vector3>& vertices,
+                                             const core::Vector3& plane_point, const core::Vector3& plane_normal) const;
 };
 
 } // namespace nodo::sop

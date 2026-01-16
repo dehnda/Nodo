@@ -9,11 +9,9 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-TransformSOP::TransformSOP(const std::string& name)
-    : SOPNode(name, "Transform") {
+TransformSOP::TransformSOP(const std::string& name) : SOPNode(name, "Transform") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Use Vector3 parameters for XYZ values (matches HTML design)
   register_parameter(define_vector3_parameter("translate", {0.0F, 0.0F, 0.0F})
@@ -47,8 +45,7 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
   }
 
   // Create output container as a deep copy of input
-  auto output_container =
-      std::make_shared<core::GeometryContainer>(input_container->clone());
+  auto output_container = std::make_shared<core::GeometryContainer>(input_container->clone());
 
   // Get point attribute for positions
   if (!output_container->has_point_attribute("P")) {
@@ -56,20 +53,16 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
     return nullptr;
   }
 
-  auto* p_attr =
-      output_container->get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* p_attr = output_container->get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!p_attr) {
     set_error("Position attribute has wrong type");
     return nullptr;
   }
 
   // Read transform parameters (as Vector3)
-  const auto translate = get_parameter<Eigen::Vector3f>(
-      "translate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
-  const auto rotate = get_parameter<Eigen::Vector3f>(
-      "rotate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
-  const auto scale_vec = get_parameter<Eigen::Vector3f>(
-      "scale", Eigen::Vector3f(1.0F, 1.0F, 1.0F));
+  const auto translate = get_parameter<Eigen::Vector3f>("translate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto rotate = get_parameter<Eigen::Vector3f>("rotate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto scale_vec = get_parameter<Eigen::Vector3f>("scale", Eigen::Vector3f(1.0F, 1.0F, 1.0F));
 
   const double translate_x = translate.x();
   const double translate_y = translate.y();
@@ -89,16 +82,13 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
 
   // Create rotation matrices
   Eigen::Matrix3d rot_x;
-  rot_x << 1.0, 0.0, 0.0, 0.0, std::cos(rot_x_rad), -std::sin(rot_x_rad), 0.0,
-      std::sin(rot_x_rad), std::cos(rot_x_rad);
+  rot_x << 1.0, 0.0, 0.0, 0.0, std::cos(rot_x_rad), -std::sin(rot_x_rad), 0.0, std::sin(rot_x_rad), std::cos(rot_x_rad);
 
   Eigen::Matrix3d rot_y;
-  rot_y << std::cos(rot_y_rad), 0.0, std::sin(rot_y_rad), 0.0, 1.0, 0.0,
-      -std::sin(rot_y_rad), 0.0, std::cos(rot_y_rad);
+  rot_y << std::cos(rot_y_rad), 0.0, std::sin(rot_y_rad), 0.0, 1.0, 0.0, -std::sin(rot_y_rad), 0.0, std::cos(rot_y_rad);
 
   Eigen::Matrix3d rot_z;
-  rot_z << std::cos(rot_z_rad), -std::sin(rot_z_rad), 0.0, std::sin(rot_z_rad),
-      std::cos(rot_z_rad), 0.0, 0.0, 0.0, 1.0;
+  rot_z << std::cos(rot_z_rad), -std::sin(rot_z_rad), 0.0, std::sin(rot_z_rad), std::cos(rot_z_rad), 0.0, 0.0, 0.0, 1.0;
 
   // Combined rotation matrix (Z * Y * X order)
   const Eigen::Matrix3d rotation = rot_z * rot_y * rot_x;
@@ -125,8 +115,7 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
 
   // Transform N attribute if present (rotation only, no scale or translation)
   if (output_container->has_point_attribute("N")) {
-    auto* n_attr =
-        output_container->get_point_attribute_typed<Eigen::Vector3f>("N");
+    auto* n_attr = output_container->get_point_attribute_typed<Eigen::Vector3f>("N");
     if (n_attr) {
       auto normals_span = n_attr->values_writable();
       for (size_t i = 0; i < normals_span.size(); ++i) {
@@ -147,12 +136,9 @@ std::shared_ptr<core::GeometryContainer> TransformSOP::execute() {
 
 Eigen::Matrix4d TransformSOP::build_transform_matrix() const {
   // Read parameters from parameter system (as Vector3)
-  const auto translate = get_parameter<Eigen::Vector3f>(
-      "translate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
-  const auto rotate = get_parameter<Eigen::Vector3f>(
-      "rotate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
-  const auto scale_vec = get_parameter<Eigen::Vector3f>(
-      "scale", Eigen::Vector3f(1.0F, 1.0F, 1.0F));
+  const auto translate = get_parameter<Eigen::Vector3f>("translate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto rotate = get_parameter<Eigen::Vector3f>("rotate", Eigen::Vector3f(0.0F, 0.0F, 0.0F));
+  const auto scale_vec = get_parameter<Eigen::Vector3f>("scale", Eigen::Vector3f(1.0F, 1.0F, 1.0F));
 
   const double translate_x = translate.x();
   const double translate_y = translate.y();

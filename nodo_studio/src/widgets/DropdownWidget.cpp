@@ -3,13 +3,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-DropdownWidget::DropdownWidget(const QString& label,
-                               const std::vector<QString>& options,
-                               int initial_index, const QString& description,
-                               QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      options_(options),
-      selected_index_(initial_index) {
+DropdownWidget::DropdownWidget(const QString& label, const std::vector<QString>& options, int initial_index,
+                               const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent), options_(options), selected_index_(initial_index) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
@@ -59,15 +55,13 @@ QWidget* DropdownWidget::createControlWidget() {
                                .arg(COLOR_ACCENT)
                                .arg("#ffffff"));
 
-  connect(combobox_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          &DropdownWidget::onCurrentIndexChanged);
+  connect(combobox_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DropdownWidget::onCurrentIndexChanged);
 
   return combobox_;
 }
 
 QString DropdownWidget::getSelectedOption() const {
-  if (selected_index_ >= 0 &&
-      selected_index_ < static_cast<int>(options_.size())) {
+  if (selected_index_ >= 0 && selected_index_ < static_cast<int>(options_.size())) {
     return options_[selected_index_];
   }
   return QString();
@@ -105,11 +99,9 @@ void DropdownWidget::setSelectedOption(const QString& option) {
   }
 }
 
-void DropdownWidget::setOptions(const std::vector<QString>& options,
-                                int selected_index) {
+void DropdownWidget::setOptions(const std::vector<QString>& options, int selected_index) {
   options_ = options;
-  selected_index_ =
-      std::clamp(selected_index, 0, static_cast<int>(options.size()) - 1);
+  selected_index_ = std::clamp(selected_index, 0, static_cast<int>(options.size()) - 1);
 
   if (combobox_) {
     combobox_->blockSignals(true);
@@ -127,8 +119,7 @@ void DropdownWidget::setOptions(const std::vector<QString>& options,
   }
 }
 
-void DropdownWidget::setSelectionChangedCallback(
-    std::function<void(int, const QString&)> callback) {
+void DropdownWidget::setSelectionChangedCallback(std::function<void(int, const QString&)> callback) {
   selection_changed_callback_ = callback;
 }
 

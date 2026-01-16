@@ -48,9 +48,8 @@ public:
    * @param error Optional error message output
    * @return Remeshed geometry, or nullopt on failure
    */
-  static std::optional<core::GeometryContainer>
-  remesh(const core::GeometryContainer& container,
-         const RemeshingParams& params, std::string* error = nullptr);
+  static std::optional<core::GeometryContainer> remesh(const core::GeometryContainer& container,
+                                                       const RemeshingParams& params, std::string* error = nullptr);
 };
 
 } // namespace nodo::processing

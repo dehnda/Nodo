@@ -27,8 +27,7 @@ class TimeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit TimeSOP(const std::string& node_name = "time")
-      : SOPNode(node_name, "Time") {
+  explicit TimeSOP(const std::string& node_name = "time") : SOPNode(node_name, "Time") {
     // No input ports - this is a source node
 
     // Frame number
@@ -40,13 +39,12 @@ public:
                            .build());
 
     // FPS
-    register_parameter(
-        define_float_parameter("fps", 24.0F)
-            .label("FPS")
-            .range(1.0, 120.0)
-            .category("Time")
-            .description("Frames per second for time calculation")
-            .build());
+    register_parameter(define_float_parameter("fps", 24.0F)
+                           .label("FPS")
+                           .range(1.0, 120.0)
+                           .category("Time")
+                           .description("Frames per second for time calculation")
+                           .build());
 
     // Start frame (for normalized time)
     register_parameter(define_int_parameter("start_frame", 1)
@@ -66,9 +64,7 @@ public:
   }
 
   // Generator node - no inputs required
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::NONE, 0, 0, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
@@ -80,10 +76,7 @@ protected:
     // Calculate time values
     const float time = static_cast<float>(frame) / fps;
     const float frame_range = static_cast<float>(end_frame - start_frame);
-    const float normalized_time =
-        frame_range > 0.0F
-            ? static_cast<float>(frame - start_frame) / frame_range
-            : 0.0F;
+    const float normalized_time = frame_range > 0.0F ? static_cast<float>(frame - start_frame) / frame_range : 0.0F;
 
     // Create output geometry with a single point at origin
     auto output = std::make_shared<core::GeometryContainer>();
@@ -110,8 +103,7 @@ protected:
     (*frame_attr)[0] = frame;
 
     output->add_point_attribute("normalized_time", core::AttributeType::FLOAT);
-    auto* norm_time_attr =
-        output->get_point_attribute_typed<float>("normalized_time");
+    auto* norm_time_attr = output->get_point_attribute_typed<float>("normalized_time");
     (*norm_time_attr)[0] = normalized_time;
 
     return output;

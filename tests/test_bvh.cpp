@@ -10,8 +10,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   const auto& topology = container.topology();
 
   // Extract positions
-  auto* p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
 
@@ -118,8 +117,7 @@ TEST_F(BVHTest, BVHRayIntersection) {
   }
 
   // Ray missing sphere should not hit
-  spatial::BVH::Ray miss_ray(Eigen::Vector3d(-2, 10, 0),
-                             Eigen::Vector3d(1, 0, 0));
+  spatial::BVH::Ray miss_ray(Eigen::Vector3d(-2, 10, 0), Eigen::Vector3d(1, 0, 0));
   auto miss_hit = bvh.intersect_ray(miss_ray);
   EXPECT_FALSE(miss_hit.has_value());
 }
@@ -144,8 +142,7 @@ TEST_F(BVHTest, BVHAABBQuery) {
   }
 
   // Query with empty AABB should return fewer or no triangles
-  spatial::AABB empty_aabb(Eigen::Vector3d(10, 10, 10),
-                           Eigen::Vector3d(11, 11, 11));
+  spatial::AABB empty_aabb(Eigen::Vector3d(10, 10, 10), Eigen::Vector3d(11, 11, 11));
   auto empty_triangles = bvh.query_aabb(empty_aabb);
   EXPECT_LE(empty_triangles.size(), triangles.size());
 }

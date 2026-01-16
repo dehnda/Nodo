@@ -27,8 +27,7 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  TextWidget(const QString& label, const QString& initial_text = QString(),
-             const QString& placeholder = QString(),
+  TextWidget(const QString& label, const QString& initial_text = QString(), const QString& placeholder = QString(),
              const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
@@ -40,8 +39,7 @@ public:
 
   // Callback support
   void setTextChangedCallback(std::function<void(const QString&)> callback);
-  void
-  setTextEditingFinishedCallback(std::function<void(const QString&)> callback);
+  void setTextEditingFinishedCallback(std::function<void(const QString&)> callback);
 
 signals:
   void textChangedSignal(const QString& text);

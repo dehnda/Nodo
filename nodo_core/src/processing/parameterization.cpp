@@ -13,10 +13,9 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-Parameterization::parameterize(const core::GeometryContainer& input,
-                               const ParameterizationParams& params,
-                               std::string* error) {
+std::optional<core::GeometryContainer> Parameterization::parameterize(const core::GeometryContainer& input,
+                                                                      const ParameterizationParams& params,
+                                                                      std::string* error) {
   try {
     // Validate input
     auto validation_error = detail::PMPConverter::validate_for_pmp(input);
@@ -73,10 +72,8 @@ Parameterization::parameterize(const core::GeometryContainer& input,
       const size_t n_vertices = pmp_mesh.n_vertices();
 
       // Create UV attribute
-      result.add_point_attribute(params.uv_attribute_name,
-                                 core::AttributeType::VEC2F);
-      auto* uv_attr = result.get_point_attribute_typed<core::Vec2f>(
-          params.uv_attribute_name);
+      result.add_point_attribute(params.uv_attribute_name, core::AttributeType::VEC2F);
+      auto* uv_attr = result.get_point_attribute_typed<core::Vec2f>(params.uv_attribute_name);
       uv_attr->resize(n_vertices);
       auto uv_writable = uv_attr->values_writable();
 

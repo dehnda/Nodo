@@ -67,8 +67,7 @@ public:
    * @param to_index Destination element index
    * @param src Source storage (must have same type)
    */
-  virtual void copy_element(size_t from_index, size_t to_index,
-                            const IAttributeStorage& src) = 0;
+  virtual void copy_element(size_t from_index, size_t to_index, const IAttributeStorage& src) = 0;
 
   /**
    * @brief Swap two elements within this storage
@@ -96,8 +95,7 @@ public:
 template <typename T>
 class AttributeStorage : public IAttributeStorage {
 public:
-  explicit AttributeStorage(AttributeDescriptor desc)
-      : descriptor_(std::move(desc)) {
+  explicit AttributeStorage(AttributeDescriptor desc) : descriptor_(std::move(desc)) {
     // Initialize with default value if available
     if (descriptor_.has_default()) {
       auto default_val = descriptor_.get_default<T>();
@@ -139,8 +137,7 @@ public:
     return cloned;
   }
 
-  void copy_element(size_t from_index, size_t to_index,
-                    const IAttributeStorage& src) override {
+  void copy_element(size_t from_index, size_t to_index, const IAttributeStorage& src) override {
     const auto* typed_src = dynamic_cast<const AttributeStorage<T>*>(&src);
     if (!typed_src) {
       throw std::runtime_error("Type mismatch in copy_element");
@@ -225,8 +222,7 @@ private:
 template <>
 class AttributeStorage<std::string> : public IAttributeStorage {
 public:
-  explicit AttributeStorage(AttributeDescriptor desc)
-      : descriptor_(std::move(desc)) {}
+  explicit AttributeStorage(AttributeDescriptor desc) : descriptor_(std::move(desc)) {}
 
   const AttributeDescriptor& descriptor() const override { return descriptor_; }
   size_t size() const override { return data_.size(); }
@@ -244,10 +240,8 @@ public:
     return cloned;
   }
 
-  void copy_element(size_t from_index, size_t to_index,
-                    const IAttributeStorage& src) override {
-    const auto* typed_src =
-        dynamic_cast<const AttributeStorage<std::string>*>(&src);
+  void copy_element(size_t from_index, size_t to_index, const IAttributeStorage& src) override {
+    const auto* typed_src = dynamic_cast<const AttributeStorage<std::string>*>(&src);
     if (!typed_src) {
       throw std::runtime_error("Type mismatch in copy_element");
     }
@@ -293,8 +287,7 @@ private:
 /**
  * @brief Factory to create typed AttributeStorage from descriptor
  */
-inline std::unique_ptr<IAttributeStorage>
-create_attribute_storage(const AttributeDescriptor& desc) {
+inline std::unique_ptr<IAttributeStorage> create_attribute_storage(const AttributeDescriptor& desc) {
   switch (desc.type()) {
     case AttributeType::FLOAT:
       return std::make_unique<AttributeStorage<float>>(desc);

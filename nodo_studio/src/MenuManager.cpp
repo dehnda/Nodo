@@ -54,14 +54,12 @@ auto MenuManager::setupFileMenu(QMenu* fileMenu) -> void {
 
   // Export submenu
   QMenu* exportMenu = fileMenu->addMenu("&Export");
-  QAction* exportCurrentAction =
-      exportMenu->addAction("Current Output (.obj)...");
+  QAction* exportCurrentAction = exportMenu->addAction("Current Output (.obj)...");
   QAction* exportAllAction = exportMenu->addAction("All Outputs...");
   exportAllAction->setEnabled(false); // TODO: Implement in future
   QAction* exportSelectionAction = exportMenu->addAction("Selected Node...");
   exportMenu->addSeparator();
-  QAction* exportGraphAction =
-      exportMenu->addAction("Graph Definition (.nfg)...");
+  QAction* exportGraphAction = exportMenu->addAction("Graph Definition (.nfg)...");
 
   fileMenu->addSeparator();
 
@@ -70,28 +68,17 @@ auto MenuManager::setupFileMenu(QMenu* fileMenu) -> void {
   exitAction->setShortcut(QKeySequence::Quit); // Ctrl+Q
 
   // Connect File menu actions
-  QObject::connect(newAction, &QAction::triggered, main_window_,
-                   &MainWindow::onNewScene);
-  QObject::connect(openAction, &QAction::triggered, main_window_,
-                   &MainWindow::onOpenScene);
-  QObject::connect(saveAction, &QAction::triggered, main_window_,
-                   &MainWindow::onSaveScene);
-  QObject::connect(saveAsAction, &QAction::triggered, main_window_,
-                   &MainWindow::onSaveSceneAs);
-  QObject::connect(revertAction, &QAction::triggered, main_window_,
-                   &MainWindow::onRevertToSaved);
-  QObject::connect(importGeomAction, &QAction::triggered, main_window_,
-                   &MainWindow::onImportGeometry);
-  QObject::connect(importGraphAction, &QAction::triggered, main_window_,
-                   &MainWindow::onImportGraph);
-  QObject::connect(exportCurrentAction, &QAction::triggered, main_window_,
-                   &MainWindow::onExportGeometry);
-  QObject::connect(exportSelectionAction, &QAction::triggered, main_window_,
-                   &MainWindow::onExportSelection);
-  QObject::connect(exportGraphAction, &QAction::triggered, main_window_,
-                   &MainWindow::onExportGraph);
-  QObject::connect(exitAction, &QAction::triggered, main_window_,
-                   &MainWindow::onExit);
+  QObject::connect(newAction, &QAction::triggered, main_window_, &MainWindow::onNewScene);
+  QObject::connect(openAction, &QAction::triggered, main_window_, &MainWindow::onOpenScene);
+  QObject::connect(saveAction, &QAction::triggered, main_window_, &MainWindow::onSaveScene);
+  QObject::connect(saveAsAction, &QAction::triggered, main_window_, &MainWindow::onSaveSceneAs);
+  QObject::connect(revertAction, &QAction::triggered, main_window_, &MainWindow::onRevertToSaved);
+  QObject::connect(importGeomAction, &QAction::triggered, main_window_, &MainWindow::onImportGeometry);
+  QObject::connect(importGraphAction, &QAction::triggered, main_window_, &MainWindow::onImportGraph);
+  QObject::connect(exportCurrentAction, &QAction::triggered, main_window_, &MainWindow::onExportGeometry);
+  QObject::connect(exportSelectionAction, &QAction::triggered, main_window_, &MainWindow::onExportSelection);
+  QObject::connect(exportGraphAction, &QAction::triggered, main_window_, &MainWindow::onExportGraph);
+  QObject::connect(exitAction, &QAction::triggered, main_window_, &MainWindow::onExit);
 }
 
 auto MenuManager::setupEditMenu(QMenu* editMenu) -> void {
@@ -137,26 +124,16 @@ auto MenuManager::setupEditMenu(QMenu* editMenu) -> void {
   invertSelectionAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_I));
 
   // Connect Edit menu actions
-  QObject::connect(undoAction, &QAction::triggered, main_window_,
-                   &MainWindow::onUndo);
-  QObject::connect(redoAction, &QAction::triggered, main_window_,
-                   &MainWindow::onRedo);
-  QObject::connect(cutAction, &QAction::triggered, main_window_,
-                   &MainWindow::onCut);
-  QObject::connect(copyAction, &QAction::triggered, main_window_,
-                   &MainWindow::onCopy);
-  QObject::connect(pasteAction, &QAction::triggered, main_window_,
-                   &MainWindow::onPaste);
-  QObject::connect(duplicateAction, &QAction::triggered, main_window_,
-                   &MainWindow::onDuplicate);
-  QObject::connect(deleteAction, &QAction::triggered, main_window_,
-                   &MainWindow::onDelete);
-  QObject::connect(selectAllAction, &QAction::triggered, main_window_,
-                   &MainWindow::onSelectAll);
-  QObject::connect(deselectAllAction, &QAction::triggered, main_window_,
-                   &MainWindow::onDeselectAll);
-  QObject::connect(invertSelectionAction, &QAction::triggered, main_window_,
-                   &MainWindow::onInvertSelection);
+  QObject::connect(undoAction, &QAction::triggered, main_window_, &MainWindow::onUndo);
+  QObject::connect(redoAction, &QAction::triggered, main_window_, &MainWindow::onRedo);
+  QObject::connect(cutAction, &QAction::triggered, main_window_, &MainWindow::onCut);
+  QObject::connect(copyAction, &QAction::triggered, main_window_, &MainWindow::onCopy);
+  QObject::connect(pasteAction, &QAction::triggered, main_window_, &MainWindow::onPaste);
+  QObject::connect(duplicateAction, &QAction::triggered, main_window_, &MainWindow::onDuplicate);
+  QObject::connect(deleteAction, &QAction::triggered, main_window_, &MainWindow::onDelete);
+  QObject::connect(selectAllAction, &QAction::triggered, main_window_, &MainWindow::onSelectAll);
+  QObject::connect(deselectAllAction, &QAction::triggered, main_window_, &MainWindow::onDeselectAll);
+  QObject::connect(invertSelectionAction, &QAction::triggered, main_window_, &MainWindow::onInvertSelection);
 }
 
 auto MenuManager::setupViewMenu(QMenu* viewMenu) -> void {
@@ -195,8 +172,7 @@ auto MenuManager::setupViewMenu(QMenu* viewMenu) -> void {
   edgesAction->setChecked(true);
   main_window_->setEdgesAction(edgesAction);
 
-  QAction* wireframeOverlayAction =
-      showHideMenu->addAction("Wireframe &Overlay");
+  QAction* wireframeOverlayAction = showHideMenu->addAction("Wireframe &Overlay");
   wireframeOverlayAction->setCheckable(true);
   wireframeOverlayAction->setChecked(false);
 
@@ -246,14 +222,10 @@ auto MenuManager::setupViewMenu(QMenu* viewMenu) -> void {
   resetLayoutAction->setEnabled(false); // TODO: Implement in v1.1
 
   // Connect View menu actions
-  QObject::connect(frameAllAction, &QAction::triggered, main_window_,
-                   &MainWindow::onFrameAll);
-  QObject::connect(frameSelectedAction, &QAction::triggered, main_window_,
-                   &MainWindow::onFrameSelected);
-  QObject::connect(wireframeModeAction, &QAction::toggled, main_window_,
-                   &MainWindow::onToggleWireframe);
-  QObject::connect(wireframeOverlayAction, &QAction::toggled, main_window_,
-                   &MainWindow::onToggleWireframe);
+  QObject::connect(frameAllAction, &QAction::triggered, main_window_, &MainWindow::onFrameAll);
+  QObject::connect(frameSelectedAction, &QAction::triggered, main_window_, &MainWindow::onFrameSelected);
+  QObject::connect(wireframeModeAction, &QAction::toggled, main_window_, &MainWindow::onToggleWireframe);
+  QObject::connect(wireframeOverlayAction, &QAction::toggled, main_window_, &MainWindow::onToggleWireframe);
 }
 
 auto MenuManager::setupGraphMenu(QMenu* graphMenu) -> void {
@@ -300,20 +272,17 @@ auto MenuManager::setupGraphMenu(QMenu* graphMenu) -> void {
   graphStatsAction->setEnabled(false); // TODO: Implement in v1.1
 
   // Connect Graph menu actions
-  QObject::connect(bypassSelectedAction, &QAction::triggered, main_window_,
-                   &MainWindow::onBypassSelected);
-  QObject::connect(disconnectAction, &QAction::triggered, main_window_,
-                   &MainWindow::onDisconnectSelected);
+  QObject::connect(bypassSelectedAction, &QAction::triggered, main_window_, &MainWindow::onBypassSelected);
+  QObject::connect(disconnectAction, &QAction::triggered, main_window_, &MainWindow::onDisconnectSelected);
 }
 
 auto MenuManager::setupHelpMenu(QMenu* helpMenu) -> void {
   QAction* documentationAction = helpMenu->addAction("&Documentation");
   documentationAction->setShortcut(QKeySequence::HelpContents); // F1
-  documentationAction->setEnabled(false); // TODO: Open docs in browser
+  documentationAction->setEnabled(false);                       // TODO: Open docs in browser
 
   QAction* keyboardShortcutsAction = helpMenu->addAction("&Keyboard Shortcuts");
-  keyboardShortcutsAction->setShortcut(
-      QKeySequence(Qt::CTRL | Qt::Key_Slash)); // Ctrl+/
+  keyboardShortcutsAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash)); // Ctrl+/
 
   QAction* gettingStartedAction = helpMenu->addAction("&Getting Started");
   gettingStartedAction->setEnabled(false); // TODO: Open tutorial
@@ -332,8 +301,7 @@ auto MenuManager::setupHelpMenu(QMenu* helpMenu) -> void {
   aboutAction->setEnabled(false); // TODO: Show about dialog
 
   // Connect Help menu actions
-  QObject::connect(keyboardShortcutsAction, &QAction::triggered, main_window_,
-                   &MainWindow::onShowKeyboardShortcuts);
+  QObject::connect(keyboardShortcutsAction, &QAction::triggered, main_window_, &MainWindow::onShowKeyboardShortcuts);
 }
 
 auto MenuManager::setupIconToolbar(QMenuBar* menuBar) -> void {
@@ -344,8 +312,7 @@ auto MenuManager::setupIconToolbar(QMenuBar* menuBar) -> void {
   toolbar_layout->setSpacing(4);
 
   // Helper lambda to create icon buttons
-  auto createIconButton = [](nodo_studio::IconManager::Icon iconType,
-                             const QString& tooltip) {
+  auto createIconButton = [](nodo_studio::IconManager::Icon iconType, const QString& tooltip) {
     auto* btn = new QToolButton();
     btn->setIcon(nodo_studio::Icons::get(iconType));
     btn->setToolTip(tooltip);
@@ -367,22 +334,16 @@ auto MenuManager::setupIconToolbar(QMenuBar* menuBar) -> void {
   };
 
   // File operation buttons
-  auto* new_btn =
-      createIconButton(nodo_studio::IconManager::Icon::FileNew, "New Scene");
-  QObject::connect(new_btn, &QToolButton::clicked, main_window_,
-                   &MainWindow::onNewScene);
+  auto* new_btn = createIconButton(nodo_studio::IconManager::Icon::FileNew, "New Scene");
+  QObject::connect(new_btn, &QToolButton::clicked, main_window_, &MainWindow::onNewScene);
   toolbar_layout->addWidget(new_btn);
 
-  auto* open_btn =
-      createIconButton(nodo_studio::IconManager::Icon::FileOpen, "Open Scene");
-  QObject::connect(open_btn, &QToolButton::clicked, main_window_,
-                   &MainWindow::onOpenScene);
+  auto* open_btn = createIconButton(nodo_studio::IconManager::Icon::FileOpen, "Open Scene");
+  QObject::connect(open_btn, &QToolButton::clicked, main_window_, &MainWindow::onOpenScene);
   toolbar_layout->addWidget(open_btn);
 
-  auto* save_btn =
-      createIconButton(nodo_studio::IconManager::Icon::FileSave, "Save Scene");
-  QObject::connect(save_btn, &QToolButton::clicked, main_window_,
-                   &MainWindow::onSaveScene);
+  auto* save_btn = createIconButton(nodo_studio::IconManager::Icon::FileSave, "Save Scene");
+  QObject::connect(save_btn, &QToolButton::clicked, main_window_, &MainWindow::onSaveScene);
   toolbar_layout->addWidget(save_btn);
 
   // Divider
@@ -393,10 +354,8 @@ auto MenuManager::setupIconToolbar(QMenuBar* menuBar) -> void {
   toolbar_layout->addWidget(divider);
 
   // Graph operation button
-  auto* play_btn =
-      createIconButton(nodo_studio::IconManager::Icon::Play, "Execute Graph");
-  QObject::connect(play_btn, &QToolButton::clicked, main_window_,
-                   &MainWindow::onCreateTestGraph);
+  auto* play_btn = createIconButton(nodo_studio::IconManager::Icon::Play, "Execute Graph");
+  QObject::connect(play_btn, &QToolButton::clicked, main_window_, &MainWindow::onCreateTestGraph);
   toolbar_layout->addWidget(play_btn);
 
   menuBar->setCornerWidget(icon_toolbar, Qt::TopRightCorner);

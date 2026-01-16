@@ -6,12 +6,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-GroupSelectorWidget::GroupSelectorWidget(const QString& label,
-                                         const QString& initial_group,
-                                         const QString& description,
+GroupSelectorWidget::GroupSelectorWidget(const QString& label, const QString& initial_group, const QString& description,
                                          QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      group_name_(initial_group) {
+    : BaseParameterWidget(label, description, parent), group_name_(initial_group) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
@@ -42,10 +39,8 @@ QWidget* GroupSelectorWidget::createControlWidget() {
   updateComboBoxStyle();
 
   // Connect signals
-  connect(combo_box_, &QComboBox::currentTextChanged, this,
-          &GroupSelectorWidget::onCurrentTextChanged);
-  connect(combo_box_->lineEdit(), &QLineEdit::editingFinished, this,
-          &GroupSelectorWidget::onEditingFinished);
+  connect(combo_box_, &QComboBox::currentTextChanged, this, &GroupSelectorWidget::onCurrentTextChanged);
+  connect(combo_box_->lineEdit(), &QLineEdit::editingFinished, this, &GroupSelectorWidget::onEditingFinished);
 
   return combo_box_;
 }
@@ -121,8 +116,7 @@ void GroupSelectorWidget::setGroupName(const QString& group_name) {
   }
 }
 
-void GroupSelectorWidget::setAvailableGroups(
-    const std::vector<std::string>& groups) {
+void GroupSelectorWidget::setAvailableGroups(const std::vector<std::string>& groups) {
   if (!combo_box_)
     return;
 
@@ -164,8 +158,7 @@ void GroupSelectorWidget::setAvailableGroups(
   }
 }
 
-void GroupSelectorWidget::setGroupChangedCallback(
-    std::function<void(const QString&)> callback) {
+void GroupSelectorWidget::setGroupChangedCallback(std::function<void(const QString&)> callback) {
   group_changed_callback_ = callback;
 }
 

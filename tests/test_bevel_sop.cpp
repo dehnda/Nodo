@@ -63,8 +63,7 @@ TEST(BevelSOPTest, EdgeModeSegments1Counts) {
   nodo::sop::BevelSOP bevel("bevel_edge_s1");
   bevel.set_width(0.1F);
   bevel.set_segments(1);
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -79,8 +78,7 @@ TEST(BevelSOPTest, EdgeModeSegments3Counts) {
   nodo::sop::BevelSOP bevel("bevel_edge_s3");
   bevel.set_width(0.1F);
   bevel.set_segments(3);
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -95,11 +93,8 @@ TEST(BevelSOPTest, VertexApexFanSegments3Counts) {
   nodo::sop::BevelSOP bevel("bevel_vertex_apexfan");
   bevel.set_width(0.1F);
   bevel.set_segments(3);
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Vertex));
-  bevel.set_parameter(
-      "corner_style",
-      static_cast<int>(nodo::sop::BevelSOP::CornerStyle::ApexFan));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Vertex));
+  bevel.set_parameter("corner_style", static_cast<int>(nodo::sop::BevelSOP::CornerStyle::ApexFan));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -115,11 +110,8 @@ TEST(BevelSOPTest, VertexRingStartSegments3Counts) {
   nodo::sop::BevelSOP bevel("bevel_vertex_ringstart");
   bevel.set_width(0.1F);
   bevel.set_segments(3);
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Vertex));
-  bevel.set_parameter(
-      "corner_style",
-      static_cast<int>(nodo::sop::BevelSOP::CornerStyle::RingStart));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Vertex));
+  bevel.set_parameter("corner_style", static_cast<int>(nodo::sop::BevelSOP::CornerStyle::RingStart));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -135,10 +127,8 @@ TEST(BevelSOPTest, VertexGridSegments3Counts) {
   nodo::sop::BevelSOP bevel("bevel_vertex_grid");
   bevel.set_width(0.1F);
   bevel.set_segments(3);
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Vertex));
-  bevel.set_parameter("corner_style",
-                      static_cast<int>(nodo::sop::BevelSOP::CornerStyle::Grid));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Vertex));
+  bevel.set_parameter("corner_style", static_cast<int>(nodo::sop::BevelSOP::CornerStyle::Grid));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -154,11 +144,8 @@ TEST(BevelSOPTest, CombinedEdgeVertexSegments3Counts) {
   nodo::sop::BevelSOP bevel("bevel_edgevertex_s3");
   bevel.set_width(0.1F);
   bevel.set_segments(3);
-  bevel.set_parameter(
-      "mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::EdgeVertex));
-  bevel.set_parameter(
-      "corner_style",
-      static_cast<int>(nodo::sop::BevelSOP::CornerStyle::RingStart));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::EdgeVertex));
+  bevel.set_parameter("corner_style", static_cast<int>(nodo::sop::BevelSOP::CornerStyle::RingStart));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -176,8 +163,7 @@ TEST(BevelSOPTest, AngleLimitFiltersEdges) {
   bevel.set_width(0.1F);
   bevel.set_segments(2);
   bevel.set_parameter("angle_limit", 100.0F); // dihedral 90 < 100 => no edges
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();
   ASSERT_NE(result, nullptr);
@@ -190,8 +176,7 @@ TEST(BevelSOPTest, ClampWidthEdge) {
   nodo::sop::BevelSOP bevel("bevel_edge_clamp");
   bevel.set_width(1.2F); // greater than half edge length (1.0)
   bevel.set_segments(1);
-  bevel.set_parameter("mode",
-                      static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
+  bevel.set_parameter("mode", static_cast<int>(nodo::sop::BevelSOP::BevelType::Edge));
   bevel.set_parameter("clamp_overlap", true);
   bevel.set_input_data(0, cube);
   auto result = bevel.cook();

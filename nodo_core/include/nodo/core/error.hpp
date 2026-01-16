@@ -61,10 +61,7 @@ struct Error {
   std::string context; ///< Additional context information
 
   Error(ErrorCategory cat, ErrorCode c, std::string msg, std::string ctx = "")
-      : category(cat),
-        code(c),
-        message(std::move(msg)),
-        context(std::move(ctx)) {}
+      : category(cat), code(c), message(std::move(msg)), context(std::move(ctx)) {}
 
   /// Get human-readable error description
   [[nodiscard]] std::string description() const;
@@ -85,8 +82,7 @@ public:
   static std::string code_to_string(ErrorCode code);
 
   /// Create a formatted error message
-  static Error make_error(ErrorCategory category, ErrorCode code,
-                          const std::string& message,
+  static Error make_error(ErrorCategory category, ErrorCode code, const std::string& message,
                           const std::string& context = "");
 };
 

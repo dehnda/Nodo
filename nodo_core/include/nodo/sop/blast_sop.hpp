@@ -16,10 +16,8 @@ class BlastSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit BlastSOP(const std::string& name = "blast")
-      : SOPNode(name, "Blast") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+  explicit BlastSOP(const std::string& name = "blast") : SOPNode(name, "Blast") {
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Element class
     register_parameter(define_int_parameter("class", 0)
@@ -30,12 +28,11 @@ public:
                            .build());
 
     // Delete or keep group
-    register_parameter(
-        define_int_parameter("negate", 0)
-            .label("Delete Non-Selected")
-            .category("Options")
-            .description("Delete elements NOT in the group instead")
-            .build());
+    register_parameter(define_int_parameter("negate", 0)
+                           .label("Delete Non-Selected")
+                           .category("Options")
+                           .description("Delete elements NOT in the group instead")
+                           .build());
   }
 
   ~BlastSOP() override = default;

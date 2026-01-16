@@ -13,8 +13,7 @@
 
 namespace nodo_studio {
 
-NodeCreationMenu::NodeCreationMenu(QWidget* parent)
-    : QWidget(parent, Qt::Popup | Qt::FramelessWindowHint) {
+NodeCreationMenu::NodeCreationMenu(QWidget* parent) : QWidget(parent, Qt::Popup | Qt::FramelessWindowHint) {
   // Set window attributes for transparency and shadow
   setAttribute(Qt::WA_TranslucentBackground);
 
@@ -129,12 +128,9 @@ void NodeCreationMenu::setupUI() {
   container_layout->addWidget(results_list_);
 
   // Connect signals
-  connect(search_box_, &QLineEdit::textChanged, this,
-          &NodeCreationMenu::onSearchTextChanged);
-  connect(results_list_, &QListWidget::itemClicked, this,
-          &NodeCreationMenu::onItemClicked);
-  connect(results_list_, &QListWidget::itemDoubleClicked, this,
-          &NodeCreationMenu::onItemDoubleClicked);
+  connect(search_box_, &QLineEdit::textChanged, this, &NodeCreationMenu::onSearchTextChanged);
+  connect(results_list_, &QListWidget::itemClicked, this, &NodeCreationMenu::onItemClicked);
+  connect(results_list_, &QListWidget::itemDoubleClicked, this, &NodeCreationMenu::onItemDoubleClicked);
 
   setLayout(layout_);
 }
@@ -157,24 +153,21 @@ void NodeCreationMenu::populateAllNodes() {
     keywords << QString::fromStdString(node_meta.category).toLower();
 
     // Add words from description as keywords
-    QStringList desc_words =
-        QString::fromStdString(node_meta.description).toLower().split(' ');
+    QStringList desc_words = QString::fromStdString(node_meta.description).toLower().split(' ');
     for (const QString& word : desc_words) {
       if (word.length() > 3) { // Only meaningful words
         keywords << word;
       }
     }
 
-    all_nodes_.append({QString::fromStdString(node_meta.name), type_id,
-                       QString::fromStdString(node_meta.category), "",
-                       keywords});
+    all_nodes_.append(
+        {QString::fromStdString(node_meta.name), type_id, QString::fromStdString(node_meta.category), "", keywords});
   }
 }
 
 void NodeCreationMenu::loadRecentNodes() {
   QSettings settings("Nodo", "Studio");
-  QStringList recent_types =
-      settings.value("recent_nodes", QStringList()).toStringList();
+  QStringList recent_types = settings.value("recent_nodes", QStringList()).toStringList();
 
   // Load up to 5 most recent
   int count = 0;
@@ -183,9 +176,8 @@ void NodeCreationMenu::loadRecentNodes() {
       break;
 
     // Find node info
-    auto it = std::find_if(
-        all_nodes_.begin(), all_nodes_.end(),
-        [&type_id](const NodeInfo& info) { return info.type_id == type_id; });
+    auto it = std::find_if(all_nodes_.begin(), all_nodes_.end(),
+                           [&type_id](const NodeInfo& info) { return info.type_id == type_id; });
 
     if (it != all_nodes_.end()) {
       recent_nodes_.append(*it);
@@ -196,8 +188,7 @@ void NodeCreationMenu::loadRecentNodes() {
 
 void NodeCreationMenu::saveRecentNode(const QString& type_id) {
   QSettings settings("Nodo", "Studio");
-  QStringList recent_types =
-      settings.value("recent_nodes", QStringList()).toStringList();
+  QStringList recent_types = settings.value("recent_nodes", QStringList()).toStringList();
 
   // Remove if already exists
   recent_types.removeAll(type_id);
@@ -339,13 +330,11 @@ void NodeCreationMenu::showAtPosition(const QPoint& position) {
       // Clamp to top of screen
       if (final_position.y() < screen_geometry.top()) {
         final_position.setY(screen_geometry.top());
-        results_list_->setMaximumHeight(space_above -
-                                        150); // 150 for search + chips + margin
+        results_list_->setMaximumHeight(space_above - 150); // 150 for search + chips + margin
       }
     } else {
       // More space below - keep below cursor but limit height
-      results_list_->setMaximumHeight(space_below -
-                                      150); // 150 for search + chips + margin
+      results_list_->setMaximumHeight(space_below - 150); // 150 for search + chips + margin
     }
   } else {
     // Reset to default max height
@@ -383,8 +372,7 @@ void NodeCreationMenu::filterResults(const QString& query) {
     for (const NodeInfo& node : all_nodes_) {
       // Add category header
       if (node.category != last_category) {
-        QListWidgetItem* header =
-            new QListWidgetItem(QString("%1").arg(node.category));
+        QListWidgetItem* header = new QListWidgetItem(QString("%1").arg(node.category));
         header->setFlags(Qt::NoItemFlags);
         header->setForeground(QBrush(QColor("#808080")));
         QFont header_font = header->font();
@@ -395,8 +383,7 @@ void NodeCreationMenu::filterResults(const QString& query) {
         last_category = node.category;
       }
 
-      QListWidgetItem* item =
-          new QListWidgetItem(getNodeIcon(node.type_id), node.name);
+      QListWidgetItem* item = new QListWidgetItem(getNodeIcon(node.type_id), node.name);
       item->setData(Qt::UserRole, node.type_id);
       results_list_->addItem(item);
     }
@@ -405,11 +392,8 @@ void NodeCreationMenu::filterResults(const QString& query) {
     for (const NodeInfo& node : all_nodes_) {
       if (fuzzyMatch(query, node.name) || fuzzyMatch(query, node.type_id) ||
           std::any_of(node.tags.begin(), node.tags.end(),
-                      [this, &query](const QString& tag) {
-                        return fuzzyMatch(query, tag);
-                      })) {
-        QListWidgetItem* item =
-            new QListWidgetItem(getNodeIcon(node.type_id), node.name);
+                      [this, &query](const QString& tag) { return fuzzyMatch(query, tag); })) {
+        QListWidgetItem* item = new QListWidgetItem(getNodeIcon(node.type_id), node.name);
         item->setData(Qt::UserRole, node.type_id);
         results_list_->addItem(item);
       }
@@ -422,8 +406,7 @@ void NodeCreationMenu::filterResults(const QString& query) {
   }
 }
 
-bool NodeCreationMenu::fuzzyMatch(const QString& query,
-                                  const QString& target) const {
+bool NodeCreationMenu::fuzzyMatch(const QString& query, const QString& target) const {
   if (query.isEmpty())
     return true;
 

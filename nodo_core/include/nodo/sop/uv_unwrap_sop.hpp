@@ -25,14 +25,12 @@ private:
   /**
    * @brief Convert GeometryContainer to xatlas mesh format
    */
-  void geometry_to_xatlas(const core::GeometryContainer& geo,
-                          void* xatlas_mesh_decl);
+  void geometry_to_xatlas(const core::GeometryContainer& geo, void* xatlas_mesh_decl);
 
   /**
    * @brief Extract UV coordinates from xatlas back to GeometryContainer
    */
-  void xatlas_to_geometry(const void* xatlas_atlas,
-                          core::GeometryContainer& geo);
+  void xatlas_to_geometry(const void* xatlas_atlas, core::GeometryContainer& geo);
 };
 
 } // namespace nodo::sop

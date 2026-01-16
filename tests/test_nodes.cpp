@@ -13,8 +13,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   const auto& topology = container.topology();
 
   // Extract positions
-  auto* p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
 
@@ -65,8 +64,7 @@ TEST_F(PrimitiveGeneratorTest, BoxWithDifferentDimensions) {
 
 // Sphere Generator Tests
 TEST_F(PrimitiveGeneratorTest, SphereGeneration) {
-  auto container_result =
-      geometry::SphereGenerator::generate_uv_sphere(1.5, 16, 8);
+  auto container_result = geometry::SphereGenerator::generate_uv_sphere(1.5, 16, 8);
 
   ASSERT_TRUE(container_result.has_value());
   auto mesh = container_to_mesh(*container_result);

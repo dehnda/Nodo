@@ -8,53 +8,45 @@ namespace nodo::sop {
 constexpr float DEFAULT_SCALE_MULTIPLIER = 0.1F;
 constexpr double UP_VECTOR_Y = 1.0;
 
-CopyToPointsSOP::CopyToPointsSOP(const std::string& node_name)
-    : SOPNode(node_name, "CopyToPoints") {
+CopyToPointsSOP::CopyToPointsSOP(const std::string& node_name) : SOPNode(node_name, "CopyToPoints") {
   // Add input ports (use "0" and "1" to match execution engine's numeric
   // indexing)
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
-  input_ports_.add_port("1", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("1", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(
-      define_int_parameter("use_point_normals", 1)
-          .label("Use Point Normals")
-          .range(0, 1)
-          .category("Copy")
-          .description("Orient copies using point normals if available")
-          .build());
+  register_parameter(define_int_parameter("use_point_normals", 1)
+                         .label("Use Point Normals")
+                         .range(0, 1)
+                         .category("Copy")
+                         .description("Orient copies using point normals if available")
+                         .build());
 
-  register_parameter(
-      define_int_parameter("use_point_scale", 1)
-          .label("Use Point Scale")
-          .range(0, 1)
-          .category("Copy")
-          .description("Scale copies using point scale attribute")
-          .build());
+  register_parameter(define_int_parameter("use_point_scale", 1)
+                         .label("Use Point Scale")
+                         .range(0, 1)
+                         .category("Copy")
+                         .description("Scale copies using point scale attribute")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("uniform_scale", 1.0F)
-          .label("Uniform Scale")
-          .range(0.01, 10.0)
-          .category("Copy")
-          .description("Uniform scale factor applied to all copies")
-          .build());
+  register_parameter(define_float_parameter("uniform_scale", 1.0F)
+                         .label("Uniform Scale")
+                         .range(0.01, 10.0)
+                         .category("Copy")
+                         .description("Uniform scale factor applied to all copies")
+                         .build());
 
-  register_parameter(
-      define_string_parameter("scale_attribute", "point_index")
-          .label("Scale Attribute")
-          .category("Copy")
-          .description("Point attribute name to use for per-copy scaling")
-          .build());
+  register_parameter(define_string_parameter("scale_attribute", "point_index")
+                         .label("Scale Attribute")
+                         .category("Copy")
+                         .description("Point attribute name to use for per-copy scaling")
+                         .build());
 
-  register_parameter(
-      define_string_parameter("rotation_attribute", "")
-          .label("Rotation Attribute")
-          .category("Copy")
-          .description("Point attribute name for per-copy rotation")
-          .build());
+  register_parameter(define_string_parameter("rotation_attribute", "")
+                         .label("Rotation Attribute")
+                         .category("Copy")
+                         .description("Point attribute name for per-copy rotation")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
@@ -73,28 +65,23 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   }
 
   // Get parameters
-  const bool use_point_normals =
-      get_parameter<int>("use_point_normals", 1) != 0;
+  const bool use_point_normals = get_parameter<int>("use_point_normals", 1) != 0;
   const bool use_point_scale = get_parameter<int>("use_point_scale", 1) != 0;
   const float uniform_scale = get_parameter<float>("uniform_scale", 1.0F);
-  const std::string scale_attr =
-      get_parameter<std::string>("scale_attribute", "point_index");
+  const std::string scale_attr = get_parameter<std::string>("scale_attribute", "point_index");
 
   // Get point positions from points input
-  auto* points_P =
-      points_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* points_P = points_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (points_P == nullptr) {
     set_error("Points input has no position attribute");
     return nullptr;
   }
 
   // Get optional point normals for rotation
-  auto* points_N =
-      points_input->get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* points_N = points_input->get_point_attribute_typed<core::Vec3f>(attrs::N);
 
   // Get template positions
-  auto* template_P =
-      template_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* template_P = template_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (template_P == nullptr) {
     set_error("Template input has no position attribute");
     return nullptr;
@@ -102,8 +89,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
 
   const size_t num_points = points_input->topology().point_count();
   const size_t template_point_count = template_input->topology().point_count();
-  const size_t template_prim_count =
-      template_input->topology().primitive_count();
+  const size_t template_prim_count = template_input->topology().primitive_count();
 
   if (num_points == 0 || template_point_count == 0) {
     return std::make_shared<core::GeometryContainer>();
@@ -129,10 +115,8 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
 
   auto* result_N = result->get_point_attribute_typed<core::Vec3f>(attrs::N);
   auto* result_Cd = result->get_point_attribute_typed<core::Vec3f>(attrs::Cd);
-  auto* template_N =
-      template_input->get_point_attribute_typed<core::Vec3f>(attrs::N);
-  auto* template_Cd =
-      template_input->get_point_attribute_typed<core::Vec3f>(attrs::Cd);
+  auto* template_N = template_input->get_point_attribute_typed<core::Vec3f>(attrs::N);
+  auto* template_Cd = template_input->get_point_attribute_typed<core::Vec3f>(attrs::Cd);
 
   // For each point in the points input
   for (size_t point_idx = 0; point_idx < num_points; ++point_idx) {
@@ -142,8 +126,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
     float instance_scale = uniform_scale;
     if (use_point_scale) {
       // Try to get scale from point attribute
-      auto* pscale_attr =
-          points_input->get_point_attribute_typed<float>(attrs::pscale);
+      auto* pscale_attr = points_input->get_point_attribute_typed<float>(attrs::pscale);
       if (pscale_attr != nullptr) {
         instance_scale *= (*pscale_attr)[point_idx];
       }
@@ -207,8 +190,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   // Calculate total vertex count needed
   size_t total_vertices = 0;
   for (size_t prim_idx = 0; prim_idx < template_prim_count; ++prim_idx) {
-    total_vertices +=
-        template_input->topology().get_primitive_vertices(prim_idx).size();
+    total_vertices += template_input->topology().get_primitive_vertices(prim_idx).size();
   }
   total_vertices *= num_points;
 
@@ -219,14 +201,12 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
     const int point_offset = static_cast<int>(point_idx * template_point_count);
 
     for (size_t prim_idx = 0; prim_idx < template_prim_count; ++prim_idx) {
-      const auto& template_verts =
-          template_input->topology().get_primitive_vertices(prim_idx);
+      const auto& template_verts = template_input->topology().get_primitive_vertices(prim_idx);
       std::vector<int> new_prim_verts;
       new_prim_verts.reserve(template_verts.size());
 
       for (int vert_idx : template_verts) {
-        const int template_point =
-            template_input->topology().get_vertex_point(vert_idx);
+        const int template_point = template_input->topology().get_vertex_point(vert_idx);
         const int new_point = template_point + point_offset;
 
         result->topology().set_vertex_point(vertex_counter, new_point);

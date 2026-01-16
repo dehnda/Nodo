@@ -9,8 +9,7 @@
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error MeshRepairer::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error MeshRepairer::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
 constexpr double DEFAULT_TOLERANCE = DEFAULT_VERTEX_MERGE_TOLERANCE;
 
@@ -30,8 +29,7 @@ std::string MeshRepairer::RepairResult::summary() const {
   return oss.str();
 }
 
-MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh& mesh,
-                                                const RepairOptions& options) {
+MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh& mesh, const RepairOptions& options) {
   RepairResult result;
 
   if (mesh.vertices().rows() == 0 || mesh.faces().rows() == 0) {
@@ -51,18 +49,15 @@ MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh& mesh,
     if (options.remove_degenerate_faces) {
       result.faces_removed = remove_degenerate_faces(mesh);
       if (options.verbose && result.faces_removed > 0) {
-        std::cout << "Removed " << result.faces_removed
-                  << " degenerate faces\n";
+        std::cout << "Removed " << result.faces_removed << " degenerate faces\n";
       }
     }
 
     // Step 2: Merge duplicate vertices
     if (options.merge_duplicate_vertices) {
-      result.vertices_merged =
-          merge_duplicate_vertices(mesh, options.vertex_merge_tolerance);
+      result.vertices_merged = merge_duplicate_vertices(mesh, options.vertex_merge_tolerance);
       if (options.verbose && result.vertices_merged > 0) {
-        std::cout << "Merged " << result.vertices_merged
-                  << " duplicate vertices\n";
+        std::cout << "Merged " << result.vertices_merged << " duplicate vertices\n";
       }
     }
 
@@ -70,8 +65,7 @@ MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh& mesh,
     if (options.remove_unreferenced_vertices) {
       result.vertices_removed = remove_unreferenced_vertices(mesh);
       if (options.verbose && result.vertices_removed > 0) {
-        std::cout << "Removed " << result.vertices_removed
-                  << " unreferenced vertices\n";
+        std::cout << "Removed " << result.vertices_removed << " unreferenced vertices\n";
       }
     }
 
@@ -94,15 +88,13 @@ MeshRepairer::RepairResult MeshRepairer::repair(core::Mesh& mesh,
     }
 
     if (options.verbose) {
-      std::cout << "\nFinal mesh state:\n"
-                << result.final_report.summary() << "\n";
+      std::cout << "\nFinal mesh state:\n" << result.final_report.summary() << "\n";
     }
 
   } catch (const std::exception& e) {
     result.success = false;
     result.message = std::string("Repair failed: ") + e.what();
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::Unknown, result.message});
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::Unknown, result.message});
   }
 
   return result;
@@ -125,8 +117,7 @@ int MeshRepairer::remove_degenerate_faces(core::Mesh& mesh) {
   Eigen::MatrixXi new_faces(new_face_count, 3);
   int dest_idx = 0;
 
-  std::unordered_set<int> degenerate_set(degenerate_faces.begin(),
-                                         degenerate_faces.end());
+  std::unordered_set<int> degenerate_set(degenerate_faces.begin(), degenerate_faces.end());
 
   for (int i = 0; i < original_face_count; ++i) {
     if (degenerate_set.find(i) == degenerate_set.end()) {
@@ -293,8 +284,7 @@ bool MeshRepairer::make_manifold(core::Mesh& mesh) {
   Eigen::MatrixXi new_faces(new_face_count, 3);
   int dest_idx = 0;
 
-  std::unordered_set<int> remove_set(non_manifold_faces.begin(),
-                                     non_manifold_faces.end());
+  std::unordered_set<int> remove_set(non_manifold_faces.begin(), non_manifold_faces.end());
 
   for (int i = 0; i < original_face_count; ++i) {
     if (remove_set.find(i) == remove_set.end()) {
@@ -316,8 +306,7 @@ int MeshRepairer::recalculate_normals(core::Mesh& /* mesh */) {
   return 0;
 }
 
-void MeshRepairer::compact_mesh(core::Mesh& mesh,
-                                const std::vector<bool>& vertex_keep_mask) {
+void MeshRepairer::compact_mesh(core::Mesh& mesh, const std::vector<bool>& vertex_keep_mask) {
   // Build index mapping
   std::vector<int> new_indices(mesh.vertices().rows(), -1);
   int new_vertex_count = 0;
@@ -349,8 +338,7 @@ void MeshRepairer::compact_mesh(core::Mesh& mesh,
   mesh.vertices() = new_vertices;
 }
 
-std::vector<int> MeshRepairer::build_vertex_mapping(const core::Mesh& mesh,
-                                                    double tolerance) {
+std::vector<int> MeshRepairer::build_vertex_mapping(const core::Mesh& mesh, double tolerance) {
   std::vector<int> mapping(mesh.vertices().rows());
   const double tolerance_sq = tolerance * tolerance;
 

@@ -13,8 +13,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   const auto& topology = container.topology();
 
   // Extract positions
-  auto* p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
 
@@ -38,14 +37,11 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
 
     if (point_indices.size() == 3) {
       // Triangle - add directly
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
     } else if (point_indices.size() == 4) {
       // Quad - triangulate (fan from first vertex)
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
-      triangle_list.emplace_back(point_indices[0], point_indices[2],
-                                 point_indices[3]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[2], point_indices[3]);
     }
   }
 
@@ -88,8 +84,7 @@ TEST_F(MeshGeneratorTest, BoxGeneration) {
 
 TEST_F(MeshGeneratorTest, BoxDimensions) {
   double width = 2.0, height = 3.0, depth = 1.5;
-  auto container_result =
-      geometry::BoxGenerator::generate(width, height, depth);
+  auto container_result = geometry::BoxGenerator::generate(width, height, depth);
 
   ASSERT_TRUE(container_result.has_value());
   auto result = container_to_mesh(*container_result);
@@ -110,8 +105,7 @@ TEST_F(MeshGeneratorTest, BoxDimensions) {
 }
 
 TEST_F(MeshGeneratorTest, SphereUVGeneration) {
-  auto container_result = geometry::SphereGenerator::generate_uv_sphere(
-      size_, subdivisions_, subdivisions_);
+  auto container_result = geometry::SphereGenerator::generate_uv_sphere(size_, subdivisions_, subdivisions_);
 
   ASSERT_TRUE(container_result.has_value());
   auto result = container_to_mesh(*container_result);
@@ -127,8 +121,7 @@ TEST_F(MeshGeneratorTest, SphereUVGeneration) {
 }
 
 TEST_F(MeshGeneratorTest, SphereIcospherGeneration) {
-  auto container_result =
-      geometry::SphereGenerator::generate_icosphere(size_, 2);
+  auto container_result = geometry::SphereGenerator::generate_icosphere(size_, 2);
 
   ASSERT_TRUE(container_result.has_value());
   auto result = container_to_mesh(*container_result);
@@ -145,8 +138,7 @@ TEST_F(MeshGeneratorTest, SphereIcospherGeneration) {
 
 TEST_F(MeshGeneratorTest, CylinderGeneration) {
   // Generate cylinder with radius=size_, height=size_, segments=subdivisions_
-  auto container_result =
-      geometry::CylinderGenerator::generate(size_, size_, subdivisions_);
+  auto container_result = geometry::CylinderGenerator::generate(size_, size_, subdivisions_);
 
   ASSERT_TRUE(container_result.has_value());
   auto result = container_to_mesh(*container_result);
@@ -171,15 +163,13 @@ TEST_F(MeshGeneratorTest, CylinderGeneration) {
   EXPECT_LT(z_range, size_ * 3.0); // Allow for some variation
 
   // Check that XY dimensions are reasonable (related to radius)
-  double xy_range =
-      std::max(max_bound.x() - min_bound.x(), max_bound.y() - min_bound.y());
+  double xy_range = std::max(max_bound.x() - min_bound.x(), max_bound.y() - min_bound.y());
   EXPECT_GT(xy_range, size_);       // Should be at least 2*radius
   EXPECT_LT(xy_range, size_ * 3.0); // But not too large
 }
 
 TEST_F(MeshGeneratorTest, PlaneGeneration) {
-  auto container_result = geometry::PlaneGenerator::generate(
-      size_, size_, subdivisions_, subdivisions_);
+  auto container_result = geometry::PlaneGenerator::generate(size_, size_, subdivisions_, subdivisions_);
 
   ASSERT_TRUE(container_result.has_value());
   auto result = container_to_mesh(*container_result);
@@ -202,13 +192,11 @@ TEST_F(MeshGeneratorTest, PlaneGeneration) {
   double z_range = max_bound.z() - min_bound.z();
 
   // At least one pair of dimensions should span approximately size_
-  bool has_expected_dimensions = (std::abs(x_range - size_) < 0.1) ||
-                                 (std::abs(y_range - size_) < 0.1) ||
-                                 (std::abs(z_range - size_) < 0.1);
+  bool has_expected_dimensions =
+      (std::abs(x_range - size_) < 0.1) || (std::abs(y_range - size_) < 0.1) || (std::abs(z_range - size_) < 0.1);
 
-  EXPECT_TRUE(has_expected_dimensions)
-      << "Expected one dimension to be approximately " << size_
-      << " but got X=" << x_range << " Y=" << y_range << " Z=" << z_range;
+  EXPECT_TRUE(has_expected_dimensions) << "Expected one dimension to be approximately " << size_
+                                       << " but got X=" << x_range << " Y=" << y_range << " Z=" << z_range;
 
   // Plane should be relatively flat in at least one dimension
   double min_range = std::min({x_range, y_range, z_range});
@@ -228,7 +216,6 @@ TEST_F(MeshGeneratorTest, InvalidParameters) {
   EXPECT_FALSE(result3.has_value());
 
   // Test with invalid subdivision counts
-  auto result4 = geometry::SphereGenerator::generate_uv_sphere(
-      1.0, 2, 8); // Too few meridians
+  auto result4 = geometry::SphereGenerator::generate_uv_sphere(1.0, 2, 8); // Too few meridians
   EXPECT_FALSE(result4.has_value());
 }

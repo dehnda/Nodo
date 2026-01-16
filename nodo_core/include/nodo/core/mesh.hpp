@@ -57,9 +57,7 @@ public:
     // Point clouds have vertices but no faces, and are NOT empty
     return vertices_.rows() == 0;
   }
-  [[nodiscard]] size_t vertex_count() const noexcept {
-    return vertices_.rows();
-  }
+  [[nodiscard]] size_t vertex_count() const noexcept { return vertices_.rows(); }
   [[nodiscard]] size_t face_count() const noexcept { return faces_.rows(); }
 
   // Mesh validation

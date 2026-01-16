@@ -53,16 +53,14 @@ std::span<int> ElementTopology::get_vertex_points_writable() {
   return vertex_points_;
 }
 
-const std::vector<int>&
-ElementTopology::get_primitive_vertices(size_t prim_idx) const {
+const std::vector<int>& ElementTopology::get_primitive_vertices(size_t prim_idx) const {
   if (prim_idx >= primitive_count_) {
     throw std::out_of_range("Primitive index out of range");
   }
   return primitive_vertices_[prim_idx];
 }
 
-void ElementTopology::set_primitive_vertices(size_t prim_idx,
-                                             const std::vector<int>& vertices) {
+void ElementTopology::set_primitive_vertices(size_t prim_idx, const std::vector<int>& vertices) {
   if (prim_idx >= primitive_count_) {
     throw std::out_of_range("Primitive index out of range");
   }
@@ -101,8 +99,7 @@ bool ElementTopology::validate() const {
   // Check vertex→point references
   for (size_t i = 0; i < vertex_count_; ++i) {
     int point_idx = vertex_points_[i];
-    if (point_idx != -1 &&
-        (point_idx < 0 || point_idx >= static_cast<int>(point_count_))) {
+    if (point_idx != -1 && (point_idx < 0 || point_idx >= static_cast<int>(point_count_))) {
       return false;
     }
   }

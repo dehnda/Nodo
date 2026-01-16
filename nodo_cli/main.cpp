@@ -36,8 +36,7 @@ class CLIHostInterface : public nodo::IHostInterface {
 public:
   explicit CLIHostInterface(bool verbose) : verbose_(verbose) {}
 
-  bool report_progress(int current, int total,
-                       const std::string& message) override {
+  bool report_progress(int current, int total, const std::string& message) override {
     if (verbose_) {
       // Calculate percentage
       float percent = (static_cast<float>(current) / total) * 100.0f;
@@ -57,8 +56,7 @@ public:
         }
       }
 
-      std::cout << "] " << static_cast<int>(percent) << "% - " << message
-                << std::flush;
+      std::cout << "] " << static_cast<int>(percent) << "% - " << message << std::flush;
     }
 
     return true; // Never cancel
@@ -82,8 +80,7 @@ private:
 void print_usage(const char* program_name) {
   std::cout << "Nodo CLI - Headless Node Graph Execution\n\n";
   std::cout << "Usage:\n";
-  std::cout << "  " << program_name
-            << " <input.nfg> <output.obj> [options]\n\n";
+  std::cout << "  " << program_name << " <input.nfg> <output.obj> [options]\n\n";
   std::cout << "Arguments:\n";
   std::cout << "  <input.nfg>    Input node graph file (.nfg format)\n";
   std::cout << "  <output.obj>   Output mesh file (.obj format)\n\n";
@@ -93,8 +90,7 @@ void print_usage(const char* program_name) {
   std::cout << "  --help, -h     Show this help message\n\n";
   std::cout << "Examples:\n";
   std::cout << "  " << program_name << " scene.nfg output.obj\n";
-  std::cout << "  " << program_name
-            << " scene.nfg output.obj --verbose --stats\n";
+  std::cout << "  " << program_name << " scene.nfg output.obj --verbose --stats\n";
 }
 
 /**
@@ -226,8 +222,7 @@ int main(int argc, char* argv[]) {
   }
 
   auto end_time = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end_time - start_time);
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
   // Show statistics
   if (show_stats) {
@@ -235,8 +230,7 @@ int main(int argc, char* argv[]) {
     std::cout << "-----------\n";
     std::cout << "Nodes:        " << graph.get_nodes().size() << "\n";
     std::cout << "Points:       " << geometry->topology().point_count() << "\n";
-    std::cout << "Primitives:   " << geometry->topology().primitive_count()
-              << "\n";
+    std::cout << "Primitives:   " << geometry->topology().primitive_count() << "\n";
     std::cout << "Execution:    " << duration.count() << " ms\n";
     std::cout << "Output size:  " << fs::file_size(output_file) << " bytes\n";
   }

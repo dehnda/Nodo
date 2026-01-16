@@ -11,8 +11,7 @@ namespace nodo::sop {
 
 ArraySOP::ArraySOP(const std::string& name) : SOPNode(name, "Array") {
   // Add input port with name "mesh" (matches test expectations)
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
   register_parameter(define_int_parameter("array_type", 0)
@@ -87,14 +86,13 @@ ArraySOP::ArraySOP(const std::string& name) : SOPNode(name, "Array") {
                          .description("Radius of the circular array")
                          .build());
 
-  register_parameter(
-      define_float_parameter("angle_step", 60.0F)
-          .label("Angle Step")
-          .range(0.0, 360.0)
-          .category("Radial")
-          .visible_when("array_type", 1)
-          .description("Angular spacing between copies in degrees")
-          .build());
+  register_parameter(define_float_parameter("angle_step", 60.0F)
+                         .label("Angle Step")
+                         .range(0.0, 360.0)
+                         .category("Radial")
+                         .visible_when("array_type", 1)
+                         .description("Angular spacing between copies in degrees")
+                         .build());
 
   // Grid array parameters (visible when array_type == 2)
   register_parameter(define_int_parameter("grid_width", 3)
@@ -113,23 +111,21 @@ ArraySOP::ArraySOP(const std::string& name) : SOPNode(name, "Array") {
                          .description("Number of copies along Y axis in grid")
                          .build());
 
-  register_parameter(
-      define_float_parameter("grid_spacing_x", 1.0F)
-          .label("Spacing X")
-          .range(0.01, 100.0)
-          .category("Grid")
-          .visible_when("array_type", 2)
-          .description("Spacing between grid copies along X axis")
-          .build());
+  register_parameter(define_float_parameter("grid_spacing_x", 1.0F)
+                         .label("Spacing X")
+                         .range(0.01, 100.0)
+                         .category("Grid")
+                         .visible_when("array_type", 2)
+                         .description("Spacing between grid copies along X axis")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("grid_spacing_y", 1.0F)
-          .label("Spacing Y")
-          .range(0.01, 100.0)
-          .category("Grid")
-          .visible_when("array_type", 2)
-          .description("Spacing between grid copies along Y axis")
-          .build());
+  register_parameter(define_float_parameter("grid_spacing_y", 1.0F)
+                         .label("Spacing Y")
+                         .range(0.01, 100.0)
+                         .category("Grid")
+                         .visible_when("array_type", 2)
+                         .description("Spacing between grid copies along Y axis")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {
@@ -149,8 +145,7 @@ std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {
   }
 
   // Read parameters
-  const auto array_type =
-      static_cast<ArrayType>(get_parameter<int>("array_type", 0));
+  const auto array_type = static_cast<ArrayType>(get_parameter<int>("array_type", 0));
   const int count = get_parameter<int>("count", 3);
 
   // Execute the appropriate array operation
@@ -183,12 +178,10 @@ std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {
   return std::shared_ptr<core::GeometryContainer>(std::move(result));
 }
 
-std::unique_ptr<core::GeometryContainer>
-ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
-                              int count) {
+std::unique_ptr<core::GeometryContainer> ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
+                                                                       int count) {
   // Get input positions
-  auto* input_positions =
-      input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* input_positions = input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!input_positions) {
     return nullptr;
   }
@@ -197,10 +190,9 @@ ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
   const size_t input_prim_count = input_geo.topology().primitive_count();
 
   // Read linear offset parameters
-  const Eigen::Vector3f linear_offset(
-      get_parameter<float>("linear_offset_x", 1.0F),
-      get_parameter<float>("linear_offset_y", 0.0F),
-      get_parameter<float>("linear_offset_z", 0.0F));
+  const Eigen::Vector3f linear_offset(get_parameter<float>("linear_offset_x", 1.0F),
+                                      get_parameter<float>("linear_offset_y", 0.0F),
+                                      get_parameter<float>("linear_offset_z", 0.0F));
 
   // Create output container
   auto result = std::make_unique<core::GeometryContainer>();
@@ -212,8 +204,7 @@ ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
 
   // Add position attribute
   result->add_point_attribute("P", core::AttributeType::VEC3F);
-  auto* output_positions =
-      result->get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* output_positions = result->get_point_attribute_typed<Eigen::Vector3f>("P");
 
   // Copy and transform points for each array element
   for (int i = 0; i < count; ++i) {
@@ -233,8 +224,7 @@ ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
     int point_offset = i * static_cast<int>(input_point_count);
 
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto& prim_verts =
-          input_geo.topology().get_primitive_vertices(prim_idx);
+      const auto& prim_verts = input_geo.topology().get_primitive_vertices(prim_idx);
       std::vector<int> new_prim_verts;
       new_prim_verts.reserve(prim_verts.size());
 
@@ -245,9 +235,7 @@ ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
         int new_point = input_point + point_offset;
 
         // Create new vertex for this point
-        int new_vert_idx =
-            (i * static_cast<int>(input_geo.topology().vertex_count())) +
-            vert_idx;
+        int new_vert_idx = (i * static_cast<int>(input_geo.topology().vertex_count())) + vert_idx;
         result->topology().set_vertex_point(new_vert_idx, new_point);
         new_prim_verts.push_back(new_vert_idx);
       }
@@ -259,12 +247,10 @@ ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
   return result;
 }
 
-std::unique_ptr<core::GeometryContainer>
-ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
-                              int count) {
+std::unique_ptr<core::GeometryContainer> ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
+                                                                       int count) {
   // Get input positions
-  auto* input_positions =
-      input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* input_positions = input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (input_positions == nullptr) {
     return nullptr;
   }
@@ -289,8 +275,7 @@ ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
 
   // Add position attribute
   result->add_point_attribute("P", core::AttributeType::VEC3F);
-  auto* output_positions =
-      result->get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* output_positions = result->get_point_attribute_typed<Eigen::Vector3f>("P");
 
   // Copy and rotate points for each array element
   auto input_span = input_positions->values();
@@ -298,19 +283,16 @@ ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
 
   for (int i = 0; i < count; ++i) {
     const float angle_deg = angle_step * static_cast<float>(i);
-    const float angle_rad =
-        angle_deg * static_cast<float>(nodo::core::math::PI) / 180.0F;
+    const float angle_rad = angle_deg * static_cast<float>(nodo::core::math::PI) / 180.0F;
     const float cos_angle = std::cos(angle_rad);
     const float sin_angle = std::sin(angle_rad);
 
     // Rotation matrix around Y-axis
     Eigen::Matrix3f rotation;
-    rotation << cos_angle, 0.0F, sin_angle, 0.0F, 1.0F, 0.0F, -sin_angle, 0.0F,
-        cos_angle;
+    rotation << cos_angle, 0.0F, sin_angle, 0.0F, 1.0F, 0.0F, -sin_angle, 0.0F, cos_angle;
 
     // Offset vector for radial placement (on XZ plane)
-    const Eigen::Vector3f radial_offset(radius * sin_angle, 0.0F,
-                                        radius * cos_angle);
+    const Eigen::Vector3f radial_offset(radius * sin_angle, 0.0F, radius * cos_angle);
 
     const size_t point_offset = i * input_point_count;
 
@@ -327,8 +309,7 @@ ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
     const int point_offset = i * static_cast<int>(input_point_count);
 
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto& prim_verts =
-          input_geo.topology().get_primitive_vertices(prim_idx);
+      const auto& prim_verts = input_geo.topology().get_primitive_vertices(prim_idx);
       std::vector<int> new_prim_verts;
       new_prim_verts.reserve(prim_verts.size());
 
@@ -339,9 +320,7 @@ ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
         int new_point_idx = input_point_idx + point_offset;
 
         // Create new vertex for this point
-        int new_vertex_idx =
-            (i * static_cast<int>(input_geo.topology().vertex_count())) +
-            vertex_idx;
+        int new_vertex_idx = (i * static_cast<int>(input_geo.topology().vertex_count())) + vertex_idx;
         result->topology().set_vertex_point(new_vertex_idx, new_point_idx);
         new_prim_verts.push_back(new_vertex_idx);
       }
@@ -353,12 +332,10 @@ ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
   return result;
 }
 
-std::unique_ptr<core::GeometryContainer>
-ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
-                            int grid_width, int grid_height) {
+std::unique_ptr<core::GeometryContainer> ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
+                                                                     int grid_width, int grid_height) {
   // Get input positions
-  auto* input_positions =
-      input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* input_positions = input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (input_positions == nullptr) {
     return nullptr;
   }
@@ -374,16 +351,14 @@ ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
   auto result = std::make_unique<core::GeometryContainer>();
   const int total_copies = grid_width * grid_height;
   const size_t total_points = input_point_count * total_copies;
-  const size_t total_vertices =
-      input_geo.topology().vertex_count() * total_copies;
+  const size_t total_vertices = input_geo.topology().vertex_count() * total_copies;
 
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
 
   // Add position attribute
   result->add_point_attribute("P", core::AttributeType::VEC3F);
-  auto* output_positions =
-      result->get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* output_positions = result->get_point_attribute_typed<Eigen::Vector3f>("P");
 
   // Copy and translate points for each grid cell
   auto input_span = input_positions->values();
@@ -392,8 +367,7 @@ ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
   int copy_idx = 0;
   for (int row = 0; row < grid_height; ++row) {
     for (int col = 0; col < grid_width; ++col) {
-      const Eigen::Vector3f offset(static_cast<float>(col) * spacing_x,
-                                   static_cast<float>(row) * spacing_y, 0.0F);
+      const Eigen::Vector3f offset(static_cast<float>(col) * spacing_x, static_cast<float>(row) * spacing_y, 0.0F);
 
       const size_t point_offset = copy_idx * input_point_count;
 
@@ -410,8 +384,7 @@ ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
     const int point_offset = i * static_cast<int>(input_point_count);
 
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto& prim_verts =
-          input_geo.topology().get_primitive_vertices(prim_idx);
+      const auto& prim_verts = input_geo.topology().get_primitive_vertices(prim_idx);
       std::vector<int> new_prim_verts;
       new_prim_verts.reserve(prim_verts.size());
 
@@ -422,9 +395,7 @@ ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
         int new_point_idx = input_point_idx + point_offset;
 
         // Create new vertex for this point
-        int new_vertex_idx =
-            (i * static_cast<int>(input_geo.topology().vertex_count())) +
-            vertex_idx;
+        int new_vertex_idx = (i * static_cast<int>(input_geo.topology().vertex_count())) + vertex_idx;
         result->topology().set_vertex_point(new_vertex_idx, new_point_idx);
         new_prim_verts.push_back(new_vertex_idx);
       }

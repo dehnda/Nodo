@@ -18,8 +18,7 @@ class GraphSerializationTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create a temporary directory for test files
-    test_dir_ =
-        std::filesystem::temp_directory_path() / "nodo_serialization_tests";
+    test_dir_ = std::filesystem::temp_directory_path() / "nodo_serialization_tests";
     std::filesystem::create_directories(test_dir_);
   }
 
@@ -91,10 +90,8 @@ TEST_F(GraphSerializationTest, AllParameterTypes) {
   node->add_parameter(NodeParameter("float_param", 3.14f));
   node->add_parameter(NodeParameter("int_param", 42));
   node->add_parameter(NodeParameter("bool_param", true));
-  node->add_parameter(
-      NodeParameter("string_param", std::string("test_string")));
-  node->add_parameter(
-      NodeParameter("vector3_param", std::array<float, 3>{1.0f, 2.0f, 3.0f}));
+  node->add_parameter(NodeParameter("string_param", std::string("test_string")));
+  node->add_parameter(NodeParameter("vector3_param", std::array<float, 3>{1.0f, 2.0f, 3.0f}));
 
   // Add Code parameter (for Wrangle nodes) - created as String but set type to
   // Code
@@ -214,8 +211,7 @@ TEST_F(GraphSerializationTest, SaveLoadFile) {
 
   // Save to file
   std::filesystem::path file_path = test_dir_ / "test_graph.nfg";
-  bool save_success =
-      GraphSerializer::save_to_file(original_graph, file_path.string());
+  bool save_success = GraphSerializer::save_to_file(original_graph, file_path.string());
   EXPECT_TRUE(save_success);
   EXPECT_TRUE(std::filesystem::exists(file_path));
 
@@ -242,9 +238,8 @@ TEST_F(GraphSerializationTest, WrangleWithChannels) {
 
   // Add expression with ch() parameters - created as String but set type to
   // Code
-  NodeParameter expr_param("expression",
-                           std::string("@P.y = @P.y + ch(\"amplitude\") * "
-                                       "sin(@ptnum * ch(\"frequency\"));"));
+  NodeParameter expr_param("expression", std::string("@P.y = @P.y + ch(\"amplitude\") * "
+                                                     "sin(@ptnum * ch(\"frequency\"));"));
   expr_param.type = NodeParameter::Type::Code;
   wrangle_node->add_parameter(expr_param);
 
@@ -264,9 +259,7 @@ TEST_F(GraphSerializationTest, WrangleWithChannels) {
   auto expr = loaded_wrangle->get_parameter("expression");
   ASSERT_TRUE(expr.has_value());
   EXPECT_EQ(expr->type, NodeParameter::Type::Code);
-  EXPECT_EQ(
-      expr->string_value,
-      "@P.y = @P.y + ch(\"amplitude\") * sin(@ptnum * ch(\"frequency\"));");
+  EXPECT_EQ(expr->string_value, "@P.y = @P.y + ch(\"amplitude\") * sin(@ptnum * ch(\"frequency\"));");
 
   // Verify channel parameters
   auto amp = loaded_wrangle->get_parameter("amplitude");
@@ -445,12 +438,9 @@ TEST_F(GraphSerializationTest, TransformNode) {
   int id = graph.add_node(NodeType::Transform, "TestTransform");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(
-      NodeParameter("translate", std::array<float, 3>{1.0f, 2.0f, 3.0f}));
-  node->add_parameter(
-      NodeParameter("rotate", std::array<float, 3>{45.0f, 0.0f, 0.0f}));
-  node->add_parameter(
-      NodeParameter("scale", std::array<float, 3>{1.5f, 1.5f, 1.5f}));
+  node->add_parameter(NodeParameter("translate", std::array<float, 3>{1.0f, 2.0f, 3.0f}));
+  node->add_parameter(NodeParameter("rotate", std::array<float, 3>{45.0f, 0.0f, 0.0f}));
+  node->add_parameter(NodeParameter("scale", std::array<float, 3>{1.5f, 1.5f, 1.5f}));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
@@ -473,8 +463,7 @@ TEST_F(GraphSerializationTest, ArrayNode) {
   auto* node = graph.get_node(id);
 
   node->add_parameter(NodeParameter("count", 5));
-  node->add_parameter(
-      NodeParameter("offset", std::array<float, 3>{2.0f, 0.0f, 0.0f}));
+  node->add_parameter(NodeParameter("offset", std::array<float, 3>{2.0f, 0.0f, 0.0f}));
   node->add_parameter(NodeParameter("mode", 0)); // Linear
 
   std::string json = GraphSerializer::serialize_to_json(graph);
@@ -733,8 +722,7 @@ TEST_F(GraphSerializationTest, ColorNode) {
   int id = graph.add_node(NodeType::Color, "TestColor");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(
-      NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.0f}));
+  node->add_parameter(NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.0f}));
   node->add_parameter(NodeParameter("mode", 0)); // Constant color
 
   std::string json = GraphSerializer::serialize_to_json(graph);
@@ -759,28 +747,23 @@ TEST_F(GraphSerializationTest, GraphParametersAllTypes) {
   NodeGraph graph;
 
   // Add graph parameters of all types
-  GraphParameter int_param("iteration", GraphParameter::Type::Int,
-                           "Iteration count");
+  GraphParameter int_param("iteration", GraphParameter::Type::Int, "Iteration count");
   int_param.set_value(42);
   graph.add_graph_parameter(int_param);
 
-  GraphParameter float_param("amplitude", GraphParameter::Type::Float,
-                             "Wave amplitude");
+  GraphParameter float_param("amplitude", GraphParameter::Type::Float, "Wave amplitude");
   float_param.set_value(2.5f);
   graph.add_graph_parameter(float_param);
 
-  GraphParameter string_param("project_name", GraphParameter::Type::String,
-                              "Project name");
+  GraphParameter string_param("project_name", GraphParameter::Type::String, "Project name");
   string_param.set_value(std::string("MyProject"));
   graph.add_graph_parameter(string_param);
 
-  GraphParameter bool_param("enable_feature", GraphParameter::Type::Bool,
-                            "Enable feature flag");
+  GraphParameter bool_param("enable_feature", GraphParameter::Type::Bool, "Enable feature flag");
   bool_param.set_value(true);
   graph.add_graph_parameter(bool_param);
 
-  GraphParameter vec3_param("offset", GraphParameter::Type::Vector3,
-                            "Position offset");
+  GraphParameter vec3_param("offset", GraphParameter::Type::Vector3, "Position offset");
   vec3_param.set_value(std::array<float, 3>{1.0f, 2.0f, 3.0f});
   graph.add_graph_parameter(vec3_param);
 
@@ -836,13 +819,11 @@ TEST_F(GraphSerializationTest, GraphParametersWithNodes) {
   NodeGraph graph;
 
   // Add graph parameters
-  GraphParameter radius_param("base_radius", GraphParameter::Type::Float,
-                              "Base radius for all spheres");
+  GraphParameter radius_param("base_radius", GraphParameter::Type::Float, "Base radius for all spheres");
   radius_param.set_value(2.0f);
   graph.add_graph_parameter(radius_param);
 
-  GraphParameter count_param("copy_count", GraphParameter::Type::Int,
-                             "Number of copies");
+  GraphParameter count_param("copy_count", GraphParameter::Type::Int, "Number of copies");
   count_param.set_value(5);
   graph.add_graph_parameter(count_param);
 
@@ -887,13 +868,11 @@ TEST_F(GraphSerializationTest, GraphParametersFileRoundtrip) {
   NodeGraph graph;
 
   // Add graph parameters
-  GraphParameter seed_param("global_seed", GraphParameter::Type::Int,
-                            "Global random seed");
+  GraphParameter seed_param("global_seed", GraphParameter::Type::Int, "Global random seed");
   seed_param.set_value(12345);
   graph.add_graph_parameter(seed_param);
 
-  GraphParameter scale_param("global_scale", GraphParameter::Type::Float,
-                             "Global scale multiplier");
+  GraphParameter scale_param("global_scale", GraphParameter::Type::Float, "Global scale multiplier");
   scale_param.set_value(1.5f);
   graph.add_graph_parameter(scale_param);
 
@@ -945,8 +924,7 @@ TEST_F(GraphSerializationTest, FileNode) {
   int id = graph.add_node(NodeType::File, "TestFile");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(
-      NodeParameter("filepath", std::string("/path/to/model.obj")));
+  node->add_parameter(NodeParameter("filepath", std::string("/path/to/model.obj")));
   node->set_position(100.0f, 100.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
@@ -967,8 +945,7 @@ TEST_F(GraphSerializationTest, ExportNode) {
   int id = graph.add_node(NodeType::Export, "TestExport");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(
-      NodeParameter("filepath", std::string("/path/to/output.obj")));
+  node->add_parameter(NodeParameter("filepath", std::string("/path/to/output.obj")));
   node->add_parameter(NodeParameter("format", 0)); // OBJ format
   node->set_position(200.0f, 100.0f);
 
@@ -1245,8 +1222,7 @@ TEST_F(GraphSerializationTest, GeodesicNode) {
   node->add_parameter(NodeParameter("method", 1)); // Heat method
   node->add_parameter(NodeParameter("seed_group", std::string("seeds")));
   node->add_parameter(NodeParameter("max_distance", 10.0f));
-  node->add_parameter(
-      NodeParameter("output_attribute", std::string("distance")));
+  node->add_parameter(NodeParameter("output_attribute", std::string("distance")));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
@@ -1502,14 +1478,11 @@ TEST_F(GraphSerializationTest, FullGraph_SimpleChain) {
   original.get_node(sphere_id)->add_parameter(NodeParameter("rows", 24));
   original.get_node(sphere_id)->add_parameter(NodeParameter("columns", 48));
 
-  original.get_node(transform_id)
-      ->add_parameter(NodeParameter("translate_x", 1.0f));
-  original.get_node(transform_id)
-      ->add_parameter(NodeParameter("translate_y", 2.0f));
+  original.get_node(transform_id)->add_parameter(NodeParameter("translate_x", 1.0f));
+  original.get_node(transform_id)->add_parameter(NodeParameter("translate_y", 2.0f));
   original.get_node(transform_id)->add_parameter(NodeParameter("scale", 1.5f));
 
-  original.get_node(subdivide_id)
-      ->add_parameter(NodeParameter("subdivisions", 2));
+  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 2));
 
   // Set positions
   original.get_node(sphere_id)->set_position(0.0f, 0.0f);
@@ -1598,8 +1571,7 @@ TEST_F(GraphSerializationTest, FullGraph_BranchingNetwork) {
   auto inputs = loaded->get_input_nodes(merge_id);
   EXPECT_EQ(inputs.size(), 2);
   EXPECT_TRUE(std::find(inputs.begin(), inputs.end(), box_id) != inputs.end());
-  EXPECT_TRUE(std::find(inputs.begin(), inputs.end(), sphere_id) !=
-              inputs.end());
+  EXPECT_TRUE(std::find(inputs.begin(), inputs.end(), sphere_id) != inputs.end());
 }
 
 TEST_F(GraphSerializationTest, FullGraph_BooleanOperation) {
@@ -1646,16 +1618,12 @@ TEST_F(GraphSerializationTest, FullGraph_WithGroups) {
   int blast_id = original.add_node(NodeType::Blast, "DeleteGroup");
 
   // Configure group selection
-  original.get_node(group_id)->add_parameter(
-      NodeParameter("group_name", std::string("top")));
-  original.get_node(group_id)->add_parameter(
-      NodeParameter("element_class", 1)); // Primitives
+  original.get_node(group_id)->add_parameter(NodeParameter("group_name", std::string("top")));
+  original.get_node(group_id)->add_parameter(NodeParameter("element_class", 1)); // Primitives
 
   // Configure blast to delete the group
-  original.get_node(blast_id)->add_parameter(
-      NodeParameter("input_group", std::string("top")));
-  original.get_node(blast_id)->add_parameter(
-      NodeParameter("delete_non_selected", 0));
+  original.get_node(blast_id)->add_parameter(NodeParameter("input_group", std::string("top")));
+  original.get_node(blast_id)->add_parameter(NodeParameter("delete_non_selected", 0));
 
   // Connect
   original.add_connection(box_id, 0, group_id, 0);
@@ -1692,20 +1660,16 @@ TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
   int color_id = original.add_node(NodeType::Color, "ColorByUV");
 
   // Configure nodes
-  original.get_node(torus_id)->add_parameter(
-      NodeParameter("major_radius", 1.0f));
-  original.get_node(torus_id)->add_parameter(
-      NodeParameter("minor_radius", 0.3f));
+  original.get_node(torus_id)->add_parameter(NodeParameter("major_radius", 1.0f));
+  original.get_node(torus_id)->add_parameter(NodeParameter("minor_radius", 0.3f));
 
-  original.get_node(subdivide_id)
-      ->add_parameter(NodeParameter("subdivisions", 1));
+  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 1));
 
   original.get_node(twist_id)->add_parameter(NodeParameter("angle", 180.0f));
 
   original.get_node(smooth_id)->add_parameter(NodeParameter("iterations", 5));
 
-  original.get_node(color_id)->add_parameter(
-      NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.2f}));
+  original.get_node(color_id)->add_parameter(NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.2f}));
 
   // Set positions
   float x = 0.0f;
@@ -1815,18 +1779,15 @@ TEST_F(GraphSerializationTest, FullGraph_WithGraphParameters) {
   NodeGraph original;
 
   // Add graph-level parameters
-  GraphParameter scale_param("global_scale", GraphParameter::Type::Float,
-                             "Global scale factor");
+  GraphParameter scale_param("global_scale", GraphParameter::Type::Float, "Global scale factor");
   scale_param.set_value(1.5f);
   original.add_graph_parameter(scale_param);
 
-  GraphParameter detail_param("detail_level", GraphParameter::Type::Int,
-                              "Subdivision detail");
+  GraphParameter detail_param("detail_level", GraphParameter::Type::Int, "Subdivision detail");
   detail_param.set_value(2);
   original.add_graph_parameter(detail_param);
 
-  GraphParameter color_param("base_color", GraphParameter::Type::Vector3,
-                             "Base material color");
+  GraphParameter color_param("base_color", GraphParameter::Type::Vector3, "Base material color");
   color_param.set_value(std::array<float, 3>{0.8f, 0.3f, 0.1f});
   original.add_graph_parameter(color_param);
 
@@ -1837,8 +1798,7 @@ TEST_F(GraphSerializationTest, FullGraph_WithGraphParameters) {
   // Set parameters (in real usage these might reference graph params via
   // expressions)
   original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 1.5f));
-  original.get_node(subdivide_id)
-      ->add_parameter(NodeParameter("subdivisions", 2));
+  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 2));
 
   original.add_connection(sphere_id, 0, subdivide_id, 0);
 
@@ -1942,11 +1902,8 @@ TEST_F(GraphSerializationTest, NodeFlagsFileRoundtrip) {
 
   // Configure parameters
   original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 1.5f));
-  original.get_node(transform_id)
-      ->add_parameter(
-          NodeParameter("translate", std::array<float, 3>{0.0f, 2.0f, 0.0f}));
-  original.get_node(subdivide_id)
-      ->add_parameter(NodeParameter("subdivisions", 2));
+  original.get_node(transform_id)->add_parameter(NodeParameter("translate", std::array<float, 3>{0.0f, 2.0f, 0.0f}));
+  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 2));
 
   // Set positions
   original.get_node(sphere_id)->set_position(0.0f, 0.0f);

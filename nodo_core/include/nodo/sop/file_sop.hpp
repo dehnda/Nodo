@@ -22,18 +22,16 @@ class FileSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit FileSOP(const std::string& node_name = "file")
-      : SOPNode(node_name, "File") {
+  explicit FileSOP(const std::string& node_name = "file") : SOPNode(node_name, "File") {
     // No input ports - this is a source node
 
     // File path parameter
-    register_parameter(
-        define_string_parameter("file_path", "")
-            .label("File Path")
-            .category("File")
-            .description("Path to geometry file to import (e.g., .obj)")
-            .hint("filepath")
-            .build());
+    register_parameter(define_string_parameter("file_path", "")
+                           .label("File Path")
+                           .category("File")
+                           .description("Path to geometry file to import (e.g., .obj)")
+                           .hint("filepath")
+                           .build());
 
     // Reload button (int parameter acting as button)
     register_parameter(define_int_parameter("reload", 0)
@@ -45,9 +43,7 @@ public:
   }
 
   // Generator node - no inputs required
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::NONE, 0, 0, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
   /**
    * @brief Trigger reload of file
@@ -102,8 +98,7 @@ protected:
         }
         mesh = std::make_shared<core::Mesh>(std::move(*imported_mesh));
       } else {
-        set_error("Unsupported file format: " + extension +
-                  " (Supported: .obj)");
+        set_error("Unsupported file format: " + extension + " (Supported: .obj)");
         return nullptr;
       }
 
@@ -135,15 +130,13 @@ protected:
 
       // Add positions
       container->add_point_attribute("P", core::AttributeType::VEC3F);
-      auto* positions =
-          container->get_point_attribute_typed<Eigen::Vector3f>("P");
+      auto* positions = container->get_point_attribute_typed<Eigen::Vector3f>("P");
 
       if (positions) {
         auto pos_span = positions->values_writable();
 
         for (size_t i = 0; i < static_cast<size_t>(vertices.rows()); ++i) {
-          pos_span[i] = Eigen::Vector3f(static_cast<float>(vertices(i, 0)),
-                                        static_cast<float>(vertices(i, 1)),
+          pos_span[i] = Eigen::Vector3f(static_cast<float>(vertices(i, 0)), static_cast<float>(vertices(i, 1)),
                                         static_cast<float>(vertices(i, 2)));
         }
       }
@@ -152,13 +145,11 @@ protected:
       const auto& normals = mesh->vertex_normals();
       if (normals.rows() > 0) {
         container->add_point_attribute("N", core::AttributeType::VEC3F);
-        auto* normal_attr =
-            container->get_point_attribute_typed<Eigen::Vector3f>("N");
+        auto* normal_attr = container->get_point_attribute_typed<Eigen::Vector3f>("N");
         if (normal_attr) {
           auto norm_span = normal_attr->values_writable();
           for (size_t i = 0; i < static_cast<size_t>(normals.rows()); ++i) {
-            norm_span[i] = Eigen::Vector3f(static_cast<float>(normals(i, 0)),
-                                           static_cast<float>(normals(i, 1)),
+            norm_span[i] = Eigen::Vector3f(static_cast<float>(normals(i, 0)), static_cast<float>(normals(i, 1)),
                                            static_cast<float>(normals(i, 2)));
           }
         }

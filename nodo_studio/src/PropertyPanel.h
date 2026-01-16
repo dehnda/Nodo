@@ -42,12 +42,10 @@ public:
   ~PropertyPanel() override = default;
 
   // Set GraphNode from node graph system
-  void setGraphNode(nodo::graph::GraphNode* node,
-                    nodo::graph::NodeGraph* graph);
+  void setGraphNode(nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph);
 
   // NEW: Auto-generate UI from node parameter definitions using widget factory
-  void buildFromNode(nodo::graph::GraphNode* node,
-                     nodo::graph::NodeGraph* graph);
+  void buildFromNode(nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph);
 
   void clearProperties();
 
@@ -58,19 +56,13 @@ public:
   void refreshFromCurrentNode();
 
   // Set undo stack for parameter change commands
-  void setUndoStack(nodo::studio::UndoStack* undo_stack) {
-    undo_stack_ = undo_stack;
-  }
+  void setUndoStack(nodo::studio::UndoStack* undo_stack) { undo_stack_ = undo_stack; }
 
   // Set node graph widget for node selection during undo/redo
-  void setNodeGraphWidget(NodeGraphWidget* widget) {
-    node_graph_widget_ = widget;
-  }
+  void setNodeGraphWidget(NodeGraphWidget* widget) { node_graph_widget_ = widget; }
 
   // Set execution engine for accessing node geometry
-  void setExecutionEngine(nodo::graph::ExecutionEngine* engine) {
-    execution_engine_ = engine;
-  }
+  void setExecutionEngine(nodo::graph::ExecutionEngine* engine) { execution_engine_ = engine; }
 
 signals:
   // Emitted when a parameter changes (triggers full graph execution)
@@ -113,36 +105,26 @@ private:
 
   // Connect parameter widget callbacks to backend updates
   void connectParameterWidget(nodo_studio::widgets::BaseParameterWidget* widget,
-                              const nodo::graph::NodeParameter& param,
-                              nodo::graph::GraphNode* node,
+                              const nodo::graph::NodeParameter& param, nodo::graph::GraphNode* node,
                               nodo::graph::NodeGraph* graph);
 
   // Populate group selector widget with available groups from input geometry
-  void populateGroupWidget(nodo_studio::widgets::GroupSelectorWidget* widget,
-                           nodo::graph::GraphNode* node,
+  void populateGroupWidget(nodo_studio::widgets::GroupSelectorWidget* widget, nodo::graph::GraphNode* node,
                            nodo::graph::NodeGraph* graph);
 
   // Parameter widget builders
-  void addIntParameter(const QString& label, int value, int min, int max,
-                       std::function<void(int)> callback);
-  void addDoubleParameter(const QString& label, double value, double min,
-                          double max, std::function<void(double)> callback);
-  void addBoolParameter(const QString& label, bool value,
-                        std::function<void(bool)> callback);
+  void addIntParameter(const QString& label, int value, int min, int max, std::function<void(int)> callback);
+  void addDoubleParameter(const QString& label, double value, double min, double max,
+                          std::function<void(double)> callback);
+  void addBoolParameter(const QString& label, bool value, std::function<void(bool)> callback);
   void addButtonParameter(const QString& label, std::function<void()> callback);
-  void addStringParameter(const QString& label, const QString& value,
-                          std::function<void(const QString&)> callback);
-  void addFilePathParameter(const QString& label, const QString& value,
-                            std::function<void(const QString&)> callback);
-  void addFileSaveParameter(const QString& label, const QString& value,
-                            std::function<void(const QString&)> callback);
-  void addComboParameter(const QString& label, int value,
-                         const QStringList& options,
+  void addStringParameter(const QString& label, const QString& value, std::function<void(const QString&)> callback);
+  void addFilePathParameter(const QString& label, const QString& value, std::function<void(const QString&)> callback);
+  void addFileSaveParameter(const QString& label, const QString& value, std::function<void(const QString&)> callback);
+  void addComboParameter(const QString& label, int value, const QStringList& options,
                          std::function<void(int)> callback);
-  void
-  addVector3Parameter(const QString& label, double x, double y, double z,
-                      double min, double max,
-                      std::function<void(double, double, double)> callback);
+  void addVector3Parameter(const QString& label, double x, double y, double z, double min, double max,
+                           std::function<void(double, double, double)> callback);
   void addInfoLabel(const QString& text);
 
   // Builder methods for specific node types

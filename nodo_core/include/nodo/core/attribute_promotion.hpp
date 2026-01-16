@@ -31,8 +31,7 @@ namespace nodo::core {
  * @param output_name Name for the new vertex attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool promote_point_to_vertex(GeometryContainer& container,
-                             std::string_view attr_name,
+bool promote_point_to_vertex(GeometryContainer& container, std::string_view attr_name,
                              std::string_view output_name = "");
 
 /**
@@ -48,8 +47,7 @@ bool promote_point_to_vertex(GeometryContainer& container,
  * @param output_name Name for the new point attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool demote_vertex_to_point(GeometryContainer& container,
-                            std::string_view attr_name,
+bool demote_vertex_to_point(GeometryContainer& container, std::string_view attr_name,
                             std::string_view output_name = "");
 
 /**
@@ -66,8 +64,7 @@ bool demote_vertex_to_point(GeometryContainer& container,
  * name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool promote_point_to_primitive(GeometryContainer& container,
-                                std::string_view attr_name,
+bool promote_point_to_primitive(GeometryContainer& container, std::string_view attr_name,
                                 std::string_view output_name = "");
 
 /**
@@ -83,8 +80,7 @@ bool promote_point_to_primitive(GeometryContainer& container,
  * @param output_name Name for the new point attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool demote_primitive_to_point(GeometryContainer& container,
-                               std::string_view attr_name,
+bool demote_primitive_to_point(GeometryContainer& container, std::string_view attr_name,
                                std::string_view output_name = "");
 
 /**
@@ -100,8 +96,7 @@ bool demote_primitive_to_point(GeometryContainer& container,
  * name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool promote_vertex_to_primitive(GeometryContainer& container,
-                                 std::string_view attr_name,
+bool promote_vertex_to_primitive(GeometryContainer& container, std::string_view attr_name,
                                  std::string_view output_name = "");
 
 /**
@@ -116,8 +111,7 @@ bool promote_vertex_to_primitive(GeometryContainer& container,
  * @param output_name Name for the new vertex attribute (defaults to same name)
  * @return true if successful, false if attribute doesn't exist or wrong type
  */
-bool demote_primitive_to_vertex(GeometryContainer& container,
-                                std::string_view attr_name,
+bool demote_primitive_to_vertex(GeometryContainer& container, std::string_view attr_name,
                                 std::string_view output_name = "");
 
 // ============================================================================
@@ -169,28 +163,23 @@ inline int average_values<int>(const std::vector<int>& values) {
 
 // Template function declarations for typed promotion/demotion
 template <typename T>
-bool promote_point_to_vertex_typed(GeometryContainer& container,
-                                   std::string_view attr_name,
+bool promote_point_to_vertex_typed(GeometryContainer& container, std::string_view attr_name,
                                    std::string_view output_name);
 
 template <typename T>
-bool demote_vertex_to_point_typed(GeometryContainer& container,
-                                  std::string_view attr_name,
+bool demote_vertex_to_point_typed(GeometryContainer& container, std::string_view attr_name,
                                   std::string_view output_name);
 
 template <typename T>
-bool promote_point_to_primitive_typed(GeometryContainer& container,
-                                      std::string_view attr_name,
+bool promote_point_to_primitive_typed(GeometryContainer& container, std::string_view attr_name,
                                       std::string_view output_name);
 
 template <typename T>
-bool demote_primitive_to_point_typed(GeometryContainer& container,
-                                     std::string_view attr_name,
+bool demote_primitive_to_point_typed(GeometryContainer& container, std::string_view attr_name,
                                      std::string_view output_name);
 
 template <typename T>
-bool promote_vertex_to_primitive_typed(GeometryContainer& container,
-                                       std::string_view attr_name,
+bool promote_vertex_to_primitive_typed(GeometryContainer& container, std::string_view attr_name,
                                        std::string_view output_name);
 
 } // namespace nodo::core

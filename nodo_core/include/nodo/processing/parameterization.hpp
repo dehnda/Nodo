@@ -72,9 +72,8 @@ public:
    * @note LSCM requires triangle mesh
    * @note UV coordinates are stored as Vec2f point attribute
    */
-  static std::optional<core::GeometryContainer>
-  parameterize(const core::GeometryContainer& input,
-               const ParameterizationParams& params, std::string* error);
+  static std::optional<core::GeometryContainer> parameterize(const core::GeometryContainer& input,
+                                                             const ParameterizationParams& params, std::string* error);
 };
 
 } // namespace nodo::processing

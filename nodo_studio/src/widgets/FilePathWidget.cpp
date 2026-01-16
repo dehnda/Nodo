@@ -5,14 +5,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-FilePathWidget::FilePathWidget(const QString& label,
-                               const QString& initial_path, Mode mode,
-                               const QString& filter,
+FilePathWidget::FilePathWidget(const QString& label, const QString& initial_path, Mode mode, const QString& filter,
                                const QString& description, QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      path_(initial_path),
-      mode_(mode),
-      filter_(filter) {
+    : BaseParameterWidget(label, description, parent), path_(initial_path), mode_(mode), filter_(filter) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
@@ -46,8 +41,7 @@ QWidget* FilePathWidget::createControlWidget() {
                                 .arg(COLOR_TEXT_PRIMARY)
                                 .arg(COLOR_ACCENT));
 
-  connect(path_edit_, &QLineEdit::textChanged, this,
-          &FilePathWidget::onPathEdited);
+  connect(path_edit_, &QLineEdit::textChanged, this, &FilePathWidget::onPathEdited);
 
   layout->addWidget(path_edit_, 1);
 
@@ -72,8 +66,7 @@ QWidget* FilePathWidget::createControlWidget() {
                                     .arg(COLOR_TEXT_PRIMARY)
                                     .arg(COLOR_ACCENT));
 
-  connect(browse_button_, &QPushButton::clicked, this,
-          &FilePathWidget::onBrowseClicked);
+  connect(browse_button_, &QPushButton::clicked, this, &FilePathWidget::onBrowseClicked);
 
   layout->addWidget(browse_button_);
 
@@ -106,8 +99,7 @@ void FilePathWidget::setFilter(const QString& filter) {
   filter_ = filter;
 }
 
-void FilePathWidget::setPathChangedCallback(
-    std::function<void(const QString&)> callback) {
+void FilePathWidget::setPathChangedCallback(std::function<void(const QString&)> callback) {
   path_changed_callback_ = callback;
 }
 
@@ -119,21 +111,18 @@ void FilePathWidget::onBrowseClicked() {
 
   switch (mode_) {
     case Mode::OpenFile:
-      selected_path = QFileDialog::getOpenFileName(
-          this, "Select File", start_dir,
-          filter_.isEmpty() ? "All Files (*)" : filter_);
+      selected_path =
+          QFileDialog::getOpenFileName(this, "Select File", start_dir, filter_.isEmpty() ? "All Files (*)" : filter_);
       break;
 
     case Mode::SaveFile:
-      selected_path = QFileDialog::getSaveFileName(
-          this, "Save File", start_dir,
-          filter_.isEmpty() ? "All Files (*)" : filter_);
+      selected_path =
+          QFileDialog::getSaveFileName(this, "Save File", start_dir, filter_.isEmpty() ? "All Files (*)" : filter_);
       break;
 
     case Mode::Directory:
-      selected_path = QFileDialog::getExistingDirectory(
-          this, "Select Directory", start_dir,
-          QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+      selected_path = QFileDialog::getExistingDirectory(this, "Select Directory", start_dir,
+                                                        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
       break;
   }
 

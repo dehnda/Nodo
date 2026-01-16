@@ -26,12 +26,7 @@ public:
     std::string additional_info;
 
     BenchmarkResult()
-        : average_time_ms(0),
-          min_time_ms(0),
-          max_time_ms(0),
-          std_dev_ms(0),
-          iterations(0),
-          memory_usage_bytes(0) {}
+        : average_time_ms(0), min_time_ms(0), max_time_ms(0), std_dev_ms(0), iterations(0), memory_usage_bytes(0) {}
   };
 
   /// @brief Comprehensive benchmark suite results
@@ -71,14 +66,12 @@ public:
           measure_memory(true),
           warm_up_runs(true),
           warm_up_iterations(10),
-          complexity_levels{ComplexityLevel::Simple, ComplexityLevel::Medium,
-                            ComplexityLevel::Complex} {}
+          complexity_levels{ComplexityLevel::Simple, ComplexityLevel::Medium, ComplexityLevel::Complex} {}
   };
 
 public:
   /// @brief Constructor
-  explicit PerformanceBenchmark(
-      const BenchmarkConfig& config = BenchmarkConfig{});
+  explicit PerformanceBenchmark(const BenchmarkConfig& config = BenchmarkConfig{});
 
   /// @brief Run comprehensive BVH performance benchmarks
   /// @return Complete benchmark results
@@ -121,14 +114,12 @@ private:
   /// @param func Function to benchmark
   /// @param iterations Number of iterations
   /// @return Timing measurements
-  std::vector<double> time_function(std::function<void()> func,
-                                    size_t iterations);
+  std::vector<double> time_function(std::function<void()> func, size_t iterations);
 
   /// @brief Calculate statistics from timing data
   /// @param timings Vector of timing measurements
   /// @return Statistical summary
-  BenchmarkResult calculate_statistics(const std::vector<double>& timings,
-                                       const std::string& operation_name);
+  BenchmarkResult calculate_statistics(const std::vector<double>& timings, const std::string& operation_name);
 
   /// @brief Estimate memory usage of an object
   /// @param obj Object to measure
@@ -140,23 +131,20 @@ private:
   /// @param base_mesh Base mesh to subdivide
   /// @param subdivision_levels Number of subdivision iterations
   /// @return Subdivided mesh
-  static core::Mesh subdivide_mesh(const core::Mesh& base_mesh,
-                                   int subdivision_levels);
+  static core::Mesh subdivide_mesh(const core::Mesh& base_mesh, int subdivision_levels);
 
   /// @brief Brute force ray intersection (for comparison)
   /// @param mesh Mesh to test
   /// @param ray Ray to intersect
   /// @return Intersection result
-  static std::optional<spatial::BVH::RayHit>
-  brute_force_ray_intersect(const core::Mesh& mesh,
-                            const spatial::BVH::Ray& ray);
+  static std::optional<spatial::BVH::RayHit> brute_force_ray_intersect(const core::Mesh& mesh,
+                                                                       const spatial::BVH::Ray& ray);
 
   /// @brief Brute force AABB query (for comparison)
   /// @param mesh Mesh to query
   /// @param aabb Query bounding box
   /// @return Triangle indices
-  static std::vector<int> brute_force_aabb_query(const core::Mesh& mesh,
-                                                 const spatial::AABB& aabb);
+  static std::vector<int> brute_force_aabb_query(const core::Mesh& mesh, const spatial::AABB& aabb);
 };
 
 /// @brief Memory usage tracker for performance analysis

@@ -24,14 +24,13 @@ enum class AttributeClass {
 /**
  * @brief Supported attribute data types for procedural modeling
  */
-using AttributeValue =
-    std::variant<float,      // Single float values
-                 double,     // Double precision values
-                 int,        // Integer values
-                 Vector3,    // 3D vectors (positions, normals, colors)
-                 Vector2f,   // 2D vectors (UV coordinates)
-                 std::string // String metadata
-                 >;
+using AttributeValue = std::variant<float,      // Single float values
+                                    double,     // Double precision values
+                                    int,        // Integer values
+                                    Vector3,    // 3D vectors (positions, normals, colors)
+                                    Vector2f,   // 2D vectors (UV coordinates)
+                                    std::string // String metadata
+                                    >;
 
 /**
  * @brief Storage container for a single attribute across all elements
@@ -104,8 +103,7 @@ public:
    * @param initial_size Initial size for the attribute array
    */
   template <typename T>
-  void add_attribute(const std::string& name, AttributeClass class_type,
-                     size_t initial_size = 0);
+  void add_attribute(const std::string& name, AttributeClass class_type, size_t initial_size = 0);
 
   /**
    * @brief Remove an attribute by name
@@ -120,8 +118,7 @@ public:
   /**
    * @brief Get the class type of an attribute
    */
-  std::optional<AttributeClass>
-  get_attribute_class(const std::string& name) const;
+  std::optional<AttributeClass> get_attribute_class(const std::string& name) const;
 
   // ============================================================================
   // Type-Safe Attribute Access
@@ -143,15 +140,13 @@ public:
    * @brief Set all values for an attribute at once
    */
   template <typename T>
-  bool set_attribute_array(const std::string& name,
-                           const std::vector<T>& values);
+  bool set_attribute_array(const std::string& name, const std::vector<T>& values);
 
   /**
    * @brief Get all values for an attribute
    */
   template <typename T>
-  std::optional<std::vector<T>>
-  get_attribute_array(const std::string& name) const;
+  std::optional<std::vector<T>> get_attribute_array(const std::string& name) const;
 
   // ============================================================================
   // Geometric Attribute Helpers
@@ -180,24 +175,20 @@ public:
    * @param vertex_mapping Mapping from source to destination vertex indices
    * @param face_mapping Mapping from source to destination face indices
    */
-  void transfer_attributes(const GeometryAttributes& source,
-                           const std::vector<int>& vertex_mapping = {},
+  void transfer_attributes(const GeometryAttributes& source, const std::vector<int>& vertex_mapping = {},
                            const std::vector<int>& face_mapping = {});
 
   /**
    * @brief Promote vertex attribute to face attribute (by averaging)
    */
-  bool promote_vertex_to_face(const std::string& vertex_attr_name,
-                              const std::string& face_attr_name,
+  bool promote_vertex_to_face(const std::string& vertex_attr_name, const std::string& face_attr_name,
                               const std::vector<Vector3i>& faces);
 
   /**
    * @brief Demote face attribute to vertex attribute (by replication)
    */
-  bool demote_face_to_vertex(const std::string& face_attr_name,
-                             const std::string& vertex_attr_name,
-                             const std::vector<Vector3i>& faces,
-                             size_t vertex_count);
+  bool demote_face_to_vertex(const std::string& face_attr_name, const std::string& vertex_attr_name,
+                             const std::vector<Vector3i>& faces, size_t vertex_count);
 
   // ============================================================================
   // Batch Operations and Resizing
@@ -240,8 +231,7 @@ public:
   /**
    * @brief Ensure essential attributes exist
    */
-  void ensure_attribute_exists(const std::string& name,
-                               AttributeClass class_type, size_t size);
+  void ensure_attribute_exists(const std::string& name, AttributeClass class_type, size_t size);
 
 private:
   /// Storage for all attributes

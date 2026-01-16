@@ -10,9 +10,8 @@
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-Smoothing::smooth(const core::GeometryContainer& container,
-                  const SmoothingParams& params, std::string* error) {
+std::optional<core::GeometryContainer> Smoothing::smooth(const core::GeometryContainer& container,
+                                                         const SmoothingParams& params, std::string* error) {
   // Validate input
   if (container.point_count() < 3) {
     if (error)
@@ -46,12 +45,10 @@ Smoothing::smooth(const core::GeometryContainer& container,
       pmp::minimize_curvature(pmp_mesh);
     } else if (params.method == 1) {
       // Implicit smoothing - higher quality, solves linear system
-      pmp::implicit_smoothing(pmp_mesh, params.timestep, params.iterations,
-                              params.use_uniform_laplace, params.rescale);
+      pmp::implicit_smoothing(pmp_mesh, params.timestep, params.iterations, params.use_uniform_laplace, params.rescale);
     } else {
       // Explicit smoothing - fast iterative approach (method == 0)
-      pmp::explicit_smoothing(pmp_mesh, params.iterations,
-                              params.use_uniform_laplace);
+      pmp::explicit_smoothing(pmp_mesh, params.iterations, params.use_uniform_laplace);
     }
 
     // Convert back to GeometryContainer

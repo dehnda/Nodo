@@ -8,8 +8,7 @@
 
 namespace nodo::io {
 
-bool ObjExporter::export_geometry(const core::GeometryContainer& geometry,
-                                  const std::string& filename) {
+bool ObjExporter::export_geometry(const core::GeometryContainer& geometry, const std::string& filename) {
   auto obj_content = geometry_to_obj_string(geometry);
   if (!obj_content) {
     return false;
@@ -18,15 +17,13 @@ bool ObjExporter::export_geometry(const core::GeometryContainer& geometry,
   return write_to_file(*obj_content, filename);
 }
 
-std::optional<std::string>
-ObjExporter::geometry_to_obj_string(const core::GeometryContainer& geometry) {
+std::optional<std::string> ObjExporter::geometry_to_obj_string(const core::GeometryContainer& geometry) {
   if (geometry.point_count() == 0) {
     return std::nullopt;
   }
 
   // Get position attribute (required)
-  const auto* positions =
-      geometry.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  const auto* positions = geometry.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (positions == nullptr) {
     return std::nullopt;
   }
@@ -49,8 +46,7 @@ ObjExporter::geometry_to_obj_string(const core::GeometryContainer& geometry) {
   obj_stream << "\n";
 
   // Write UV texture coordinates if available (vertex attribute)
-  const auto* uvs = geometry.get_vertex_attribute_typed<Eigen::Vector2f>(
-      core::standard_attrs::uv);
+  const auto* uvs = geometry.get_vertex_attribute_typed<Eigen::Vector2f>(core::standard_attrs::uv);
   if (uvs != nullptr) {
     const auto& uv_values = uvs->values();
     for (const auto& uv_coord : uv_values) {
@@ -61,13 +57,11 @@ ObjExporter::geometry_to_obj_string(const core::GeometryContainer& geometry) {
   }
 
   // Write vertex normals if available
-  const auto* normals =
-      geometry.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::N);
+  const auto* normals = geometry.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::N);
   if (normals != nullptr) {
     const auto& normal_values = normals->values();
     for (const auto& normal : normal_values) {
-      obj_stream << "vn " << normal.x() << " " << normal.y() << " "
-                 << normal.z() << "\n";
+      obj_stream << "vn " << normal.x() << " " << normal.y() << " " << normal.z() << "\n";
     }
     obj_stream << "\n";
   }
@@ -104,8 +98,7 @@ ObjExporter::geometry_to_obj_string(const core::GeometryContainer& geometry) {
   return obj_stream.str();
 }
 
-bool ObjExporter::write_to_file(const std::string& content,
-                                const std::string& filename) {
+bool ObjExporter::write_to_file(const std::string& content, const std::string& filename) {
   std::ofstream file(filename);
   if (!file.is_open()) {
     return false;

@@ -7,8 +7,7 @@ using namespace nodo;
 
 int main() {
   // Create a small sphere for demonstration
-  auto sphere_container =
-      geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 4);
+  auto sphere_container = geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 4);
 
   if (!sphere_container) {
     std::cerr << "Failed to create sphere\n";

@@ -37,10 +37,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  FilePathWidget(const QString& label, const QString& initial_path = QString(),
-                 Mode mode = Mode::OpenFile, const QString& filter = QString(),
-                 const QString& description = QString(),
-                 QWidget* parent = nullptr);
+  FilePathWidget(const QString& label, const QString& initial_path = QString(), Mode mode = Mode::OpenFile,
+                 const QString& filter = QString(), const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
   QString getPath() const { return path_; }

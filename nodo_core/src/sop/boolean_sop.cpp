@@ -11,8 +11,7 @@ namespace attrs = nodo::core::standard_attrs;
 namespace nodo::sop {
 
 // Helper to convert GeometryData to Mesh for BooleanOps (temporary bridge)
-static std::shared_ptr<core::Mesh>
-container_to_mesh(const core::GeometryContainer& container) {
+static std::shared_ptr<core::Mesh> container_to_mesh(const core::GeometryContainer& container) {
   const auto& topology = container.topology();
 
   auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
@@ -41,19 +40,15 @@ container_to_mesh(const core::GeometryContainer& container) {
     // Use NORMAL winding order (counter-clockwise when viewed from outside)
     if (point_indices.size() == 3) {
       // Already a triangle
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
     } else if (point_indices.size() == 4) {
       // Quad: split into two triangles using diagonal split
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
-      triangle_list.emplace_back(point_indices[0], point_indices[2],
-                                 point_indices[3]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[2], point_indices[3]);
     } else if (point_indices.size() > 4) {
       // N-gon: use fan triangulation from first vertex
       for (size_t i = 1; i + 1 < point_indices.size(); ++i) {
-        triangle_list.emplace_back(point_indices[0], point_indices[i],
-                                   point_indices[i + 1]);
+        triangle_list.emplace_back(point_indices[0], point_indices[i], point_indices[i + 1]);
       }
     }
   }
@@ -68,8 +63,7 @@ container_to_mesh(const core::GeometryContainer& container) {
 }
 
 // Helper to convert Mesh back to GeometryContainer
-static std::shared_ptr<core::GeometryContainer>
-mesh_to_container(const core::Mesh& mesh) {
+static std::shared_ptr<core::GeometryContainer> mesh_to_container(const core::Mesh& mesh) {
   auto container = std::make_shared<core::GeometryContainer>();
   const auto& vertices = mesh.vertices();
   const auto& faces = mesh.faces();
@@ -109,12 +103,10 @@ mesh_to_container(const core::Mesh& mesh) {
     int idx2 = faces(face_idx, 2);
 
     // Validate face indices before accessing vertices
-    if (idx0 < 0 || idx0 >= vertices.rows() || idx1 < 0 ||
-        idx1 >= vertices.rows() || idx2 < 0 || idx2 >= vertices.rows()) {
-      std::cerr << "ERROR: Invalid face indices in boolean result!"
-                << std::endl;
-      std::cerr << "  Face " << face_idx << ": [" << idx0 << ", " << idx1
-                << ", " << idx2 << "]" << std::endl;
+    if (idx0 < 0 || idx0 >= vertices.rows() || idx1 < 0 || idx1 >= vertices.rows() || idx2 < 0 ||
+        idx2 >= vertices.rows()) {
+      std::cerr << "ERROR: Invalid face indices in boolean result!" << std::endl;
+      std::cerr << "  Face " << face_idx << ": [" << idx0 << ", " << idx1 << ", " << idx2 << "]" << std::endl;
       std::cerr << "  Vertex count: " << vertices.rows() << std::endl;
       // Skip this face rather than crashing
       face_normals[face_idx] = core::Vec3f(0, 1, 0); // Default normal
@@ -172,13 +164,10 @@ mesh_to_container(const core::Mesh& mesh) {
   return container;
 }
 
-BooleanSOP::BooleanSOP(const std::string& node_name)
-    : SOPNode(node_name, "Boolean") {
+BooleanSOP::BooleanSOP(const std::string& node_name) : SOPNode(node_name, "Boolean") {
   // Add input ports (using numeric names for execution engine compatibility)
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
-  input_ports_.add_port("1", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("1", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
   register_parameter(define_int_parameter("operation", 0)

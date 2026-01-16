@@ -37,9 +37,8 @@ public:
    * @param parent Parent widget
    * @return Newly created parameter widget, or nullptr if type not supported
    */
-  static widgets::BaseParameterWidget*
-  createWidget(const nodo::sop::SOPNode::ParameterDefinition& def,
-               QWidget* parent = nullptr);
+  static widgets::BaseParameterWidget* createWidget(const nodo::sop::SOPNode::ParameterDefinition& def,
+                                                    QWidget* parent = nullptr);
 
   /**
    * @brief Create a widget for a NodeGraph parameter
@@ -47,60 +46,45 @@ public:
    * @param parent Parent widget
    * @return Newly created parameter widget, or nullptr if type not supported
    */
-  static widgets::BaseParameterWidget*
-  createWidget(const nodo::graph::NodeParameter& param,
-               QWidget* parent = nullptr);
+  static widgets::BaseParameterWidget* createWidget(const nodo::graph::NodeParameter& param, QWidget* parent = nullptr);
 
 private:
   // Individual widget creators for each type
-  static widgets::BaseParameterWidget*
-  createFloatWidget(const QString& label, float value, float min, float max,
-                    const QString& description, QWidget* parent);
+  static widgets::BaseParameterWidget* createFloatWidget(const QString& label, float value, float min, float max,
+                                                         const QString& description, QWidget* parent);
+
+  static widgets::BaseParameterWidget* createIntWidget(const QString& label, int value, int min, int max,
+                                                       const QString& description, QWidget* parent);
+
+  static widgets::BaseParameterWidget* createBoolWidget(const QString& label, bool value, const QString& description,
+                                                        QWidget* parent);
+
+  static widgets::BaseParameterWidget* createButtonWidget(const QString& label, const QString& description,
+                                                          QWidget* parent);
+
+  static widgets::BaseParameterWidget* createStringWidget(const QString& label, const QString& value,
+                                                          const QString& description, QWidget* parent);
+
+  static widgets::BaseParameterWidget* createMultiLineTextWidget(const QString& label, const QString& value,
+                                                                 const QString& description, QWidget* parent);
+
+  static widgets::BaseParameterWidget* createVector3Widget(const QString& label, float x, float y, float z, float min,
+                                                           float max, const QString& description, QWidget* parent);
+
+  static widgets::BaseParameterWidget* createModeSelector(const QString& label, int value,
+                                                          const std::vector<QString>& options,
+                                                          const QString& description, QWidget* parent);
+
+  static widgets::BaseParameterWidget* createDropdown(const QString& label, int value,
+                                                      const std::vector<QString>& options, const QString& description,
+                                                      QWidget* parent);
 
   static widgets::BaseParameterWidget*
-  createIntWidget(const QString& label, int value, int min, int max,
-                  const QString& description, QWidget* parent);
+  createFilePathWidget(const QString& label, const QString& value, const QString& description, QWidget* parent,
+                       widgets::FilePathWidget::Mode mode = widgets::FilePathWidget::Mode::OpenFile);
 
-  static widgets::BaseParameterWidget*
-  createBoolWidget(const QString& label, bool value, const QString& description,
-                   QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createButtonWidget(const QString& label, const QString& description,
-                     QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createStringWidget(const QString& label, const QString& value,
-                     const QString& description, QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createMultiLineTextWidget(const QString& label, const QString& value,
-                            const QString& description, QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createVector3Widget(const QString& label, float x, float y, float z,
-                      float min, float max, const QString& description,
-                      QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createModeSelector(const QString& label, int value,
-                     const std::vector<QString>& options,
-                     const QString& description, QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createDropdown(const QString& label, int value,
-                 const std::vector<QString>& options,
-                 const QString& description, QWidget* parent);
-
-  static widgets::BaseParameterWidget*
-  createFilePathWidget(const QString& label, const QString& value,
-                       const QString& description, QWidget* parent,
-                       widgets::FilePathWidget::Mode mode =
-                           widgets::FilePathWidget::Mode::OpenFile);
-
-  static widgets::BaseParameterWidget*
-  createGroupSelectorWidget(const QString& label, const QString& value,
-                            const QString& description, QWidget* parent);
+  static widgets::BaseParameterWidget* createGroupSelectorWidget(const QString& label, const QString& value,
+                                                                 const QString& description, QWidget* parent);
 };
 
 } // namespace nodo_studio

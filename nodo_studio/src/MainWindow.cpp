@@ -47,8 +47,7 @@
 #include <nodo/sop/sop_factory.hpp>
 #include <nodo/sop/sop_node.hpp>
 
-MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
   // Initialize backend graph system
   node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
   execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
@@ -58,19 +57,14 @@ MainWindow::MainWindow(QWidget* parent)
   execution_engine_->set_host_interface(host_interface_.get());
 
   // Connect progress signals
-  connect(host_interface_.get(), &StudioHostInterface::progressReported, this,
-          &MainWindow::onProgressReported);
-  connect(host_interface_.get(), &StudioHostInterface::logMessage, this,
-          &MainWindow::onLogMessage);
-  connect(host_interface_.get(), &StudioHostInterface::executionStarted, this,
-          &MainWindow::onExecutionStarted);
-  connect(host_interface_.get(), &StudioHostInterface::executionCompleted, this,
-          &MainWindow::onExecutionCompleted);
+  connect(host_interface_.get(), &StudioHostInterface::progressReported, this, &MainWindow::onProgressReported);
+  connect(host_interface_.get(), &StudioHostInterface::logMessage, this, &MainWindow::onLogMessage);
+  connect(host_interface_.get(), &StudioHostInterface::executionStarted, this, &MainWindow::onExecutionStarted);
+  connect(host_interface_.get(), &StudioHostInterface::executionCompleted, this, &MainWindow::onExecutionCompleted);
 
   // Initialize async execution watcher
   execution_watcher_ = new QFutureWatcher<bool>(this);
-  connect(execution_watcher_, &QFutureWatcher<bool>::finished, this,
-          &MainWindow::onExecutionFinished);
+  connect(execution_watcher_, &QFutureWatcher<bool>::finished, this, &MainWindow::onExecutionFinished);
   pending_display_node_id_ = -1;
 
   // Initialize undo/redo system
@@ -139,8 +133,7 @@ auto MainWindow::setupRecentFilesMenu() -> void {
   updateRecentFileActions();
 }
 
-QWidget* MainWindow::createCustomTitleBar(const QString& title,
-                                          QWidget* parent) {
+QWidget* MainWindow::createCustomTitleBar(const QString& title, QWidget* parent) {
   // Create a custom title bar that matches PropertyPanel's title style
   auto* title_widget = new QWidget(parent);
   auto* title_layout = new QVBoxLayout(title_widget);
@@ -188,61 +181,45 @@ auto MainWindow::setupDockWidgets() -> void {
   addDockWidget(Qt::LeftDockWidgetArea, viewport_dock_);
 
   // Connect toolbar signals to viewport slots
-  connect(viewport_toolbar_, &ViewportToolbar::edgesToggled, viewport_widget_,
-          &ViewportWidget::setShowEdges);
-  connect(viewport_toolbar_, &ViewportToolbar::verticesToggled,
-          viewport_widget_, &ViewportWidget::setShowVertices);
-  connect(viewport_toolbar_, &ViewportToolbar::vertexNormalsToggled,
-          viewport_widget_, &ViewportWidget::setShowVertexNormals);
-  connect(viewport_toolbar_, &ViewportToolbar::faceNormalsToggled,
-          viewport_widget_, &ViewportWidget::setShowFaceNormals);
-  connect(viewport_toolbar_, &ViewportToolbar::gridToggled, viewport_widget_,
-          &ViewportWidget::setShowGrid);
-  connect(viewport_toolbar_, &ViewportToolbar::axesToggled, viewport_widget_,
-          &ViewportWidget::setShowAxes);
+  connect(viewport_toolbar_, &ViewportToolbar::edgesToggled, viewport_widget_, &ViewportWidget::setShowEdges);
+  connect(viewport_toolbar_, &ViewportToolbar::verticesToggled, viewport_widget_, &ViewportWidget::setShowVertices);
+  connect(viewport_toolbar_, &ViewportToolbar::vertexNormalsToggled, viewport_widget_,
+          &ViewportWidget::setShowVertexNormals);
+  connect(viewport_toolbar_, &ViewportToolbar::faceNormalsToggled, viewport_widget_,
+          &ViewportWidget::setShowFaceNormals);
+  connect(viewport_toolbar_, &ViewportToolbar::gridToggled, viewport_widget_, &ViewportWidget::setShowGrid);
+  connect(viewport_toolbar_, &ViewportToolbar::axesToggled, viewport_widget_, &ViewportWidget::setShowAxes);
 
   // Connect viewport control signals (from old ViewportControlsOverlay)
-  connect(viewport_toolbar_, &ViewportToolbar::wireframeToggled,
-          viewport_widget_, &ViewportWidget::setWireframeMode);
-  connect(viewport_toolbar_, &ViewportToolbar::shadingModeChanged,
-          viewport_widget_, [this](const QString& mode) {
-            viewport_widget_->setShadingEnabled(mode == "smooth");
-          });
-  connect(viewport_toolbar_, &ViewportToolbar::pointNumbersToggled,
-          viewport_widget_, &ViewportWidget::setShowPointNumbers);
-  connect(viewport_toolbar_, &ViewportToolbar::primitiveNumbersToggled,
-          viewport_widget_, &ViewportWidget::setShowPrimitiveNumbers);
-  connect(viewport_toolbar_, &ViewportToolbar::cameraReset, viewport_widget_,
-          &ViewportWidget::resetCamera);
-  connect(viewport_toolbar_, &ViewportToolbar::cameraFitToView,
-          viewport_widget_, &ViewportWidget::fitToView);
+  connect(viewport_toolbar_, &ViewportToolbar::wireframeToggled, viewport_widget_, &ViewportWidget::setWireframeMode);
+  connect(viewport_toolbar_, &ViewportToolbar::shadingModeChanged, viewport_widget_,
+          [this](const QString& mode) { viewport_widget_->setShadingEnabled(mode == "smooth"); });
+  connect(viewport_toolbar_, &ViewportToolbar::pointNumbersToggled, viewport_widget_,
+          &ViewportWidget::setShowPointNumbers);
+  connect(viewport_toolbar_, &ViewportToolbar::primitiveNumbersToggled, viewport_widget_,
+          &ViewportWidget::setShowPrimitiveNumbers);
+  connect(viewport_toolbar_, &ViewportToolbar::cameraReset, viewport_widget_, &ViewportWidget::resetCamera);
+  connect(viewport_toolbar_, &ViewportToolbar::cameraFitToView, viewport_widget_, &ViewportWidget::fitToView);
 
   // Also connect menu actions to toolbar (keep menu actions synced)
-  connect(edges_action_, &QAction::toggled, viewport_toolbar_,
-          &ViewportToolbar::setEdgesEnabled);
-  connect(vertices_action_, &QAction::toggled, viewport_toolbar_,
-          &ViewportToolbar::setVerticesEnabled);
-  connect(vertex_normals_action_, &QAction::toggled, viewport_toolbar_,
-          &ViewportToolbar::setVertexNormalsEnabled);
-  connect(face_normals_action_, &QAction::toggled, viewport_toolbar_,
-          &ViewportToolbar::setFaceNormalsEnabled);
+  connect(edges_action_, &QAction::toggled, viewport_toolbar_, &ViewportToolbar::setEdgesEnabled);
+  connect(vertices_action_, &QAction::toggled, viewport_toolbar_, &ViewportToolbar::setVerticesEnabled);
+  connect(vertex_normals_action_, &QAction::toggled, viewport_toolbar_, &ViewportToolbar::setVertexNormalsEnabled);
+  connect(face_normals_action_, &QAction::toggled, viewport_toolbar_, &ViewportToolbar::setFaceNormalsEnabled);
 
   // Create custom status bar widget
   status_bar_widget_ = new StatusBarWidget(this);
 
   // Connect GPU info signal from viewport to status bar
-  connect(viewport_widget_, &ViewportWidget::gpuInfoDetected,
-          status_bar_widget_, &StatusBarWidget::setGPUInfo);
+  connect(viewport_widget_, &ViewportWidget::gpuInfoDetected, status_bar_widget_, &StatusBarWidget::setGPUInfo);
 
   // Connect FPS updates from viewport to status bar
-  connect(viewport_widget_, &ViewportWidget::fpsUpdated, status_bar_widget_,
-          &StatusBarWidget::setFPS);
+  connect(viewport_widget_, &ViewportWidget::fpsUpdated, status_bar_widget_, &StatusBarWidget::setFPS);
 
   // Create dock widget for geometry spreadsheet (tabbed with viewport)
   geometry_spreadsheet_dock_ = new QDockWidget("Geometry Spreadsheet", this);
   geometry_spreadsheet_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-  geometry_spreadsheet_dock_->setTitleBarWidget(
-      new QWidget()); // Hide default title bar
+  geometry_spreadsheet_dock_->setTitleBarWidget(new QWidget()); // Hide default title bar
 
   // Create container with custom title bar
   QWidget* spreadsheet_container = new QWidget(this);
@@ -251,12 +228,10 @@ auto MainWindow::setupDockWidgets() -> void {
   spreadsheet_layout->setSpacing(0);
 
   // Add custom title bar
-  spreadsheet_layout->addWidget(
-      createCustomTitleBar("Geometry Spreadsheet", spreadsheet_container));
+  spreadsheet_layout->addWidget(createCustomTitleBar("Geometry Spreadsheet", spreadsheet_container));
 
   // Create geometry spreadsheet widget
-  geometry_spreadsheet_ =
-      new nodo::studio::GeometrySpreadsheet(spreadsheet_container);
+  geometry_spreadsheet_ = new nodo::studio::GeometrySpreadsheet(spreadsheet_container);
   spreadsheet_layout->addWidget(geometry_spreadsheet_);
 
   geometry_spreadsheet_dock_->setWidget(spreadsheet_container);
@@ -273,8 +248,7 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_layout->setSpacing(0);
 
   // Add custom title bar
-  node_graph_layout->addWidget(
-      createCustomTitleBar("Node Graph", node_graph_container));
+  node_graph_layout->addWidget(createCustomTitleBar("Node Graph", node_graph_container));
 
   // Create node graph widget and connect to backend
   node_graph_widget_ = new NodeGraphWidget(node_graph_container);
@@ -288,8 +262,7 @@ auto MainWindow::setupDockWidgets() -> void {
   // Find the actions from the menu
   for (QAction* action : menuBar()->actions()) {
     QMenu* menu = action->menu();
-    if (menu && (menu->title() == "&Edit" || menu->title() == "&Graph" ||
-                 menu->title() == "&View")) {
+    if (menu && (menu->title() == "&Edit" || menu->title() == "&Graph" || menu->title() == "&View")) {
       // Add all actions from Edit, Graph, and View menus to the node graph
       // widget
       node_graph_widget_->addActions(menu->actions());
@@ -301,32 +274,24 @@ auto MainWindow::setupDockWidgets() -> void {
   node_graph_dock_->setWidget(node_graph_container);
 
   // Connect node graph signals
-  connect(node_graph_widget_, &NodeGraphWidget::node_created, this,
-          &MainWindow::onNodeCreated);
-  connect(node_graph_widget_, &NodeGraphWidget::connection_created, this,
-          &MainWindow::onConnectionCreated);
-  connect(node_graph_widget_, &NodeGraphWidget::connections_deleted, this,
-          &MainWindow::onConnectionsDeleted);
-  connect(node_graph_widget_, &NodeGraphWidget::parameter_changed, this,
-          &MainWindow::onParameterChanged);
-  connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted, this,
-          &MainWindow::onNodesDeleted);
-  connect(node_graph_widget_, &NodeGraphWidget::selection_changed, this,
-          &MainWindow::onNodeSelectionChanged);
-  connect(node_graph_widget_, &NodeGraphWidget::node_display_flag_changed, this,
-          &MainWindow::onNodeDisplayFlagChanged);
-  connect(node_graph_widget_, &NodeGraphWidget::node_wireframe_flag_changed,
-          this, &MainWindow::onNodeWireframeFlagChanged);
-  connect(node_graph_widget_, &NodeGraphWidget::node_pass_through_flag_changed,
-          this, &MainWindow::onNodePassThroughFlagChanged);
-  connect(node_graph_widget_, &NodeGraphWidget::property_panel_refresh_needed,
-          this, [this]() {
-            // Refresh property panel to show updated parameter values after
-            // undo/redo
-            if (property_panel_) {
-              property_panel_->refreshFromCurrentNode();
-            }
-          });
+  connect(node_graph_widget_, &NodeGraphWidget::node_created, this, &MainWindow::onNodeCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::connection_created, this, &MainWindow::onConnectionCreated);
+  connect(node_graph_widget_, &NodeGraphWidget::connections_deleted, this, &MainWindow::onConnectionsDeleted);
+  connect(node_graph_widget_, &NodeGraphWidget::parameter_changed, this, &MainWindow::onParameterChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::nodes_deleted, this, &MainWindow::onNodesDeleted);
+  connect(node_graph_widget_, &NodeGraphWidget::selection_changed, this, &MainWindow::onNodeSelectionChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_display_flag_changed, this, &MainWindow::onNodeDisplayFlagChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_wireframe_flag_changed, this,
+          &MainWindow::onNodeWireframeFlagChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::node_pass_through_flag_changed, this,
+          &MainWindow::onNodePassThroughFlagChanged);
+  connect(node_graph_widget_, &NodeGraphWidget::property_panel_refresh_needed, this, [this]() {
+    // Refresh property panel to show updated parameter values after
+    // undo/redo
+    if (property_panel_) {
+      property_panel_->refreshFromCurrentNode();
+    }
+  });
 
   // Add node graph to the right of viewport
   splitDockWidget(viewport_dock_, node_graph_dock_, Qt::Horizontal);
@@ -334,8 +299,7 @@ auto MainWindow::setupDockWidgets() -> void {
   // Create dock widget for properties (FAR RIGHT)
   property_dock_ = new QDockWidget("Properties", this);
   property_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-  property_dock_->setTitleBarWidget(
-      new QWidget()); // Remove redundant title bar
+  property_dock_->setTitleBarWidget(new QWidget()); // Remove redundant title bar
 
   // Create property panel
   property_panel_ = new PropertyPanel(this);
@@ -348,26 +312,22 @@ auto MainWindow::setupDockWidgets() -> void {
   splitDockWidget(node_graph_dock_, property_dock_, Qt::Horizontal);
 
   // Set initial sizes: Viewport (500px), Node Graph (400px), Properties (300px)
-  resizeDocks({viewport_dock_, node_graph_dock_, property_dock_},
-              {500, 400, 300}, Qt::Horizontal);
+  resizeDocks({viewport_dock_, node_graph_dock_, property_dock_}, {500, 400, 300}, Qt::Horizontal);
 
   // Add as a tab with the viewport
   addDockWidget(Qt::LeftDockWidgetArea, geometry_spreadsheet_dock_);
   tabifyDockWidget(viewport_dock_, geometry_spreadsheet_dock_);
 
   // Connect property changes to viewport updates
-  connect(property_panel_, &PropertyPanel::parameterChanged, this,
-          &MainWindow::onParameterChanged);
+  connect(property_panel_, &PropertyPanel::parameterChanged, this, &MainWindow::onParameterChanged);
 
   // Connect live parameter changes during slider drag (no cache invalidation)
-  connect(property_panel_, &PropertyPanel::parameterChangedLive, this,
-          &MainWindow::onParameterChangedLive);
+  connect(property_panel_, &PropertyPanel::parameterChangedLive, this, &MainWindow::onParameterChangedLive);
 
   // Create dock widget for graph parameters (tabbed with properties)
   graph_parameters_dock_ = new QDockWidget("Graph Parameters", this);
   graph_parameters_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-  graph_parameters_dock_->setTitleBarWidget(
-      new QWidget()); // Remove redundant title bar
+  graph_parameters_dock_->setTitleBarWidget(new QWidget()); // Remove redundant title bar
 
   // Create graph parameters panel
   graph_parameters_panel_ = new GraphParametersPanel(this);
@@ -382,12 +342,10 @@ auto MainWindow::setupDockWidgets() -> void {
   property_dock_->raise();
 
   // Connect graph parameter changes to trigger re-execution
-  connect(graph_parameters_panel_, &GraphParametersPanel::parameters_changed,
-          this, &MainWindow::onParameterChanged);
+  connect(graph_parameters_panel_, &GraphParametersPanel::parameters_changed, this, &MainWindow::onParameterChanged);
 
   // Connect graph parameter value changes specifically (more targeted)
-  connect(graph_parameters_panel_,
-          &GraphParametersPanel::parameter_value_changed, this,
+  connect(graph_parameters_panel_, &GraphParametersPanel::parameter_value_changed, this,
           &MainWindow::onGraphParameterValueChanged);
 
   // Add panel visibility toggles to View → Panels submenu
@@ -496,9 +454,8 @@ auto MainWindow::setupStatusBar() -> void {
 void MainWindow::onNewScene() {
   // Ask for confirmation if graph has nodes
   if (!node_graph_->get_nodes().empty()) {
-    auto reply = QMessageBox::question(
-        this, "New Scene", "This will clear the current graph. Are you sure?",
-        QMessageBox::Yes | QMessageBox::No);
+    auto reply = QMessageBox::question(this, "New Scene", "This will clear the current graph. Are you sure?",
+                                       QMessageBox::Yes | QMessageBox::No);
 
     if (reply != QMessageBox::Yes) {
       return;
@@ -584,9 +541,7 @@ void MainWindow::onSaveScene() {
   if (success) {
     QString filename = scene_file_manager_->getCurrentFilePath();
     QFileInfo fileInfo(filename);
-    status_bar_widget_->setStatus(
-        StatusBarWidget::Status::Ready,
-        QString("Saved: %1").arg(fileInfo.fileName()));
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, QString("Saved: %1").arg(fileInfo.fileName()));
 
     // Update window title to remove any modified indicator
     setWindowTitle("Nodo Studio - " + fileInfo.fileName());
@@ -598,9 +553,7 @@ void MainWindow::onSaveSceneAs() {
   if (success) {
     QString filename = scene_file_manager_->getCurrentFilePath();
     QFileInfo fileInfo(filename);
-    status_bar_widget_->setStatus(
-        StatusBarWidget::Status::Ready,
-        QString("Saved: %1").arg(fileInfo.fileName()));
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, QString("Saved: %1").arg(fileInfo.fileName()));
 
     // Update window title with new filename
     setWindowTitle("Nodo Studio - " + fileInfo.fileName());
@@ -667,11 +620,10 @@ void MainWindow::onExportMesh() {
   int display_node_id = node_graph_->get_display_node();
 
   if (display_node_id < 0) {
-    QMessageBox::information(
-        this, "No Mesh to Export",
-        "Please set a display flag on a node first.\n\n"
-        "Right-click a node in the graph and select 'Set Display' to mark it "
-        "for export.");
+    QMessageBox::information(this, "No Mesh to Export",
+                             "Please set a display flag on a node first.\n\n"
+                             "Right-click a node in the graph and select 'Set Display' to mark it "
+                             "for export.");
     return;
   }
 
@@ -694,8 +646,7 @@ void MainWindow::onExportMesh() {
   }
 
   // Open file dialog for export location
-  QString file_path = QFileDialog::getSaveFileName(
-      this, "Export Mesh", "", "Wavefront OBJ (*.obj);;All Files (*)");
+  QString file_path = QFileDialog::getSaveFileName(this, "Export Mesh", "", "Wavefront OBJ (*.obj);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return; // User cancelled
@@ -707,16 +658,13 @@ void MainWindow::onExportMesh() {
   }
 
   // Export the geometry
-  bool success =
-      ObjExporter::export_geometry(*geometry, file_path.toStdString());
+  bool success = ObjExporter::export_geometry(*geometry, file_path.toStdString());
 
   if (success) {
     int point_count = static_cast<int>(geometry->point_count());
     int prim_count = static_cast<int>(geometry->primitive_count());
     QString message =
-        QString("Geometry exported successfully\n%1 points, %2 primitives")
-            .arg(point_count)
-            .arg(prim_count);
+        QString("Geometry exported successfully\n%1 points, %2 primitives").arg(point_count).arg(prim_count);
     statusBar()->showMessage(QString("Exported to %1 (%2 points, %3 prims)")
                                  .arg(QFileInfo(file_path).fileName())
                                  .arg(point_count)
@@ -746,18 +694,15 @@ void MainWindow::onClearViewport() {
 void MainWindow::onToggleWireframe(bool enabled) {
   viewport_widget_->setWireframeMode(enabled);
   constexpr int STATUS_MSG_DURATION = 1000;
-  statusBar()->showMessage(enabled ? "Wireframe mode enabled"
-                                   : "Wireframe mode disabled",
-                           STATUS_MSG_DURATION);
+  statusBar()->showMessage(enabled ? "Wireframe mode enabled" : "Wireframe mode disabled", STATUS_MSG_DURATION);
 }
 
 void MainWindow::onToggleBackfaceCulling(bool enabled) {
   viewport_widget_->setBackfaceCulling(enabled);
   constexpr int STATUS_MSG_DURATION = 1000;
-  statusBar()->showMessage(
-      enabled ? "Backface culling enabled - inverted faces hidden"
-              : "Backface culling disabled - see all faces",
-      STATUS_MSG_DURATION);
+  statusBar()->showMessage(enabled ? "Backface culling enabled - inverted faces hidden"
+                                   : "Backface culling disabled - see all faces",
+                           STATUS_MSG_DURATION);
 }
 
 void MainWindow::onCreateTestGraph() {
@@ -786,16 +731,14 @@ void MainWindow::onCreateTestGraph() {
   node_graph_widget_->rebuild_from_graph();
 
   constexpr int STATUS_MSG_DURATION = 2000;
-  statusBar()->showMessage("Test graph created with 3 nodes",
-                           STATUS_MSG_DURATION);
+  statusBar()->showMessage("Test graph created with 3 nodes", STATUS_MSG_DURATION);
 }
 
 void MainWindow::onNodeCreated(int node_id) {
   // Defer execution slightly to allow any pending connections to be established
   // first This fixes the issue where drag-connecting creates a node and
   // immediately executes before the auto-connection is made
-  QTimer::singleShot(0, this,
-                     [this, node_id]() { executeAndDisplayNode(node_id); });
+  QTimer::singleShot(0, this, [this, node_id]() { executeAndDisplayNode(node_id); });
 
   // Update node count in status bar
   if (node_graph_ != nullptr && status_bar_widget_ != nullptr) {
@@ -807,8 +750,7 @@ void MainWindow::onNodeCreated(int node_id) {
   updateUndoRedoActions();
 }
 
-void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/,
-                                     int target_node, int /*target_pin*/) {
+void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/, int target_node, int /*target_pin*/) {
   // When a connection is made, execute and display the target node
   executeAndDisplayNode(target_node);
 
@@ -842,8 +784,7 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
 
   // Check if we're deleting the currently selected node
   bool deleted_current_node = false;
-  if (property_panel_ != nullptr &&
-      property_panel_->getCurrentNode() != nullptr) {
+  if (property_panel_ != nullptr && property_panel_->getCurrentNode() != nullptr) {
     int current_node_id = property_panel_->getCurrentNode()->get_id();
     for (int node_id : node_ids) {
       if (node_id == current_node_id) {
@@ -968,8 +909,8 @@ void MainWindow::onNodeWireframeFlagChanged(int node_id, bool wireframe_flag) {
              << "geometry:" << (geometry ? "found" : "NULL");
 
     if (geometry) {
-      qDebug() << "Wireframe geometry has" << geometry->point_count()
-               << "points and" << geometry->primitive_count() << "primitives";
+      qDebug() << "Wireframe geometry has" << geometry->point_count() << "points and" << geometry->primitive_count()
+               << "primitives";
 
       // Add this geometry as a wireframe overlay to the viewport
       viewport_widget_->addWireframeOverlay(node_id, *geometry);
@@ -979,8 +920,7 @@ void MainWindow::onNodeWireframeFlagChanged(int node_id, bool wireframe_flag) {
   }
 }
 
-void MainWindow::onNodePassThroughFlagChanged(int node_id,
-                                              bool pass_through_flag) {
+void MainWindow::onNodePassThroughFlagChanged(int node_id, bool pass_through_flag) {
   if (node_graph_ == nullptr || execution_engine_ == nullptr) {
     return;
   }
@@ -1005,8 +945,7 @@ void MainWindow::onNodePassThroughFlagChanged(int node_id,
     execution_engine_->execute_graph(*node_graph_);
   }
 
-  qDebug() << "Pass-through" << (pass_through_flag ? "enabled" : "disabled")
-           << "for node" << node_id;
+  qDebug() << "Pass-through" << (pass_through_flag ? "enabled" : "disabled") << "for node" << node_id;
 }
 
 void MainWindow::updateDisplayFlagVisuals() {
@@ -1036,8 +975,7 @@ void MainWindow::executeAndDisplayNode(int node_id) {
   pending_display_node_id_ = node_id;
 
   // Execute asynchronously using QtConcurrent
-  QFuture<bool> future = QtConcurrent::run(
-      [this]() { return execution_engine_->execute_graph(*node_graph_); });
+  QFuture<bool> future = QtConcurrent::run([this]() { return execution_engine_->execute_graph(*node_graph_); });
 
   execution_watcher_->setFuture(future);
 }
@@ -1057,8 +995,8 @@ void MainWindow::onExecutionFinished() {
              << "geometry:" << (geometry ? "found" : "NULL");
 
     if (geometry) {
-      qDebug() << "Geometry has" << geometry->point_count() << "points and"
-               << geometry->primitive_count() << "primitives";
+      qDebug() << "Geometry has" << geometry->point_count() << "points and" << geometry->primitive_count()
+               << "primitives";
 
       // Display in viewport
       viewport_widget_->setGeometry(*geometry);
@@ -1078,8 +1016,7 @@ void MainWindow::onExecutionFinished() {
       double cook_time_ms = (node != nullptr) ? node->get_cook_time() : 0.0;
 
       // Update node stats and parameters in graph widget
-      node_graph_widget_->update_node_stats(
-          node_id, vertex_count, triangle_count, memory_kb, cook_time_ms);
+      node_graph_widget_->update_node_stats(node_id, vertex_count, triangle_count, memory_kb, cook_time_ms);
       node_graph_widget_->update_node_parameters(node_id);
 
       // Update status
@@ -1101,8 +1038,7 @@ void MainWindow::onExecutionFinished() {
         status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, msg);
       }
     } else {
-      status_bar_widget_->setStatus(StatusBarWidget::Status::Error,
-                                    "Node has no mesh output");
+      status_bar_widget_->setStatus(StatusBarWidget::Status::Error, "Node has no mesh output");
     }
   } else {
     statusBar()->showMessage("Graph execution failed", 2000);
@@ -1196,8 +1132,7 @@ void MainWindow::onSelectAll() {
     node_item->setSelected(true);
   }
 
-  statusBar()->showMessage(QString("Selected %1 nodes").arg(all_nodes.size()),
-                           2000);
+  statusBar()->showMessage(QString("Selected %1 nodes").arg(all_nodes.size()), 2000);
 }
 
 void MainWindow::onDeselectAll() {
@@ -1223,8 +1158,7 @@ void MainWindow::onInvertSelection() {
   }
 
   int selected_count = node_graph_widget_->get_selected_node_ids().size();
-  statusBar()->showMessage(QString("%1 nodes selected").arg(selected_count),
-                           2000);
+  statusBar()->showMessage(QString("%1 nodes selected").arg(selected_count), 2000);
 }
 
 // ============================================================================
@@ -1293,25 +1227,21 @@ void MainWindow::onCopy() {
   // Copy connections between selected nodes
   for (const auto& conn : node_graph_->get_connections()) {
     // Only copy connections where both ends are in selected nodes
-    if (old_to_new_id_map.contains(conn.source_node_id) &&
-        old_to_new_id_map.contains(conn.target_node_id)) {
+    if (old_to_new_id_map.contains(conn.source_node_id) && old_to_new_id_map.contains(conn.target_node_id)) {
       int new_source_id = old_to_new_id_map[conn.source_node_id];
       int new_target_id = old_to_new_id_map[conn.target_node_id];
 
-      clipboard_graph.add_connection(new_source_id, conn.source_pin_index,
-                                     new_target_id, conn.target_pin_index);
+      clipboard_graph.add_connection(new_source_id, conn.source_pin_index, new_target_id, conn.target_pin_index);
     }
   }
 
   // Serialize to JSON and put on clipboard
-  std::string json_data =
-      nodo::graph::GraphSerializer::serialize_to_json(clipboard_graph);
+  std::string json_data = nodo::graph::GraphSerializer::serialize_to_json(clipboard_graph);
 
   QClipboard* clipboard = QApplication::clipboard();
   clipboard->setText(QString::fromStdString(json_data));
 
-  statusBar()->showMessage(
-      QString("Copied %1 nodes to clipboard").arg(selected_nodes.size()), 2000);
+  statusBar()->showMessage(QString("Copied %1 nodes to clipboard").arg(selected_nodes.size()), 2000);
 }
 
 void MainWindow::onPaste() {
@@ -1328,9 +1258,7 @@ void MainWindow::onPaste() {
   }
 
   // Try to parse clipboard to validate it's a valid graph
-  auto clipboard_graph_opt =
-      nodo::graph::GraphSerializer::deserialize_from_json(
-          clipboard_text.toStdString());
+  auto clipboard_graph_opt = nodo::graph::GraphSerializer::deserialize_from_json(clipboard_text.toStdString());
 
   if (!clipboard_graph_opt) {
     statusBar()->showMessage("Invalid graph data in clipboard", 2000);
@@ -1341,9 +1269,8 @@ void MainWindow::onPaste() {
   node_graph_widget_->clear_selection();
 
   // Create and execute paste command (with 50px offset)
-  auto cmd = nodo::studio::create_paste_nodes_command(
-      node_graph_widget_, node_graph_.get(), clipboard_text.toStdString(),
-      50.0f, 50.0f);
+  auto cmd = nodo::studio::create_paste_nodes_command(node_graph_widget_, node_graph_.get(),
+                                                      clipboard_text.toStdString(), 50.0f, 50.0f);
 
   undo_stack_->push(std::move(cmd));
 
@@ -1398,16 +1325,14 @@ void MainWindow::onDelete() {
   // Delete key)
   if (undo_stack_ != nullptr) {
     for (int node_id : selected_nodes) {
-      auto cmd = nodo::studio::create_delete_node_command(
-          node_graph_widget_, node_graph_.get(), node_id);
+      auto cmd = nodo::studio::create_delete_node_command(node_graph_widget_, node_graph_.get(), node_id);
       undo_stack_->push(std::move(cmd));
     }
     // Emit signal so MainWindow can update UI
     emit node_graph_widget_->nodes_deleted(selected_nodes);
   }
 
-  statusBar()->showMessage(
-      QString("Deleted %1 nodes").arg(selected_nodes.size()), 2000);
+  statusBar()->showMessage(QString("Deleted %1 nodes").arg(selected_nodes.size()), 2000);
 }
 
 // ============================================================================
@@ -1422,10 +1347,8 @@ void MainWindow::onFrameAll() {
   // Frame all nodes (same logic as NodeGraphWidget's Home key handler)
   auto node_items = node_graph_widget_->get_all_node_items();
   if (!node_items.isEmpty()) {
-    node_graph_widget_->scene()->setSceneRect(
-        node_graph_widget_->scene()->itemsBoundingRect());
-    node_graph_widget_->fitInView(node_graph_widget_->scene()->sceneRect(),
-                                  Qt::KeepAspectRatio);
+    node_graph_widget_->scene()->setSceneRect(node_graph_widget_->scene()->itemsBoundingRect());
+    node_graph_widget_->fitInView(node_graph_widget_->scene()->sceneRect(), Qt::KeepAspectRatio);
   }
 }
 
@@ -1484,12 +1407,10 @@ void MainWindow::onBypassSelected() {
   }
 
   // Create and execute bypass command
-  auto cmd = nodo::studio::create_bypass_nodes_command(
-      node_graph_widget_, node_graph_.get(), selected_nodes);
+  auto cmd = nodo::studio::create_bypass_nodes_command(node_graph_widget_, node_graph_.get(), selected_nodes);
   undo_stack_->push(std::move(cmd));
 
-  statusBar()->showMessage(
-      QString("Toggled bypass for %1 nodes").arg(selected_nodes.size()), 2000);
+  statusBar()->showMessage(QString("Toggled bypass for %1 nodes").arg(selected_nodes.size()), 2000);
 }
 
 void MainWindow::onDisconnectSelected() {
@@ -1512,8 +1433,7 @@ void MainWindow::onDisconnectSelected() {
     int target_node = conn.target_node_id;
 
     // If either end of the connection is a selected node, mark for deletion
-    if (selected_nodes.contains(source_node) ||
-        selected_nodes.contains(target_node)) {
+    if (selected_nodes.contains(source_node) || selected_nodes.contains(target_node)) {
       connections_to_delete.push_back(conn.id);
     }
   }
@@ -1529,16 +1449,13 @@ void MainWindow::onDisconnectSelected() {
       QString("Disconnect %1 connections").arg(connections_to_delete.size()));
 
   for (int conn_id : connections_to_delete) {
-    auto cmd = nodo::studio::create_disconnect_command(
-        node_graph_widget_, node_graph_.get(), conn_id);
+    auto cmd = nodo::studio::create_disconnect_command(node_graph_widget_, node_graph_.get(), conn_id);
     composite->add_command(std::move(cmd));
   }
 
   undo_stack_->push(std::move(composite));
 
-  statusBar()->showMessage(
-      QString("Disconnected %1 connections").arg(connections_to_delete.size()),
-      2000);
+  statusBar()->showMessage(QString("Disconnected %1 connections").arg(connections_to_delete.size()), 2000);
 }
 
 // ============================================================================
@@ -1554,17 +1471,14 @@ void MainWindow::onShowKeyboardShortcuts() {
 // Progress Reporting
 // ============================================================================
 
-void MainWindow::onProgressReported(int current, int total,
-                                    const QString& message) {
+void MainWindow::onProgressReported(int current, int total, const QString& message) {
   if (status_bar_widget_) {
     // Update status bar with progress
-    QString progress_text =
-        QString("Executing: %1/%2 nodes").arg(current).arg(total);
+    QString progress_text = QString("Executing: %1/%2 nodes").arg(current).arg(total);
     if (!message.isEmpty()) {
       progress_text = message;
     }
-    status_bar_widget_->setStatus(StatusBarWidget::Status::Processing,
-                                  progress_text);
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Processing, progress_text);
   }
 }
 
@@ -1653,9 +1567,7 @@ void MainWindow::openRecentFile() {
 
     // Check if file still exists
     if (!QFile::exists(filename)) {
-      QMessageBox::warning(
-          this, "File Not Found",
-          QString("The file '%1' no longer exists.").arg(filename));
+      QMessageBox::warning(this, "File Not Found", QString("The file '%1' no longer exists.").arg(filename));
       // Remove from recent files
       QStringList files = getRecentFiles();
       files.removeAll(filename);
@@ -1665,13 +1577,11 @@ void MainWindow::openRecentFile() {
     }
 
     // Load the graph
-    auto loaded_graph =
-        nodo::graph::GraphSerializer::load_from_file(filename.toStdString());
+    auto loaded_graph = nodo::graph::GraphSerializer::load_from_file(filename.toStdString());
 
     if (loaded_graph.has_value()) {
       // Replace current graph with loaded graph
-      node_graph_ = std::make_unique<nodo::graph::NodeGraph>(
-          std::move(loaded_graph.value()));
+      node_graph_ = std::make_unique<nodo::graph::NodeGraph>(std::move(loaded_graph.value()));
 
       // Update SceneFileManager with new graph pointer
       scene_file_manager_->setNodeGraph(node_graph_.get());
@@ -1725,8 +1635,7 @@ void MainWindow::openRecentFile() {
 
       statusBar()->showMessage("Graph loaded successfully", 3000);
     } else {
-      QMessageBox::warning(this, "Load Error",
-                           "Failed to load the graph file.");
+      QMessageBox::warning(this, "Load Error", "Failed to load the graph file.");
       statusBar()->showMessage("Failed to load graph", 3000);
     }
   }

@@ -7,14 +7,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-MultiLineTextWidget::MultiLineTextWidget(const QString& label,
-                                         const QString& initial_text,
-                                         const QString& placeholder,
-                                         const QString& description,
-                                         QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      text_(initial_text),
-      placeholder_(placeholder) {
+MultiLineTextWidget::MultiLineTextWidget(const QString& label, const QString& initial_text, const QString& placeholder,
+                                         const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent), text_(initial_text), placeholder_(placeholder) {
   // For multi-line widget, add directly to main_layout instead of grid_layout
   // This allows it to span full width and expand vertically
   auto* text_widget = createControlWidget();
@@ -61,8 +56,7 @@ void MultiLineTextWidget::setTabStopWidth(int pixels) {
   }
 }
 
-void MultiLineTextWidget::setTextChangedCallback(
-    std::function<void(const QString&)> callback) {
+void MultiLineTextWidget::setTextChangedCallback(std::function<void(const QString&)> callback) {
   text_changed_callback_ = std::move(callback);
 }
 
@@ -109,8 +103,7 @@ QWidget* MultiLineTextWidget::createControlWidget() {
     )");
 
   // Connect signals
-  connect(text_edit_, &QPlainTextEdit::textChanged, this,
-          &MultiLineTextWidget::onTextChanged);
+  connect(text_edit_, &QPlainTextEdit::textChanged, this, &MultiLineTextWidget::onTextChanged);
 
   return text_edit_;
 }

@@ -40,8 +40,7 @@ public:
   };
 
   // Parameter types for node configuration
-  using ParameterValue =
-      std::variant<int, float, double, bool, std::string, Eigen::Vector3f>;
+  using ParameterValue = std::variant<int, float, double, bool, std::string, Eigen::Vector3f>;
   using ParameterMap = std::unordered_map<std::string, ParameterValue>;
 
   /**
@@ -71,15 +70,14 @@ public:
     int int_min = 0;
     int int_max = 100;
     std::vector<std::string> options; // For combo boxes (int type)
-    std::string ui_hint; // UI widget hint (e.g., "multiline", "filepath")
+    std::string ui_hint;              // UI widget hint (e.g., "multiline", "filepath")
 
     // Category visibility control (optional)
     // If set, this parameter's category is only visible when the control
     // parameter has the matching value
     std::string category_control_param; // Name of the parameter that controls
                                         // visibility
-    int category_control_value =
-        -1; // Value that makes this category visible (-1 = always visible)
+    int category_control_value = -1;    // Value that makes this category visible (-1 = always visible)
 
     ParameterDefinition(const std::string& n, Type t, ParameterValue def)
         : name(n), label(n), type(t), default_value(def) {}
@@ -106,10 +104,7 @@ public:
     int initial_pins; // How many pins to show initially in UI
 
     InputConfig(InputType input_type, int min, int max, int initial)
-        : type(input_type),
-          min_count(min),
-          max_count(max),
-          initial_pins(initial) {}
+        : type(input_type), min_count(min), max_count(max), initial_pins(initial) {}
   };
 
   /**
@@ -153,8 +148,7 @@ public:
       return *this;
     }
 
-    ParameterBuilder& visible_when(const std::string& control_param,
-                                   int value) {
+    ParameterBuilder& visible_when(const std::string& control_param, int value) {
       def_.category_control_param = control_param;
       def_.category_control_value = value;
       return *this;
@@ -202,16 +196,14 @@ public:
   SOPNode(std::string node_name, std::string node_type)
       : node_name_(std::move(node_name)), node_type_(std::move(node_type)) {
     // Create default geometry output port
-    main_output_ = output_ports_.add_port("geometry", NodePort::Type::OUTPUT,
-                                          NodePort::DataType::GEOMETRY, this);
+    main_output_ = output_ports_.add_port("geometry", NodePort::Type::OUTPUT, NodePort::DataType::GEOMETRY, this);
 
     // Add universal group parameter (all SOPs inherit this)
-    register_parameter(
-        define_group_selector_parameter("input_group", "")
-            .label("Group")
-            .category("Universal")
-            .description("Name of group to operate on (empty = all elements)")
-            .build());
+    register_parameter(define_group_selector_parameter("input_group", "")
+                           .label("Group")
+                           .category("Universal")
+                           .description("Name of group to operate on (empty = all elements)")
+                           .build());
   }
 
   virtual ~SOPNode() = default;
@@ -297,16 +289,12 @@ public:
   /**
    * @brief Check if parameter exists
    */
-  bool has_parameter(const std::string& name) const {
-    return parameters_.find(name) != parameters_.end();
-  }
+  bool has_parameter(const std::string& name) const { return parameters_.find(name) != parameters_.end(); }
 
   /**
    * @brief Get all parameter definitions (schema)
    */
-  const std::vector<ParameterDefinition>& get_parameter_definitions() const {
-    return parameter_definitions_;
-  }
+  const std::vector<ParameterDefinition>& get_parameter_definitions() const { return parameter_definitions_; }
 
   /**
    * @brief Get parameter map (current values)
@@ -364,8 +352,7 @@ public:
           main_output_->set_data(first_input);
           state_ = ExecutionState::CLEAN;
           cook_duration_ =
-              std::chrono::duration_cast<std::chrono::milliseconds>(
-                  std::chrono::steady_clock::now() - cook_start);
+              std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
           last_cook_time_ = cook_start;
           return first_input;
         }
@@ -376,8 +363,8 @@ public:
       auto result = execute();
 
       // Update timing and state
-      cook_duration_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - cook_start);
+      cook_duration_ =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
       last_cook_time_ = cook_start;
 
       if (result) {
@@ -393,11 +380,10 @@ public:
       return result;
 
     } catch (const std::exception& exception) {
-      last_error_ = std::string("Exception in node ") + node_name_ + ": " +
-                    exception.what();
+      last_error_ = std::string("Exception in node ") + node_name_ + ": " + exception.what();
       state_ = ExecutionState::ERROR;
-      cook_duration_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - cook_start);
+      cook_duration_ =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
       return nullptr;
     }
   }
@@ -448,40 +434,32 @@ protected:
   /**
    * @brief Define a float parameter with fluent builder API
    */
-  ParameterBuilder define_float_parameter(const std::string& name,
-                                          float default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Float,
-                            default_value);
+  ParameterBuilder define_float_parameter(const std::string& name, float default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Float, default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define an int parameter with fluent builder API
    */
-  ParameterBuilder define_int_parameter(const std::string& name,
-                                        int default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Int,
-                            default_value);
+  ParameterBuilder define_int_parameter(const std::string& name, int default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Int, default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define a bool parameter with fluent builder API
    */
-  ParameterBuilder define_bool_parameter(const std::string& name,
-                                         bool default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Bool,
-                            default_value);
+  ParameterBuilder define_bool_parameter(const std::string& name, bool default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Bool, default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define a string parameter with fluent builder API
    */
-  ParameterBuilder define_string_parameter(const std::string& name,
-                                           const std::string& default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::String,
-                            default_value);
+  ParameterBuilder define_string_parameter(const std::string& name, const std::string& default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::String, default_value);
     return ParameterBuilder(def);
   }
 
@@ -489,29 +467,22 @@ protected:
    * @brief Define a code/expression parameter with fluent builder API
    * Multi-line text editor for code, expressions, scripts
    */
-  ParameterBuilder define_code_parameter(const std::string& name,
-                                         const std::string& default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Code,
-                            default_value);
+  ParameterBuilder define_code_parameter(const std::string& name, const std::string& default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Code, default_value);
     return ParameterBuilder(def);
   }
 
   /**
    * @brief Define a vector3 parameter with fluent builder API
    */
-  ParameterBuilder
-  define_vector3_parameter(const std::string& name,
-                           const Eigen::Vector3f& default_value) {
-    ParameterDefinition def(name, ParameterDefinition::Type::Vector3,
-                            default_value);
+  ParameterBuilder define_vector3_parameter(const std::string& name, const Eigen::Vector3f& default_value) {
+    ParameterDefinition def(name, ParameterDefinition::Type::Vector3, default_value);
     return ParameterBuilder(def);
   }
 
   auto define_group_selector_parameter(const std::string& name,
-                                       const std::string& default_value = "")
-      -> ParameterBuilder {
-    ParameterDefinition def(name, ParameterDefinition::Type::GroupSelector,
-                            default_value);
+                                       const std::string& default_value = "") -> ParameterBuilder {
+    ParameterDefinition def(name, ParameterDefinition::Type::GroupSelector, default_value);
     return {def};
   }
 
@@ -529,16 +500,14 @@ protected:
    * Helper for attribute nodes (AttributeCreate, AttributeDelete, Color, etc.)
    * to register a standard element class parameter.
    */
-  void add_class_parameter(const std::string& name = "class",
-                           const std::string& label = "Class",
+  void add_class_parameter(const std::string& name = "class", const std::string& label = "Class",
                            const std::string& category = "Attribute") {
-    register_parameter(
-        define_int_parameter(name, 0)
-            .label(label)
-            .options({"Point", "Primitive", "Vertex", "Detail", "All"})
-            .category(category)
-            .description("Geometry element class to operate on")
-            .build());
+    register_parameter(define_int_parameter(name, 0)
+                           .label(label)
+                           .options({"Point", "Primitive", "Vertex", "Detail", "All"})
+                           .category(category)
+                           .description("Geometry element class to operate on")
+                           .build());
   }
 
   /**
@@ -547,8 +516,7 @@ protected:
    * Helper for group nodes (Group, GroupDelete, GroupCombine, etc.)
    * to register a standard group type parameter.
    */
-  void add_group_type_parameter(const std::string& name = "element_class",
-                                const std::string& label = "Group Type",
+  void add_group_type_parameter(const std::string& name = "element_class", const std::string& label = "Group Type",
                                 const std::string& category = "Group") {
     register_parameter(define_int_parameter(name, 0)
                            .label(label)
@@ -561,8 +529,7 @@ protected:
   /**
    * @brief Get input data from a specific input port
    */
-  std::shared_ptr<core::GeometryContainer>
-  get_input_data(const std::string& port_name) const {
+  std::shared_ptr<core::GeometryContainer> get_input_data(const std::string& port_name) const {
     auto* port = input_ports_.get_port(port_name);
     return (port != nullptr) ? port->get_data() : nullptr;
   }
@@ -570,8 +537,7 @@ protected:
   /**
    * @brief Get input data from a specific input port by index
    */
-  std::shared_ptr<core::GeometryContainer>
-  get_input_data(int port_index) const {
+  std::shared_ptr<core::GeometryContainer> get_input_data(int port_index) const {
     return get_input_data(std::to_string(port_index));
   }
 
@@ -581,8 +547,7 @@ public:
    * @param port_index Port index (0-based)
    * @param data Geometry data to set
    */
-  void set_input_data(int port_index,
-                      std::shared_ptr<core::GeometryContainer> data) {
+  void set_input_data(int port_index, std::shared_ptr<core::GeometryContainer> data) {
     auto* port = input_ports_.get_port(std::to_string(port_index));
     if (port != nullptr) {
       port->set_data(std::move(data));
@@ -593,9 +558,7 @@ public:
    * @brief Public execute wrapper for testing
    * Calls the protected execute() method
    */
-  std::shared_ptr<core::GeometryContainer> execute_for_test() {
-    return execute();
-  }
+  std::shared_ptr<core::GeometryContainer> execute_for_test() { return execute(); }
 
 protected:
   /**
@@ -611,9 +574,7 @@ protected:
    * @brief Get the active group name
    * @return Group name, or empty string if no group filter
    */
-  std::string get_group_name() const {
-    return get_parameter<std::string>("input_group", "");
-  }
+  std::string get_group_name() const { return get_parameter<std::string>("input_group", ""); }
 
   /**
    * @brief Check if an element is in the active group
@@ -622,15 +583,13 @@ protected:
    * @param element_index Index of the element
    * @return True if no group filter is active, or if element is in the group
    */
-  bool is_in_active_group(const core::GeometryContainer* geometry,
-                          core::ElementClass element_class,
+  bool is_in_active_group(const core::GeometryContainer* geometry, core::ElementClass element_class,
                           size_t element_index) const {
     std::string group_name = get_group_name();
     if (group_name.empty()) {
       return true; // No filter - all elements pass
     }
-    return core::is_in_group(*geometry, group_name, element_class,
-                             element_index);
+    return core::is_in_group(*geometry, group_name, element_class, element_index);
   }
 
   /**
@@ -639,14 +598,12 @@ protected:
    * @param func Function to call for each point index: void(size_t point_idx)
    */
   template <typename Func>
-  void for_each_point_in_group(const core::GeometryContainer* geometry,
-                               Func&& func) const {
+  void for_each_point_in_group(const core::GeometryContainer* geometry, Func&& func) const {
     std::string group_name = get_group_name();
     bool use_group = !group_name.empty();
 
     for (size_t i = 0; i < geometry->point_count(); ++i) {
-      if (!use_group || core::is_in_group(*geometry, group_name,
-                                          core::ElementClass::POINT, i)) {
+      if (!use_group || core::is_in_group(*geometry, group_name, core::ElementClass::POINT, i)) {
         func(i);
       }
     }
@@ -659,14 +616,12 @@ protected:
    * prim_idx)
    */
   template <typename Func>
-  void for_each_primitive_in_group(const core::GeometryContainer* geometry,
-                                   Func&& func) const {
+  void for_each_primitive_in_group(const core::GeometryContainer* geometry, Func&& func) const {
     std::string group_name = get_group_name();
     bool use_group = !group_name.empty();
 
     for (size_t i = 0; i < geometry->primitive_count(); ++i) {
-      if (!use_group || core::is_in_group(*geometry, group_name,
-                                          core::ElementClass::PRIMITIVE, i)) {
+      if (!use_group || core::is_in_group(*geometry, group_name, core::ElementClass::PRIMITIVE, i)) {
         func(i);
       }
     }
@@ -680,8 +635,7 @@ protected:
    * @param index Element index
    * @return True if element passes group filter (or no filter active)
    */
-  bool is_in_group(const std::shared_ptr<core::GeometryContainer>& geo,
-                   int attr_class, size_t index) const {
+  bool is_in_group(const std::shared_ptr<core::GeometryContainer>& geo, int attr_class, size_t index) const {
     const std::string group_name = get_group_name();
 
     // Empty group name means no filtering (all elements pass)
@@ -736,8 +690,7 @@ private:
     for (const auto& port : input_ports_.get_all_ports()) {
       if (port->is_connected()) {
         auto* output_port = port->get_connected_output();
-        if ((output_port != nullptr) &&
-            (output_port->get_owner_node() != nullptr)) {
+        if ((output_port != nullptr) && (output_port->get_owner_node() != nullptr)) {
           output_port->get_owner_node()->cook();
         }
       }

@@ -23,35 +23,31 @@ private:
 public:
   explicit BendSOP(const std::string& name = "bend") : SOPNode(name, "Bend") {
     // Create input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Bend angle in degrees
-    register_parameter(
-        define_float_parameter("angle", 90.0F)
-            .label("Angle")
-            .range(-360.0F, 360.0F)
-            .category("Deformation")
-            .description("Bend angle in degrees (positive bends geometry)")
-            .build());
+    register_parameter(define_float_parameter("angle", 90.0F)
+                           .label("Angle")
+                           .range(-360.0F, 360.0F)
+                           .category("Deformation")
+                           .description("Bend angle in degrees (positive bends geometry)")
+                           .build());
 
     // Axis to bend around
-    register_parameter(
-        define_int_parameter("axis", 1)
-            .label("Axis")
-            .options({"X", "Y", "Z"})
-            .category("Deformation")
-            .description("Axis around which to bend the geometry")
-            .build());
+    register_parameter(define_int_parameter("axis", 1)
+                           .label("Axis")
+                           .options({"X", "Y", "Z"})
+                           .category("Deformation")
+                           .description("Axis around which to bend the geometry")
+                           .build());
 
     // Capture origin
-    register_parameter(
-        define_float_parameter("capture_origin", 0.0F)
-            .label("Capture Origin")
-            .range(-10.0F, 10.0F)
-            .category("Capture")
-            .description("Starting position along axis for bend region")
-            .build());
+    register_parameter(define_float_parameter("capture_origin", 0.0F)
+                           .label("Capture Origin")
+                           .range(-10.0F, 10.0F)
+                           .category("Capture")
+                           .description("Starting position along axis for bend region")
+                           .build());
 
     // Capture length
     register_parameter(define_float_parameter("capture_length", 1.0F)
@@ -156,8 +152,7 @@ protected:
       // Apply circular bend transformation
       // Transform from linear (dist, offset) to circular (arc)
       if (std::abs(effective_radius) > EPSILON) {
-        pos[primary_axis] =
-            capture_origin + (effective_radius * std::sin(local_angle));
+        pos[primary_axis] = capture_origin + (effective_radius * std::sin(local_angle));
         pos[secondary_axis] = effective_radius * (1.0F - std::cos(local_angle));
       }
     }

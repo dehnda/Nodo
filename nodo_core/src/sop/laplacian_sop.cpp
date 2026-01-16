@@ -20,9 +20,8 @@ namespace {
  * For each point, finds all directly connected neighbor points by
  * analyzing edges in the primitives.
  */
-void build_point_connectivity(
-    const core::GeometryContainer& container,
-    std::unordered_map<int, std::unordered_set<int>>& point_neighbors) {
+void build_point_connectivity(const core::GeometryContainer& container,
+                              std::unordered_map<int, std::unordered_set<int>>& point_neighbors) {
   const auto& topology = container.topology();
   const size_t num_prims = topology.primitive_count();
 
@@ -56,12 +55,9 @@ void build_point_connectivity(
 /**
  * @brief Perform one iteration of Laplacian smoothing
  */
-void smooth_iteration(
-    core::GeometryContainer& container,
-    core::AttributeStorage<core::Vec3f>* P_storage,
-    const std::unordered_map<int, std::unordered_set<int>>& point_neighbors,
-    float lambda, int method,
-    const std::unordered_set<size_t>& points_to_smooth) {
+void smooth_iteration(core::GeometryContainer& container, core::AttributeStorage<core::Vec3f>* P_storage,
+                      const std::unordered_map<int, std::unordered_set<int>>& point_neighbors, float lambda, int method,
+                      const std::unordered_set<size_t>& points_to_smooth) {
   const size_t num_points = container.point_count();
 
   // Store new positions (don't modify in place to avoid feedback)
@@ -120,37 +116,31 @@ void smooth_iteration(
 
 } // anonymous namespace
 
-LaplacianSOP::LaplacianSOP(const std::string& name)
-    : SOPNode(name, "Laplacian") {
+LaplacianSOP::LaplacianSOP(const std::string& name) : SOPNode(name, "Laplacian") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(
-      define_int_parameter("iterations", 5)
-          .label("Iterations")
-          .range(1, 100)
-          .category("Smoothing")
-          .description("Number of smoothing iterations to perform")
-          .build());
+  register_parameter(define_int_parameter("iterations", 5)
+                         .label("Iterations")
+                         .range(1, 100)
+                         .category("Smoothing")
+                         .description("Number of smoothing iterations to perform")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("lambda", 0.5F)
-          .label("Lambda")
-          .range(0.0, 1.0)
-          .category("Smoothing")
-          .description("Smoothing strength (0 = none, 1 = maximum)")
-          .build());
+  register_parameter(define_float_parameter("lambda", 0.5F)
+                         .label("Lambda")
+                         .range(0.0, 1.0)
+                         .category("Smoothing")
+                         .description("Smoothing strength (0 = none, 1 = maximum)")
+                         .build());
 
-  register_parameter(
-      define_int_parameter("method", 0)
-          .label("Method")
-          .options({"Uniform", "Cotangent", "Taubin"})
-          .category("Smoothing")
-          .description(
-              "Smoothing algorithm (uniform, cotangent-weighted, or Taubin)")
-          .build());
+  register_parameter(define_int_parameter("method", 0)
+                         .label("Method")
+                         .options({"Uniform", "Cotangent", "Taubin"})
+                         .category("Smoothing")
+                         .description("Smoothing algorithm (uniform, cotangent-weighted, or Taubin)")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
@@ -185,14 +175,11 @@ std::shared_ptr<core::GeometryContainer> LaplacianSOP::execute() {
 
   // Build set of points to smooth based on group filter
   std::unordered_set<size_t> points_to_smooth;
-  for_each_point_in_group(output.get(), [&points_to_smooth](size_t i) {
-    points_to_smooth.insert(i);
-  });
+  for_each_point_in_group(output.get(), [&points_to_smooth](size_t i) { points_to_smooth.insert(i); });
 
   // Perform smoothing iterations
   for (int iter = 0; iter < iterations; ++iter) {
-    smooth_iteration(*output, P_storage, point_neighbors, lambda, method,
-                     points_to_smooth);
+    smooth_iteration(*output, P_storage, point_neighbors, lambda, method, points_to_smooth);
   }
 
   // If we have vertex or point normals, recompute them after smoothing

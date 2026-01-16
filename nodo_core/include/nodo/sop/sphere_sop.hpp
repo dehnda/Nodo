@@ -25,8 +25,7 @@ private:
   };
 
 public:
-  explicit SphereSOP(const std::string& node_name = "sphere")
-      : SOPNode(node_name, "Sphere") {
+  explicit SphereSOP(const std::string& node_name = "sphere") : SOPNode(node_name, "Sphere") {
     // Universal: Primitive Type
     register_parameter(define_int_parameter("primitive_type", 0)
                            .label("Primitive Type")
@@ -43,13 +42,12 @@ public:
                            .build());
 
     // Resolution parameters
-    register_parameter(
-        define_int_parameter("segments", DEFAULT_SEGMENTS)
-            .label("Segments")
-            .range(3, 256)
-            .category("Resolution")
-            .description("Number of vertical segments (longitude)")
-            .build());
+    register_parameter(define_int_parameter("segments", DEFAULT_SEGMENTS)
+                           .label("Segments")
+                           .range(3, 256)
+                           .category("Resolution")
+                           .description("Number of vertical segments (longitude)")
+                           .build());
 
     register_parameter(define_int_parameter("rings", DEFAULT_RINGS)
                            .label("Rings")
@@ -60,9 +58,7 @@ public:
   }
 
   // Generator node - no inputs required
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::NONE, 0, 0, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
   /**
    * @brief Set sphere radius
@@ -82,20 +78,17 @@ protected:
     const auto radius = get_parameter<float>("radius", DEFAULT_RADIUS);
     const auto segments = get_parameter<int>("segments", DEFAULT_SEGMENTS);
     const auto rings = get_parameter<int>("rings", DEFAULT_RINGS);
-    const auto primitive_type =
-        static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
+    const auto primitive_type = static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
 
     try {
-      auto result = geometry::SphereGenerator::generate_uv_sphere(
-          static_cast<double>(radius), segments, rings);
+      auto result = geometry::SphereGenerator::generate_uv_sphere(static_cast<double>(radius), segments, rings);
 
       if (!result.has_value()) {
         set_error("Sphere generation failed");
         return nullptr;
       }
 
-      auto container =
-          std::make_shared<core::GeometryContainer>(std::move(result.value()));
+      auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
         auto& topology = container->topology();
@@ -105,8 +98,7 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during sphere generation: " +
-                std::string(exception.what()));
+      set_error("Exception during sphere generation: " + std::string(exception.what()));
       return nullptr;
     }
   }

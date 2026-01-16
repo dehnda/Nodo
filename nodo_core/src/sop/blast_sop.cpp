@@ -15,8 +15,7 @@ std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
   }
 
   std::cerr << "\n=== BlastSOP::execute() ===\n";
-  std::cerr << "Input: " << input->point_count() << " points, "
-            << input->primitive_count() << " primitives\n";
+  std::cerr << "Input: " << input->point_count() << " points, " << input->primitive_count() << " primitives\n";
 
   // Get parameters - use universal input_group parameter
   std::string group_name = get_parameter<std::string>("input_group", "");
@@ -24,15 +23,11 @@ std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
   bool negate = get_parameter<int>("negate", 0) != 0;
 
   std::cerr << "Group: '" << group_name << "'\n";
-  std::cerr << "Class: " << class_type << " ("
-            << (class_type == 0 ? "Points" : "Primitives") << ")\n";
-  std::cerr << "Negate (delete non-selected): " << (negate ? "YES" : "NO")
-            << "\n";
+  std::cerr << "Class: " << class_type << " (" << (class_type == 0 ? "Points" : "Primitives") << ")\n";
+  std::cerr << "Negate (delete non-selected): " << (negate ? "YES" : "NO") << "\n";
 
   // Determine element class
-  core::ElementClass element_class = (class_type == 0)
-                                         ? core::ElementClass::POINT
-                                         : core::ElementClass::PRIMITIVE;
+  core::ElementClass element_class = (class_type == 0) ? core::ElementClass::POINT : core::ElementClass::PRIMITIVE;
 
   // Handle empty group name
   if (group_name.empty()) {
@@ -75,8 +70,7 @@ std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
       set_error("Failed to delete elements from group");
       return std::make_shared<core::GeometryContainer>(input->clone());
     }
-    return std::make_shared<core::GeometryContainer>(
-        std::move(result_opt.value()));
+    return std::make_shared<core::GeometryContainer>(std::move(result_opt.value()));
   }
 
   // Negate case: delete elements NOT in group
@@ -86,26 +80,21 @@ std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
   auto result = std::make_shared<core::GeometryContainer>(input->clone());
 
   // Get the group elements
-  auto group_elements =
-      core::get_group_elements(*result, group_name, element_class);
+  auto group_elements = core::get_group_elements(*result, group_name, element_class);
 
-  std::cerr << "Original group '" << group_name << "' contains "
-            << group_elements.size() << " elements: ";
+  std::cerr << "Original group '" << group_name << "' contains " << group_elements.size() << " elements: ";
   for (size_t elem : group_elements) {
     std::cerr << elem << " ";
   }
   std::cerr << "\n";
 
-  std::unordered_set<int> group_set(group_elements.begin(),
-                                    group_elements.end());
+  std::unordered_set<int> group_set(group_elements.begin(), group_elements.end());
 
   // Create inverted group
   std::string temp_group = "__blast_temp_" + group_name;
   core::create_group(*result, temp_group, element_class);
 
-  size_t total_count = (element_class == core::ElementClass::POINT)
-                           ? result->point_count()
-                           : result->primitive_count();
+  size_t total_count = (element_class == core::ElementClass::POINT) ? result->point_count() : result->primitive_count();
 
   std::cerr << "Total element count: " << total_count << "\n";
   std::cerr << "Elements to DELETE (not in group): ";
@@ -114,8 +103,7 @@ std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
   for (size_t i = 0; i < total_count; ++i) {
     if (group_set.find(static_cast<int>(i)) == group_set.end()) {
       std::cerr << i << " ";
-      core::add_to_group(*result, temp_group, element_class,
-                         static_cast<int>(i));
+      core::add_to_group(*result, temp_group, element_class, static_cast<int>(i));
     }
   }
   std::cerr << "\n";
@@ -129,11 +117,10 @@ std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
     return std::make_shared<core::GeometryContainer>(input->clone());
   }
 
-  std::cerr << "Result after deletion: " << result_opt->point_count()
-            << " points, " << result_opt->primitive_count() << " primitives\n";
+  std::cerr << "Result after deletion: " << result_opt->point_count() << " points, " << result_opt->primitive_count()
+            << " primitives\n";
 
-  return std::make_shared<core::GeometryContainer>(
-      std::move(result_opt.value()));
+  return std::make_shared<core::GeometryContainer>(std::move(result_opt.value()));
 }
 
 } // namespace nodo::sop

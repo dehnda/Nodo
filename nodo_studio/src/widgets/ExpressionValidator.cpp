@@ -6,10 +6,8 @@
 
 namespace Nodo {
 
-ValidationResult
-ExpressionValidator::validate(const QString& expression,
-                              const QString& current_param_name,
-                              const QMap<QString, QString>& all_expressions) {
+ValidationResult ExpressionValidator::validate(const QString& expression, const QString& current_param_name,
+                                               const QMap<QString, QString>& all_expressions) {
   ValidationResult result;
 
   // Empty expression is valid
@@ -23,14 +21,12 @@ ExpressionValidator::validate(const QString& expression,
 
   // Check for circular references if we have context
   if (!current_param_name.isEmpty() && !all_expressions.isEmpty()) {
-    auto circular =
-        detectCircularReferences(current_param_name, all_expressions);
+    auto circular = detectCircularReferences(current_param_name, all_expressions);
     if (circular.has_value()) {
       result.is_valid = false;
       result.has_circular_reference = true;
       result.circular_chain = circular.value();
-      result.error_message =
-          "Circular reference detected: " + result.circular_chain;
+      result.error_message = "Circular reference detected: " + result.circular_chain;
       return result;
     }
   }
@@ -80,8 +76,7 @@ QStringList ExpressionValidator::extractParameters(const QString& expression) {
   return params;
 }
 
-QStringList
-ExpressionValidator::extractDollarParameters(const QString& expression) {
+QStringList ExpressionValidator::extractDollarParameters(const QString& expression) {
   QStringList params;
 
   // Match $ followed by identifier characters (letters, numbers, underscores)
@@ -97,8 +92,7 @@ ExpressionValidator::extractDollarParameters(const QString& expression) {
   return params;
 }
 
-QStringList
-ExpressionValidator::extractChParameters(const QString& expression) {
+QStringList ExpressionValidator::extractChParameters(const QString& expression) {
   QStringList params;
 
   // Match ch("...") or ch('...')
@@ -114,18 +108,18 @@ ExpressionValidator::extractChParameters(const QString& expression) {
   return params;
 }
 
-std::optional<QString> ExpressionValidator::detectCircularReferences(
-    const QString& param_name, const QMap<QString, QString>& all_expressions) {
+std::optional<QString> ExpressionValidator::detectCircularReferences(const QString& param_name,
+                                                                     const QMap<QString, QString>& all_expressions) {
   std::set<QString> visited;
   QStringList path;
 
-  return detectCircularReferencesRecursive(param_name, all_expressions, visited,
-                                           path);
+  return detectCircularReferencesRecursive(param_name, all_expressions, visited, path);
 }
 
-std::optional<QString> ExpressionValidator::detectCircularReferencesRecursive(
-    const QString& current, const QMap<QString, QString>& all_expressions,
-    std::set<QString>& visited, QStringList& path) {
+std::optional<QString>
+ExpressionValidator::detectCircularReferencesRecursive(const QString& current,
+                                                       const QMap<QString, QString>& all_expressions,
+                                                       std::set<QString>& visited, QStringList& path) {
   // If we've seen this parameter in the current path, we have a cycle
   if (visited.contains(current)) {
     // Build the circular chain string
@@ -161,8 +155,7 @@ std::optional<QString> ExpressionValidator::detectCircularReferencesRecursive(
       }
     }
 
-    auto cycle = detectCircularReferencesRecursive(ref_param, all_expressions,
-                                                   visited, path);
+    auto cycle = detectCircularReferencesRecursive(ref_param, all_expressions, visited, path);
     if (cycle.has_value()) {
       return cycle;
     }

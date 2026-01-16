@@ -4,11 +4,9 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
 
-PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name)
-    : SOPNode(name, "PolyExtrude") {
+PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name) : SOPNode(name, "PolyExtrude") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
   register_parameter(define_int_parameter("extrusion_type", 0)
@@ -25,58 +23,51 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name)
                          .description("Distance to extrude")
                          .build());
 
-  register_parameter(
-      define_float_parameter("inset", 0.0F)
-          .label("Inset")
-          .range(0.0, 1.0)
-          .category("Extrusion")
-          .description("Amount to inset borders before extrusion")
-          .build());
+  register_parameter(define_float_parameter("inset", 0.0F)
+                         .label("Inset")
+                         .range(0.0, 1.0)
+                         .category("Extrusion")
+                         .description("Amount to inset borders before extrusion")
+                         .build());
 
-  register_parameter(
-      define_bool_parameter("individual_faces", true)
-          .label("Individual Elements")
-          .category("Extrusion")
-          .description(
-              "Extrude each element separately (true) or as a group (false)")
-          .build());
+  register_parameter(define_bool_parameter("individual_faces", true)
+                         .label("Individual Elements")
+                         .category("Extrusion")
+                         .description("Extrude each element separately (true) or as a group (false)")
+                         .build());
 
   // Edge extrusion direction parameters
-  register_parameter(
-      define_int_parameter("edge_direction_mode", 0)
-          .label("Edge Direction")
-          .options({"Auto (Perpendicular)", "Custom Direction"})
-          .category("Edge Extrusion")
-          .visible_when("extrusion_type", 1)
-          .description("How to calculate edge extrusion direction")
-          .build());
+  register_parameter(define_int_parameter("edge_direction_mode", 0)
+                         .label("Edge Direction")
+                         .options({"Auto (Perpendicular)", "Custom Direction"})
+                         .category("Edge Extrusion")
+                         .visible_when("extrusion_type", 1)
+                         .description("How to calculate edge extrusion direction")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("edge_direction_x", 0.0F)
-          .label("Direction X")
-          .range(-1.0, 1.0)
-          .category("Edge Extrusion")
-          .visible_when("edge_direction_mode", 1)
-          .description("X component of custom edge extrusion direction")
-          .build());
+  register_parameter(define_float_parameter("edge_direction_x", 0.0F)
+                         .label("Direction X")
+                         .range(-1.0, 1.0)
+                         .category("Edge Extrusion")
+                         .visible_when("edge_direction_mode", 1)
+                         .description("X component of custom edge extrusion direction")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("edge_direction_y", 1.0F)
-          .label("Direction Y")
-          .range(-1.0, 1.0)
-          .category("Edge Extrusion")
-          .visible_when("edge_direction_mode", 1)
-          .description("Y component of custom edge extrusion direction")
-          .build());
+  register_parameter(define_float_parameter("edge_direction_y", 1.0F)
+                         .label("Direction Y")
+                         .range(-1.0, 1.0)
+                         .category("Edge Extrusion")
+                         .visible_when("edge_direction_mode", 1)
+                         .description("Y component of custom edge extrusion direction")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("edge_direction_z", 0.0F)
-          .label("Direction Z")
-          .range(-1.0, 1.0)
-          .category("Edge Extrusion")
-          .visible_when("edge_direction_mode", 1)
-          .description("Z component of custom edge extrusion direction")
-          .build());
+  register_parameter(define_float_parameter("edge_direction_z", 0.0F)
+                         .label("Direction Z")
+                         .range(-1.0, 1.0)
+                         .category("Edge Extrusion")
+                         .visible_when("edge_direction_mode", 1)
+                         .description("Z component of custom edge extrusion direction")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::execute() {
@@ -116,8 +107,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   const bool individual_faces = get_parameter<bool>("individual_faces", true);
 
   // Get input positions
-  const auto* input_positions =
-      input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
@@ -180,8 +170,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto* result_positions =
-      result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
     set_error("Failed to create position attribute in result");
@@ -364,8 +353,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   }
 
   // Get input positions
-  const auto* input_positions =
-      input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
@@ -415,8 +403,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   // Add position attribute
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
 
-  auto* result_positions =
-      result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
     set_error("Failed to create position attribute in result");
@@ -427,8 +414,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   size_t vertex_offset = 0;
 
   // Helper: Calculate edge extrusion direction
-  auto calculate_edge_normal = [&](const core::Vec3f& p0,
-                                   const core::Vec3f& p1) -> core::Vec3f {
+  auto calculate_edge_normal = [&](const core::Vec3f& p0, const core::Vec3f& p1) -> core::Vec3f {
     // Mode 1: Custom Direction
     if (direction_mode == 1) {
       // Use custom direction directly (ignore edge orientation)
@@ -463,8 +449,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   if (individual) {
     // Individual mode: Each edge gets its own 4 points
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto& vert_indices =
-          input_topology.get_primitive_vertices(prim_idx);
+      const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
 
       // Skip non-edge primitives
       if (vert_indices.size() != 2) {
@@ -526,14 +511,12 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
     // Then create extruded versions of all points
     // We need to calculate the average extrusion direction for each point
     // by considering all edges that use that point
-    std::vector<core::Vec3f> point_extrude_dirs(input_point_count,
-                                                core::Vec3f(0.0F, 0.0F, 0.0F));
+    std::vector<core::Vec3f> point_extrude_dirs(input_point_count, core::Vec3f(0.0F, 0.0F, 0.0F));
     std::vector<int> point_edge_count(input_point_count, 0);
 
     // First pass: Accumulate extrusion directions for each point
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto& vert_indices =
-          input_topology.get_primitive_vertices(prim_idx);
+      const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
 
       if (vert_indices.size() != 2) {
         continue;
@@ -558,13 +541,11 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
     // Average and create extruded points
     for (size_t i = 0; i < input_point_count; ++i) {
       if (point_edge_count[i] > 0) {
-        core::Vec3f avg_dir =
-            point_extrude_dirs[i] / static_cast<float>(point_edge_count[i]);
+        core::Vec3f avg_dir = point_extrude_dirs[i] / static_cast<float>(point_edge_count[i]);
         if (avg_dir.squaredNorm() > 0.0001F) {
           avg_dir.normalize();
         }
-        (*result_positions)[input_point_count + i] =
-            (*input_positions)[i] + avg_dir * distance;
+        (*result_positions)[input_point_count + i] = (*input_positions)[i] + avg_dir * distance;
       } else {
         // Point not used by any edge - just copy it
         (*result_positions)[input_point_count + i] = (*input_positions)[i];
@@ -573,8 +554,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
 
     // Second pass: Create quad primitives using shared points
     for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
-      const auto& vert_indices =
-          input_topology.get_primitive_vertices(prim_idx);
+      const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
 
       if (vert_indices.size() != 2) {
         continue;
@@ -636,8 +616,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   }
 
   // Get input positions
-  const auto* input_positions =
-      input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
@@ -657,8 +636,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   // For points: Create line segments from each point
   // Each point creates 2 points (original + extruded) and 1 edge primitive
   const size_t total_points = input_point_count * 2;
-  const size_t total_vertices =
-      input_point_count * 2; // Each edge has 2 vertices
+  const size_t total_vertices = input_point_count * 2; // Each edge has 2 vertices
 
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
@@ -666,8 +644,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   // Add position attribute
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
 
-  auto* result_positions =
-      result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
     set_error("Failed to create position attribute in result");

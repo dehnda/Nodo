@@ -3,31 +3,25 @@
 
 namespace nodo::sop {
 
-SubdivisionSOP::SubdivisionSOP(const std::string& name)
-    : SOPNode(name, "Subdivide") {
+SubdivisionSOP::SubdivisionSOP(const std::string& name) : SOPNode(name, "Subdivide") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Subdivision algorithm type
-  register_parameter(
-      define_int_parameter("subdivision_type", 0)
-          .label("Algorithm")
-          .options({"Catmull-Clark", "Loop", "Quad-Tri"})
-          .category("Subdivision")
-          .description(
-              "Catmull-Clark = quads, Loop = triangles, Quad-Tri = mixed")
-          .build());
+  register_parameter(define_int_parameter("subdivision_type", 0)
+                         .label("Algorithm")
+                         .options({"Catmull-Clark", "Loop", "Quad-Tri"})
+                         .category("Subdivision")
+                         .description("Catmull-Clark = quads, Loop = triangles, Quad-Tri = mixed")
+                         .build());
 
   // Number of subdivision levels
-  register_parameter(
-      define_int_parameter("subdivision_levels", 1)
-          .label("Levels")
-          .range(1, 5)
-          .category("Subdivision")
-          .description(
-              "Number of subdivision iterations (each doubles face count)")
-          .build());
+  register_parameter(define_int_parameter("subdivision_levels", 1)
+                         .label("Levels")
+                         .range(1, 5)
+                         .category("Subdivision")
+                         .description("Number of subdivision iterations (each doubles face count)")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> SubdivisionSOP::execute() {

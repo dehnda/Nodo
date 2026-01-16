@@ -6,27 +6,19 @@
 
 namespace nodo::spatial {
 
-thread_local core::Error EnhancedBooleanOps::last_error_{
-    core::ErrorCategory::Geometry, core::ErrorCode::Unknown, ""};
+thread_local core::Error EnhancedBooleanOps::last_error_{core::ErrorCategory::Geometry, core::ErrorCode::Unknown, ""};
 
-std::optional<core::Mesh>
-EnhancedBooleanOps::union_meshes(const core::Mesh& mesh_a,
-                                 const core::Mesh& mesh_b,
-                                 const BooleanParams& params) {
+std::optional<core::Mesh> EnhancedBooleanOps::union_meshes(const core::Mesh& mesh_a, const core::Mesh& mesh_b,
+                                                           const BooleanParams& params) {
   // Prepare meshes if requested
-  auto prepared_a = params.use_mesh_repair
-                        ? prepare_mesh_for_boolean(mesh_a, params)
-                        : std::make_optional(mesh_a);
+  auto prepared_a = params.use_mesh_repair ? prepare_mesh_for_boolean(mesh_a, params) : std::make_optional(mesh_a);
 
-  auto prepared_b = params.use_mesh_repair
-                        ? prepare_mesh_for_boolean(mesh_b, params)
-                        : std::make_optional(mesh_b);
+  auto prepared_b = params.use_mesh_repair ? prepare_mesh_for_boolean(mesh_b, params) : std::make_optional(mesh_b);
 
   if (!prepared_a || !prepared_b) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
-        "Failed to prepare meshes for boolean operation",
-        "EnhancedBooleanOps::union_meshes");
+    last_error_ = core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
+                                               "Failed to prepare meshes for boolean operation",
+                                               "EnhancedBooleanOps::union_meshes");
     return std::nullopt;
   }
 
@@ -42,9 +34,8 @@ EnhancedBooleanOps::union_meshes(const core::Mesh& mesh_a,
   auto result = geometry::BooleanOps::union_meshes(*prepared_a, *prepared_b);
 
   if (!result) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
-        "Boolean union operation failed", "EnhancedBooleanOps::union_meshes");
+    last_error_ = core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
+                                               "Boolean union operation failed", "EnhancedBooleanOps::union_meshes");
     return std::nullopt;
   }
 
@@ -56,24 +47,17 @@ EnhancedBooleanOps::union_meshes(const core::Mesh& mesh_a,
   return result;
 }
 
-std::optional<core::Mesh>
-EnhancedBooleanOps::intersect_meshes(const core::Mesh& mesh_a,
-                                     const core::Mesh& mesh_b,
-                                     const BooleanParams& params) {
+std::optional<core::Mesh> EnhancedBooleanOps::intersect_meshes(const core::Mesh& mesh_a, const core::Mesh& mesh_b,
+                                                               const BooleanParams& params) {
   // Prepare meshes if requested
-  auto prepared_a = params.use_mesh_repair
-                        ? prepare_mesh_for_boolean(mesh_a, params)
-                        : std::make_optional(mesh_a);
+  auto prepared_a = params.use_mesh_repair ? prepare_mesh_for_boolean(mesh_a, params) : std::make_optional(mesh_a);
 
-  auto prepared_b = params.use_mesh_repair
-                        ? prepare_mesh_for_boolean(mesh_b, params)
-                        : std::make_optional(mesh_b);
+  auto prepared_b = params.use_mesh_repair ? prepare_mesh_for_boolean(mesh_b, params) : std::make_optional(mesh_b);
 
   if (!prepared_a || !prepared_b) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
-        "Failed to prepare meshes for boolean operation",
-        "EnhancedBooleanOps::intersect_meshes");
+    last_error_ = core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
+                                               "Failed to prepare meshes for boolean operation",
+                                               "EnhancedBooleanOps::intersect_meshes");
     return std::nullopt;
   }
 
@@ -86,14 +70,12 @@ EnhancedBooleanOps::intersect_meshes(const core::Mesh& mesh_a,
   }
 
   // Perform the boolean operation using existing implementation
-  auto result =
-      geometry::BooleanOps::intersect_meshes(*prepared_a, *prepared_b);
+  auto result = geometry::BooleanOps::intersect_meshes(*prepared_a, *prepared_b);
 
   if (!result) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
-        "Boolean intersection operation failed",
-        "EnhancedBooleanOps::intersect_meshes");
+    last_error_ =
+        core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
+                                     "Boolean intersection operation failed", "EnhancedBooleanOps::intersect_meshes");
     return std::nullopt;
   }
 
@@ -105,24 +87,17 @@ EnhancedBooleanOps::intersect_meshes(const core::Mesh& mesh_a,
   return result;
 }
 
-std::optional<core::Mesh>
-EnhancedBooleanOps::subtract_meshes(const core::Mesh& mesh_a,
-                                    const core::Mesh& mesh_b,
-                                    const BooleanParams& params) {
+std::optional<core::Mesh> EnhancedBooleanOps::subtract_meshes(const core::Mesh& mesh_a, const core::Mesh& mesh_b,
+                                                              const BooleanParams& params) {
   // Prepare meshes if requested
-  auto prepared_a = params.use_mesh_repair
-                        ? prepare_mesh_for_boolean(mesh_a, params)
-                        : std::make_optional(mesh_a);
+  auto prepared_a = params.use_mesh_repair ? prepare_mesh_for_boolean(mesh_a, params) : std::make_optional(mesh_a);
 
-  auto prepared_b = params.use_mesh_repair
-                        ? prepare_mesh_for_boolean(mesh_b, params)
-                        : std::make_optional(mesh_b);
+  auto prepared_b = params.use_mesh_repair ? prepare_mesh_for_boolean(mesh_b, params) : std::make_optional(mesh_b);
 
   if (!prepared_a || !prepared_b) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
-        "Failed to prepare meshes for boolean operation",
-        "EnhancedBooleanOps::subtract_meshes");
+    last_error_ = core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
+                                               "Failed to prepare meshes for boolean operation",
+                                               "EnhancedBooleanOps::subtract_meshes");
     return std::nullopt;
   }
 
@@ -134,14 +109,12 @@ EnhancedBooleanOps::subtract_meshes(const core::Mesh& mesh_a,
   }
 
   // Perform the boolean operation
-  auto result =
-      geometry::BooleanOps::difference_meshes(*prepared_a, *prepared_b);
+  auto result = geometry::BooleanOps::difference_meshes(*prepared_a, *prepared_b);
 
   if (!result) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
-        "Boolean difference operation failed",
-        "EnhancedBooleanOps::subtract_meshes");
+    last_error_ =
+        core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::BooleanOperationFailed,
+                                     "Boolean difference operation failed", "EnhancedBooleanOps::subtract_meshes");
     return std::nullopt;
   }
 
@@ -153,8 +126,7 @@ EnhancedBooleanOps::subtract_meshes(const core::Mesh& mesh_a,
   return result;
 }
 
-bool EnhancedBooleanOps::meshes_intersect(const core::Mesh& mesh_a,
-                                          const core::Mesh& mesh_b) {
+bool EnhancedBooleanOps::meshes_intersect(const core::Mesh& mesh_a, const core::Mesh& mesh_b) {
   // Simple AABB intersection test first
   AABB bounds_a = AABB::from_mesh(mesh_a);
   AABB bounds_b = AABB::from_mesh(mesh_b);
@@ -168,9 +140,8 @@ bool EnhancedBooleanOps::meshes_intersect(const core::Mesh& mesh_a,
   return true;
 }
 
-std::vector<Eigen::Vector3d>
-EnhancedBooleanOps::find_intersection_points(const core::Mesh& mesh_a,
-                                             const core::Mesh& mesh_b) {
+std::vector<Eigen::Vector3d> EnhancedBooleanOps::find_intersection_points(const core::Mesh& mesh_a,
+                                                                          const core::Mesh& mesh_b) {
   std::vector<Eigen::Vector3d> intersection_points;
 
   // This is a placeholder implementation
@@ -190,9 +161,8 @@ EnhancedBooleanOps::find_intersection_points(const core::Mesh& mesh_a,
   return intersection_points;
 }
 
-std::optional<core::Mesh>
-EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh& mesh,
-                                             const BooleanParams& params) {
+std::optional<core::Mesh> EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh& mesh,
+                                                                       const BooleanParams& params) {
   core::Mesh prepared_mesh = mesh;
 
   if (params.validate_input) {
@@ -203,13 +173,11 @@ EnhancedBooleanOps::prepare_mesh_for_boolean(const core::Mesh& mesh,
       geometry::MeshRepairer::RepairOptions repair_options;
       repair_options.vertex_merge_tolerance = params.tolerance;
 
-      auto repair_result =
-          geometry::MeshRepairer::repair(prepared_mesh, repair_options);
+      auto repair_result = geometry::MeshRepairer::repair(prepared_mesh, repair_options);
       if (!repair_result.success) {
-        last_error_ = core::ErrorUtils::make_error(
-            core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
-            "Failed to repair mesh for boolean operation",
-            "EnhancedBooleanOps::prepare_mesh_for_boolean");
+        last_error_ = core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
+                                                   "Failed to repair mesh for boolean operation",
+                                                   "EnhancedBooleanOps::prepare_mesh_for_boolean");
         return std::nullopt;
       }
     }
@@ -222,8 +190,8 @@ const core::Error& EnhancedBooleanOps::last_error() {
   return last_error_;
 }
 
-std::unique_ptr<BVH> EnhancedBooleanOps::build_mesh_bvh(
-    const core::Mesh& mesh, [[maybe_unused]] const BooleanParams& params) {
+std::unique_ptr<BVH> EnhancedBooleanOps::build_mesh_bvh(const core::Mesh& mesh,
+                                                        [[maybe_unused]] const BooleanParams& params) {
   auto bvh = std::make_unique<BVH>();
   BVH::BuildParams build_params;
 
@@ -234,8 +202,7 @@ std::unique_ptr<BVH> EnhancedBooleanOps::build_mesh_bvh(
   return nullptr;
 }
 
-bool EnhancedBooleanOps::validate_mesh_for_boolean(
-    const core::Mesh& mesh, const BooleanParams& params) {
+bool EnhancedBooleanOps::validate_mesh_for_boolean(const core::Mesh& mesh, const BooleanParams& params) {
   if (mesh.vertices().rows() == 0 || mesh.faces().rows() == 0) {
     return false;
   }
@@ -249,9 +216,8 @@ bool EnhancedBooleanOps::validate_mesh_for_boolean(
   return true;
 }
 
-std::optional<core::Mesh>
-EnhancedBooleanOps::post_process_result(const core::Mesh& result,
-                                        const BooleanParams& params) {
+std::optional<core::Mesh> EnhancedBooleanOps::post_process_result(const core::Mesh& result,
+                                                                  const BooleanParams& params) {
   core::Mesh processed_result = result;
 
   // Apply mesh repair to ensure manifold result
@@ -261,10 +227,9 @@ EnhancedBooleanOps::post_process_result(const core::Mesh& result,
 
   auto repair_result = repairer.repair(processed_result, repair_options);
   if (!repair_result.success) {
-    last_error_ = core::ErrorUtils::make_error(
-        core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
-        "Failed to post-process boolean operation result",
-        "EnhancedBooleanOps::post_process_result");
+    last_error_ = core::ErrorUtils::make_error(core::ErrorCategory::Geometry, core::ErrorCode::InvalidMesh,
+                                               "Failed to post-process boolean operation result",
+                                               "EnhancedBooleanOps::post_process_result");
     return std::nullopt;
   }
 

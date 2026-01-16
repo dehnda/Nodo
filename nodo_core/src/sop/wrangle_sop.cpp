@@ -16,39 +16,34 @@ using namespace nodo::core;
 namespace attrs = nodo::core::standard_attrs;
 
 WrangleSOP::WrangleSOP(const std::string& node_name)
-    : SOPNode(node_name, "Wrangle"),
-      context_(std::make_unique<ExpressionContext>()) {
+    : SOPNode(node_name, "Wrangle"), context_(std::make_unique<ExpressionContext>()) {
   // Register geometry functions for wrangle expressions
   evaluator_.registerGeometryFunctions();
   evaluator_.registerVectorFunctions();
 
   // Single geometry input
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Run mode selector
-  register_parameter(
-      define_int_parameter("run_over", 0)
-          .label("Run Over")
-          .options({"Points", "Primitives", "Vertices", "Detail"})
-          .category("Wrangle")
-          .description("Element class to iterate over and modify")
-          .build());
+  register_parameter(define_int_parameter("run_over", 0)
+                         .label("Run Over")
+                         .options({"Points", "Primitives", "Vertices", "Detail"})
+                         .category("Wrangle")
+                         .description("Element class to iterate over and modify")
+                         .build());
 
   // Expression code
   const std::string default_expression = "";
-  register_parameter(
-      define_code_parameter("expression", default_expression)
-          .label("Expression")
-          .category("Wrangle")
-          .description("VEX-style expression to modify geometry attributes. "
-                       "Use ch(\"name\") to create dynamic parameters.")
-          .build());
+  register_parameter(define_code_parameter("expression", default_expression)
+                         .label("Expression")
+                         .category("Wrangle")
+                         .description("VEX-style expression to modify geometry attributes. "
+                                      "Use ch(\"name\") to create dynamic parameters.")
+                         .build());
 
   // Parse default expression to register any ch() parameters
   // This ensures parameters are available when GraphNode initializes
-  std::vector<std::string> initial_channels =
-      parse_channel_references(default_expression);
+  std::vector<std::string> initial_channels = parse_channel_references(default_expression);
   update_channel_parameters(initial_channels);
 
   // Note: Group parameter is inherited from SOPNode base class
@@ -64,8 +59,7 @@ std::shared_ptr<core::GeometryContainer> WrangleSOP::execute() {
 
   // Get parameters
   int run_over_mode = get_parameter<int>("run_over", 0);
-  std::string expression_code =
-      get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+  std::string expression_code = get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
 
   // Compile expression
   if (!compile_expression(expression_code)) {
@@ -159,8 +153,7 @@ std::string WrangleSOP::preprocess_code(const std::string& code) {
   std::string result = code;
 
   // Simple find/replace for MVP
-  auto replace_all = [](std::string& str, const std::string& from,
-                        const std::string& to) {
+  auto replace_all = [](std::string& str, const std::string& from, const std::string& to) {
     size_t pos = 0;
     while ((pos = str.find(from, pos)) != std::string::npos) {
       str.replace(pos, from.length(), to);
@@ -209,8 +202,7 @@ void WrangleSOP::execute_points_mode(core::GeometryContainer* result) {
   context_->numpt = static_cast<double>(result->point_count());
 
   // Get the preprocessed expression
-  std::string expression_code =
-      get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+  std::string expression_code = get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
 
   // Skip execution if expression is empty
   if (expression_code.empty()) {
@@ -233,8 +225,7 @@ void WrangleSOP::execute_points_mode(core::GeometryContainer* result) {
     auto eval_result = evaluator_.evaluate(processed_code, variables);
 
     if (!eval_result.success) {
-      fmt::print("Expression evaluation error at point {}: {}\n", i,
-                 eval_result.error);
+      fmt::print("Expression evaluation error at point {}: {}\n", i, eval_result.error);
       return;
     }
 
@@ -263,18 +254,15 @@ void WrangleSOP::execute_primitives_mode(core::GeometryContainer* result) {
   fmt::print("Primitives mode not yet implemented\n");
 }
 
-void WrangleSOP::execute_vertices_mode(
-    [[maybe_unused]] core::GeometryContainer* result) {
+void WrangleSOP::execute_vertices_mode([[maybe_unused]] core::GeometryContainer* result) {
   // TODO: Implement vertex iteration
   // For MVP, we'll skip this mode
   fmt::print("Vertices mode not yet implemented\n");
 }
 
-void WrangleSOP::execute_detail_mode(
-    [[maybe_unused]] core::GeometryContainer* result) {
+void WrangleSOP::execute_detail_mode([[maybe_unused]] core::GeometryContainer* result) {
   // Get the preprocessed expression
-  std::string expression_code =
-      get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
+  std::string expression_code = get_parameter<std::string>("expression", "@P.y = @P.y + 0.5;");
   std::string processed_code = preprocess_code(expression_code);
 
   // Build variable map from current state
@@ -284,13 +272,11 @@ void WrangleSOP::execute_detail_mode(
   auto eval_result = evaluator_.evaluate(processed_code, variables);
 
   if (!eval_result.success) {
-    fmt::print("Expression evaluation error (detail mode): {}\n",
-               eval_result.error);
+    fmt::print("Expression evaluation error (detail mode): {}\n", eval_result.error);
   }
 }
 
-void WrangleSOP::load_point_attributes(core::GeometryContainer* geo,
-                                       size_t ptnum) {
+void WrangleSOP::load_point_attributes(core::GeometryContainer* geo, size_t ptnum) {
   // Load position
   auto* pos_storage = geo->get_point_attribute_typed<Vec3f>(attrs::P);
   if (pos_storage && ptnum < pos_storage->size()) {
@@ -319,55 +305,47 @@ void WrangleSOP::load_point_attributes(core::GeometryContainer* geo,
   }
 }
 
-void WrangleSOP::save_point_attributes(core::GeometryContainer* geo,
-                                       size_t ptnum) {
+void WrangleSOP::save_point_attributes(core::GeometryContainer* geo, size_t ptnum) {
   // Save position
   auto* pos_storage = geo->get_point_attribute_typed<Vec3f>(attrs::P);
   if (pos_storage && ptnum < pos_storage->size()) {
-    pos_storage->set(ptnum, Vec3f(static_cast<float>(context_->Px),
-                                  static_cast<float>(context_->Py),
+    pos_storage->set(ptnum, Vec3f(static_cast<float>(context_->Px), static_cast<float>(context_->Py),
                                   static_cast<float>(context_->Pz)));
   }
 
   // Save normal if it exists or was modified
-  if (geo->has_point_attribute(attrs::N) ||
-      (context_->Nx != 0.0 || context_->Ny != 0.0 || context_->Nz != 0.0)) {
+  if (geo->has_point_attribute(attrs::N) || (context_->Nx != 0.0 || context_->Ny != 0.0 || context_->Nz != 0.0)) {
     if (!geo->has_point_attribute(attrs::N)) {
       geo->add_point_attribute(attrs::N, AttributeType::VEC3F);
     }
     auto* normal_storage = geo->get_point_attribute_typed<Vec3f>(attrs::N);
     if (normal_storage && ptnum < normal_storage->size()) {
-      normal_storage->set(ptnum, Vec3f(static_cast<float>(context_->Nx),
-                                       static_cast<float>(context_->Ny),
+      normal_storage->set(ptnum, Vec3f(static_cast<float>(context_->Nx), static_cast<float>(context_->Ny),
                                        static_cast<float>(context_->Nz)));
     }
   }
 
   // Save color if it exists or was modified
-  if (geo->has_point_attribute(attrs::Cd) ||
-      (context_->Cr != 0.0 || context_->Cg != 0.0 || context_->Cb != 0.0)) {
+  if (geo->has_point_attribute(attrs::Cd) || (context_->Cr != 0.0 || context_->Cg != 0.0 || context_->Cb != 0.0)) {
     if (!geo->has_point_attribute(attrs::Cd)) {
       geo->add_point_attribute(attrs::Cd, AttributeType::VEC3F);
     }
     auto* color_storage = geo->get_point_attribute_typed<Vec3f>(attrs::Cd);
     if (color_storage && ptnum < color_storage->size()) {
-      color_storage->set(ptnum, Vec3f(static_cast<float>(context_->Cr),
-                                      static_cast<float>(context_->Cg),
+      color_storage->set(ptnum, Vec3f(static_cast<float>(context_->Cr), static_cast<float>(context_->Cg),
                                       static_cast<float>(context_->Cb)));
     }
   }
 }
 
 // Public method to update channels when expression changes
-void WrangleSOP::update_expression_channels(
-    const std::string& expression_code) {
+void WrangleSOP::update_expression_channels(const std::string& expression_code) {
   std::vector<std::string> channels = parse_channel_references(expression_code);
   update_channel_parameters(channels);
 }
 
 // Parse ch("name") references from expression code
-std::vector<std::string>
-WrangleSOP::parse_channel_references(const std::string& code) {
+std::vector<std::string> WrangleSOP::parse_channel_references(const std::string& code) {
   std::vector<std::string> channels;
   std::set<std::string> unique_channels; // Use set to avoid duplicates
 
@@ -392,8 +370,7 @@ WrangleSOP::parse_channel_references(const std::string& code) {
 }
 
 // Update dynamic channel parameters based on expression
-void WrangleSOP::update_channel_parameters(
-    const std::vector<std::string>& channels) {
+void WrangleSOP::update_channel_parameters(const std::vector<std::string>& channels) {
   // Update the active channel list - this will control which parameters appear
   // Note: We don't actually remove parameter definitions, but the GraphNode
   // sync will rebuild the parameter list based on current definitions
@@ -413,8 +390,7 @@ void WrangleSOP::update_channel_parameters(
                            .label(channel_name)
                            .range(-10.0F, 10.0F)
                            .category("Channels")
-                           .description(fmt::format(
-                               "Channel parameter: ch(\"{}\")", channel_name))
+                           .description(fmt::format("Channel parameter: ch(\"{}\")", channel_name))
                            .build());
   }
 }

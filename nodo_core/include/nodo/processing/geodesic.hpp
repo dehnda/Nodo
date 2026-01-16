@@ -11,9 +11,8 @@ namespace nodo::processing {
  * @brief Geodesic distance computation method
  */
 enum class GeodesicMethod {
-  Dijkstra =
-      0, ///< Dijkstra-like method (fast, approximate, can limit distance/count)
-  Heat = 1 ///< Heat method (higher quality, slower, works on polygon meshes)
+  Dijkstra = 0, ///< Dijkstra-like method (fast, approximate, can limit distance/count)
+  Heat = 1      ///< Heat method (higher quality, slower, works on polygon meshes)
 };
 
 /**
@@ -38,8 +37,7 @@ struct GeodesicParams {
   /**
    * @brief Create parameters for Dijkstra method
    */
-  static GeodesicParams dijkstra(float max_dist = 0.0F,
-                                 unsigned int max_num = 0) {
+  static GeodesicParams dijkstra(float max_dist = 0.0F, unsigned int max_num = 0) {
     GeodesicParams params;
     params.method = GeodesicMethod::Dijkstra;
     params.max_distance = max_dist;
@@ -80,9 +78,8 @@ public:
    * @note Seed vertices selected from group or all points if no group
    * @note Distance values stored as float point attribute
    */
-  static std::optional<core::GeometryContainer>
-  compute(const core::GeometryContainer& input, const GeodesicParams& params,
-          std::string* error);
+  static std::optional<core::GeometryContainer> compute(const core::GeometryContainer& input,
+                                                        const GeodesicParams& params, std::string* error);
 };
 
 } // namespace nodo::processing

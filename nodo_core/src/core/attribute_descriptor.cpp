@@ -4,13 +4,9 @@
 
 namespace nodo::core {
 
-AttributeDescriptor::AttributeDescriptor(std::string name, AttributeType type,
-                                         ElementClass owner,
+AttributeDescriptor::AttributeDescriptor(std::string name, AttributeType type, ElementClass owner,
                                          InterpolationMode interpolation)
-    : name_(std::move(name)),
-      type_(type),
-      owner_(owner),
-      interpolation_(interpolation) {
+    : name_(std::move(name)), type_(type), owner_(owner), interpolation_(interpolation) {
   // Use default interpolation if LINEAR was specified and type has a better
   // default
   if (interpolation_ == InterpolationMode::LINEAR) {

@@ -6,8 +6,7 @@
 namespace nodo_studio {
 namespace widgets {
 
-ExpressionCompleter::ExpressionCompleter(QLineEdit* lineEdit, QObject* parent)
-    : QObject(parent), line_edit_(lineEdit) {
+ExpressionCompleter::ExpressionCompleter(QLineEdit* lineEdit, QObject* parent) : QObject(parent), line_edit_(lineEdit) {
   // Create model and completer
   model_ = new QStringListModel(this);
   completer_ = new QCompleter(model_, this);
@@ -39,10 +38,9 @@ ExpressionCompleter::ExpressionCompleter(QLineEdit* lineEdit, QObject* parent)
   }
 
   // Connect signals
-  connect(line_edit_, &QLineEdit::textChanged, this,
-          &ExpressionCompleter::onTextChanged);
-  connect(completer_, QOverload<const QString&>::of(&QCompleter::activated),
-          this, &ExpressionCompleter::onCompletionActivated);
+  connect(line_edit_, &QLineEdit::textChanged, this, &ExpressionCompleter::onTextChanged);
+  connect(completer_, QOverload<const QString&>::of(&QCompleter::activated), this,
+          &ExpressionCompleter::onCompletionActivated);
 }
 
 void ExpressionCompleter::setAvailableParameters(const QStringList& params) {
@@ -82,8 +80,7 @@ void ExpressionCompleter::onCompletionActivated(const QString& completion) {
   }
 }
 
-void ExpressionCompleter::updateCompletions(const QString& text,
-                                            int cursor_pos) {
+void ExpressionCompleter::updateCompletions(const QString& text, int cursor_pos) {
   if (text.isEmpty() || cursor_pos == 0) {
     completer_->popup()->hide();
     return;
@@ -142,8 +139,7 @@ void ExpressionCompleter::updateCompletions(const QString& text,
   completer_->complete();
 }
 
-QString ExpressionCompleter::getCompletionPrefix(const QString& text,
-                                                 int cursor_pos) const {
+QString ExpressionCompleter::getCompletionPrefix(const QString& text, int cursor_pos) const {
   if (cursor_pos > text.length()) {
     return QString();
   }
@@ -153,8 +149,7 @@ QString ExpressionCompleter::getCompletionPrefix(const QString& text,
 
   // Check for $ prefix (parameter reference)
   if (start >= 0 && text[start] != '$') {
-    while (start > 0 &&
-           (text[start - 1].isLetterOrNumber() || text[start - 1] == '_')) {
+    while (start > 0 && (text[start - 1].isLetterOrNumber() || text[start - 1] == '_')) {
       start--;
     }
     // Check if we have $ before the word

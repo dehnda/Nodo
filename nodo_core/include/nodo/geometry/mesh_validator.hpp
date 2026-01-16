@@ -70,8 +70,7 @@ public:
   /// @param mesh The mesh to check
   /// @param tolerance Distance tolerance for considering vertices duplicates
   /// @return Indices of duplicate vertices
-  static std::vector<int> find_duplicate_vertices(const core::Mesh& mesh,
-                                                  double tolerance = 1e-10);
+  static std::vector<int> find_duplicate_vertices(const core::Mesh& mesh, double tolerance = 1e-10);
 
   /// @brief Check for unreferenced vertices
   /// @param mesh The mesh to check
@@ -86,8 +85,7 @@ public:
   /// @brief Calculate mesh statistics
   /// @param mesh The mesh to analyze
   /// @param report Output validation report to fill
-  static void calculate_statistics(const core::Mesh& mesh,
-                                   ValidationReport& report);
+  static void calculate_statistics(const core::Mesh& mesh, ValidationReport& report);
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error
@@ -102,12 +100,10 @@ private:
     int vertex1, vertex2;
     int face_count = 0;
 
-    Edge(int v1, int v2)
-        : vertex1(std::min(v1, v2)), vertex2(std::max(v1, v2)) {}
+    Edge(int v1, int v2) : vertex1(std::min(v1, v2)), vertex2(std::max(v1, v2)) {}
 
     bool operator<(const Edge& other) const {
-      return std::tie(vertex1, vertex2) <
-             std::tie(other.vertex1, other.vertex2);
+      return std::tie(vertex1, vertex2) < std::tie(other.vertex1, other.vertex2);
     }
   };
 
@@ -115,9 +111,7 @@ private:
   static double calculate_face_area(const core::Mesh& mesh, int face_index);
 
   /// @brief Check if three vertices are collinear
-  static bool are_collinear(const Eigen::Vector3d& v1,
-                            const Eigen::Vector3d& v2,
-                            const Eigen::Vector3d& v3,
+  static bool are_collinear(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, const Eigen::Vector3d& v3,
                             double tolerance = 1e-10);
 };
 

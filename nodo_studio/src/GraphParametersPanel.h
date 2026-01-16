@@ -87,7 +87,6 @@ private:
   void select_parameter(const std::string& param_name);
   void deselect_all_parameters();
   void show_context_menu(const QPoint& global_pos);
-  void
-  show_parameter_dialog(nodo::graph::GraphParameter* existing_param = nullptr);
+  void show_parameter_dialog(nodo::graph::GraphParameter* existing_param = nullptr);
   void on_parameter_value_changed(const std::string& param_name);
 };

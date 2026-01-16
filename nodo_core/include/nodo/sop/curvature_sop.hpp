@@ -30,11 +30,9 @@ class CurvatureSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit CurvatureSOP(const std::string& node_name = "curvature")
-      : SOPNode(node_name, "Curvature") {
+  explicit CurvatureSOP(const std::string& node_name = "curvature") : SOPNode(node_name, "Curvature") {
     // Add input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Curvature type
     register_parameter(define_int_parameter("curvature_type", 0)
@@ -45,34 +43,29 @@ public:
                            .build());
 
     // Use absolute values
-    register_parameter(
-        define_bool_parameter("use_absolute", false)
-            .label("Absolute Values")
-            .category("Curvature")
-            .description("Use absolute curvature values (easier to visualize)")
-            .build());
+    register_parameter(define_bool_parameter("use_absolute", false)
+                           .label("Absolute Values")
+                           .category("Curvature")
+                           .description("Use absolute curvature values (easier to visualize)")
+                           .build());
 
     // Smooth curvature
-    register_parameter(
-        define_bool_parameter("smooth", true)
-            .label("Smooth")
-            .category("Curvature")
-            .description("Smooth curvature values for better quality")
-            .build());
+    register_parameter(define_bool_parameter("smooth", true)
+                           .label("Smooth")
+                           .category("Curvature")
+                           .description("Smooth curvature values for better quality")
+                           .build());
 
     // Smoothing iterations
-    register_parameter(
-        define_int_parameter("smoothing_iterations", 2)
-            .label("Smoothing Iterations")
-            .range(0, 10)
-            .category("Curvature")
-            .description("Number of smoothing iterations (if smooth enabled)")
-            .build());
+    register_parameter(define_int_parameter("smoothing_iterations", 2)
+                           .label("Smoothing Iterations")
+                           .range(0, 10)
+                           .category("Curvature")
+                           .description("Number of smoothing iterations (if smooth enabled)")
+                           .build());
   }
 
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::SINGLE, 1, 1, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override {
@@ -111,9 +104,8 @@ protected:
     params.smooth = get_parameter<bool>("smooth", true);
     params.smoothing_iterations = get_parameter<int>("smoothing_iterations", 2);
 
-    fmt::print(
-        "CurvatureSOP: Computing curvature (type={}, absolute={}, smooth={})\n",
-        type_index, params.use_absolute, params.smooth);
+    fmt::print("CurvatureSOP: Computing curvature (type={}, absolute={}, smooth={})\n", type_index, params.use_absolute,
+               params.smooth);
 
     // Compute curvature
     auto result = processing::Curvature::compute(*input_data, params);

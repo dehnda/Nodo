@@ -38,8 +38,7 @@ public:
    * @param obj_content OBJ formatted string
    * @return Mesh object if successful, nullopt on failure
    */
-  static std::optional<core::Mesh>
-  import_from_string(const std::string& obj_content);
+  static std::optional<core::Mesh> import_from_string(const std::string& obj_content);
 
 private:
   struct ParsedData {
@@ -49,15 +48,11 @@ private:
     bool has_normals = false;
   };
 
-  static std::optional<ParsedData>
-  parse_obj_content(const std::string& content);
+  static std::optional<ParsedData> parse_obj_content(const std::string& content);
   static std::optional<std::string> read_file(const std::string& filename);
-  static bool parse_vertex_line(const std::string& line,
-                                Eigen::Vector3d& vertex);
-  static bool parse_normal_line(const std::string& line,
-                                Eigen::Vector3d& normal);
-  static bool parse_face_line(const std::string& line,
-                              std::vector<Eigen::Vector3i>& face_indices);
+  static bool parse_vertex_line(const std::string& line, Eigen::Vector3d& vertex);
+  static bool parse_normal_line(const std::string& line, Eigen::Vector3d& normal);
+  static bool parse_face_line(const std::string& line, std::vector<Eigen::Vector3i>& face_indices);
 };
 
 } // namespace nodo::io

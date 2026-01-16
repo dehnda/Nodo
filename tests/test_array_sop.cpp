@@ -9,13 +9,11 @@ class ArraySOPTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create a simple sphere for testing (now returns GeometryContainer)
-    auto sphere_result =
-        geometry::SphereGenerator::generate_uv_sphere(0.5, 4, 4);
+    auto sphere_result = geometry::SphereGenerator::generate_uv_sphere(0.5, 4, 4);
     ASSERT_TRUE(sphere_result.has_value());
 
     // Use GeometryContainer directly via clone()
-    input_geometry_ = std::make_shared<core::GeometryContainer>(
-        sphere_result.value().clone());
+    input_geometry_ = std::make_shared<core::GeometryContainer>(sphere_result.value().clone());
   }
 
   std::shared_ptr<core::GeometryContainer> input_geometry_;
@@ -149,8 +147,7 @@ TEST_F(ArraySOPTest, MarkDirtyInvalidatesCache) {
   ASSERT_NE(result2, nullptr);
 
   // Results should differ (different point counts)
-  EXPECT_NE(result1->topology().point_count(),
-            result2->topology().point_count());
+  EXPECT_NE(result1->topology().point_count(), result2->topology().point_count());
 }
 
 TEST_F(ArraySOPTest, NoInputReturnsError) {
@@ -185,8 +182,7 @@ TEST_F(ArraySOPTest, ParameterRegistration) {
   EXPECT_TRUE(array_node->has_parameter("linear_offset_x"));
   EXPECT_TRUE(array_node->has_parameter("linear_offset_y"));
   EXPECT_TRUE(array_node->has_parameter("linear_offset_z"));
-  EXPECT_FLOAT_EQ(array_node->get_parameter<float>("linear_offset_x", -1.0F),
-                  1.0F);
+  EXPECT_FLOAT_EQ(array_node->get_parameter<float>("linear_offset_x", -1.0F), 1.0F);
 
   // Test radial parameters
   EXPECT_TRUE(array_node->has_parameter("radial_center_x"));
@@ -194,8 +190,7 @@ TEST_F(ArraySOPTest, ParameterRegistration) {
   EXPECT_TRUE(array_node->has_parameter("radial_center_z"));
   EXPECT_TRUE(array_node->has_parameter("radial_radius"));
   EXPECT_TRUE(array_node->has_parameter("angle_step"));
-  EXPECT_FLOAT_EQ(array_node->get_parameter<float>("radial_radius", -1.0F),
-                  2.0F);
+  EXPECT_FLOAT_EQ(array_node->get_parameter<float>("radial_radius", -1.0F), 2.0F);
   EXPECT_FLOAT_EQ(array_node->get_parameter<float>("angle_step", -1.0F), 60.0F);
 
   // Test grid parameters

@@ -27,9 +27,8 @@ public:
   /// @param input Input geometry with holes
   /// @param params Hole filling parameters
   /// @return Repaired geometry, or nullopt on error
-  static std::optional<core::GeometryContainer>
-  fill_holes(const core::GeometryContainer& input,
-             const HoleFillingParams& params = HoleFillingParams{});
+  static std::optional<core::GeometryContainer> fill_holes(const core::GeometryContainer& input,
+                                                           const HoleFillingParams& params = HoleFillingParams{});
 };
 
 } // namespace nodo::processing

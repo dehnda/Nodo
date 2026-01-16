@@ -19,20 +19,17 @@ class AlignSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit AlignSOP(const std::string& node_name = "align")
-      : SOPNode(node_name, "Align") {
+  explicit AlignSOP(const std::string& node_name = "align") : SOPNode(node_name, "Align") {
     // Single geometry input
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Align mode
-    register_parameter(
-        define_int_parameter("align_mode", 0)
-            .label("Align Mode")
-            .options({"Center to Origin", "Min to Origin", "Max to Origin"})
-            .category("Alignment")
-            .description("How to align the geometry bounding box")
-            .build());
+    register_parameter(define_int_parameter("align_mode", 0)
+                           .label("Align Mode")
+                           .options({"Center to Origin", "Min to Origin", "Max to Origin"})
+                           .category("Alignment")
+                           .description("How to align the geometry bounding box")
+                           .build());
 
     // Axis selection
     register_parameter(define_int_parameter("align_x", 1)

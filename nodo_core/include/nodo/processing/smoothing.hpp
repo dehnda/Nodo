@@ -40,9 +40,8 @@ public:
    * @param error Optional error message output
    * @return Smoothed geometry or nullopt on failure
    */
-  static std::optional<core::GeometryContainer>
-  smooth(const core::GeometryContainer& container,
-         const SmoothingParams& params, std::string* error = nullptr);
+  static std::optional<core::GeometryContainer> smooth(const core::GeometryContainer& container,
+                                                       const SmoothingParams& params, std::string* error = nullptr);
 };
 
 } // namespace nodo::processing

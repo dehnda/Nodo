@@ -37,10 +37,8 @@ struct ExecutionContext {
  */
 class ExecutionEngine {
 public:
-  using ProgressCallback =
-      std::function<void(int completed_nodes, int total_nodes)>;
-  using ErrorCallback =
-      std::function<void(const std::string& error, int node_id)>;
+  using ProgressCallback = std::function<void(int completed_nodes, int total_nodes)>;
+  using ErrorCallback = std::function<void(const std::string& error, int node_id)>;
 
   ExecutionEngine() = default;
   ~ExecutionEngine() = default;
@@ -75,16 +73,12 @@ public:
   /**
    * @brief Set progress callback
    */
-  void set_progress_callback(ProgressCallback callback) {
-    progress_callback_ = std::move(callback);
-  }
+  void set_progress_callback(ProgressCallback callback) { progress_callback_ = std::move(callback); }
 
   /**
    * @brief Set error callback
    */
-  void set_error_callback(ErrorCallback callback) {
-    error_callback_ = std::move(callback);
-  }
+  void set_error_callback(ErrorCallback callback) { error_callback_ = std::move(callback); }
 
   /**
    * @brief Set host interface for engine integration
@@ -96,9 +90,7 @@ public:
    *
    * @since M2.1
    */
-  void set_host_interface(IHostInterface* host_interface) {
-    host_interface_ = host_interface;
-  }
+  void set_host_interface(IHostInterface* host_interface) { host_interface_ = host_interface; }
 
   /**
    * @brief Get current host interface
@@ -108,8 +100,7 @@ public:
 
 private:
   // Result cache: node_id -> geometry_container (new system)
-  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
-      geometry_cache_;
+  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>> geometry_cache_;
 
   // Callbacks
   ProgressCallback progress_callback_;
@@ -119,8 +110,8 @@ private:
   IHostInterface* host_interface_ = nullptr;
 
   // Helper methods
-  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>>
-  gather_input_geometries(const NodeGraph& graph, int node_id);
+  std::unordered_map<int, std::shared_ptr<core::GeometryContainer>> gather_input_geometries(const NodeGraph& graph,
+                                                                                            int node_id);
   void notify_progress(int completed, int total);
   void notify_error(const std::string& error, int node_id);
 
@@ -132,15 +123,13 @@ private:
    * @param sop_node Target SOP node
    * @param graph Node graph for parameter resolution
    */
-  void transfer_parameters(const GraphNode& graph_node, sop::SOPNode& sop_node,
-                           const NodeGraph& graph);
+  void transfer_parameters(const GraphNode& graph_node, sop::SOPNode& sop_node, const NodeGraph& graph);
 
   /**
    * @brief Sync parameters from SOPNode back to GraphNode
    * Handles dynamically added parameters (e.g., Wrangle ch() params)
    */
-  void sync_parameters_from_sop(const sop::SOPNode& sop_node,
-                                GraphNode& graph_node);
+  void sync_parameters_from_sop(const sop::SOPNode& sop_node, GraphNode& graph_node);
 };
 
 } // namespace nodo::graph

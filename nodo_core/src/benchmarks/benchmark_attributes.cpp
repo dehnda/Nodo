@@ -55,14 +55,12 @@ struct BenchmarkResult {
   size_t memory_bytes;
 
   void print() const {
-    std::cout << std::left << std::setw(50) << name << std::right
-              << std::setw(10) << element_count << " elements, " << std::setw(8)
-              << std::fixed << std::setprecision(2) << time_ms << " ms, "
-              << std::setw(8) << throughput_million_ops_per_sec << " Mops/s";
+    std::cout << std::left << std::setw(50) << name << std::right << std::setw(10) << element_count << " elements, "
+              << std::setw(8) << std::fixed << std::setprecision(2) << time_ms << " ms, " << std::setw(8)
+              << throughput_million_ops_per_sec << " Mops/s";
 
     if (memory_bytes > 0) {
-      std::cout << ", " << std::setw(8) << (memory_bytes / 1024 / 1024)
-                << " MB";
+      std::cout << ", " << std::setw(8) << (memory_bytes / 1024 / 1024) << " MB";
     }
     std::cout << "\n";
   }
@@ -70,8 +68,7 @@ struct BenchmarkResult {
 
 std::vector<BenchmarkResult> g_results;
 
-void record_result(const std::string& name, size_t count, double time_ms,
-                   size_t memory_bytes = 0) {
+void record_result(const std::string& name, size_t count, double time_ms, size_t memory_bytes = 0) {
   double throughput = (count / 1000000.0) / (time_ms / 1000.0);
   g_results.push_back({name, count, time_ms, throughput, memory_bytes});
   g_results.back().print();
@@ -156,8 +153,7 @@ void benchmark_sequential_write() {
     timer.start();
 
     for (size_t i = 0; i < count; ++i) {
-      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i * 2),
-                              static_cast<float>(i * 3));
+      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i * 2), static_cast<float>(i * 3));
     }
 
     double time = timer.elapsed_ms();
@@ -175,8 +171,7 @@ void benchmark_sequential_read() {
 
     auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
-      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
-                              static_cast<float>(i));
+      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i), static_cast<float>(i));
     }
 
     Timer timer;
@@ -225,9 +220,7 @@ void benchmark_random_write() {
 
     for (size_t i = 0; i < count; ++i) {
       size_t idx = indices[i];
-      (*positions)[idx] =
-          Vec3f(static_cast<float>(i), static_cast<float>(i * 2),
-                static_cast<float>(i * 3));
+      (*positions)[idx] = Vec3f(static_cast<float>(i), static_cast<float>(i * 2), static_cast<float>(i * 3));
     }
 
     double time = timer.elapsed_ms();
@@ -247,8 +240,7 @@ void benchmark_random_read() {
 
     auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
-      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
-                              static_cast<float>(i));
+      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i), static_cast<float>(i));
     }
 
     // Generate random indices
@@ -412,8 +404,7 @@ void benchmark_transform_positions() {
 
     auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
-      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
-                              static_cast<float>(i));
+      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i), static_cast<float>(i));
     }
 
     Vec3f scale(2.0F, 2.0F, 2.0F);
@@ -440,8 +431,7 @@ void benchmark_compute_normals() {
 
     auto* positions = geo.positions();
     for (size_t i = 0; i < count; ++i) {
-      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i),
-                              static_cast<float>(i));
+      (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i), static_cast<float>(i));
     }
 
     Timer timer;
@@ -510,13 +500,10 @@ void benchmark_memory_usage() {
   };
 
   std::vector<Config> configs = {
-      {"1M_Points_PositionOnly",
-       1000000,
-       {{std::string(attrs::P), AttributeType::VEC3F}}},
+      {"1M_Points_PositionOnly", 1000000, {{std::string(attrs::P), AttributeType::VEC3F}}},
       {"1M_Points_PosNorm",
        1000000,
-       {{std::string(attrs::P), AttributeType::VEC3F},
-        {std::string(attrs::N), AttributeType::VEC3F}}},
+       {{std::string(attrs::P), AttributeType::VEC3F}, {std::string(attrs::N), AttributeType::VEC3F}}},
       {"1M_Points_PosNormCol",
        1000000,
        {{std::string(attrs::P), AttributeType::VEC3F},
@@ -560,9 +547,8 @@ void benchmark_memory_usage() {
       }
     }
 
-    std::cout << std::left << std::setw(50) << config.name << std::right
-              << std::setw(10) << config.count << " elements, " << std::setw(8)
-              << (expected_memory / 1024 / 1024) << " MB" << " (estimated)\n";
+    std::cout << std::left << std::setw(50) << config.name << std::right << std::setw(10) << config.count
+              << " elements, " << std::setw(8) << (expected_memory / 1024 / 1024) << " MB" << " (estimated)\n";
   }
 }
 
@@ -576,10 +562,8 @@ void export_results_to_csv(const std::string& filename) {
   csv << "Benchmark,ElementCount,TimeMS,ThroughputMopsPerSec,MemoryBytes\n";
 
   for (const auto& result : g_results) {
-    csv << result.name << "," << result.element_count << "," << std::fixed
-        << std::setprecision(3) << result.time_ms << ","
-        << result.throughput_million_ops_per_sec << "," << result.memory_bytes
-        << "\n";
+    csv << result.name << "," << result.element_count << "," << std::fixed << std::setprecision(3) << result.time_ms
+        << "," << result.throughput_million_ops_per_sec << "," << result.memory_bytes << "\n";
   }
 
   csv.close();
@@ -623,8 +607,7 @@ int main() {
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);
   std::stringstream ss;
-  ss << "benchmark_results_"
-     << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S") << ".csv";
+  ss << "benchmark_results_" << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S") << ".csv";
 
   export_results_to_csv(ss.str());
 

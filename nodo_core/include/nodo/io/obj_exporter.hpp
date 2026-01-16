@@ -25,20 +25,17 @@ public:
    * @param filename Path to the output OBJ file
    * @return true if export succeeded, false otherwise
    */
-  static bool export_geometry(const core::GeometryContainer& geometry,
-                              const std::string& filename);
+  static bool export_geometry(const core::GeometryContainer& geometry, const std::string& filename);
 
   /**
    * @brief Export geometry to OBJ string
    * @param geometry The geometry container to export
    * @return OBJ formatted string, or nullopt on failure
    */
-  static std::optional<std::string>
-  geometry_to_obj_string(const core::GeometryContainer& geometry);
+  static std::optional<std::string> geometry_to_obj_string(const core::GeometryContainer& geometry);
 
 private:
-  static bool write_to_file(const std::string& content,
-                            const std::string& filename);
+  static bool write_to_file(const std::string& content, const std::string& filename);
 };
 
 } // namespace nodo::io

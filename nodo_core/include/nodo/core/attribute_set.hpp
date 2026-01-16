@@ -35,8 +35,7 @@ namespace nodo::core {
  */
 class AttributeSet {
 public:
-  explicit AttributeSet(ElementClass element_class)
-      : element_class_(element_class) {}
+  explicit AttributeSet(ElementClass element_class) : element_class_(element_class) {}
 
   // Prevent copying (use clone() for explicit copy)
   AttributeSet(const AttributeSet&) = delete;
@@ -83,9 +82,8 @@ public:
    * @param interpolation Interpolation mode (defaults to type's default)
    * @return true if added, false if already exists
    */
-  bool
-  add_attribute(std::string_view name, AttributeType type,
-                InterpolationMode interpolation = InterpolationMode::LINEAR);
+  bool add_attribute(std::string_view name, AttributeType type,
+                     InterpolationMode interpolation = InterpolationMode::LINEAR);
 
   /**
    * @brief Add attribute from descriptor
@@ -106,8 +104,7 @@ public:
   /**
    * @brief Get attribute descriptor
    */
-  std::optional<AttributeDescriptor>
-  get_descriptor(std::string_view name) const;
+  std::optional<AttributeDescriptor> get_descriptor(std::string_view name) const;
 
   /**
    * @brief Get number of attributes
@@ -182,8 +179,7 @@ private:
   size_t element_count_ = 0;
 
   // Map of attribute name -> storage
-  std::unordered_map<std::string, std::unique_ptr<IAttributeStorage>>
-      attributes_;
+  std::unordered_map<std::string, std::unique_ptr<IAttributeStorage>> attributes_;
 };
 
 } // namespace nodo::core

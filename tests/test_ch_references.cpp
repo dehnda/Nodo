@@ -104,8 +104,7 @@ TEST_F(CHReferencesTest, CHInMathExpression) {
   ASSERT_NE(sphere2, nullptr);
   sphere2->add_parameter(NodeParameter("radius", 3.0F));
 
-  auto result3 = resolver.resolve_float(
-      "ch(\"/sphere/radius\") + ch(\"/sphere1/radius\")");
+  auto result3 = resolver.resolve_float("ch(\"/sphere/radius\") + ch(\"/sphere1/radius\")");
   ASSERT_TRUE(result3.has_value());
   EXPECT_FLOAT_EQ(result3.value(), 8.0F); // 5 + 3
 }
@@ -141,8 +140,7 @@ TEST_F(CHReferencesTest, ParameterNotFound) {
 
   int box_id = graph_->add_node(NodeType::Box, "box");
 
-  auto result =
-      graph_->resolve_parameter_path(box_id, "/sphere/nonexistent_param");
+  auto result = graph_->resolve_parameter_path(box_id, "/sphere/nonexistent_param");
   EXPECT_FALSE(result.has_value());
 }
 
@@ -161,8 +159,7 @@ TEST_F(CHReferencesTest, DifferentNodeTypes) {
   ASSERT_TRUE(result1.has_value());
   EXPECT_EQ(result1.value(), "4.000000");
 
-  auto result2 =
-      graph_->resolve_parameter_path(sphere_id, "/box_source/height");
+  auto result2 = graph_->resolve_parameter_path(sphere_id, "/box_source/height");
   ASSERT_TRUE(result2.has_value());
   EXPECT_EQ(result2.value(), "3.000000");
 }
@@ -181,8 +178,7 @@ TEST_F(CHReferencesTest, NestedExpressions) {
   ParameterExpressionResolver resolver(*graph_, nullptr, box_id);
 
   // Complex expression: (radius * 2) + (u_segments / 4)
-  auto result = resolver.resolve_float(
-      "(ch(\"/sphere/radius\") * 2) + (ch(\"/sphere/u_segments\") / 4)");
+  auto result = resolver.resolve_float("(ch(\"/sphere/radius\") * 2) + (ch(\"/sphere/u_segments\") / 4)");
   ASSERT_TRUE(result.has_value());
   // (5.0 * 2) + (16 / 4) = 10.0 + 4.0 = 14.0
   EXPECT_FLOAT_EQ(result.value(), 14.0F);

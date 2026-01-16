@@ -9,9 +9,9 @@ int main(int argc, char* argv[]) {
   // Set up OpenGL surface format BEFORE creating QApplication
   // This configures what version of OpenGL we want
   QSurfaceFormat format;
-  format.setDepthBufferSize(24);  // 24-bit depth buffer for 3D
-  format.setStencilBufferSize(8); // 8-bit stencil buffer
-  format.setVersion(3, 3);        // OpenGL 3.3 (widely supported)
+  format.setDepthBufferSize(24);                  // 24-bit depth buffer for 3D
+  format.setStencilBufferSize(8);                 // 8-bit stencil buffer
+  format.setVersion(3, 3);                        // OpenGL 3.3 (widely supported)
   format.setProfile(QSurfaceFormat::CoreProfile); // Modern OpenGL (no legacy)
   QSurfaceFormat::setDefaultFormat(format);
 
@@ -35,8 +35,7 @@ int main(int argc, char* argv[]) {
   darkPalette.setColor(QPalette::HighlightedText, Qt::black);
 
   app.setPalette(darkPalette);
-  app.setStyle(QStyleFactory::create(
-      "Fusion")); // Fusion style works best with dark themes
+  app.setStyle(QStyleFactory::create("Fusion")); // Fusion style works best with dark themes
 
   // Set application metadata (shows in window title, about dialogs, etc.)
   app.setApplicationName("Nodo Studio");

@@ -57,9 +57,7 @@ public:
 
     static Result Success(double val) { return Result{true, val, ""}; }
 
-    static Result Error(const std::string& msg) {
-      return Result{false, 0.0, msg};
-    }
+    static Result Error(const std::string& msg) { return Result{false, 0.0, msg}; }
   };
 
   /**
@@ -77,8 +75,7 @@ public:
    *     std::cerr << "Error: " << result.error << std::endl;
    *   }
    */
-  Result evaluate(const std::string& expression,
-                  const VariableMap& variables = {}) const;
+  Result evaluate(const std::string& expression, const VariableMap& variables = {}) const;
 
   /**
    * @brief Evaluate an expression and update variables with modified values

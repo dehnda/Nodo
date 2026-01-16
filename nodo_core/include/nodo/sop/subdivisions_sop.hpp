@@ -30,18 +30,12 @@ public:
     set_parameter("subdivision_levels", clamped);
   }
 
-  void set_subdivision_type(int type) {
-    set_parameter("subdivision_type", type);
-  }
+  void set_subdivision_type(int type) { set_parameter("subdivision_type", type); }
 
   // Getters
-  int get_subdivision_levels() const {
-    return get_parameter<int>("subdivision_levels", 1);
-  }
+  int get_subdivision_levels() const { return get_parameter<int>("subdivision_levels", 1); }
 
-  int get_subdivision_type() const {
-    return get_parameter<int>("subdivision_type", 0);
-  }
+  int get_subdivision_type() const { return get_parameter<int>("subdivision_type", 0); }
 
 protected:
   /**

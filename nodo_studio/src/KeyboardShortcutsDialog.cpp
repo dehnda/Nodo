@@ -3,8 +3,7 @@
 #include <QHeaderView>
 #include <QTableWidgetItem>
 
-KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget* parent)
-    : QDialog(parent) {
+KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget* parent) : QDialog(parent) {
   setWindowTitle("Keyboard Shortcuts");
   setModal(false);
   resize(700, 600);
@@ -34,10 +33,8 @@ void KeyboardShortcutsDialog::setupUI() {
   shortcuts_table_->setColumnCount(2);
   shortcuts_table_->setHorizontalHeaderLabels({"Action", "Shortcut"});
   shortcuts_table_->horizontalHeader()->setStretchLastSection(false);
-  shortcuts_table_->horizontalHeader()->setSectionResizeMode(
-      0, QHeaderView::Stretch);
-  shortcuts_table_->horizontalHeader()->setSectionResizeMode(
-      1, QHeaderView::ResizeToContents);
+  shortcuts_table_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+  shortcuts_table_->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   shortcuts_table_->setSelectionMode(QAbstractItemView::NoSelection);
   shortcuts_table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
   shortcuts_table_->setAlternatingRowColors(true);
@@ -156,9 +153,7 @@ void KeyboardShortcutsDialog::addShortcutCategory(const QString& category) {
   shortcuts_table_->setSpan(row, 0, 1, 2); // Span across both columns
 }
 
-void KeyboardShortcutsDialog::addShortcut(const QString& action,
-                                          const QString& shortcut,
-                                          const QString& description) {
+void KeyboardShortcutsDialog::addShortcut(const QString& action, const QString& shortcut, const QString& description) {
   int row = shortcuts_table_->rowCount();
   shortcuts_table_->insertRow(row);
 

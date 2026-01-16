@@ -19,10 +19,8 @@ class GroupPromoteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupPromoteSOP(const std::string& name = "group_promote")
-      : SOPNode(name, "GroupPromote") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+  explicit GroupPromoteSOP(const std::string& name = "group_promote") : SOPNode(name, "GroupPromote") {
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Group name to promote
     register_parameter(define_string_parameter("group_name", "group1")
@@ -48,14 +46,12 @@ public:
                            .build());
 
     // Promotion mode
-    register_parameter(
-        define_int_parameter("mode", 0)
-            .label("Mode")
-            .options({"Any", "All"})
-            .category("Options")
-            .description(
-                "Include element if any or all connected elements are in group")
-            .build());
+    register_parameter(define_int_parameter("mode", 0)
+                           .label("Mode")
+                           .options({"Any", "All"})
+                           .category("Options")
+                           .description("Include element if any or all connected elements are in group")
+                           .build());
 
     // Delete original group
     register_parameter(define_int_parameter("delete_original", 0)
@@ -97,10 +93,8 @@ protected:
     //                                            core::ElementClass::PRIMITIVE;
 
     // Get source group attribute
-    auto* src_attr =
-        (from_class == 0)
-            ? result->get_point_attribute_typed<int>(group_name)
-            : result->get_primitive_attribute_typed<int>(group_name);
+    auto* src_attr = (from_class == 0) ? result->get_point_attribute_typed<int>(group_name)
+                                       : result->get_primitive_attribute_typed<int>(group_name);
 
     if (src_attr == nullptr) {
       set_error("Source group '" + group_name + "' does not exist");
@@ -118,10 +112,8 @@ protected:
     if (from_class == 0 && to_class == 1) {
       auto* dst_attr = result->get_primitive_attribute_typed<int>(group_name);
 
-      for (size_t prim_idx = 0; prim_idx < result->primitive_count();
-           ++prim_idx) {
-        const auto& prim_verts =
-            result->topology().get_primitive_vertices(prim_idx);
+      for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
+        const auto& prim_verts = result->topology().get_primitive_vertices(prim_idx);
 
         int in_group_count = 0;
         for (int vert_idx : prim_verts) {
@@ -135,10 +127,7 @@ protected:
 
         // Any mode: at least one point in group
         // All mode: all points in group
-        bool promote =
-            (mode == 0)
-                ? (in_group_count > 0)
-                : (in_group_count == static_cast<int>(prim_verts.size()));
+        bool promote = (mode == 0) ? (in_group_count > 0) : (in_group_count == static_cast<int>(prim_verts.size()));
         (*dst_attr)[prim_idx] = promote ? 1 : 0;
       }
 
@@ -156,11 +145,9 @@ protected:
       }
 
       // Mark points that belong to grouped primitives
-      for (size_t prim_idx = 0; prim_idx < result->primitive_count();
-           ++prim_idx) {
+      for (size_t prim_idx = 0; prim_idx < result->primitive_count(); ++prim_idx) {
         if ((*src_attr)[prim_idx] != 0) {
-          const auto& prim_verts =
-              result->topology().get_primitive_vertices(prim_idx);
+          const auto& prim_verts = result->topology().get_primitive_vertices(prim_idx);
 
           for (int vert_idx : prim_verts) {
             int pt_idx = result->topology().get_vertex_point(vert_idx);

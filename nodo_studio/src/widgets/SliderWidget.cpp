@@ -7,14 +7,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-SliderWidget::SliderWidget(const QString& label, double value, double min,
-                           double max, const QString& description,
+SliderWidget::SliderWidget(const QString& label, double value, double min, double max, const QString& description,
                            QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      value_(value),
-      min_(min),
-      max_(max),
-      is_slider_dragging_(false) {
+    : BaseParameterWidget(label, description, parent), value_(value), min_(min), max_(max), is_slider_dragging_(false) {
   // Create timer for periodic live updates during slider drag
   slider_update_timer_ = new QTimer(this);
   slider_update_timer_->setInterval(100); // Update every 100ms during drag
@@ -54,8 +49,7 @@ QWidget* SliderWidget::createControlWidget() {
                              .arg(COLOR_ACCENT)
                              .arg("#1a8cd8"));
 
-  connect(slider_, &QSlider::valueChanged, this,
-          &SliderWidget::onSliderValueChanged);
+  connect(slider_, &QSlider::valueChanged, this, &SliderWidget::onSliderValueChanged);
 
   // Track when slider is being dragged
   connect(slider_, &QSlider::sliderPressed, this, [this]() {
@@ -138,13 +132,11 @@ void SliderWidget::setValueSuffix(const QString& suffix) {
   updateValueLabel();
 }
 
-void SliderWidget::setValueChangedCallback(
-    std::function<void(double)> callback) {
+void SliderWidget::setValueChangedCallback(std::function<void(double)> callback) {
   value_changed_callback_ = callback;
 }
 
-void SliderWidget::setLiveValueChangedCallback(
-    std::function<void(double)> callback) {
+void SliderWidget::setLiveValueChangedCallback(std::function<void(double)> callback) {
   live_value_changed_callback_ = callback;
 }
 

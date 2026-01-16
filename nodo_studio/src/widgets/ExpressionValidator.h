@@ -44,8 +44,7 @@ public:
    * detection
    * @return Validation result with error details
    */
-  ValidationResult validate(const QString& expression,
-                            const QString& current_param_name = QString(),
+  ValidationResult validate(const QString& expression, const QString& current_param_name = QString(),
                             const QMap<QString, QString>& all_expressions = {});
 
   /**
@@ -68,9 +67,8 @@ public:
    * @param all_expressions Map of parameter_name -> expression
    * @return Optional circular chain string if found, empty otherwise
    */
-  std::optional<QString>
-  detectCircularReferences(const QString& param_name,
-                           const QMap<QString, QString>& all_expressions);
+  std::optional<QString> detectCircularReferences(const QString& param_name,
+                                                  const QMap<QString, QString>& all_expressions);
 
 private:
   /**
@@ -81,9 +79,9 @@ private:
    * @param path Current dependency path
    * @return Optional circular chain if detected
    */
-  std::optional<QString> detectCircularReferencesRecursive(
-      const QString& current, const QMap<QString, QString>& all_expressions,
-      std::set<QString>& visited, QStringList& path);
+  std::optional<QString> detectCircularReferencesRecursive(const QString& current,
+                                                           const QMap<QString, QString>& all_expressions,
+                                                           std::set<QString>& visited, QStringList& path);
 
   /**
    * @brief Extract $ style parameter references (e.g., $width, $height)

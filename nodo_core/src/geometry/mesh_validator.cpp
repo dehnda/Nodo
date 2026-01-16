@@ -10,8 +10,7 @@
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error MeshValidator::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error MeshValidator::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
 // Constants for reporting limits
 constexpr size_t MAX_LISTED_ITEMS = 10;
@@ -30,21 +29,15 @@ std::string ValidationReport::summary() const {
   oss << "  Isolated Vertices: " << num_isolated_vertices << "\n";
   oss << "  Is Manifold: " << (is_manifold ? "YES" : "NO") << "\n";
   oss << "  Is Closed: " << (is_closed ? "YES" : "NO") << "\n";
-  oss << "  Has Self-intersections: " << (has_self_intersections ? "YES" : "NO")
-      << "\n";
-  oss << "  Has Degenerate Faces: " << (has_degenerate_faces ? "YES" : "NO")
-      << "\n";
-  oss << "  Has Duplicate Vertices: " << (has_duplicate_vertices ? "YES" : "NO")
-      << "\n";
-  oss << "  Has Unreferenced Vertices: "
-      << (has_unreferenced_vertices ? "YES" : "NO") << "\n";
+  oss << "  Has Self-intersections: " << (has_self_intersections ? "YES" : "NO") << "\n";
+  oss << "  Has Degenerate Faces: " << (has_degenerate_faces ? "YES" : "NO") << "\n";
+  oss << "  Has Duplicate Vertices: " << (has_duplicate_vertices ? "YES" : "NO") << "\n";
+  oss << "  Has Unreferenced Vertices: " << (has_unreferenced_vertices ? "YES" : "NO") << "\n";
 
   // Show some indices for debugging
   if (!degenerate_face_indices.empty()) {
-    oss << "  Degenerate faces (first "
-        << std::min(MAX_LISTED_ITEMS, degenerate_face_indices.size()) << "): ";
-    for (size_t i = 0;
-         i < std::min(MAX_LISTED_ITEMS, degenerate_face_indices.size()); ++i) {
+    oss << "  Degenerate faces (first " << std::min(MAX_LISTED_ITEMS, degenerate_face_indices.size()) << "): ";
+    for (size_t i = 0; i < std::min(MAX_LISTED_ITEMS, degenerate_face_indices.size()); ++i) {
       oss << degenerate_face_indices[i] << " ";
     }
     if (degenerate_face_indices.size() > MAX_LISTED_ITEMS)
@@ -53,10 +46,8 @@ std::string ValidationReport::summary() const {
   }
 
   if (!duplicate_vertex_indices.empty()) {
-    oss << "  Duplicate vertices (first "
-        << std::min(MAX_LISTED_ITEMS, duplicate_vertex_indices.size()) << "): ";
-    for (size_t i = 0;
-         i < std::min(MAX_LISTED_ITEMS, duplicate_vertex_indices.size()); ++i) {
+    oss << "  Duplicate vertices (first " << std::min(MAX_LISTED_ITEMS, duplicate_vertex_indices.size()) << "): ";
+    for (size_t i = 0; i < std::min(MAX_LISTED_ITEMS, duplicate_vertex_indices.size()); ++i) {
       oss << duplicate_vertex_indices[i] << " ";
     }
     if (duplicate_vertex_indices.size() > MAX_LISTED_ITEMS)
@@ -65,12 +56,8 @@ std::string ValidationReport::summary() const {
   }
 
   if (!unreferenced_vertex_indices.empty()) {
-    oss << "  Unreferenced vertices (first "
-        << std::min(MAX_LISTED_ITEMS, unreferenced_vertex_indices.size())
-        << "): ";
-    for (size_t i = 0;
-         i < std::min(MAX_LISTED_ITEMS, unreferenced_vertex_indices.size());
-         ++i) {
+    oss << "  Unreferenced vertices (first " << std::min(MAX_LISTED_ITEMS, unreferenced_vertex_indices.size()) << "): ";
+    for (size_t i = 0; i < std::min(MAX_LISTED_ITEMS, unreferenced_vertex_indices.size()); ++i) {
       oss << unreferenced_vertex_indices[i] << " ";
     }
     if (unreferenced_vertex_indices.size() > MAX_LISTED_ITEMS)
@@ -126,13 +113,11 @@ ValidationReport MeshValidator::validate(const core::Mesh& mesh) {
     report.is_closed = is_closed(mesh);
 
     // Overall validity
-    report.is_valid = !report.has_degenerate_faces &&
-                      !report.has_duplicate_vertices && report.is_manifold;
+    report.is_valid = !report.has_degenerate_faces && !report.has_duplicate_vertices && report.is_manifold;
 
   } catch (const std::exception& e) {
     report.is_valid = false;
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::Unknown,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::Unknown,
                                std::string("Validation failed: ") + e.what()});
   }
 
@@ -144,12 +129,10 @@ bool MeshValidator::is_closed(const core::Mesh& mesh) {
   struct Edge {
     int vertex1, vertex2;
 
-    Edge(int vert1, int vert2)
-        : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
+    Edge(int vert1, int vert2) : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
 
     bool operator<(const Edge& other) const {
-      return vertex1 < other.vertex1 ||
-             (vertex1 == other.vertex1 && vertex2 < other.vertex2);
+      return vertex1 < other.vertex1 || (vertex1 == other.vertex1 && vertex2 < other.vertex2);
     }
   };
 
@@ -213,8 +196,7 @@ std::vector<int> MeshValidator::find_degenerate_faces(const core::Mesh& mesh) {
   return degenerate_faces;
 }
 
-std::vector<int> MeshValidator::find_duplicate_vertices(const core::Mesh& mesh,
-                                                        double tolerance) {
+std::vector<int> MeshValidator::find_duplicate_vertices(const core::Mesh& mesh, double tolerance) {
   std::vector<int> duplicates;
   const double tolerance_sq = tolerance * tolerance;
 
@@ -230,8 +212,7 @@ std::vector<int> MeshValidator::find_duplicate_vertices(const core::Mesh& mesh,
   return duplicates;
 }
 
-std::vector<int>
-MeshValidator::find_unreferenced_vertices(const core::Mesh& mesh) {
+std::vector<int> MeshValidator::find_unreferenced_vertices(const core::Mesh& mesh) {
   std::vector<bool> referenced(mesh.vertices().rows(), false);
 
   // Mark all referenced vertices
@@ -259,18 +240,15 @@ bool MeshValidator::is_manifold(const core::Mesh& mesh) {
   return find_non_manifold_edges(mesh).empty();
 }
 
-std::vector<int>
-MeshValidator::find_non_manifold_edges(const core::Mesh& mesh) {
+std::vector<int> MeshValidator::find_non_manifold_edges(const core::Mesh& mesh) {
   // Edge structure for tracking which faces use each edge
   struct Edge {
     int vertex1, vertex2;
 
-    Edge(int vert1, int vert2)
-        : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
+    Edge(int vert1, int vert2) : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
 
     bool operator<(const Edge& other) const {
-      return vertex1 < other.vertex1 ||
-             (vertex1 == other.vertex1 && vertex2 < other.vertex2);
+      return vertex1 < other.vertex1 || (vertex1 == other.vertex1 && vertex2 < other.vertex2);
     }
   };
 
@@ -300,25 +278,20 @@ MeshValidator::find_non_manifold_edges(const core::Mesh& mesh) {
 
   // Remove duplicates
   std::sort(non_manifold_faces.begin(), non_manifold_faces.end());
-  non_manifold_faces.erase(
-      std::unique(non_manifold_faces.begin(), non_manifold_faces.end()),
-      non_manifold_faces.end());
+  non_manifold_faces.erase(std::unique(non_manifold_faces.begin(), non_manifold_faces.end()), non_manifold_faces.end());
 
   return non_manifold_faces;
 }
 
-void MeshValidator::calculate_statistics(const core::Mesh& mesh,
-                                         ValidationReport& report) {
+void MeshValidator::calculate_statistics(const core::Mesh& mesh, ValidationReport& report) {
   // Edge structure for counting unique edges
   struct Edge {
     int vertex1, vertex2;
 
-    Edge(int vert1, int vert2)
-        : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
+    Edge(int vert1, int vert2) : vertex1(std::min(vert1, vert2)), vertex2(std::max(vert1, vert2)) {}
 
     bool operator<(const Edge& other) const {
-      return vertex1 < other.vertex1 ||
-             (vertex1 == other.vertex1 && vertex2 < other.vertex2);
+      return vertex1 < other.vertex1 || (vertex1 == other.vertex1 && vertex2 < other.vertex2);
     }
   };
 

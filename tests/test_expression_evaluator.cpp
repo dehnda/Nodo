@@ -111,16 +111,14 @@ TEST(ExpressionEvaluatorTest, Errors) {
   // Undefined variable - exprtk treats undefined variables as 0
   // This is actually allowed by exprtk and evaluates to 0
   result = evaluator.evaluate("x * 2");
-  EXPECT_TRUE(
-      result.success); // exprtk allows undefined variables (treated as 0)
+  EXPECT_TRUE(result.success);         // exprtk allows undefined variables (treated as 0)
   EXPECT_DOUBLE_EQ(result.value, 0.0); // x defaults to 0
 }
 
 TEST(ExpressionEvaluatorTest, ComplexExpressions) {
   ExpressionEvaluator evaluator;
 
-  ExpressionEvaluator::VariableMap vars = {
-      {"base_radius", 2.0}, {"multiplier", 1.5}, {"offset", 0.5}};
+  ExpressionEvaluator::VariableMap vars = {{"base_radius", 2.0}, {"multiplier", 1.5}, {"offset", 0.5}};
 
   auto result = evaluator.evaluate("base_radius * multiplier + offset", vars);
   EXPECT_TRUE(result.success);

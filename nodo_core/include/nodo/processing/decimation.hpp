@@ -53,9 +53,8 @@ public:
    * @param params Decimation parameters
    * @return Decimated geometry, or std::nullopt on error
    */
-  static std::optional<core::GeometryContainer>
-  decimate(const core::GeometryContainer& input,
-           const DecimationParams& params);
+  static std::optional<core::GeometryContainer> decimate(const core::GeometryContainer& input,
+                                                         const DecimationParams& params);
 
   /**
    * @brief Get last error message

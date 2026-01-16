@@ -18,8 +18,7 @@ using namespace nodo::graph;
  */
 class ExampleHostInterface : public IHostInterface {
 public:
-  bool report_progress(int current, int total,
-                       const std::string& message) override {
+  bool report_progress(int current, int total, const std::string& message) override {
     // Track progress calls
     progress_calls_++;
     last_progress_message_ = message;
@@ -42,9 +41,7 @@ public:
     return project_root_ + "/" + relative_path;
   }
 
-  std::string get_host_info() const override {
-    return "Example Host Application v1.0";
-  }
+  std::string get_host_info() const override { return "Example Host Application v1.0"; }
 
   // Test helper methods
   void set_project_root(const std::string& root) { project_root_ = root; }
@@ -52,9 +49,7 @@ public:
   void cancel() { should_cancel_ = true; }
 
   int get_progress_calls() const { return progress_calls_; }
-  const std::vector<std::string>& get_log_messages() const {
-    return log_messages_;
-  }
+  const std::vector<std::string>& get_log_messages() const { return log_messages_; }
   int get_last_current() const { return last_current_; }
   int get_last_total() const { return last_total_; }
 
@@ -93,8 +88,7 @@ TEST(HostInterfaceTest, CustomHostInterfaceWorks) {
   EXPECT_EQ(host.get_host_info(), "Example Host Application v1.0");
 
   // Test path resolution
-  EXPECT_EQ(host.resolve_path("assets/model.obj"),
-            "/my/project/assets/model.obj");
+  EXPECT_EQ(host.resolve_path("assets/model.obj"), "/my/project/assets/model.obj");
 
   // Test progress reporting
   EXPECT_TRUE(host.report_progress(5, 10, "Processing"));
@@ -130,8 +124,7 @@ TEST(HostInterfaceTest, ExecutionEngineIntegration) {
   ExampleHostInterface host;
   engine.set_host_interface(&host);
   EXPECT_NE(engine.get_host_interface(), nullptr);
-  EXPECT_EQ(engine.get_host_interface()->get_host_info(),
-            "Example Host Application v1.0");
+  EXPECT_EQ(engine.get_host_interface()->get_host_info(), "Example Host Application v1.0");
 
   result = engine.execute_graph(graph);
   EXPECT_TRUE(result);
@@ -139,8 +132,7 @@ TEST(HostInterfaceTest, ExecutionEngineIntegration) {
   // Test 3: Switch to default host interface
   DefaultHostInterface default_host;
   engine.set_host_interface(&default_host);
-  EXPECT_EQ(engine.get_host_interface()->get_host_info(),
-            "Nodo Studio (Standalone)");
+  EXPECT_EQ(engine.get_host_interface()->get_host_info(), "Nodo Studio (Standalone)");
 
   result = engine.execute_graph(graph);
   EXPECT_TRUE(result);

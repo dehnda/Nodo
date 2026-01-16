@@ -3,12 +3,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-ColorWidget::ColorWidget(const QString& label, const QColor& initial_color,
-                         bool enable_alpha, const QString& description,
-                         QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      color_(initial_color),
-      enable_alpha_(enable_alpha) {}
+ColorWidget::ColorWidget(const QString& label, const QColor& initial_color, bool enable_alpha,
+                         const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent), color_(initial_color), enable_alpha_(enable_alpha) {}
 
 QWidget* ColorWidget::createControlWidget() {
   color_button_ = new QPushButton(this);
@@ -17,8 +14,7 @@ QWidget* ColorWidget::createControlWidget() {
 
   updateButtonColor();
 
-  connect(color_button_, &QPushButton::clicked, this,
-          &ColorWidget::onButtonClicked);
+  connect(color_button_, &QPushButton::clicked, this, &ColorWidget::onButtonClicked);
 
   return color_button_;
 }
@@ -40,8 +36,7 @@ void ColorWidget::setEnableAlpha(bool enable) {
   enable_alpha_ = enable;
 }
 
-void ColorWidget::setColorChangedCallback(
-    std::function<void(const QColor&)> callback) {
+void ColorWidget::setColorChangedCallback(std::function<void(const QColor&)> callback) {
   color_changed_callback_ = callback;
 }
 
@@ -63,8 +58,7 @@ void ColorWidget::onButtonClicked() {
                            .arg(COLOR_BACKGROUND)
                            .arg(COLOR_TEXT_PRIMARY));
 
-  connect(&dialog, &QColorDialog::currentColorChanged, this,
-          &ColorWidget::onColorSelected);
+  connect(&dialog, &QColorDialog::currentColorChanged, this, &ColorWidget::onColorSelected);
 
   if (dialog.exec() == QDialog::Accepted) {
     setColor(dialog.currentColor());
@@ -80,10 +74,7 @@ void ColorWidget::updateButtonColor() {
     return;
 
   // Create a visual color swatch
-  QString rgb_str = QString("rgb(%1, %2, %3)")
-                        .arg(color_.red())
-                        .arg(color_.green())
-                        .arg(color_.blue());
+  QString rgb_str = QString("rgb(%1, %2, %3)").arg(color_.red()).arg(color_.green()).arg(color_.blue());
 
   QString hex_str = color_.name();
 
@@ -100,9 +91,7 @@ void ColorWidget::updateButtonColor() {
                                        "}")
                                    .arg(rgb_str)
                                    .arg(COLOR_INPUT_BORDER)
-                                   .arg(color_.lightness() > 128
-                                            ? "#000000"
-                                            : "#ffffff") // Contrast text
+                                   .arg(color_.lightness() > 128 ? "#000000" : "#ffffff") // Contrast text
                                    .arg(COLOR_ACCENT));
 
   color_button_->setText(hex_str);

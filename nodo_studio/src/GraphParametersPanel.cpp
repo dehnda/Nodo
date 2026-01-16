@@ -21,8 +21,7 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 
-GraphParametersPanel::GraphParametersPanel(QWidget* parent)
-    : QDockWidget("Graph Parameters", parent) {
+GraphParametersPanel::GraphParametersPanel(QWidget* parent) : QDockWidget("Graph Parameters", parent) {
   setup_ui();
   create_actions();
   show_empty_state();
@@ -52,30 +51,29 @@ void GraphParametersPanel::setup_ui() {
   toolbar_ = new QToolBar(main_widget_);
   toolbar_->setIconSize(QSize(16, 16));
   toolbar_->setToolButtonStyle(Qt::ToolButtonIconOnly);
-  toolbar_->setStyleSheet(
-      "QToolBar {"
-      "  background: #2e2e34;"
-      "  border: none;"
-      "  border-bottom: 1px solid rgba(255, 255, 255, 0.06);"
-      "  padding: 4px 8px;"
-      "  spacing: 4px;"
-      "}"
-      "QToolButton {"
-      "  background: transparent;"
-      "  border: 1px solid transparent;"
-      "  border-radius: 3px;"
-      "  padding: 4px;"
-      "}"
-      "QToolButton:hover {"
-      "  background: rgba(255, 255, 255, 0.1);"
-      "  border: 1px solid rgba(255, 255, 255, 0.15);"
-      "}"
-      "QToolButton:pressed {"
-      "  background: rgba(255, 255, 255, 0.05);"
-      "}"
-      "QToolButton:disabled {"
-      "  opacity: 0.3;"
-      "}");
+  toolbar_->setStyleSheet("QToolBar {"
+                          "  background: #2e2e34;"
+                          "  border: none;"
+                          "  border-bottom: 1px solid rgba(255, 255, 255, 0.06);"
+                          "  padding: 4px 8px;"
+                          "  spacing: 4px;"
+                          "}"
+                          "QToolButton {"
+                          "  background: transparent;"
+                          "  border: 1px solid transparent;"
+                          "  border-radius: 3px;"
+                          "  padding: 4px;"
+                          "}"
+                          "QToolButton:hover {"
+                          "  background: rgba(255, 255, 255, 0.1);"
+                          "  border: 1px solid rgba(255, 255, 255, 0.15);"
+                          "}"
+                          "QToolButton:pressed {"
+                          "  background: rgba(255, 255, 255, 0.05);"
+                          "}"
+                          "QToolButton:disabled {"
+                          "  opacity: 0.3;"
+                          "}");
   main_layout_->addWidget(toolbar_);
 
   // Scroll area for parameters (matching PropertyPanel)
@@ -83,32 +81,31 @@ void GraphParametersPanel::setup_ui() {
   scroll_area_->setWidgetResizable(true);
   scroll_area_->setFrameShape(QFrame::NoFrame);
   scroll_area_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  scroll_area_->setStyleSheet(
-      "QScrollArea {"
-      "  background: #2a2a30;"
-      "  border: none;"
-      "}"
-      "QScrollBar:vertical {"
-      "  background: rgba(255, 255, 255, 0.03);"
-      "  width: 10px;"
-      "  border: none;"
-      "  border-radius: 5px;"
-      "  margin: 2px;"
-      "}"
-      "QScrollBar::handle:vertical {"
-      "  background: rgba(255, 255, 255, 0.15);"
-      "  border-radius: 5px;"
-      "  min-height: 30px;"
-      "}"
-      "QScrollBar::handle:vertical:hover {"
-      "  background: rgba(255, 255, 255, 0.25);"
-      "}"
-      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
-      "  height: 0px;"
-      "}"
-      "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
-      "  background: none;"
-      "}");
+  scroll_area_->setStyleSheet("QScrollArea {"
+                              "  background: #2a2a30;"
+                              "  border: none;"
+                              "}"
+                              "QScrollBar:vertical {"
+                              "  background: rgba(255, 255, 255, 0.03);"
+                              "  width: 10px;"
+                              "  border: none;"
+                              "  border-radius: 5px;"
+                              "  margin: 2px;"
+                              "}"
+                              "QScrollBar::handle:vertical {"
+                              "  background: rgba(255, 255, 255, 0.15);"
+                              "  border-radius: 5px;"
+                              "  min-height: 30px;"
+                              "}"
+                              "QScrollBar::handle:vertical:hover {"
+                              "  background: rgba(255, 255, 255, 0.25);"
+                              "}"
+                              "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+                              "  height: 0px;"
+                              "}"
+                              "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+                              "  background: none;"
+                              "}");
 
   // Content widget inside scroll area
   content_widget_ = new QWidget();
@@ -126,31 +123,24 @@ void GraphParametersPanel::setup_ui() {
 
 void GraphParametersPanel::create_actions() {
   // Add parameter action
-  add_action_ = new QAction(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Add), "", this);
+  add_action_ = new QAction(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Add), "", this);
   add_action_->setToolTip("Add new graph parameter (Ctrl+Shift+P)");
   add_action_->setShortcut(QKeySequence("Ctrl+Shift+P"));
-  connect(add_action_, &QAction::triggered, this,
-          &GraphParametersPanel::on_add_parameter_clicked);
+  connect(add_action_, &QAction::triggered, this, &GraphParametersPanel::on_add_parameter_clicked);
   toolbar_->addAction(add_action_);
 
   // Edit parameter action
-  edit_action_ = new QAction(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Edit), "", this);
+  edit_action_ = new QAction(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Edit), "", this);
   edit_action_->setToolTip("Edit selected parameter (F2)");
   edit_action_->setShortcut(QKeySequence("F2"));
-  connect(edit_action_, &QAction::triggered, this,
-          &GraphParametersPanel::on_edit_parameter_clicked);
+  connect(edit_action_, &QAction::triggered, this, &GraphParametersPanel::on_edit_parameter_clicked);
   toolbar_->addAction(edit_action_);
 
   // Delete parameter action
-  delete_action_ = new QAction(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Delete), "",
-      this);
+  delete_action_ = new QAction(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Delete), "", this);
   delete_action_->setToolTip("Delete selected parameter (Delete)");
   delete_action_->setShortcut(QKeySequence::Delete);
-  connect(delete_action_, &QAction::triggered, this,
-          &GraphParametersPanel::on_delete_parameter_clicked);
+  connect(delete_action_, &QAction::triggered, this, &GraphParametersPanel::on_delete_parameter_clicked);
   toolbar_->addAction(delete_action_);
 }
 
@@ -185,64 +175,54 @@ void GraphParametersPanel::refresh() {
 
     switch (param.get_type()) {
       case nodo::graph::GraphParameter::Type::Float: {
-        widget = new nodo_studio::widgets::FloatWidget(
-            label, param.get_float_value(), -1000000.0F, 1000000.0F,
-            description, content_widget_);
+        widget = new nodo_studio::widgets::FloatWidget(label, param.get_float_value(), -1000000.0F, 1000000.0F,
+                                                       description, content_widget_);
         if (widget != nullptr) {
-          connect(
-              widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged,
-              this, [this, param_name = param.get_name(), widget]() {
-                if (graph_ != nullptr) {
-                  auto* float_widget =
-                      dynamic_cast<nodo_studio::widgets::FloatWidget*>(widget);
-                  if (float_widget != nullptr) {
-                    auto* param = graph_->get_graph_parameter(param_name);
-                    if (param != nullptr) {
-                      param->set_value(float_widget->getValue());
-                      on_parameter_value_changed(param_name);
+          connect(widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged, this,
+                  [this, param_name = param.get_name(), widget]() {
+                    if (graph_ != nullptr) {
+                      auto* float_widget = dynamic_cast<nodo_studio::widgets::FloatWidget*>(widget);
+                      if (float_widget != nullptr) {
+                        auto* param = graph_->get_graph_parameter(param_name);
+                        if (param != nullptr) {
+                          param->set_value(float_widget->getValue());
+                          on_parameter_value_changed(param_name);
+                        }
+                      }
                     }
-                  }
-                }
-              });
+                  });
         }
         break;
       }
 
       case nodo::graph::GraphParameter::Type::Int: {
-        widget = new nodo_studio::widgets::IntWidget(
-            label, param.get_int_value(), -1000000, 1000000, description,
-            content_widget_);
+        widget = new nodo_studio::widgets::IntWidget(label, param.get_int_value(), -1000000, 1000000, description,
+                                                     content_widget_);
         if (widget != nullptr) {
-          connect(
-              widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged,
-              this, [this, param_name = param.get_name(), widget]() {
-                if (graph_ != nullptr) {
-                  auto* int_widget =
-                      dynamic_cast<nodo_studio::widgets::IntWidget*>(widget);
-                  if (int_widget != nullptr) {
-                    auto* param = graph_->get_graph_parameter(param_name);
-                    if (param != nullptr) {
-                      param->set_value(int_widget->getValue());
-                      on_parameter_value_changed(param_name);
+          connect(widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged, this,
+                  [this, param_name = param.get_name(), widget]() {
+                    if (graph_ != nullptr) {
+                      auto* int_widget = dynamic_cast<nodo_studio::widgets::IntWidget*>(widget);
+                      if (int_widget != nullptr) {
+                        auto* param = graph_->get_graph_parameter(param_name);
+                        if (param != nullptr) {
+                          param->set_value(int_widget->getValue());
+                          on_parameter_value_changed(param_name);
+                        }
+                      }
                     }
-                  }
-                }
-              });
+                  });
         }
         break;
       }
 
       case nodo::graph::GraphParameter::Type::Bool: {
-        widget = new nodo_studio::widgets::CheckboxWidget(
-            label, param.get_bool_value(), description, content_widget_);
+        widget = new nodo_studio::widgets::CheckboxWidget(label, param.get_bool_value(), description, content_widget_);
         if (widget != nullptr) {
-          connect(widget,
-                  &nodo_studio::widgets::BaseParameterWidget::valueChanged,
-                  this, [this, param_name = param.get_name(), widget]() {
+          connect(widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged, this,
+                  [this, param_name = param.get_name(), widget]() {
                     if (graph_ != nullptr) {
-                      auto* bool_widget =
-                          dynamic_cast<nodo_studio::widgets::CheckboxWidget*>(
-                              widget);
+                      auto* bool_widget = dynamic_cast<nodo_studio::widgets::CheckboxWidget*>(widget);
                       if (bool_widget != nullptr) {
                         auto* param = graph_->get_graph_parameter(param_name);
                         if (param != nullptr) {
@@ -257,50 +237,42 @@ void GraphParametersPanel::refresh() {
       }
 
       case nodo::graph::GraphParameter::Type::String: {
-        widget = new nodo_studio::widgets::TextWidget(
-            label, QString::fromStdString(param.get_string_value()), "",
-            description, content_widget_);
+        widget = new nodo_studio::widgets::TextWidget(label, QString::fromStdString(param.get_string_value()), "",
+                                                      description, content_widget_);
         if (widget != nullptr) {
-          connect(
-              widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged,
-              this, [this, param_name = param.get_name(), widget]() {
-                if (graph_ != nullptr) {
-                  auto* string_widget =
-                      dynamic_cast<nodo_studio::widgets::TextWidget*>(widget);
-                  if (string_widget != nullptr) {
-                    auto* param = graph_->get_graph_parameter(param_name);
-                    if (param != nullptr) {
-                      param->set_value(string_widget->getText().toStdString());
-                      on_parameter_value_changed(param_name);
+          connect(widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged, this,
+                  [this, param_name = param.get_name(), widget]() {
+                    if (graph_ != nullptr) {
+                      auto* string_widget = dynamic_cast<nodo_studio::widgets::TextWidget*>(widget);
+                      if (string_widget != nullptr) {
+                        auto* param = graph_->get_graph_parameter(param_name);
+                        if (param != nullptr) {
+                          param->set_value(string_widget->getText().toStdString());
+                          on_parameter_value_changed(param_name);
+                        }
+                      }
                     }
-                  }
-                }
-              });
+                  });
         }
         break;
       }
 
       case nodo::graph::GraphParameter::Type::Vector3: {
         const auto& vec = param.get_vector3_value();
-        widget = new nodo_studio::widgets::Vector3Widget(
-            label, vec[0], vec[1], vec[2], -1000000.0F, 1000000.0F, description,
-            content_widget_);
+        widget = new nodo_studio::widgets::Vector3Widget(label, vec[0], vec[1], vec[2], -1000000.0F, 1000000.0F,
+                                                         description, content_widget_);
         if (widget != nullptr) {
-          connect(widget,
-                  &nodo_studio::widgets::BaseParameterWidget::valueChanged,
-                  this, [this, param_name = param.get_name(), widget]() {
+          connect(widget, &nodo_studio::widgets::BaseParameterWidget::valueChanged, this,
+                  [this, param_name = param.get_name(), widget]() {
                     if (graph_ != nullptr) {
-                      auto* vec_widget =
-                          dynamic_cast<nodo_studio::widgets::Vector3Widget*>(
-                              widget);
+                      auto* vec_widget = dynamic_cast<nodo_studio::widgets::Vector3Widget*>(widget);
                       if (vec_widget != nullptr) {
                         auto* param = graph_->get_graph_parameter(param_name);
                         if (param != nullptr) {
                           auto values = vec_widget->getValue();
-                          std::array<float, 3> vec_value = {
-                              static_cast<float>(values[0]),
-                              static_cast<float>(values[1]),
-                              static_cast<float>(values[2])};
+                          std::array<float, 3> vec_value = {static_cast<float>(values[0]),
+                                                            static_cast<float>(values[1]),
+                                                            static_cast<float>(values[2])};
                           param->set_value(vec_value);
                           on_parameter_value_changed(param_name);
                         }
@@ -315,8 +287,7 @@ void GraphParametersPanel::refresh() {
     if (widget != nullptr) {
       // Install event filter for selection
       widget->installEventFilter(this);
-      widget->setProperty("parameter_name",
-                          QString::fromStdString(param.get_name()));
+      widget->setProperty("parameter_name", QString::fromStdString(param.get_name()));
       content_layout_->insertWidget(content_layout_->count() - 1, widget);
     }
   }
@@ -342,8 +313,7 @@ bool GraphParametersPanel::eventFilter(QObject* obj, QEvent* event) {
         return true;
       }
     }
-  } else if (widget != nullptr &&
-             event->type() == QEvent::MouseButtonDblClick) {
+  } else if (widget != nullptr && event->type() == QEvent::MouseButtonDblClick) {
     // Double-click to edit
     QString param_name = widget->property("parameter_name").toString();
     if (!param_name.isEmpty()) {
@@ -431,18 +401,16 @@ void GraphParametersPanel::show_empty_state() {
   empty_layout->setSpacing(12);
 
   auto* empty_icon = new QLabel(empty_container);
-  empty_icon->setPixmap(nodo_studio::Icons::getPixmap(
-      nodo_studio::IconManager::Icon::Settings, 48, QColor(128, 128, 136)));
+  empty_icon->setPixmap(
+      nodo_studio::Icons::getPixmap(nodo_studio::IconManager::Icon::Settings, 48, QColor(128, 128, 136)));
   empty_icon->setAlignment(Qt::AlignCenter);
   empty_icon->setStyleSheet("QLabel { padding: 20px; }");
 
   auto* empty_label = new QLabel("No parameters", empty_container);
   empty_label->setAlignment(Qt::AlignCenter);
-  empty_label->setStyleSheet(
-      "QLabel { color: #606068; font-size: 13px; font-weight: 500; }");
+  empty_label->setStyleSheet("QLabel { color: #606068; font-size: 13px; font-weight: 500; }");
 
-  auto* empty_hint =
-      new QLabel("Click + to add a new graph parameter", empty_container);
+  auto* empty_hint = new QLabel("Click + to add a new graph parameter", empty_container);
   empty_hint->setAlignment(Qt::AlignCenter);
   empty_hint->setStyleSheet("QLabel { color: #4a4a50; font-size: 11px; }");
 
@@ -453,8 +421,7 @@ void GraphParametersPanel::show_empty_state() {
   content_layout_->insertWidget(0, empty_container);
 }
 
-void GraphParametersPanel::on_parameter_value_changed(
-    const std::string& /*param_name*/) {
+void GraphParametersPanel::on_parameter_value_changed(const std::string& /*param_name*/) {
   emit parameters_changed();
   emit parameter_value_changed(); // Specific signal for value changes
 }
@@ -482,12 +449,11 @@ void GraphParametersPanel::on_delete_parameter_clicked() {
   QString param_name = QString::fromStdString(selected_parameter_name_);
 
   // Confirm deletion
-  QMessageBox::StandardButton reply =
-      QMessageBox::question(this, "Delete Parameter",
-                            QString("Delete parameter '%1'?\n\nThis may break "
-                                    "node parameters that reference it.")
-                                .arg(param_name),
-                            QMessageBox::Yes | QMessageBox::No);
+  QMessageBox::StandardButton reply = QMessageBox::question(this, "Delete Parameter",
+                                                            QString("Delete parameter '%1'?\n\nThis may break "
+                                                                    "node parameters that reference it.")
+                                                                .arg(param_name),
+                                                            QMessageBox::Yes | QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
     if (graph_->remove_graph_parameter(param_name.toStdString())) {
@@ -506,8 +472,7 @@ void GraphParametersPanel::update_action_states() {
   delete_action_->setEnabled(has_selection && has_graph);
 }
 
-void GraphParametersPanel::show_parameter_dialog(
-    nodo::graph::GraphParameter* existing_param) {
+void GraphParametersPanel::show_parameter_dialog(nodo::graph::GraphParameter* existing_param) {
   if (graph_ == nullptr) {
     return;
   }
@@ -524,26 +489,23 @@ void GraphParametersPanel::show_parameter_dialog(
     name = QString::fromStdString(existing_param->get_name());
   } else {
     bool ok;
-    name = QInputDialog::getText(this, dialog_title,
-                                 "Parameter name:", QLineEdit::Normal, "", &ok);
+    name = QInputDialog::getText(this, dialog_title, "Parameter name:", QLineEdit::Normal, "", &ok);
     if (!ok || name.isEmpty()) {
       return;
     }
 
     // Validate name
     if (!nodo::graph::NodeGraph::is_valid_parameter_name(name.toStdString())) {
-      QMessageBox::warning(
-          this, "Invalid Name",
-          "Parameter name must start with a letter or underscore,\n"
-          "contain only alphanumeric characters and underscores,\n"
-          "and cannot be a reserved word (parent, root, this).");
+      QMessageBox::warning(this, "Invalid Name",
+                           "Parameter name must start with a letter or underscore,\n"
+                           "contain only alphanumeric characters and underscores,\n"
+                           "and cannot be a reserved word (parent, root, this).");
       return;
     }
 
     // Check if name already exists
     if (graph_->has_graph_parameter(name.toStdString())) {
-      QMessageBox::warning(this, "Duplicate Name",
-                           QString("Parameter '%1' already exists.").arg(name));
+      QMessageBox::warning(this, "Duplicate Name", QString("Parameter '%1' already exists.").arg(name));
       return;
     }
   }
@@ -557,8 +519,7 @@ void GraphParametersPanel::show_parameter_dialog(
     type_options << "float" << "int" << "string" << "bool" << "vector3";
 
     bool ok;
-    QString type_str = QInputDialog::getItem(
-        this, dialog_title, "Parameter type:", type_options, 0, false, &ok);
+    QString type_str = QInputDialog::getItem(this, dialog_title, "Parameter type:", type_options, 0, false, &ok);
 
     if (!ok) {
       return;
@@ -574,9 +535,8 @@ void GraphParametersPanel::show_parameter_dialog(
   switch (type) {
     case nodo::graph::GraphParameter::Type::Int: {
       int current = is_edit ? existing_param->get_int_value() : 0;
-      int value = QInputDialog::getInt(this, dialog_title,
-                                       QString("Value for '%1':").arg(name),
-                                       current, -1000000, 1000000, 1, &ok);
+      int value = QInputDialog::getInt(this, dialog_title, QString("Value for '%1':").arg(name), current, -1000000,
+                                       1000000, 1, &ok);
       if (ok) {
         param.set_value(value);
       }
@@ -585,9 +545,8 @@ void GraphParametersPanel::show_parameter_dialog(
 
     case nodo::graph::GraphParameter::Type::Float: {
       double current = is_edit ? existing_param->get_float_value() : 0.0;
-      double value = QInputDialog::getDouble(
-          this, dialog_title, QString("Value for '%1':").arg(name), current,
-          -1000000.0, 1000000.0, 3, &ok);
+      double value = QInputDialog::getDouble(this, dialog_title, QString("Value for '%1':").arg(name), current,
+                                             -1000000.0, 1000000.0, 3, &ok);
       if (ok) {
         param.set_value(static_cast<float>(value));
       }
@@ -595,12 +554,9 @@ void GraphParametersPanel::show_parameter_dialog(
     }
 
     case nodo::graph::GraphParameter::Type::String: {
-      QString current =
-          is_edit ? QString::fromStdString(existing_param->get_string_value())
-                  : "";
-      QString value = QInputDialog::getText(
-          this, dialog_title, QString("Value for '%1':").arg(name),
-          QLineEdit::Normal, current, &ok);
+      QString current = is_edit ? QString::fromStdString(existing_param->get_string_value()) : "";
+      QString value = QInputDialog::getText(this, dialog_title, QString("Value for '%1':").arg(name), QLineEdit::Normal,
+                                            current, &ok);
       if (ok) {
         param.set_value(value.toStdString());
       }
@@ -612,9 +568,8 @@ void GraphParametersPanel::show_parameter_dialog(
       bool_options << "false" << "true";
       int current_index = (is_edit && existing_param->get_bool_value()) ? 1 : 0;
 
-      QString value_str = QInputDialog::getItem(
-          this, dialog_title, QString("Value for '%1':").arg(name),
-          bool_options, current_index, false, &ok);
+      QString value_str = QInputDialog::getItem(this, dialog_title, QString("Value for '%1':").arg(name), bool_options,
+                                                current_index, false, &ok);
 
       if (ok) {
         param.set_value(value_str == "true");

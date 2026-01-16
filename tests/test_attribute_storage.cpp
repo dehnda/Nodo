@@ -28,39 +28,33 @@ TEST_F(AttributeDescriptorTest, DefaultInterpolation) {
   EXPECT_EQ(id_desc.interpolation(), InterpolationMode::DISCRETE);
 
   // QUATERNION should default to QUATERNION_SLERP
-  AttributeDescriptor orient_desc("orient", AttributeType::QUATERNION,
-                                  ElementClass::POINT);
+  AttributeDescriptor orient_desc("orient", AttributeType::QUATERNION, ElementClass::POINT);
   EXPECT_EQ(orient_desc.interpolation(), InterpolationMode::QUATERNION_SLERP);
 
   // VEC3F should default to LINEAR
-  AttributeDescriptor normal_desc("N", AttributeType::VEC3F,
-                                  ElementClass::VERTEX);
+  AttributeDescriptor normal_desc("N", AttributeType::VEC3F, ElementClass::VERTEX);
   EXPECT_EQ(normal_desc.interpolation(), InterpolationMode::LINEAR);
 }
 
 TEST_F(AttributeDescriptorTest, ElementSize) {
-  AttributeDescriptor float_desc("f", AttributeType::FLOAT,
-                                 ElementClass::POINT);
+  AttributeDescriptor float_desc("f", AttributeType::FLOAT, ElementClass::POINT);
   EXPECT_EQ(float_desc.element_size(), sizeof(float));
 
   AttributeDescriptor vec3_desc("P", AttributeType::VEC3F, ElementClass::POINT);
   EXPECT_EQ(vec3_desc.element_size(), sizeof(Vec3f));
 
-  AttributeDescriptor mat4_desc("transform", AttributeType::MATRIX4,
-                                ElementClass::POINT);
+  AttributeDescriptor mat4_desc("transform", AttributeType::MATRIX4, ElementClass::POINT);
   EXPECT_EQ(mat4_desc.element_size(), sizeof(Matrix4f));
 }
 
 TEST_F(AttributeDescriptorTest, ComponentCount) {
-  AttributeDescriptor float_desc("f", AttributeType::FLOAT,
-                                 ElementClass::POINT);
+  AttributeDescriptor float_desc("f", AttributeType::FLOAT, ElementClass::POINT);
   EXPECT_EQ(float_desc.component_count(), 1);
 
   AttributeDescriptor vec3_desc("P", AttributeType::VEC3F, ElementClass::POINT);
   EXPECT_EQ(vec3_desc.component_count(), 3);
 
-  AttributeDescriptor vec4_desc("color", AttributeType::VEC4F,
-                                ElementClass::POINT);
+  AttributeDescriptor vec4_desc("color", AttributeType::VEC4F, ElementClass::POINT);
   EXPECT_EQ(vec4_desc.component_count(), 4);
 }
 
@@ -82,8 +76,7 @@ TEST_F(AttributeDescriptorTest, DefaultValue) {
 }
 
 TEST_F(AttributeDescriptorTest, Builder) {
-  auto desc = AttributeDescriptorBuilder("Cd", AttributeType::VEC3F,
-                                         ElementClass::POINT)
+  auto desc = AttributeDescriptorBuilder("Cd", AttributeType::VEC3F, ElementClass::POINT)
                   .interpolation(InterpolationMode::LINEAR)
                   .default_value(Vec3f(1.0F, 1.0F, 1.0F))
                   .build();
@@ -134,8 +127,7 @@ TEST_F(AttributeDescriptorTest, Equality) {
 class AttributeStorageTest : public ::testing::Test {};
 
 TEST_F(AttributeStorageTest, FloatStorage) {
-  AttributeDescriptor desc("temperature", AttributeType::FLOAT,
-                           ElementClass::POINT);
+  AttributeDescriptor desc("temperature", AttributeType::FLOAT, ElementClass::POINT);
   AttributeStorage<float> storage(desc);
 
   EXPECT_EQ(storage.size(), 0);
@@ -280,8 +272,7 @@ TEST_F(AttributeStorageTest, SwapElements) {
 }
 
 TEST_F(AttributeStorageTest, FactoryCreation) {
-  AttributeDescriptor float_desc("f", AttributeType::FLOAT,
-                                 ElementClass::POINT);
+  AttributeDescriptor float_desc("f", AttributeType::FLOAT, ElementClass::POINT);
   auto float_storage = create_attribute_storage(float_desc);
   EXPECT_NE(float_storage, nullptr);
   EXPECT_EQ(float_storage->descriptor().type(), AttributeType::FLOAT);
@@ -291,8 +282,7 @@ TEST_F(AttributeStorageTest, FactoryCreation) {
   EXPECT_NE(vec3_storage, nullptr);
   EXPECT_EQ(vec3_storage->descriptor().type(), AttributeType::VEC3F);
 
-  AttributeDescriptor string_desc("name", AttributeType::STRING,
-                                  ElementClass::DETAIL);
+  AttributeDescriptor string_desc("name", AttributeType::STRING, ElementClass::DETAIL);
   auto string_storage = create_attribute_storage(string_desc);
   EXPECT_NE(string_storage, nullptr);
   EXPECT_EQ(string_storage->descriptor().type(), AttributeType::STRING);
@@ -330,8 +320,7 @@ TEST_F(AttributeSetTest, AddDuplicateAttribute) {
   AttributeSet point_attrs(ElementClass::POINT);
 
   EXPECT_TRUE(point_attrs.add_attribute("P", AttributeType::VEC3F));
-  EXPECT_FALSE(
-      point_attrs.add_attribute("P", AttributeType::VEC3F)); // Duplicate
+  EXPECT_FALSE(point_attrs.add_attribute("P", AttributeType::VEC3F)); // Duplicate
 
   EXPECT_EQ(point_attrs.attribute_count(), 1);
 }

@@ -25,8 +25,7 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  CheckboxWidget(const QString& label, bool initial_value = false,
-                 const QString& description = QString(),
+  CheckboxWidget(const QString& label, bool initial_value = false, const QString& description = QString(),
                  QWidget* parent = nullptr);
 
   // Value access

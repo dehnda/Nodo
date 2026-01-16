@@ -18,8 +18,7 @@ public:
 private:
   void setupUI();
   void addShortcutCategory(const QString& category);
-  void addShortcut(const QString& action, const QString& shortcut,
-                   const QString& description = "");
+  void addShortcut(const QString& action, const QString& shortcut, const QString& description = "");
 
   QTableWidget* shortcuts_table_;
 };

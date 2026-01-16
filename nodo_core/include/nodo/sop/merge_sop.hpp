@@ -22,9 +22,7 @@ public:
 
   // Multi-input node - requires at least 1 input, accepts unlimited
   // Single wide input pin that accepts multiple connections
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::MULTI_DYNAMIC, 1, -1, 1);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::MULTI_DYNAMIC, 1, -1, 1); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override;

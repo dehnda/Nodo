@@ -87,18 +87,15 @@ TEST_F(SOPGroupFilteringTest, WrangleWithGroupFilter) {
     const auto& original_P = pos_span[i];
     const auto& result_P = result_span[i];
 
-    bool was_in_group =
-        is_in_group(*group_result, "top_half", ElementClass::POINT, i);
+    bool was_in_group = is_in_group(*group_result, "top_half", ElementClass::POINT, i);
 
     if (was_in_group) {
       // Should be modified (moved up by 0.5)
-      EXPECT_NEAR(result_P.y(), original_P.y() + 0.5f, 1e-5f)
-          << "Point " << i << " was in group but not modified";
+      EXPECT_NEAR(result_P.y(), original_P.y() + 0.5f, 1e-5f) << "Point " << i << " was in group but not modified";
       modified_count++;
     } else {
       // Should be unchanged
-      EXPECT_NEAR(result_P.y(), original_P.y(), 1e-5f)
-          << "Point " << i << " was NOT in group but was modified";
+      EXPECT_NEAR(result_P.y(), original_P.y(), 1e-5f) << "Point " << i << " was NOT in group but was modified";
       unmodified_count++;
     }
   }
@@ -142,7 +139,6 @@ TEST_F(SOPGroupFilteringTest, WrangleWithoutGroupFilter) {
     const auto& original_P = original_span[i];
     const auto& result_P = result_span[i];
 
-    EXPECT_NEAR(result_P.y(), original_P.y() + 1.0f, 1e-5f)
-        << "Point " << i << " should have been modified but wasn't";
+    EXPECT_NEAR(result_P.y(), original_P.y() + 1.0f, 1e-5f) << "Point " << i << " should have been modified but wasn't";
   }
 }

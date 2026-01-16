@@ -3,12 +3,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-TextWidget::TextWidget(const QString& label, const QString& initial_text,
-                       const QString& placeholder, const QString& description,
-                       QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      text_(initial_text),
-      placeholder_(placeholder) {
+TextWidget::TextWidget(const QString& label, const QString& initial_text, const QString& placeholder,
+                       const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent), text_(initial_text), placeholder_(placeholder) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
@@ -39,10 +36,8 @@ QWidget* TextWidget::createControlWidget() {
                                 .arg(COLOR_ACCENT)
                                 .arg(COLOR_PANEL));
 
-  connect(line_edit_, &QLineEdit::textChanged, this,
-          &TextWidget::onTextChanged);
-  connect(line_edit_, &QLineEdit::editingFinished, this,
-          &TextWidget::onEditingFinished);
+  connect(line_edit_, &QLineEdit::textChanged, this, &TextWidget::onTextChanged);
+  connect(line_edit_, &QLineEdit::editingFinished, this, &TextWidget::onEditingFinished);
 
   return line_edit_;
 }
@@ -71,13 +66,11 @@ void TextWidget::setPlaceholder(const QString& placeholder) {
   }
 }
 
-void TextWidget::setTextChangedCallback(
-    std::function<void(const QString&)> callback) {
+void TextWidget::setTextChangedCallback(std::function<void(const QString&)> callback) {
   text_changed_callback_ = callback;
 }
 
-void TextWidget::setTextEditingFinishedCallback(
-    std::function<void(const QString&)> callback) {
+void TextWidget::setTextEditingFinishedCallback(std::function<void(const QString&)> callback) {
   editing_finished_callback_ = callback;
 }
 

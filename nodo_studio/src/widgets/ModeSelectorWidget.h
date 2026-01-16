@@ -33,10 +33,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  ModeSelectorWidget(const QString& label, const std::vector<QString>& options,
-                     int initial_index = 0,
-                     const QString& description = QString(),
-                     QWidget* parent = nullptr);
+  ModeSelectorWidget(const QString& label, const std::vector<QString>& options, int initial_index = 0,
+                     const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
   int getSelectedIndex() const { return selected_index_; }
@@ -50,8 +48,7 @@ public:
   std::vector<QString> getOptions() const { return options_; }
 
   // Callback support
-  void setSelectionChangedCallback(
-      std::function<void(int, const QString&)> callback);
+  void setSelectionChangedCallback(std::function<void(int, const QString&)> callback);
 
 signals:
   void selectionChangedSignal(int index, const QString& option);

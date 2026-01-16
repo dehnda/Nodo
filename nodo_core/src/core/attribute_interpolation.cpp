@@ -14,17 +14,15 @@ T interpolate_linear(const T& a, const T& b, float t) {
   if constexpr (std::is_floating_point_v<T>) {
     return a + (b - a) * t;
   } else if constexpr (std::is_same_v<T, Vec3f>) {
-    return Vec3f{a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t,
-                 a.z() + (b.z() - a.z()) * t};
+    return Vec3f{a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t, a.z() + (b.z() - a.z()) * t};
   } else if constexpr (std::is_same_v<T, Vec2f>) {
     return Vec2f{a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t};
   } else if constexpr (std::is_same_v<T, Vec4f>) {
-    return Vec4f{a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t,
-                 a.z() + (b.z() - a.z()) * t, a.w() + (b.w() - a.w()) * t};
+    return Vec4f{a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t, a.z() + (b.z() - a.z()) * t,
+                 a.w() + (b.w() - a.w()) * t};
   } else if constexpr (std::is_integral_v<T>) {
     // For integers, round to nearest
-    float result = static_cast<float>(a) +
-                   (static_cast<float>(b) - static_cast<float>(a)) * t;
+    float result = static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * t;
     return static_cast<T>(std::round(result));
   } else {
     // Default: just return a (no interpolation for unknown types)
@@ -48,8 +46,7 @@ T interpolate_cubic(const T& a, const T& b, float t) {
 // ============================================================================
 
 template <typename T>
-T interpolate_weighted(std::span<const T> values,
-                       std::span<const float> weights) {
+T interpolate_weighted(std::span<const T> values, std::span<const float> weights) {
   if (values.empty() || weights.empty() || values.size() != weights.size()) {
     return T{};
   }
@@ -63,25 +60,21 @@ T interpolate_weighted(std::span<const T> values,
   } else if constexpr (std::is_same_v<T, Vec3f>) {
     Vec3f result{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < values.size(); ++i) {
-      result = Vec3f{result.x() + values[i].x() * weights[i],
-                     result.y() + values[i].y() * weights[i],
+      result = Vec3f{result.x() + values[i].x() * weights[i], result.y() + values[i].y() * weights[i],
                      result.z() + values[i].z() * weights[i]};
     }
     return result;
   } else if constexpr (std::is_same_v<T, Vec2f>) {
     Vec2f result{0.0f, 0.0f};
     for (size_t i = 0; i < values.size(); ++i) {
-      result = Vec2f{result.x() + values[i].x() * weights[i],
-                     result.y() + values[i].y() * weights[i]};
+      result = Vec2f{result.x() + values[i].x() * weights[i], result.y() + values[i].y() * weights[i]};
     }
     return result;
   } else if constexpr (std::is_same_v<T, Vec4f>) {
     Vec4f result{0.0f, 0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < values.size(); ++i) {
-      result = Vec4f{result.x() + values[i].x() * weights[i],
-                     result.y() + values[i].y() * weights[i],
-                     result.z() + values[i].z() * weights[i],
-                     result.w() + values[i].w() * weights[i]};
+      result = Vec4f{result.x() + values[i].x() * weights[i], result.y() + values[i].y() * weights[i],
+                     result.z() + values[i].z() * weights[i], result.w() + values[i].w() * weights[i]};
     }
     return result;
   } else if constexpr (std::is_integral_v<T>) {
@@ -100,28 +93,22 @@ T interpolate_weighted(std::span<const T> values,
 // ============================================================================
 
 template <typename T>
-T interpolate_barycentric(const T& v0, const T& v1, const T& v2, float u,
-                          float v) {
+T interpolate_barycentric(const T& v0, const T& v1, const T& v2, float u, float v) {
   // Barycentric coordinates: w = 1 - u - v
   float w = 1.0f - u - v;
 
   if constexpr (std::is_floating_point_v<T>) {
     return v0 * w + v1 * u + v2 * v;
   } else if constexpr (std::is_same_v<T, Vec3f>) {
-    return Vec3f{v0.x() * w + v1.x() * u + v2.x() * v,
-                 v0.y() * w + v1.y() * u + v2.y() * v,
+    return Vec3f{v0.x() * w + v1.x() * u + v2.x() * v, v0.y() * w + v1.y() * u + v2.y() * v,
                  v0.z() * w + v1.z() * u + v2.z() * v};
   } else if constexpr (std::is_same_v<T, Vec2f>) {
-    return Vec2f{v0.x() * w + v1.x() * u + v2.x() * v,
-                 v0.y() * w + v1.y() * u + v2.y() * v};
+    return Vec2f{v0.x() * w + v1.x() * u + v2.x() * v, v0.y() * w + v1.y() * u + v2.y() * v};
   } else if constexpr (std::is_same_v<T, Vec4f>) {
-    return Vec4f{v0.x() * w + v1.x() * u + v2.x() * v,
-                 v0.y() * w + v1.y() * u + v2.y() * v,
-                 v0.z() * w + v1.z() * u + v2.z() * v,
-                 v0.w() * w + v1.w() * u + v2.w() * v};
+    return Vec4f{v0.x() * w + v1.x() * u + v2.x() * v, v0.y() * w + v1.y() * u + v2.y() * v,
+                 v0.z() * w + v1.z() * u + v2.z() * v, v0.w() * w + v1.w() * u + v2.w() * v};
   } else if constexpr (std::is_integral_v<T>) {
-    float result = static_cast<float>(v0) * w + static_cast<float>(v1) * u +
-                   static_cast<float>(v2) * v;
+    float result = static_cast<float>(v0) * w + static_cast<float>(v1) * u + static_cast<float>(v2) * v;
     return static_cast<T>(std::round(result));
   } else {
     return v0;
@@ -133,8 +120,7 @@ T interpolate_barycentric(const T& v0, const T& v1, const T& v2, float u,
 // ============================================================================
 
 template <typename T>
-T interpolate_bilinear(const T& v00, const T& v10, const T& v01, const T& v11,
-                       float u, float v) {
+T interpolate_bilinear(const T& v00, const T& v10, const T& v01, const T& v11, float u, float v) {
   // Interpolate along u direction first
   T a = interpolate_linear(v00, v10, u);
   T b = interpolate_linear(v01, v11, u);
@@ -148,10 +134,9 @@ T interpolate_bilinear(const T& v00, const T& v10, const T& v01, const T& v11,
 // ============================================================================
 
 template <typename T>
-bool blend_attributes(GeometryContainer& container, std::string_view attr_name,
-                      ElementClass element_class,
-                      const std::vector<size_t>& source_indices,
-                      size_t target_index, const std::vector<float>& weights) {
+bool blend_attributes(GeometryContainer& container, std::string_view attr_name, ElementClass element_class,
+                      const std::vector<size_t>& source_indices, size_t target_index,
+                      const std::vector<float>& weights) {
   if (source_indices.empty()) {
     return false;
   }
@@ -211,10 +196,9 @@ bool blend_attributes(GeometryContainer& container, std::string_view attr_name,
 // Copy and Interpolate All Attributes
 // ============================================================================
 
-bool copy_and_interpolate_all_attributes(
-    GeometryContainer& container, ElementClass element_class,
-    const std::vector<size_t>& source_indices, size_t target_index,
-    const std::vector<float>& weights) {
+bool copy_and_interpolate_all_attributes(GeometryContainer& container, ElementClass element_class,
+                                         const std::vector<size_t>& source_indices, size_t target_index,
+                                         const std::vector<float>& weights) {
   if (source_indices.empty()) {
     return false;
   }
@@ -252,28 +236,19 @@ bool copy_and_interpolate_all_attributes(
     // Blend based on type
     switch (type) {
       case AttributeType::FLOAT:
-        success &=
-            blend_attributes<float>(container, attr_name, element_class,
-                                    source_indices, target_index, weights);
+        success &= blend_attributes<float>(container, attr_name, element_class, source_indices, target_index, weights);
         break;
       case AttributeType::VEC3F:
-        success &=
-            blend_attributes<Vec3f>(container, attr_name, element_class,
-                                    source_indices, target_index, weights);
+        success &= blend_attributes<Vec3f>(container, attr_name, element_class, source_indices, target_index, weights);
         break;
       case AttributeType::VEC2F:
-        success &=
-            blend_attributes<Vec2f>(container, attr_name, element_class,
-                                    source_indices, target_index, weights);
+        success &= blend_attributes<Vec2f>(container, attr_name, element_class, source_indices, target_index, weights);
         break;
       case AttributeType::VEC4F:
-        success &=
-            blend_attributes<Vec4f>(container, attr_name, element_class,
-                                    source_indices, target_index, weights);
+        success &= blend_attributes<Vec4f>(container, attr_name, element_class, source_indices, target_index, weights);
         break;
       case AttributeType::INT:
-        success &= blend_attributes<int>(container, attr_name, element_class,
-                                         source_indices, target_index, weights);
+        success &= blend_attributes<int>(container, attr_name, element_class, source_indices, target_index, weights);
         break;
       case AttributeType::MATRIX3:
       case AttributeType::MATRIX4:
@@ -291,9 +266,8 @@ bool copy_and_interpolate_all_attributes(
 // Transfer Point to Primitive Attributes
 // ============================================================================
 
-bool transfer_point_to_primitive_attributes(
-    GeometryContainer& container, const std::vector<int>& point_indices,
-    size_t prim_index) {
+bool transfer_point_to_primitive_attributes(GeometryContainer& container, const std::vector<int>& point_indices,
+                                            size_t prim_index) {
   if (point_indices.empty()) {
     return false;
   }
@@ -312,8 +286,7 @@ bool transfer_point_to_primitive_attributes(
   }
 
   // Equal weights for averaging
-  std::vector<float> weights(source_indices.size(),
-                             1.0f / static_cast<float>(source_indices.size()));
+  std::vector<float> weights(source_indices.size(), 1.0f / static_cast<float>(source_indices.size()));
 
   // For each point attribute, create/update corresponding primitive attribute
   const auto& point_attrs = container.point_attributes();
@@ -336,28 +309,23 @@ bool transfer_point_to_primitive_attributes(
     switch (type) {
       case AttributeType::FLOAT:
         success &=
-            blend_attributes<float>(container, attr_name, ElementClass::POINT,
-                                    source_indices, prim_index, weights);
+            blend_attributes<float>(container, attr_name, ElementClass::POINT, source_indices, prim_index, weights);
         break;
       case AttributeType::VEC3F:
         success &=
-            blend_attributes<Vec3f>(container, attr_name, ElementClass::POINT,
-                                    source_indices, prim_index, weights);
+            blend_attributes<Vec3f>(container, attr_name, ElementClass::POINT, source_indices, prim_index, weights);
         break;
       case AttributeType::VEC2F:
         success &=
-            blend_attributes<Vec2f>(container, attr_name, ElementClass::POINT,
-                                    source_indices, prim_index, weights);
+            blend_attributes<Vec2f>(container, attr_name, ElementClass::POINT, source_indices, prim_index, weights);
         break;
       case AttributeType::VEC4F:
         success &=
-            blend_attributes<Vec4f>(container, attr_name, ElementClass::POINT,
-                                    source_indices, prim_index, weights);
+            blend_attributes<Vec4f>(container, attr_name, ElementClass::POINT, source_indices, prim_index, weights);
         break;
       case AttributeType::INT:
         success &=
-            blend_attributes<int>(container, attr_name, ElementClass::POINT,
-                                  source_indices, prim_index, weights);
+            blend_attributes<int>(container, attr_name, ElementClass::POINT, source_indices, prim_index, weights);
         break;
       case AttributeType::MATRIX3:
       case AttributeType::MATRIX4:
@@ -376,8 +344,7 @@ bool transfer_point_to_primitive_attributes(
 // ============================================================================
 
 template <typename T>
-T resample_curve_attribute(const GeometryContainer& container,
-                           std::string_view attr_name,
+T resample_curve_attribute(const GeometryContainer& container, std::string_view attr_name,
                            const std::vector<int>& point_indices, float t) {
   if (point_indices.size() < 2) {
     return T{};
@@ -408,8 +375,7 @@ T resample_curve_attribute(const GeometryContainer& container,
   int idx0 = point_indices[segment_idx];
   int idx1 = point_indices[segment_idx + 1];
 
-  if (idx0 < 0 || idx0 >= static_cast<int>(values.size()) || idx1 < 0 ||
-      idx1 >= static_cast<int>(values.size())) {
+  if (idx0 < 0 || idx0 >= static_cast<int>(values.size()) || idx1 < 0 || idx1 >= static_cast<int>(values.size())) {
     return T{};
   }
 
@@ -422,8 +388,7 @@ T resample_curve_attribute(const GeometryContainer& container,
 
 Vec4f slerp(const Vec4f& q0, const Vec4f& q1, float t) {
   // Quaternion spherical linear interpolation
-  float dot =
-      q0.x() * q1.x() + q0.y() * q1.y() + q0.z() * q1.z() + q0.w() * q1.w();
+  float dot = q0.x() * q1.x() + q0.y() * q1.y() + q0.z() * q1.z() + q0.w() * q1.w();
 
   // If the dot product is negative, negate q1 to take the shorter path
   Vec4f q1_adj = q1;
@@ -444,15 +409,14 @@ Vec4f slerp(const Vec4f& q0, const Vec4f& q1, float t) {
   float w0 = std::sin((1.0f - t) * theta) / sin_theta;
   float w1 = std::sin(t * theta) / sin_theta;
 
-  return Vec4f{q0.x() * w0 + q1_adj.x() * w1, q0.y() * w0 + q1_adj.y() * w1,
-               q0.z() * w0 + q1_adj.z() * w1, q0.w() * w0 + q1_adj.w() * w1};
+  return Vec4f{q0.x() * w0 + q1_adj.x() * w1, q0.y() * w0 + q1_adj.y() * w1, q0.z() * w0 + q1_adj.z() * w1,
+               q0.w() * w0 + q1_adj.w() * w1};
 }
 
 Vec3f interpolate_normal(const Vec3f& n0, const Vec3f& n1, float t) {
   // Linear interpolation followed by normalization
   Vec3f result = interpolate_linear(n0, n1, t);
-  float length = std::sqrt(result.x() * result.x() + result.y() * result.y() +
-                           result.z() * result.z());
+  float length = std::sqrt(result.x() * result.x() + result.y() * result.y() + result.z() * result.z());
 
   if (length > 1e-6f) {
     return Vec3f{result.x() / length, result.y() / length, result.z() / length};
@@ -461,8 +425,7 @@ Vec3f interpolate_normal(const Vec3f& n0, const Vec3f& n1, float t) {
   return result;
 }
 
-Vec3f interpolate_color(const Vec3f& c0, const Vec3f& c1, float t,
-                        bool linearize) {
+Vec3f interpolate_color(const Vec3f& c0, const Vec3f& c1, float t, bool linearize) {
   if (!linearize) {
     return interpolate_linear(c0, c1, t);
   }
@@ -473,8 +436,7 @@ Vec3f interpolate_color(const Vec3f& c0, const Vec3f& c1, float t,
   };
 
   auto to_srgb = [](float c) -> float {
-    return (c <= 0.0031308f) ? c * 12.92f
-                             : 1.055f * std::pow(c, 1.0f / 2.4f) - 0.055f;
+    return (c <= 0.0031308f) ? c * 12.92f : 1.055f * std::pow(c, 1.0f / 2.4f) - 0.055f;
   };
 
   // Convert to linear, interpolate, convert back
@@ -483,13 +445,11 @@ Vec3f interpolate_color(const Vec3f& c0, const Vec3f& c1, float t,
 
   Vec3f result_linear = interpolate_linear(c0_linear, c1_linear, t);
 
-  return Vec3f{to_srgb(result_linear.x()), to_srgb(result_linear.y()),
-               to_srgb(result_linear.z())};
+  return Vec3f{to_srgb(result_linear.x()), to_srgb(result_linear.y()), to_srgb(result_linear.z())};
 }
 
 template <typename T>
-T interpolate_clamped(const T& a, const T& b, float t, const T& min_val,
-                      const T& max_val) {
+T interpolate_clamped(const T& a, const T& b, float t, const T& min_val, const T& max_val) {
   T result = interpolate_linear(a, b, t);
   return std::max(min_val, std::min(max_val, result));
 }
@@ -504,55 +464,35 @@ template Vec4f interpolate_linear<Vec4f>(const Vec4f&, const Vec4f&, float);
 template float interpolate_cubic<float>(const float&, const float&, float);
 template Vec3f interpolate_cubic<Vec3f>(const Vec3f&, const Vec3f&, float);
 
-template float interpolate_weighted<float>(std::span<const float>,
-                                           std::span<const float>);
-template int interpolate_weighted<int>(std::span<const int>,
-                                       std::span<const float>);
-template Vec2f interpolate_weighted<Vec2f>(std::span<const Vec2f>,
-                                           std::span<const float>);
-template Vec3f interpolate_weighted<Vec3f>(std::span<const Vec3f>,
-                                           std::span<const float>);
-template Vec4f interpolate_weighted<Vec4f>(std::span<const Vec4f>,
-                                           std::span<const float>);
+template float interpolate_weighted<float>(std::span<const float>, std::span<const float>);
+template int interpolate_weighted<int>(std::span<const int>, std::span<const float>);
+template Vec2f interpolate_weighted<Vec2f>(std::span<const Vec2f>, std::span<const float>);
+template Vec3f interpolate_weighted<Vec3f>(std::span<const Vec3f>, std::span<const float>);
+template Vec4f interpolate_weighted<Vec4f>(std::span<const Vec4f>, std::span<const float>);
 
-template float interpolate_barycentric<float>(const float&, const float&,
-                                              const float&, float, float);
-template Vec3f interpolate_barycentric<Vec3f>(const Vec3f&, const Vec3f&,
-                                              const Vec3f&, float, float);
+template float interpolate_barycentric<float>(const float&, const float&, const float&, float, float);
+template Vec3f interpolate_barycentric<Vec3f>(const Vec3f&, const Vec3f&, const Vec3f&, float, float);
 
-template float interpolate_bilinear<float>(const float&, const float&,
-                                           const float&, const float&, float,
-                                           float);
-template Vec3f interpolate_bilinear<Vec3f>(const Vec3f&, const Vec3f&,
-                                           const Vec3f&, const Vec3f&, float,
-                                           float);
+template float interpolate_bilinear<float>(const float&, const float&, const float&, const float&, float, float);
+template Vec3f interpolate_bilinear<Vec3f>(const Vec3f&, const Vec3f&, const Vec3f&, const Vec3f&, float, float);
 
-template bool blend_attributes<float>(GeometryContainer&, std::string_view,
-                                      ElementClass, const std::vector<size_t>&,
+template bool blend_attributes<float>(GeometryContainer&, std::string_view, ElementClass, const std::vector<size_t>&,
                                       size_t, const std::vector<float>&);
-template bool blend_attributes<int>(GeometryContainer&, std::string_view,
-                                    ElementClass, const std::vector<size_t>&,
+template bool blend_attributes<int>(GeometryContainer&, std::string_view, ElementClass, const std::vector<size_t>&,
                                     size_t, const std::vector<float>&);
-template bool blend_attributes<Vec2f>(GeometryContainer&, std::string_view,
-                                      ElementClass, const std::vector<size_t>&,
+template bool blend_attributes<Vec2f>(GeometryContainer&, std::string_view, ElementClass, const std::vector<size_t>&,
                                       size_t, const std::vector<float>&);
-template bool blend_attributes<Vec3f>(GeometryContainer&, std::string_view,
-                                      ElementClass, const std::vector<size_t>&,
+template bool blend_attributes<Vec3f>(GeometryContainer&, std::string_view, ElementClass, const std::vector<size_t>&,
                                       size_t, const std::vector<float>&);
-template bool blend_attributes<Vec4f>(GeometryContainer&, std::string_view,
-                                      ElementClass, const std::vector<size_t>&,
+template bool blend_attributes<Vec4f>(GeometryContainer&, std::string_view, ElementClass, const std::vector<size_t>&,
                                       size_t, const std::vector<float>&);
 
-template float resample_curve_attribute<float>(const GeometryContainer&,
-                                               std::string_view,
-                                               const std::vector<int>&, float);
-template Vec3f resample_curve_attribute<Vec3f>(const GeometryContainer&,
-                                               std::string_view,
-                                               const std::vector<int>&, float);
+template float resample_curve_attribute<float>(const GeometryContainer&, std::string_view, const std::vector<int>&,
+                                               float);
+template Vec3f resample_curve_attribute<Vec3f>(const GeometryContainer&, std::string_view, const std::vector<int>&,
+                                               float);
 
-template float interpolate_clamped<float>(const float&, const float&, float,
-                                          const float&, const float&);
-template int interpolate_clamped<int>(const int&, const int&, float, const int&,
-                                      const int&);
+template float interpolate_clamped<float>(const float&, const float&, float, const float&, const float&);
+template int interpolate_clamped<int>(const int&, const int&, float, const int&, const int&);
 
 } // namespace nodo::core

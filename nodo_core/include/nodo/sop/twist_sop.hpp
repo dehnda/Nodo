@@ -20,48 +20,41 @@ private:
   static constexpr int NODE_VERSION = 1;
 
 public:
-  explicit TwistSOP(const std::string& name = "twist")
-      : SOPNode(name, "Twist") {
+  explicit TwistSOP(const std::string& name = "twist") : SOPNode(name, "Twist") {
     // Create input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Twist angle in degrees per unit
-    register_parameter(
-        define_float_parameter("angle", 90.0F)
-            .label("Angle")
-            .range(-360.0F, 360.0F)
-            .category("Deformation")
-            .description("Twist angle in degrees per unit distance")
-            .build());
+    register_parameter(define_float_parameter("angle", 90.0F)
+                           .label("Angle")
+                           .range(-360.0F, 360.0F)
+                           .category("Deformation")
+                           .description("Twist angle in degrees per unit distance")
+                           .build());
 
     // Axis to twist around
-    register_parameter(
-        define_int_parameter("axis", 1)
-            .label("Axis")
-            .options({"X", "Y", "Z"})
-            .category("Deformation")
-            .description("Axis around which to twist the geometry")
-            .build());
+    register_parameter(define_int_parameter("axis", 1)
+                           .label("Axis")
+                           .options({"X", "Y", "Z"})
+                           .category("Deformation")
+                           .description("Axis around which to twist the geometry")
+                           .build());
 
     // Twist origin
-    register_parameter(
-        define_float_parameter("origin", 0.0F)
-            .label("Origin")
-            .range(-10.0F, 10.0F)
-            .category("Deformation")
-            .description(
-                "Position along axis where twist starts (zero rotation)")
-            .build());
+    register_parameter(define_float_parameter("origin", 0.0F)
+                           .label("Origin")
+                           .range(-10.0F, 10.0F)
+                           .category("Deformation")
+                           .description("Position along axis where twist starts (zero rotation)")
+                           .build());
 
     // Twist rate
-    register_parameter(
-        define_int_parameter("rate", 0)
-            .label("Rate")
-            .options({"Linear", "Squared"})
-            .category("Deformation")
-            .description("Twist falloff (linear or squared distance)")
-            .build());
+    register_parameter(define_int_parameter("rate", 0)
+                           .label("Rate")
+                           .options({"Linear", "Squared"})
+                           .category("Deformation")
+                           .description("Twist falloff (linear or squared distance)")
+                           .build());
   }
 
 protected:
@@ -79,8 +72,7 @@ protected:
     const int rate_mode = get_parameter<int>("rate", 0);
 
     // Convert to radians
-    const float angle_rad =
-        angle_deg * static_cast<float>(nodo::core::math::PI) / 180.0F;
+    const float angle_rad = angle_deg * static_cast<float>(nodo::core::math::PI) / 180.0F;
 
     // Clone geometry
     auto result = std::make_shared<core::GeometryContainer>(input_geo->clone());

@@ -19,8 +19,7 @@ public:
   ~StudioHostInterface() override = default;
 
   // IHostInterface implementation
-  bool report_progress(int current, int total,
-                       const std::string& message = "") override;
+  bool report_progress(int current, int total, const std::string& message = "") override;
   bool is_cancelled() const override;
   void log(const std::string& level, const std::string& message) override;
   std::string get_host_info() const override;

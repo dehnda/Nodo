@@ -6,8 +6,7 @@ namespace nodo::sop {
 
 ExtrudeSOP::ExtrudeSOP(const std::string& name) : SOPNode(name, "Extrude") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
   register_parameter(define_float_parameter("distance", 1.0F)
@@ -17,50 +16,44 @@ ExtrudeSOP::ExtrudeSOP(const std::string& name) : SOPNode(name, "Extrude") {
                          .description("Distance to extrude faces")
                          .build());
 
-  register_parameter(
-      define_int_parameter("mode", 0)
-          .label("Mode")
-          .options({"Face Normals", "Uniform Direction", "Region Normals"})
-          .category("Extrusion")
-          .description(
-              "Extrusion direction mode (per-face, uniform, or region)")
-          .build());
+  register_parameter(define_int_parameter("mode", 0)
+                         .label("Mode")
+                         .options({"Face Normals", "Uniform Direction", "Region Normals"})
+                         .category("Extrusion")
+                         .description("Extrusion direction mode (per-face, uniform, or region)")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("inset", 0.0F)
-          .label("Inset")
-          .range(0.0, 5.0)
-          .category("Extrusion")
-          .description("Amount to inset face borders before extrusion")
-          .build());
+  register_parameter(define_float_parameter("inset", 0.0F)
+                         .label("Inset")
+                         .range(0.0, 5.0)
+                         .category("Extrusion")
+                         .description("Amount to inset face borders before extrusion")
+                         .build());
 
   // Direction vector (for uniform mode)
-  register_parameter(
-      define_float_parameter("direction_x", 0.0F)
-          .label("Direction X")
-          .range(-1.0, 1.0)
-          .category("Direction")
-          .visible_when("mode", 1)
-          .description("X component of uniform extrusion direction")
-          .build());
+  register_parameter(define_float_parameter("direction_x", 0.0F)
+                         .label("Direction X")
+                         .range(-1.0, 1.0)
+                         .category("Direction")
+                         .visible_when("mode", 1)
+                         .description("X component of uniform extrusion direction")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("direction_y", 0.0F)
-          .label("Direction Y")
-          .range(-1.0, 1.0)
-          .category("Direction")
-          .visible_when("mode", 1)
-          .description("Y component of uniform extrusion direction")
-          .build());
+  register_parameter(define_float_parameter("direction_y", 0.0F)
+                         .label("Direction Y")
+                         .range(-1.0, 1.0)
+                         .category("Direction")
+                         .visible_when("mode", 1)
+                         .description("Y component of uniform extrusion direction")
+                         .build());
 
-  register_parameter(
-      define_float_parameter("direction_z", 1.0F)
-          .label("Direction Z")
-          .range(-1.0, 1.0)
-          .category("Direction")
-          .visible_when("mode", 1)
-          .description("Z component of uniform extrusion direction")
-          .build());
+  register_parameter(define_float_parameter("direction_z", 1.0F)
+                         .label("Direction Z")
+                         .range(-1.0, 1.0)
+                         .category("Direction")
+                         .visible_when("mode", 1)
+                         .description("Z component of uniform extrusion direction")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
@@ -79,8 +72,7 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   const float dir_z = get_parameter<float>("direction_z", 1.0F);
 
   // Get input positions
-  const auto* input_positions =
-      input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
@@ -173,8 +165,7 @@ std::shared_ptr<core::GeometryContainer> ExtrudeSOP::execute() {
   result->set_point_count(total_new_points);
   result->set_vertex_count(total_vertices);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto* result_positions =
-      result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
     set_error("Failed to create position attribute in result");

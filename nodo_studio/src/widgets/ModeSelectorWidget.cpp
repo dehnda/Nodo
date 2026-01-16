@@ -5,14 +5,9 @@
 namespace nodo_studio {
 namespace widgets {
 
-ModeSelectorWidget::ModeSelectorWidget(const QString& label,
-                                       const std::vector<QString>& options,
-                                       int initial_index,
-                                       const QString& description,
-                                       QWidget* parent)
-    : BaseParameterWidget(label, description, parent),
-      options_(options),
-      selected_index_(initial_index) {
+ModeSelectorWidget::ModeSelectorWidget(const QString& label, const std::vector<QString>& options, int initial_index,
+                                       const QString& description, QWidget* parent)
+    : BaseParameterWidget(label, description, parent), options_(options), selected_index_(initial_index) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
 }
@@ -73,16 +68,14 @@ QWidget* ModeSelectorWidget::createControlWidget() {
     buttons_.push_back(button);
     layout->addWidget(button);
 
-    connect(button, &QPushButton::toggled, this,
-            [this, i](bool checked) { onButtonToggled(i, checked); });
+    connect(button, &QPushButton::toggled, this, [this, i](bool checked) { onButtonToggled(i, checked); });
   }
 
   return container;
 }
 
 QString ModeSelectorWidget::getSelectedOption() const {
-  if (selected_index_ >= 0 &&
-      selected_index_ < static_cast<int>(options_.size())) {
+  if (selected_index_ >= 0 && selected_index_ < static_cast<int>(options_.size())) {
     return options_[selected_index_];
   }
   return QString();
@@ -115,11 +108,9 @@ void ModeSelectorWidget::setSelectedOption(const QString& option) {
   }
 }
 
-void ModeSelectorWidget::setOptions(const std::vector<QString>& options,
-                                    int selected_index) {
+void ModeSelectorWidget::setOptions(const std::vector<QString>& options, int selected_index) {
   options_ = options;
-  selected_index_ =
-      std::clamp(selected_index, 0, static_cast<int>(options.size()) - 1);
+  selected_index_ = std::clamp(selected_index, 0, static_cast<int>(options.size()) - 1);
 
   // Rebuild buttons (remove old layout and recreate)
   if (button_group_) {
@@ -130,8 +121,7 @@ void ModeSelectorWidget::setOptions(const std::vector<QString>& options,
   }
 }
 
-void ModeSelectorWidget::setSelectionChangedCallback(
-    std::function<void(int, const QString&)> callback) {
+void ModeSelectorWidget::setSelectionChangedCallback(std::function<void(int, const QString&)> callback) {
   selection_changed_callback_ = callback;
 }
 

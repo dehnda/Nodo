@@ -21,9 +21,7 @@ public:
   explicit LineSOP(const std::string& name = "line");
 
   // Generator node - no inputs required
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::NONE, 0, 0, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
 protected:
   /**

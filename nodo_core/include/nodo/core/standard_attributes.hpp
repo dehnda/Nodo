@@ -179,9 +179,8 @@ struct StandardAttributeInfo {
   ElementClass element_class;
   InterpolationMode interpolation;
 
-  constexpr StandardAttributeInfo(
-      std::string_view n, AttributeType t, ElementClass e,
-      InterpolationMode i = InterpolationMode::LINEAR)
+  constexpr StandardAttributeInfo(std::string_view n, AttributeType t, ElementClass e,
+                                  InterpolationMode i = InterpolationMode::LINEAR)
       : name(n), type(t), element_class(e), interpolation(i) {}
 };
 
@@ -193,67 +192,44 @@ struct StandardAttributeInfo {
 namespace standard_attr_registry {
 
 // Point attributes
-constexpr StandardAttributeInfo P{standard_attrs::P, AttributeType::VEC3F,
-                                  ElementClass::POINT};
-constexpr StandardAttributeInfo v{standard_attrs::v, AttributeType::VEC3F,
-                                  ElementClass::POINT};
-constexpr StandardAttributeInfo Cd{standard_attrs::Cd, AttributeType::VEC3F,
-                                   ElementClass::POINT};
-constexpr StandardAttributeInfo Alpha{
-    standard_attrs::Alpha, AttributeType::FLOAT, ElementClass::POINT};
-constexpr StandardAttributeInfo pscale{
-    standard_attrs::pscale, AttributeType::FLOAT, ElementClass::POINT};
-constexpr StandardAttributeInfo id{standard_attrs::id, AttributeType::INT,
-                                   ElementClass::POINT,
+constexpr StandardAttributeInfo P{standard_attrs::P, AttributeType::VEC3F, ElementClass::POINT};
+constexpr StandardAttributeInfo v{standard_attrs::v, AttributeType::VEC3F, ElementClass::POINT};
+constexpr StandardAttributeInfo Cd{standard_attrs::Cd, AttributeType::VEC3F, ElementClass::POINT};
+constexpr StandardAttributeInfo Alpha{standard_attrs::Alpha, AttributeType::FLOAT, ElementClass::POINT};
+constexpr StandardAttributeInfo pscale{standard_attrs::pscale, AttributeType::FLOAT, ElementClass::POINT};
+constexpr StandardAttributeInfo id{standard_attrs::id, AttributeType::INT, ElementClass::POINT,
                                    InterpolationMode::DISCRETE};
 
 // Vertex attributes
-constexpr StandardAttributeInfo N{standard_attrs::N, AttributeType::VEC3F,
-                                  ElementClass::VERTEX};
-constexpr StandardAttributeInfo uv{standard_attrs::uv, AttributeType::VEC2F,
-                                   ElementClass::VERTEX};
-constexpr StandardAttributeInfo tangentu{
-    standard_attrs::tangentu, AttributeType::VEC3F, ElementClass::VERTEX};
-constexpr StandardAttributeInfo tangentv{
-    standard_attrs::tangentv, AttributeType::VEC3F, ElementClass::VERTEX};
+constexpr StandardAttributeInfo N{standard_attrs::N, AttributeType::VEC3F, ElementClass::VERTEX};
+constexpr StandardAttributeInfo uv{standard_attrs::uv, AttributeType::VEC2F, ElementClass::VERTEX};
+constexpr StandardAttributeInfo tangentu{standard_attrs::tangentu, AttributeType::VEC3F, ElementClass::VERTEX};
+constexpr StandardAttributeInfo tangentv{standard_attrs::tangentv, AttributeType::VEC3F, ElementClass::VERTEX};
 
 // Primitive attributes
-constexpr StandardAttributeInfo material_id{
-    standard_attrs::material_id, AttributeType::INT, ElementClass::PRIMITIVE,
-    InterpolationMode::DISCRETE};
-constexpr StandardAttributeInfo material{
-    standard_attrs::material, AttributeType::STRING, ElementClass::PRIMITIVE,
-    InterpolationMode::DISCRETE};
-constexpr StandardAttributeInfo instance_id{
-    standard_attrs::instance_id, AttributeType::INT, ElementClass::PRIMITIVE,
-    InterpolationMode::DISCRETE};
+constexpr StandardAttributeInfo material_id{standard_attrs::material_id, AttributeType::INT, ElementClass::PRIMITIVE,
+                                            InterpolationMode::DISCRETE};
+constexpr StandardAttributeInfo material{standard_attrs::material, AttributeType::STRING, ElementClass::PRIMITIVE,
+                                         InterpolationMode::DISCRETE};
+constexpr StandardAttributeInfo instance_id{standard_attrs::instance_id, AttributeType::INT, ElementClass::PRIMITIVE,
+                                            InterpolationMode::DISCRETE};
 
 // Detail attributes
-constexpr StandardAttributeInfo bounds_min{
-    standard_attrs::bounds_min, AttributeType::VEC3F, ElementClass::DETAIL};
-constexpr StandardAttributeInfo bounds_max{
-    standard_attrs::bounds_max, AttributeType::VEC3F, ElementClass::DETAIL};
-constexpr StandardAttributeInfo frame{standard_attrs::frame, AttributeType::INT,
-                                      ElementClass::DETAIL,
+constexpr StandardAttributeInfo bounds_min{standard_attrs::bounds_min, AttributeType::VEC3F, ElementClass::DETAIL};
+constexpr StandardAttributeInfo bounds_max{standard_attrs::bounds_max, AttributeType::VEC3F, ElementClass::DETAIL};
+constexpr StandardAttributeInfo frame{standard_attrs::frame, AttributeType::INT, ElementClass::DETAIL,
                                       InterpolationMode::DISCRETE};
-constexpr StandardAttributeInfo time{standard_attrs::time, AttributeType::FLOAT,
-                                     ElementClass::DETAIL};
-constexpr StandardAttributeInfo name{
-    standard_attrs::name, AttributeType::STRING, ElementClass::DETAIL,
-    InterpolationMode::DISCRETE};
+constexpr StandardAttributeInfo time{standard_attrs::time, AttributeType::FLOAT, ElementClass::DETAIL};
+constexpr StandardAttributeInfo name{standard_attrs::name, AttributeType::STRING, ElementClass::DETAIL,
+                                     InterpolationMode::DISCRETE};
 
 // Specialized attributes
-constexpr StandardAttributeInfo transform{
-    standard_attrs::transform, AttributeType::MATRIX4, ElementClass::POINT};
-constexpr StandardAttributeInfo orient{
-    standard_attrs::orient, AttributeType::QUATERNION, ElementClass::POINT,
-    InterpolationMode::QUATERNION_SLERP};
-constexpr StandardAttributeInfo up{standard_attrs::up, AttributeType::VEC3F,
-                                   ElementClass::POINT};
-constexpr StandardAttributeInfo rest_P{
-    standard_attrs::rest_P, AttributeType::VEC3F, ElementClass::POINT};
-constexpr StandardAttributeInfo rest_N{
-    standard_attrs::rest_N, AttributeType::VEC3F, ElementClass::VERTEX};
+constexpr StandardAttributeInfo transform{standard_attrs::transform, AttributeType::MATRIX4, ElementClass::POINT};
+constexpr StandardAttributeInfo orient{standard_attrs::orient, AttributeType::QUATERNION, ElementClass::POINT,
+                                       InterpolationMode::QUATERNION_SLERP};
+constexpr StandardAttributeInfo up{standard_attrs::up, AttributeType::VEC3F, ElementClass::POINT};
+constexpr StandardAttributeInfo rest_P{standard_attrs::rest_P, AttributeType::VEC3F, ElementClass::POINT};
+constexpr StandardAttributeInfo rest_N{standard_attrs::rest_N, AttributeType::VEC3F, ElementClass::VERTEX};
 
 } // namespace standard_attr_registry
 
@@ -262,9 +238,8 @@ constexpr StandardAttributeInfo rest_N{
  */
 inline bool is_standard_attribute(std::string_view attr_name) {
   // Check against common standard attributes
-  return attr_name == standard_attrs::P || attr_name == standard_attrs::N ||
-         attr_name == standard_attrs::Cd || attr_name == standard_attrs::uv ||
-         attr_name == standard_attrs::v || attr_name == standard_attrs::Alpha ||
+  return attr_name == standard_attrs::P || attr_name == standard_attrs::N || attr_name == standard_attrs::Cd ||
+         attr_name == standard_attrs::uv || attr_name == standard_attrs::v || attr_name == standard_attrs::Alpha ||
          attr_name == standard_attrs::pscale || attr_name == standard_attrs::id;
   // Add more as needed
 }

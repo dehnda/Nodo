@@ -31,10 +31,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  GroupSelectorWidget(const QString& label,
-                      const QString& initial_group = QString(),
-                      const QString& description = QString(),
-                      QWidget* parent = nullptr);
+  GroupSelectorWidget(const QString& label, const QString& initial_group = QString(),
+                      const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
   QString getGroupName() const;

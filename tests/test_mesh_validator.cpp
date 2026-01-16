@@ -11,8 +11,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   const auto& topology = container.topology();
 
   // Extract positions
-  auto* p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
 
@@ -36,14 +35,11 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
 
     if (point_indices.size() == 3) {
       // Triangle - add directly
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
     } else if (point_indices.size() == 4) {
       // Quad - triangulate (fan from first vertex)
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
-      triangle_list.emplace_back(point_indices[0], point_indices[2],
-                                 point_indices[3]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[2], point_indices[3]);
     }
   }
 
@@ -115,16 +111,14 @@ TEST_F(MeshValidatorTest, ProblematicMeshValidation) {
 }
 
 TEST_F(MeshValidatorTest, DegenerateFaceDetection) {
-  auto degenerate_faces =
-      geometry::MeshValidator::find_degenerate_faces(problematic_mesh_);
+  auto degenerate_faces = geometry::MeshValidator::find_degenerate_faces(problematic_mesh_);
 
   ASSERT_EQ(degenerate_faces.size(), 1);
   EXPECT_EQ(degenerate_faces[0], 1); // Face with indices [0, 1, 1]
 }
 
 TEST_F(MeshValidatorTest, DuplicateVertexDetection) {
-  auto duplicates =
-      geometry::MeshValidator::find_duplicate_vertices(problematic_mesh_);
+  auto duplicates = geometry::MeshValidator::find_duplicate_vertices(problematic_mesh_);
 
   ASSERT_EQ(duplicates.size(), 2);
   // Should find vertices 3 and 5 as duplicates
@@ -133,8 +127,7 @@ TEST_F(MeshValidatorTest, DuplicateVertexDetection) {
 }
 
 TEST_F(MeshValidatorTest, UnreferencedVertexDetection) {
-  auto unreferenced =
-      geometry::MeshValidator::find_unreferenced_vertices(problematic_mesh_);
+  auto unreferenced = geometry::MeshValidator::find_unreferenced_vertices(problematic_mesh_);
 
   ASSERT_EQ(unreferenced.size(), 1);
   EXPECT_EQ(unreferenced[0], 4); // Vertex 4 is not used in any face
@@ -179,10 +172,8 @@ TEST_F(MeshValidatorTest, ValidationReportSummary) {
 
 TEST_F(MeshValidatorTest, ToleranceSettings) {
   // Test duplicate detection with different tolerances
-  auto duplicates_strict = geometry::MeshValidator::find_duplicate_vertices(
-      problematic_mesh_, 1e-12);
-  auto duplicates_loose =
-      geometry::MeshValidator::find_duplicate_vertices(problematic_mesh_, 1e-6);
+  auto duplicates_strict = geometry::MeshValidator::find_duplicate_vertices(problematic_mesh_, 1e-12);
+  auto duplicates_loose = geometry::MeshValidator::find_duplicate_vertices(problematic_mesh_, 1e-6);
 
   // Should get same results for exact duplicates regardless of tolerance
   EXPECT_EQ(duplicates_strict.size(), duplicates_loose.size());

@@ -24,44 +24,38 @@ private:
   static constexpr int NODE_VERSION = 1;
 
 public:
-  explicit LatticeSOP(const std::string& name = "lattice")
-      : SOPNode(name, "Lattice") {
+  explicit LatticeSOP(const std::string& name = "lattice") : SOPNode(name, "Lattice") {
     // Create input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Lattice divisions
-    register_parameter(
-        define_int_parameter("divisions_x", 3)
-            .label("Divisions X")
-            .range(2, 20)
-            .category("Lattice")
-            .description("Number of lattice divisions along X axis")
-            .build());
+    register_parameter(define_int_parameter("divisions_x", 3)
+                           .label("Divisions X")
+                           .range(2, 20)
+                           .category("Lattice")
+                           .description("Number of lattice divisions along X axis")
+                           .build());
 
-    register_parameter(
-        define_int_parameter("divisions_y", 3)
-            .label("Divisions Y")
-            .range(2, 20)
-            .category("Lattice")
-            .description("Number of lattice divisions along Y axis")
-            .build());
+    register_parameter(define_int_parameter("divisions_y", 3)
+                           .label("Divisions Y")
+                           .range(2, 20)
+                           .category("Lattice")
+                           .description("Number of lattice divisions along Y axis")
+                           .build());
 
-    register_parameter(
-        define_int_parameter("divisions_z", 3)
-            .label("Divisions Z")
-            .range(2, 20)
-            .category("Lattice")
-            .description("Number of lattice divisions along Z axis")
-            .build());
+    register_parameter(define_int_parameter("divisions_z", 3)
+                           .label("Divisions Z")
+                           .range(2, 20)
+                           .category("Lattice")
+                           .description("Number of lattice divisions along Z axis")
+                           .build());
 
     // Auto bounds
-    register_parameter(
-        define_bool_parameter("auto_bounds", true)
-            .label("Auto Bounds")
-            .category("Lattice")
-            .description("Automatically fit lattice to input geometry bounds")
-            .build());
+    register_parameter(define_bool_parameter("auto_bounds", true)
+                           .label("Auto Bounds")
+                           .category("Lattice")
+                           .description("Automatically fit lattice to input geometry bounds")
+                           .build());
 
     // Interpolation mode
     register_parameter(define_int_parameter("mode", 0)

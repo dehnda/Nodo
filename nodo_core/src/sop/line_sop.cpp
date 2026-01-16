@@ -55,13 +55,12 @@ LineSOP::LineSOP(const std::string& name) : SOPNode(name, "Line") {
                          .description("Z coordinate of the line end point")
                          .build());
 
-  register_parameter(
-      define_int_parameter("segments", 10)
-          .label("Segments")
-          .range(1, 1000)
-          .category("Line")
-          .description("Number of segments (points = segments + 1)")
-          .build());
+  register_parameter(define_int_parameter("segments", 10)
+                         .label("Segments")
+                         .range(1, 1000)
+                         .category("Line")
+                         .description("Number of segments (points = segments + 1)")
+                         .build());
 }
 
 std::shared_ptr<core::GeometryContainer> LineSOP::execute() {

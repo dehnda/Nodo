@@ -27,8 +27,7 @@ class GeometryContainer;
  * This widget provides a real-time 3D view of procedural meshes
  * with camera controls for orbit, pan, and zoom.
  */
-class ViewportWidget : public QOpenGLWidget,
-                       protected QOpenGLFunctions_3_3_Core {
+class ViewportWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
 
 public:
@@ -39,8 +38,7 @@ public:
   void setGeometry(const nodo::core::GeometryContainer& geometry);
 
   // Wireframe overlay management
-  void addWireframeOverlay(int node_id,
-                           const nodo::core::GeometryContainer& geometry);
+  void addWireframeOverlay(int node_id, const nodo::core::GeometryContainer& geometry);
   void removeWireframeOverlay(int node_id);
   void clearWireframeOverlays();
 
@@ -96,10 +94,8 @@ private:
   double current_fps_ = 0.0;
   // OpenGL resources
   std::unique_ptr<QOpenGLShaderProgram> shader_program_;
-  std::unique_ptr<QOpenGLShaderProgram>
-      simple_shader_program_; // For edges and vertices
-  std::unique_ptr<QOpenGLShaderProgram>
-      grid_shader_program_; // For grid with distance fade
+  std::unique_ptr<QOpenGLShaderProgram> simple_shader_program_; // For edges and vertices
+  std::unique_ptr<QOpenGLShaderProgram> grid_shader_program_;   // For grid with distance fade
   std::unique_ptr<QOpenGLVertexArrayObject> vao_;
   std::unique_ptr<QOpenGLBuffer> vertex_buffer_;
   std::unique_ptr<QOpenGLBuffer> normal_buffer_;
@@ -126,10 +122,7 @@ private:
   bool has_vertex_colors_ = false;
   QVector3D mesh_center_;
   float mesh_radius_ = 1.0F;
-  std::shared_ptr<nodo::core::Mesh>
-      current_mesh_; // Store for normal visualization (legacy)
-  std::shared_ptr<nodo::core::GeometryContainer>
-      current_geometry_; // Store for normal visualization
+  std::shared_ptr<nodo::core::GeometryContainer> current_geometry_; // Store for normal visualization
 
   // Wireframe overlay storage (node_id -> geometry)
   struct WireframeOverlay {
@@ -187,9 +180,7 @@ private:
   void setupGrid();
   void setupAxes();
   void updateCamera();
-  void calculateMeshBounds(const nodo::core::Mesh& mesh);
   void extractEdgesFromGeometry(const nodo::core::GeometryContainer& geometry);
-  void extractEdgesFromMesh(const nodo::core::Mesh& mesh);
   void drawNormals();
   void drawVertexNormals();
   void drawFaceNormals();

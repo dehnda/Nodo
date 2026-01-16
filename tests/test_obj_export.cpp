@@ -13,11 +13,9 @@ class ObjExportTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Create a simple sphere for testing
-    auto container_result =
-        geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 8);
+    auto container_result = geometry::SphereGenerator::generate_uv_sphere(1.0, 8, 8);
     ASSERT_TRUE(container_result.has_value());
-    test_geometry_ =
-        std::make_shared<core::GeometryContainer>(std::move(*container_result));
+    test_geometry_ = std::make_shared<core::GeometryContainer>(std::move(*container_result));
   }
 
   std::shared_ptr<core::GeometryContainer> test_geometry_;
@@ -66,8 +64,7 @@ TEST_F(ObjExportTest, ContainsVertexNormals) {
   int normal_count = 0;
 
   while (std::getline(stream, line)) {
-    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' &&
-        line[2] == ' ') {
+    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' && line[2] == ' ') {
       normal_count++;
     }
   }
@@ -101,19 +98,16 @@ TEST_F(ObjExportTest, ContainsFacesWithNormals) {
 }
 
 TEST_F(ObjExportTest, ExportToFile) {
-  const auto temp_path =
-      std::filesystem::temp_directory_path() / "nodo_test_export.obj";
+  const auto temp_path = std::filesystem::temp_directory_path() / "nodo_test_export.obj";
 
-  bool success =
-      io::ObjExporter::export_geometry(*test_geometry_, temp_path.string());
+  bool success = io::ObjExporter::export_geometry(*test_geometry_, temp_path.string());
   EXPECT_TRUE(success);
 
   // Verify file exists and is not empty
   std::ifstream file(temp_path);
   ASSERT_TRUE(file.is_open());
 
-  std::string content((std::istreambuf_iterator<char>(file)),
-                      std::istreambuf_iterator<char>());
+  std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   EXPECT_FALSE(content.empty());
 
   // Verify content has vertices, normals, and faces
@@ -156,8 +150,7 @@ TEST_F(ObjExportTest, VerifyOneBasedIndexing) {
       EXPECT_EQ(line.find("f 0"), std::string::npos);
 
       // At least one face should contain valid 1-based indices
-      if (line.find(" 1") != std::string::npos ||
-          line.find("f 1") != std::string::npos) {
+      if (line.find(" 1") != std::string::npos || line.find("f 1") != std::string::npos) {
         found_valid_index = true;
       }
     }
@@ -177,8 +170,7 @@ TEST_F(ObjExportTest, VerifyNormalMagnitude) {
   std::string line;
 
   while (std::getline(stream, line)) {
-    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' &&
-        line[2] == ' ') {
+    if (line.length() >= 3 && line[0] == 'v' && line[1] == 'n' && line[2] == ' ') {
       std::istringstream normal_stream(line.substr(3));
       double x = 0.0;
       double y = 0.0;

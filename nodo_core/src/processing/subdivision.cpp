@@ -10,9 +10,8 @@
 
 namespace nodo::processing {
 
-std::optional<core::GeometryContainer>
-Subdivision::subdivide(const core::GeometryContainer& container,
-                       const SubdivisionParams& params, std::string* error) {
+std::optional<core::GeometryContainer> Subdivision::subdivide(const core::GeometryContainer& container,
+                                                              const SubdivisionParams& params, std::string* error) {
   // Validate input
   if (container.point_count() < 3) {
     if (error)
@@ -42,15 +41,13 @@ Subdivision::subdivide(const core::GeometryContainer& container,
       return std::nullopt;
     }
 
-    fmt::print("Before subdivision: {} vertices, {} faces\n",
-               pmp_mesh.n_vertices(), pmp_mesh.n_faces());
+    fmt::print("Before subdivision: {} vertices, {} faces\n", pmp_mesh.n_vertices(), pmp_mesh.n_faces());
 
     // Loop subdivision requires triangles - triangulate first
     // Catmull-Clark and Quad-Tri work on quads/mixed, so DON'T triangulate
     if (params.type == SubdivisionType::LOOP) {
       pmp::triangulate(pmp_mesh);
-      fmt::print("After triangulation for Loop: {} vertices, {} faces\n",
-                 pmp_mesh.n_vertices(), pmp_mesh.n_faces());
+      fmt::print("After triangulation for Loop: {} vertices, {} faces\n", pmp_mesh.n_vertices(), pmp_mesh.n_faces());
     }
 
     // Perform subdivision for the specified number of levels
@@ -68,8 +65,8 @@ Subdivision::subdivide(const core::GeometryContainer& container,
           pmp::quad_tri_subdivision(pmp_mesh);
           break;
       }
-      fmt::print("After subdivision level {}: {} vertices, {} faces\n", i + 1,
-                 pmp_mesh.n_vertices(), pmp_mesh.n_faces());
+      fmt::print("After subdivision level {}: {} vertices, {} faces\n", i + 1, pmp_mesh.n_vertices(),
+                 pmp_mesh.n_faces());
     }
 
     // Convert back to GeometryContainer

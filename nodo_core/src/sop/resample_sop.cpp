@@ -9,17 +9,15 @@ namespace nodo::sop {
 
 ResampleSOP::ResampleSOP(const std::string& name) : SOPNode(name, "Resample") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(
-      define_int_parameter("mode", 0)
-          .label("Mode")
-          .options({"By Count", "By Length"})
-          .category("Resample")
-          .description("Resampling mode: fixed point count or segment length")
-          .build());
+  register_parameter(define_int_parameter("mode", 0)
+                         .label("Mode")
+                         .options({"By Count", "By Length"})
+                         .category("Resample")
+                         .description("Resampling mode: fixed point count or segment length")
+                         .build());
 
   register_parameter(define_int_parameter("point_count", 10)
                          .label("Point Count")
@@ -51,8 +49,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
   const float segment_length = get_parameter<float>("segment_length", 0.1F);
 
   // Get input positions
-  const auto* input_positions =
-      input->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
     return nullptr;
@@ -95,16 +92,14 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
       float curve_length = 0.0F;
       for (size_t i = 0; i < num_verts - 1; ++i) {
         const int pt_curr = input_topology.get_vertex_point(vert_indices[i]);
-        const int pt_next =
-            input_topology.get_vertex_point(vert_indices[i + 1]);
+        const int pt_next = input_topology.get_vertex_point(vert_indices[i + 1]);
         const core::Vec3f pos_curr = (*input_positions)[pt_curr];
         const core::Vec3f pos_next = (*input_positions)[pt_next];
         curve_length += (pos_next - pos_curr).norm();
       }
 
       if (segment_length > 0.0001F) {
-        new_point_count =
-            static_cast<size_t>(curve_length / segment_length) + 1;
+        new_point_count = static_cast<size_t>(curve_length / segment_length) + 1;
         new_point_count = std::max(new_point_count, size_t(2));
       } else {
         new_point_count = 2;
@@ -120,8 +115,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
   result->add_point_attribute(attrs::P, core::AttributeType::VEC3F);
-  auto* result_positions =
-      result->get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
     set_error("Failed to create position attribute in result");
@@ -166,25 +160,21 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
       // Calculate target distance along curve
       float target_distance = 0.0F;
       if (new_point_count > 1) {
-        target_distance = total_length * static_cast<float>(i) /
-                          static_cast<float>(new_point_count - 1);
+        target_distance = total_length * static_cast<float>(i) / static_cast<float>(new_point_count - 1);
       }
 
       // Find the segment containing this distance
       size_t segment_idx = 0;
       for (size_t j = 0; j < cumulative_lengths.size() - 1; ++j) {
-        if (target_distance >= cumulative_lengths[j] &&
-            target_distance <= cumulative_lengths[j + 1]) {
+        if (target_distance >= cumulative_lengths[j] && target_distance <= cumulative_lengths[j + 1]) {
           segment_idx = j;
           break;
         }
       }
 
       // Interpolate position within the segment
-      const int pt_curr =
-          input_topology.get_vertex_point(vert_indices[segment_idx]);
-      const int pt_next = input_topology.get_vertex_point(
-          vert_indices[std::min(segment_idx + 1, num_verts - 1)]);
+      const int pt_curr = input_topology.get_vertex_point(vert_indices[segment_idx]);
+      const int pt_next = input_topology.get_vertex_point(vert_indices[std::min(segment_idx + 1, num_verts - 1)]);
       const core::Vec3f pos_curr = (*input_positions)[pt_curr];
       const core::Vec3f pos_next = (*input_positions)[pt_next];
 
@@ -205,8 +195,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
       (*result_positions)[next_point_idx] = new_pos;
 
       // Add vertex
-      result->topology().set_vertex_point(vertex_offset,
-                                          static_cast<int>(next_point_idx));
+      result->topology().set_vertex_point(vertex_offset, static_cast<int>(next_point_idx));
       new_prim_verts.push_back(static_cast<int>(vertex_offset));
 
       next_point_idx++;

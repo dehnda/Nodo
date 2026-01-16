@@ -31,9 +31,8 @@ public:
    * @param owner Which element class owns this attribute
    * @param interpolation How to interpolate values
    */
-  AttributeDescriptor(
-      std::string name, AttributeType type, ElementClass owner,
-      InterpolationMode interpolation = InterpolationMode::LINEAR);
+  AttributeDescriptor(std::string name, AttributeType type, ElementClass owner,
+                      InterpolationMode interpolation = InterpolationMode::LINEAR);
 
   // Getters
   const std::string& name() const { return name_; }
@@ -50,9 +49,7 @@ public:
   /**
    * @brief Get number of scalar components
    */
-  size_t component_count() const {
-    return attribute_traits::component_count(type_);
-  }
+  size_t component_count() const { return attribute_traits::component_count(type_); }
 
   /**
    * @brief Check if this attribute has a default value
@@ -63,9 +60,7 @@ public:
    * @brief Get default value as raw bytes
    * @return Pointer to default value data, or nullptr if no default
    */
-  const void* default_value_ptr() const {
-    return has_default_ ? default_value_.data() : nullptr;
-  }
+  const void* default_value_ptr() const { return has_default_ ? default_value_.data() : nullptr; }
 
   /**
    * @brief Set default value from raw bytes
@@ -116,30 +111,24 @@ public:
   /**
    * @brief Get human-readable owner class name
    */
-  const char* owner_name() const {
-    return attribute_traits::element_class_name(owner_);
-  }
+  const char* owner_name() const { return attribute_traits::element_class_name(owner_); }
 
   /**
    * @brief Get human-readable interpolation mode name
    */
-  const char* interpolation_name() const {
-    return attribute_traits::interpolation_mode_name(interpolation_);
-  }
+  const char* interpolation_name() const { return attribute_traits::interpolation_mode_name(interpolation_); }
 
   /**
    * @brief Equality comparison (name only, for lookup)
    */
-  bool operator==(const AttributeDescriptor& other) const {
-    return name_ == other.name_;
-  }
+  bool operator==(const AttributeDescriptor& other) const { return name_ == other.name_; }
 
   /**
    * @brief Full equality (all fields)
    */
   bool equals(const AttributeDescriptor& other) const {
-    return name_ == other.name_ && type_ == other.type_ &&
-           owner_ == other.owner_ && interpolation_ == other.interpolation_;
+    return name_ == other.name_ && type_ == other.type_ && owner_ == other.owner_ &&
+           interpolation_ == other.interpolation_;
   }
 
   /**
@@ -170,13 +159,11 @@ private:
  */
 class AttributeDescriptorBuilder {
 public:
-  AttributeDescriptorBuilder(std::string name, AttributeType type,
-                             ElementClass owner)
+  AttributeDescriptorBuilder(std::string name, AttributeType type, ElementClass owner)
       : desc_(std::move(name), type, owner) {}
 
   AttributeDescriptorBuilder& interpolation(InterpolationMode mode) {
-    desc_ =
-        AttributeDescriptor(desc_.name(), desc_.type(), desc_.owner(), mode);
+    desc_ = AttributeDescriptor(desc_.name(), desc_.type(), desc_.owner(), mode);
     return *this;
   }
 

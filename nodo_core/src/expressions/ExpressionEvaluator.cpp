@@ -15,28 +15,22 @@ namespace nodo {
 template <typename Func>
 struct Function1Wrapper : public exprtk::ifunction<double> {
   Func func;
-  explicit Function1Wrapper(Func f)
-      : exprtk::ifunction<double>(1), func(std::move(f)) {}
+  explicit Function1Wrapper(Func f) : exprtk::ifunction<double>(1), func(std::move(f)) {}
   double operator()(const double& arg) override { return func(arg); }
 };
 
 template <typename Func>
 struct Function2Wrapper : public exprtk::ifunction<double> {
   Func func;
-  explicit Function2Wrapper(Func f)
-      : exprtk::ifunction<double>(2), func(std::move(f)) {}
-  double operator()(const double& arg1, const double& arg2) override {
-    return func(arg1, arg2);
-  }
+  explicit Function2Wrapper(Func f) : exprtk::ifunction<double>(2), func(std::move(f)) {}
+  double operator()(const double& arg1, const double& arg2) override { return func(arg1, arg2); }
 };
 
 template <typename Func>
 struct Function3Wrapper : public exprtk::ifunction<double> {
   Func func;
-  explicit Function3Wrapper(Func f)
-      : exprtk::ifunction<double>(3), func(std::move(f)) {}
-  double operator()(const double& arg1, const double& arg2,
-                    const double& arg3) override {
+  explicit Function3Wrapper(Func f) : exprtk::ifunction<double>(3), func(std::move(f)) {}
+  double operator()(const double& arg1, const double& arg2, const double& arg3) override {
     return func(arg1, arg2, arg3);
   }
 };
@@ -49,8 +43,7 @@ struct ExpressionEvaluator::Implementation {
   std::unordered_map<std::string, CustomFunction3> functions_3arg;
 
   // Storage for exprtk function wrappers (must persist)
-  std::unordered_map<std::string, std::unique_ptr<exprtk::ifunction<double>>>
-      function_wrappers;
+  std::unordered_map<std::string, std::unique_ptr<exprtk::ifunction<double>>> function_wrappers;
 
   // Helper to register functions with exprtk symbol table
   void registerWithSymbolTable(exprtk::symbol_table<double>& symbol_table) {
@@ -81,14 +74,12 @@ struct ExpressionEvaluator::Implementation {
 void ExpressionEvaluator::ensureImpl() const {
   if (!impl_) {
     // Remove const to initialize (this is a lazy initialization pattern)
-    const_cast<ExpressionEvaluator*>(this)->impl_ =
-        std::make_shared<Implementation>();
+    const_cast<ExpressionEvaluator*>(this)->impl_ = std::make_shared<Implementation>();
   }
 }
 
-ExpressionEvaluator::Result
-ExpressionEvaluator::evaluate(const std::string& expression,
-                              const VariableMap& variables) const {
+ExpressionEvaluator::Result ExpressionEvaluator::evaluate(const std::string& expression,
+                                                          const VariableMap& variables) const {
   if (expression.empty()) {
     return Result::Error("Empty expression");
   }
@@ -158,9 +149,7 @@ ExpressionEvaluator::evaluate(const std::string& expression,
 }
 
 // Non-const version that modifies variables
-ExpressionEvaluator::Result
-ExpressionEvaluator::evaluate(const std::string& expression,
-                              VariableMap& variables) {
+ExpressionEvaluator::Result ExpressionEvaluator::evaluate(const std::string& expression, VariableMap& variables) {
   if (expression.empty()) {
     return Result::Error("Empty expression");
   }
@@ -258,8 +247,7 @@ std::string ExpressionEvaluator::validate(const std::string& expression) const {
   return ""; // Valid
 }
 
-std::vector<std::string>
-ExpressionEvaluator::getVariables(const std::string& expression) const {
+std::vector<std::string> ExpressionEvaluator::getVariables(const std::string& expression) const {
   std::vector<std::string> variables;
 
   // Create a symbol table and parse to extract variable names
@@ -282,20 +270,17 @@ ExpressionEvaluator::getVariables(const std::string& expression) const {
 }
 
 // Function registration methods
-void ExpressionEvaluator::registerFunction(const std::string& name,
-                                           CustomFunction1 func) {
+void ExpressionEvaluator::registerFunction(const std::string& name, CustomFunction1 func) {
   ensureImpl();
   impl_->functions_1arg[name] = std::move(func);
 }
 
-void ExpressionEvaluator::registerFunction(const std::string& name,
-                                           CustomFunction2 func) {
+void ExpressionEvaluator::registerFunction(const std::string& name, CustomFunction2 func) {
   ensureImpl();
   impl_->functions_2arg[name] = std::move(func);
 }
 
-void ExpressionEvaluator::registerFunction(const std::string& name,
-                                           CustomFunction3 func) {
+void ExpressionEvaluator::registerFunction(const std::string& name, CustomFunction3 func) {
   ensureImpl();
   impl_->functions_3arg[name] = std::move(func);
 }
@@ -312,38 +297,27 @@ void ExpressionEvaluator::registerGeometryFunctions() {
   });
 
   // fit(value, oldmin, oldmax, newmin, newmax) - Remap value to new range
-  registerFunction("fit",
-                   [](double value, double oldmin, double oldmax) -> double {
-                     // 3-arg version: fit01 behavior (assumes input is 0-1)
-                     return value * (oldmax - oldmin) + oldmin;
-                   });
+  registerFunction("fit", [](double value, double oldmin, double oldmax) -> double {
+    // 3-arg version: fit01 behavior (assumes input is 0-1)
+    return value * (oldmax - oldmin) + oldmin;
+  });
 
   // fit01(value, min, max) - Remap [0,1] to [min,max]
-  registerFunction("fit01", [](double value, double min, double max) -> double {
-    return value * (max - min) + min;
-  });
+  registerFunction("fit01", [](double value, double min, double max) -> double { return value * (max - min) + min; });
 
   // clamp01(value) - Clamp to [0,1]
-  registerFunction("clamp01", [](double value) -> double {
-    return std::clamp(value, 0.0, 1.0);
-  });
+  registerFunction("clamp01", [](double value) -> double { return std::clamp(value, 0.0, 1.0); });
 
   // lerp(a, b, t) - Linear interpolation
-  registerFunction("lerp", [](double a, double b, double t) -> double {
-    return a + (b - a) * t;
-  });
+  registerFunction("lerp", [](double a, double b, double t) -> double { return a + (b - a) * t; });
 }
 
 void ExpressionEvaluator::registerVectorFunctions() {
   // length(x, y, z) - Vector magnitude
-  registerFunction("length", [](double x, double y, double z) -> double {
-    return std::sqrt(x * x + y * y + z * z);
-  });
+  registerFunction("length", [](double x, double y, double z) -> double { return std::sqrt(x * x + y * y + z * z); });
 
   // length2d(x, y) - 2D vector magnitude
-  registerFunction("length2d", [](double x, double y) -> double {
-    return std::sqrt(x * x + y * y);
-  });
+  registerFunction("length2d", [](double x, double y) -> double { return std::sqrt(x * x + y * y); });
 
   // normalize would require returning a vector, so we skip it for now
   // (ExpressionEvaluator only handles scalar values)
@@ -361,8 +335,7 @@ bool ExpressionEvaluator::hasFunction(const std::string& name) const {
   if (!impl_) {
     return false;
   }
-  return impl_->functions_1arg.count(name) > 0 ||
-         impl_->functions_2arg.count(name) > 0 ||
+  return impl_->functions_1arg.count(name) > 0 || impl_->functions_2arg.count(name) > 0 ||
          impl_->functions_3arg.count(name) > 0;
 }
 

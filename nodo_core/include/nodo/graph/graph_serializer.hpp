@@ -29,8 +29,7 @@ public:
    * @param json_data The JSON string to parse
    * @return Deserialized graph or nullopt if parsing failed
    */
-  static std::optional<NodeGraph>
-  deserialize_from_json(const std::string& json_data);
+  static std::optional<NodeGraph> deserialize_from_json(const std::string& json_data);
 
   /**
    * @brief Save graph to file
@@ -38,8 +37,7 @@ public:
    * @param file_path Path to save the file
    * @return True if successful
    */
-  static bool save_to_file(const NodeGraph& graph,
-                           const std::string& file_path);
+  static bool save_to_file(const NodeGraph& graph, const std::string& file_path);
 
   /**
    * @brief Load graph from file
@@ -50,11 +48,9 @@ public:
 
 private:
   static std::string node_type_to_string(NodeType type);
-  static std::optional<NodeType>
-  string_to_node_type(const std::string& type_str);
+  static std::optional<NodeType> string_to_node_type(const std::string& type_str);
   static std::string parameter_to_json(const NodeParameter& param);
-  static std::optional<NodeParameter>
-  json_to_parameter(const std::string& json_obj);
+  static std::optional<NodeParameter> json_to_parameter(const std::string& json_obj);
 };
 
 } // namespace nodo::graph

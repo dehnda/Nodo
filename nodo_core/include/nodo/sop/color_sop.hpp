@@ -21,31 +21,27 @@ class ColorSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ColorSOP(const std::string& node_name = "color")
-      : SOPNode(node_name, "Color") {
+  explicit ColorSOP(const std::string& node_name = "color") : SOPNode(node_name, "Color") {
     // Single geometry input
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Color mode
-    register_parameter(
-        define_int_parameter("color_mode", 0)
-            .label("Color Mode")
-            .options({"Constant", "Random", "Ramp", "Attribute Ramp"})
-            .category("Color")
-            .description("Color assignment method (constant, random, gradient "
-                         "ramp, or attribute-based ramp)")
-            .build());
+    register_parameter(define_int_parameter("color_mode", 0)
+                           .label("Color Mode")
+                           .options({"Constant", "Random", "Ramp", "Attribute Ramp"})
+                           .category("Color")
+                           .description("Color assignment method (constant, random, gradient "
+                                        "ramp, or attribute-based ramp)")
+                           .build());
 
     // Universal class parameter (customized for color - only
     // Point/Vertex/Primitive)
-    register_parameter(
-        define_int_parameter("class", 0)
-            .label("Class")
-            .options({"Point", "Vertex", "Primitive"})
-            .category("Color")
-            .description("Geometry element type to assign colors to")
-            .build());
+    register_parameter(define_int_parameter("class", 0)
+                           .label("Class")
+                           .options({"Point", "Vertex", "Primitive"})
+                           .category("Color")
+                           .description("Geometry element type to assign colors to")
+                           .build());
 
     // Note: Uses universal 'input_group' parameter inherited from SOPNode
 
@@ -58,23 +54,21 @@ public:
                            .description("Red component of constant color (0-1)")
                            .build());
 
-    register_parameter(
-        define_float_parameter("color_g", 0.0F)
-            .label("Color G")
-            .range(0.0, 1.0)
-            .category("Constant")
-            .visible_when("color_mode", 0)
-            .description("Green component of constant color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("color_g", 0.0F)
+                           .label("Color G")
+                           .range(0.0, 1.0)
+                           .category("Constant")
+                           .visible_when("color_mode", 0)
+                           .description("Green component of constant color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("color_b", 0.0F)
-            .label("Color B")
-            .range(0.0, 1.0)
-            .category("Constant")
-            .visible_when("color_mode", 0)
-            .description("Blue component of constant color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("color_b", 0.0F)
+                           .label("Color B")
+                           .range(0.0, 1.0)
+                           .category("Constant")
+                           .visible_when("color_mode", 0)
+                           .description("Blue component of constant color (0-1)")
+                           .build());
 
     // Random seed
     register_parameter(define_int_parameter("seed", 0)
@@ -86,32 +80,29 @@ public:
                            .build());
 
     // Ramp start color
-    register_parameter(
-        define_float_parameter("ramp_start_r", 0.0F)
-            .label("Start R")
-            .range(0.0, 1.0)
-            .category("Ramp")
-            .visible_when("color_mode", 2)
-            .description("Red component of ramp start color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("ramp_start_r", 0.0F)
+                           .label("Start R")
+                           .range(0.0, 1.0)
+                           .category("Ramp")
+                           .visible_when("color_mode", 2)
+                           .description("Red component of ramp start color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("ramp_start_g", 0.0F)
-            .label("Start G")
-            .range(0.0, 1.0)
-            .category("Ramp")
-            .visible_when("color_mode", 2)
-            .description("Green component of ramp start color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("ramp_start_g", 0.0F)
+                           .label("Start G")
+                           .range(0.0, 1.0)
+                           .category("Ramp")
+                           .visible_when("color_mode", 2)
+                           .description("Green component of ramp start color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("ramp_start_b", 1.0F)
-            .label("Start B")
-            .range(0.0, 1.0)
-            .category("Ramp")
-            .visible_when("color_mode", 2)
-            .description("Blue component of ramp start color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("ramp_start_b", 1.0F)
+                           .label("Start B")
+                           .range(0.0, 1.0)
+                           .category("Ramp")
+                           .visible_when("color_mode", 2)
+                           .description("Blue component of ramp start color (0-1)")
+                           .build());
 
     // Ramp end color
     register_parameter(define_float_parameter("ramp_end_r", 1.0F)
@@ -122,33 +113,30 @@ public:
                            .description("Red component of ramp end color (0-1)")
                            .build());
 
-    register_parameter(
-        define_float_parameter("ramp_end_g", 0.0F)
-            .label("End G")
-            .range(0.0, 1.0)
-            .category("Ramp")
-            .visible_when("color_mode", 2)
-            .description("Green component of ramp end color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("ramp_end_g", 0.0F)
+                           .label("End G")
+                           .range(0.0, 1.0)
+                           .category("Ramp")
+                           .visible_when("color_mode", 2)
+                           .description("Green component of ramp end color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("ramp_end_b", 0.0F)
-            .label("End B")
-            .range(0.0, 1.0)
-            .category("Ramp")
-            .visible_when("color_mode", 2)
-            .description("Blue component of ramp end color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("ramp_end_b", 0.0F)
+                           .label("End B")
+                           .range(0.0, 1.0)
+                           .category("Ramp")
+                           .visible_when("color_mode", 2)
+                           .description("Blue component of ramp end color (0-1)")
+                           .build());
 
     // Ramp axis
-    register_parameter(
-        define_int_parameter("ramp_axis", 1)
-            .label("Ramp Axis")
-            .options({"X", "Y", "Z"})
-            .category("Ramp")
-            .visible_when("color_mode", 2)
-            .description("Axis along which to apply color gradient")
-            .build());
+    register_parameter(define_int_parameter("ramp_axis", 1)
+                           .label("Ramp Axis")
+                           .options({"X", "Y", "Z"})
+                           .category("Ramp")
+                           .visible_when("color_mode", 2)
+                           .description("Axis along which to apply color gradient")
+                           .build());
 
     // Attribute Ramp parameters
     register_parameter(define_string_parameter("attr_name", "geodesic_dist")
@@ -174,32 +162,29 @@ public:
                                         "color). Use 0 for auto-detect.")
                            .build());
 
-    register_parameter(
-        define_float_parameter("attr_ramp_start_r", 0.0F)
-            .label("Start R")
-            .range(0.0, 1.0)
-            .category("Attribute Ramp")
-            .visible_when("color_mode", 3)
-            .description("Red component of ramp start color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("attr_ramp_start_r", 0.0F)
+                           .label("Start R")
+                           .range(0.0, 1.0)
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Red component of ramp start color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("attr_ramp_start_g", 0.0F)
-            .label("Start G")
-            .range(0.0, 1.0)
-            .category("Attribute Ramp")
-            .visible_when("color_mode", 3)
-            .description("Green component of ramp start color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("attr_ramp_start_g", 0.0F)
+                           .label("Start G")
+                           .range(0.0, 1.0)
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Green component of ramp start color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("attr_ramp_start_b", 1.0F)
-            .label("Start B")
-            .range(0.0, 1.0)
-            .category("Attribute Ramp")
-            .visible_when("color_mode", 3)
-            .description("Blue component of ramp start color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("attr_ramp_start_b", 1.0F)
+                           .label("Start B")
+                           .range(0.0, 1.0)
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Blue component of ramp start color (0-1)")
+                           .build());
 
     register_parameter(define_float_parameter("attr_ramp_end_r", 1.0F)
                            .label("End R")
@@ -209,23 +194,21 @@ public:
                            .description("Red component of ramp end color (0-1)")
                            .build());
 
-    register_parameter(
-        define_float_parameter("attr_ramp_end_g", 0.0F)
-            .label("End G")
-            .range(0.0, 1.0)
-            .category("Attribute Ramp")
-            .visible_when("color_mode", 3)
-            .description("Green component of ramp end color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("attr_ramp_end_g", 0.0F)
+                           .label("End G")
+                           .range(0.0, 1.0)
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Green component of ramp end color (0-1)")
+                           .build());
 
-    register_parameter(
-        define_float_parameter("attr_ramp_end_b", 0.0F)
-            .label("End B")
-            .range(0.0, 1.0)
-            .category("Attribute Ramp")
-            .visible_when("color_mode", 3)
-            .description("Blue component of ramp end color (0-1)")
-            .build());
+    register_parameter(define_float_parameter("attr_ramp_end_b", 0.0F)
+                           .label("End B")
+                           .range(0.0, 1.0)
+                           .category("Attribute Ramp")
+                           .visible_when("color_mode", 3)
+                           .description("Blue component of ramp end color (0-1)")
+                           .build());
   }
 
 protected:
@@ -253,8 +236,7 @@ protected:
           output->add_point_attribute("Cd", core::AttributeType::VEC3F);
           auto* cd = output->get_point_attribute_typed<core::Vec3f>("Cd");
           if (cd) {
-            std::fill(cd->values_writable().begin(),
-                      cd->values_writable().end(), default_color);
+            std::fill(cd->values_writable().begin(), cd->values_writable().end(), default_color);
           }
         }
         break;
@@ -263,8 +245,7 @@ protected:
           output->add_vertex_attribute("Cd", core::AttributeType::VEC3F);
           auto* cd = output->get_vertex_attribute_typed<core::Vec3f>("Cd");
           if (cd) {
-            std::fill(cd->values_writable().begin(),
-                      cd->values_writable().end(), default_color);
+            std::fill(cd->values_writable().begin(), cd->values_writable().end(), default_color);
           }
         }
         break;
@@ -273,8 +254,7 @@ protected:
           output->add_primitive_attribute("Cd", core::AttributeType::VEC3F);
           auto* cd = output->get_primitive_attribute_typed<core::Vec3f>("Cd");
           if (cd) {
-            std::fill(cd->values_writable().begin(),
-                      cd->values_writable().end(), default_color);
+            std::fill(cd->values_writable().begin(), cd->values_writable().end(), default_color);
           }
         }
         break;
@@ -300,8 +280,7 @@ protected:
   }
 
 private:
-  void apply_constant_color(std::shared_ptr<core::GeometryContainer>& geo,
-                            int attr_class) {
+  void apply_constant_color(std::shared_ptr<core::GeometryContainer>& geo, int attr_class) {
     const float r = get_parameter<float>("color_r", 1.0F);
     const float g = get_parameter<float>("color_g", 1.0F);
     const float b = get_parameter<float>("color_b", 1.0F);
@@ -344,8 +323,7 @@ private:
     }
   }
 
-  void apply_random_color(std::shared_ptr<core::GeometryContainer>& geo,
-                          int attr_class) {
+  void apply_random_color(std::shared_ptr<core::GeometryContainer>& geo, int attr_class) {
     const int seed = get_parameter<int>("seed", 0);
     std::mt19937 rng(seed);
     std::uniform_real_distribution<float> dist(0.0F, 1.0F);
@@ -387,8 +365,7 @@ private:
     }
   }
 
-  void apply_ramp_color(std::shared_ptr<core::GeometryContainer>& geo,
-                        int attr_class) {
+  void apply_ramp_color(std::shared_ptr<core::GeometryContainer>& geo, int attr_class) {
     const float start_r = get_parameter<float>("ramp_start_r", 0.0F);
     const float start_g = get_parameter<float>("ramp_start_g", 0.0F);
     const float start_b = get_parameter<float>("ramp_start_b", 1.0F);
@@ -448,8 +425,7 @@ private:
           for (size_t i = 0; i < cd->size(); ++i) {
             if (is_in_group(geo, attr_class, i)) {
               int pt_idx = geo->topology().get_vertex_point(i);
-              if (pt_idx >= 0 &&
-                  static_cast<size_t>(pt_idx) < positions->size()) {
+              if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < positions->size()) {
                 float t = ((*positions)[pt_idx][axis] - min_val) / range;
                 t = std::clamp(t, 0.0F, 1.0F);
                 (*cd)[i] = start_color * (1.0F - t) + end_color * t;
@@ -465,15 +441,13 @@ private:
           for (size_t prim_idx = 0; prim_idx < cd->size(); ++prim_idx) {
             if (is_in_group(geo, attr_class, prim_idx)) {
               // Calculate primitive centroid
-              const auto& prim_verts =
-                  geo->topology().get_primitive_vertices(prim_idx);
+              const auto& prim_verts = geo->topology().get_primitive_vertices(prim_idx);
               core::Vec3f centroid(0.0F, 0.0F, 0.0F);
               int vert_count = 0;
 
               for (int vert_idx : prim_verts) {
                 int pt_idx = geo->topology().get_vertex_point(vert_idx);
-                if (pt_idx >= 0 &&
-                    static_cast<size_t>(pt_idx) < positions->size()) {
+                if (pt_idx >= 0 && static_cast<size_t>(pt_idx) < positions->size()) {
                   centroid += (*positions)[pt_idx];
                   vert_count++;
                 }
@@ -493,11 +467,9 @@ private:
     }
   }
 
-  void apply_attribute_ramp(std::shared_ptr<core::GeometryContainer>& geo,
-                            int attr_class) {
+  void apply_attribute_ramp(std::shared_ptr<core::GeometryContainer>& geo, int attr_class) {
     // Get attribute name
-    const std::string attr_name =
-        get_parameter<std::string>("attr_name", "geodesic_dist");
+    const std::string attr_name = get_parameter<std::string>("attr_name", "geodesic_dist");
 
     // Get color ramp parameters
     const float start_r = get_parameter<float>("attr_ramp_start_r", 0.0F);

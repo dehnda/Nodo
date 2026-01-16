@@ -12,9 +12,7 @@ IconManager& IconManager::instance() {
   return instance;
 }
 
-IconManager::IconManager()
-    : default_color_(
-          QColor(224, 224, 224)) { // Default light gray for dark theme
+IconManager::IconManager() : default_color_(QColor(224, 224, 224)) { // Default light gray for dark theme
 }
 
 QIcon IconManager::getIcon(Icon icon, const QColor& color) {
@@ -34,10 +32,7 @@ QPixmap IconManager::getPixmap(Icon icon, int size, const QColor& color) {
   QColor icon_color = color.isValid() ? color : default_color_;
 
   // Create cache key
-  QString cache_key = QString("%1_%2_%3")
-                          .arg(static_cast<int>(icon))
-                          .arg(size)
-                          .arg(icon_color.name());
+  QString cache_key = QString("%1_%2_%3").arg(static_cast<int>(icon)).arg(size).arg(icon_color.name());
 
   // Check cache first
   if (cache_.contains(cache_key)) {
@@ -334,27 +329,23 @@ QString IconManager::getIconFileName(Icon icon) const {
   }
 }
 
-QPixmap IconManager::loadSvgIcon(const QString& iconName, const QColor& color,
-                                 int size) {
+QPixmap IconManager::loadSvgIcon(const QString& iconName, const QColor& color, int size) {
   // Try to load from Qt resources first
   QString resource_path = QString(":/icons/iconoir/%1.svg").arg(iconName);
 
   // If not in resources, try custom icons directory first
   if (!QFile::exists(resource_path)) {
-    resource_path =
-        QString("../../../nodo_studio/resources/icons/%1.svg").arg(iconName);
+    resource_path = QString("../../../nodo_studio/resources/icons/%1.svg").arg(iconName);
   }
 
   // If not in custom icons, try filesystem path (for development)
   if (!QFile::exists(resource_path)) {
     // Path relative to build directory: external/iconoir/icons/regular/
-    resource_path =
-        QString("../external/iconoir/icons/regular/%1.svg").arg(iconName);
+    resource_path = QString("../external/iconoir/icons/regular/%1.svg").arg(iconName);
   }
 
   if (!QFile::exists(resource_path)) {
-    qWarning() << "Icon file not found:" << iconName
-               << "- tried resource and filesystem";
+    qWarning() << "Icon file not found:" << iconName << "- tried resource and filesystem";
     return QPixmap();
   }
 

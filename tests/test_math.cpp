@@ -12,8 +12,7 @@ TEST(MathTest, rotation_x_with_zero_radians_returns_identity) {
                 0, 1, 0,
                 0, 0, 1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation X with 0 radians should return identity matrix";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation X with 0 radians should return identity matrix";
 }
 
 TEST(MathTest, rotation_x_with_pi_radians_returns_correct_matrix) {
@@ -24,8 +23,7 @@ TEST(MathTest, rotation_x_with_pi_radians_returns_correct_matrix) {
                 0, -1,  0,
                 0,  0, -1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation X with π radians should flip Y and Z axes";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation X with π radians should flip Y and Z axes";
 }
 
 TEST(MathTest, rotation_x_with_pi_over_two_radians_returns_correct_matrix) {
@@ -36,8 +34,7 @@ TEST(MathTest, rotation_x_with_pi_over_two_radians_returns_correct_matrix) {
                 0,  0, -1,
                 0,  1,  0;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation X with π/2 radians should rotate Y to Z and Z to -Y";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation X with π/2 radians should rotate Y to Z and Z to -Y";
 }
 
 TEST(MathTest, rotation_x_actually_rotates_points) {
@@ -64,8 +61,7 @@ TEST(MathTest, rotation_y_with_zero_radians_returns_identity) {
                 0, 1, 0,
                 0, 0, 1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation Y with 0 radians should return identity matrix";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation Y with 0 radians should return identity matrix";
 }
 
 TEST(MathTest, rotation_y_with_pi_radians_returns_correct_matrix) {
@@ -76,8 +72,7 @@ TEST(MathTest, rotation_y_with_pi_radians_returns_correct_matrix) {
                 0, 1, 0,
                 0, 0, -1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation Y with π radians should flip X and Z axes";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation Y with π radians should flip X and Z axes";
 }
 
 TEST(MathTest, rotation_y_with_pi_over_two_radians_returns_correct_matrix) {
@@ -88,8 +83,7 @@ TEST(MathTest, rotation_y_with_pi_over_two_radians_returns_correct_matrix) {
                 0, 1, 0,
                -1, 0, 0;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation Y with π/2 radians should rotate X to Z and Z to -X";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation Y with π/2 radians should rotate X to Z and Z to -X";
 }
 
 TEST(MathTest, rotation_y_actually_rotates_points) {
@@ -116,8 +110,7 @@ TEST(MathTest, rotation_z_with_zero_radians_returns_identity) {
                 0, 1, 0,
                 0, 0, 1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation Z with 0 radians should return identity matrix";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation Z with 0 radians should return identity matrix";
 }
 
 TEST(MathTest, rotation_z_with_pi_radians_returns_correct_matrix) {
@@ -128,8 +121,7 @@ TEST(MathTest, rotation_z_with_pi_radians_returns_correct_matrix) {
                 0, -1, 0,
                 0, 0, 1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation Z with π radians should flip X and Y axes";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation Z with π radians should flip X and Y axes";
 }
 
 TEST(MathTest, rotation_z_with_pi_over_two_radians_returns_correct_matrix) {
@@ -140,8 +132,7 @@ TEST(MathTest, rotation_z_with_pi_over_two_radians_returns_correct_matrix) {
                 1, 0, 0,
                 0, 0, 1;
   // clang-format on
-  EXPECT_TRUE(result.isApprox(expected, 1e-10))
-      << "Rotation Z with π/2 radians should rotate X to -Y and Y to X";
+  EXPECT_TRUE(result.isApprox(expected, 1e-10)) << "Rotation Z with π/2 radians should rotate X to -Y and Y to X";
 }
 
 TEST(MathTest, rotation_z_actually_rotates_points) {
@@ -169,16 +160,13 @@ TEST(MathTest, transform_vertices_range_gives_same_result_as_apply_transform) {
   Vector3 offset(10, 20, 30);
 
   // Test bulk operation
-  math::transform_vertices_range(input_vertices.data(), output_vertices.data(),
-                                 3, rotation, offset);
+  math::transform_vertices_range(input_vertices.data(), output_vertices.data(), 3, rotation, offset);
 
   // Test individual operations for comparison
   for (int i = 0; i < 3; ++i) {
-    ::Vector3 input(input_vertices[i * 3], input_vertices[i * 3 + 1],
-                    input_vertices[i * 3 + 2]);
+    ::Vector3 input(input_vertices[i * 3], input_vertices[i * 3 + 1], input_vertices[i * 3 + 2]);
     ::Vector3 expected = math::apply_transform(input, rotation, offset);
-    Vector3 actual(output_vertices[i * 3], output_vertices[i * 3 + 1],
-                   output_vertices[i * 3 + 2]);
+    Vector3 actual(output_vertices[i * 3], output_vertices[i * 3 + 1], output_vertices[i * 3 + 2]);
 
     EXPECT_TRUE(actual.isApprox(expected, 1e-10));
   }

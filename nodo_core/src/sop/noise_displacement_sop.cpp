@@ -22,11 +22,9 @@ constexpr float SMOOTHSTEP_COEFF_B = 2.0F;
 // Vertex normal threshold
 constexpr double VERTEX_NORMAL_THRESHOLD = 0.1;
 
-NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string& name)
-    : SOPNode(name, "NoiseDisplacement") {
+NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string& name) : SOPNode(name, "NoiseDisplacement") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
   register_parameter(define_float_parameter("amplitude", 0.1F)
@@ -107,9 +105,8 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
     const core::Vec3f& vertex = p_span[i];
 
     // Generate noise value at vertex position
-    float noise_value = fractal_noise(
-        vertex.x() * frequency, vertex.y() * frequency, vertex.z() * frequency,
-        seed, frequency, octaves, lacunarity, persistence);
+    float noise_value = fractal_noise(vertex.x() * frequency, vertex.y() * frequency, vertex.z() * frequency, seed,
+                                      frequency, octaves, lacunarity, persistence);
 
     // Calculate displacement direction (outward from origin for sphere-like
     // shapes)
@@ -127,10 +124,8 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
   return output;
 }
 
-float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z,
-                                          int seed,
-                                          [[maybe_unused]] float base_frequency,
-                                          int octaves, float lacunarity,
+float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z, int seed,
+                                          [[maybe_unused]] float base_frequency, int octaves, float lacunarity,
                                           float persistence) const {
   float total = 0.0F;
   float max_value = 0.0F;
@@ -138,9 +133,7 @@ float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z,
   float frequency = 1.0F;
 
   for (int i = 0; i < octaves; ++i) {
-    total += simple_noise(pos_x * frequency, pos_y * frequency,
-                          pos_z * frequency, seed) *
-             amplitude;
+    total += simple_noise(pos_x * frequency, pos_y * frequency, pos_z * frequency, seed) * amplitude;
     max_value += amplitude;
     amplitude *= persistence;
     frequency *= lacunarity;
@@ -149,8 +142,7 @@ float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z,
   return total / max_value;
 }
 
-float NoiseDisplacementSOP::simple_noise(float pos_x, float pos_y, float pos_z,
-                                         int seed) const {
+float NoiseDisplacementSOP::simple_noise(float pos_x, float pos_y, float pos_z, int seed) const {
   // Use seed to vary the noise pattern
   pos_x += seed * SEED_OFFSET_X;
   pos_y += seed * SEED_OFFSET_Y;
@@ -174,8 +166,7 @@ float NoiseDisplacementSOP::simple_noise(float pos_x, float pos_y, float pos_z,
   auto hash = [](int x_coord, int y_coord, int z_coord) -> float {
     int n = x_coord + y_coord * 57 + z_coord * 113;
     n = (n << 13) ^ n;
-    return (1.0F - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) /
-                       1073741824.0F);
+    return (1.0F - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0F);
   };
 
   // Get corner values

@@ -15,20 +15,17 @@ constexpr double TRIANGLE_AREA_FACTOR = 0.5;
 constexpr double BARYCENTRIC_MIN = 0.0;
 constexpr double BARYCENTRIC_NORMALIZE = 1.0;
 
-ScatterSOP::ScatterSOP(const std::string& node_name)
-    : SOPNode(node_name, "Scatter") {
+ScatterSOP::ScatterSOP(const std::string& node_name) : SOPNode(node_name, "Scatter") {
   // Add input port (use "0" to match execution engine's numeric indexing)
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Define parameters with UI metadata (SINGLE SOURCE OF TRUTH)
-  register_parameter(
-      define_int_parameter("point_count", 100)
-          .label("Point Count")
-          .range(1, 10000)
-          .category("Scatter")
-          .description("Number of points to scatter on geometry surface")
-          .build());
+  register_parameter(define_int_parameter("point_count", 100)
+                         .label("Point Count")
+                         .range(1, 10000)
+                         .category("Scatter")
+                         .description("Number of points to scatter on geometry surface")
+                         .build());
 
   register_parameter(define_int_parameter("seed", 42)
                          .label("Seed")
@@ -37,13 +34,12 @@ ScatterSOP::ScatterSOP(const std::string& node_name)
                          .description("Random seed for point distribution")
                          .build());
 
-  register_parameter(
-      define_float_parameter("density", 1.0F)
-          .label("Density")
-          .range(0.0, 10.0)
-          .category("Scatter")
-          .description("Density multiplier for point distribution")
-          .build());
+  register_parameter(define_float_parameter("density", 1.0F)
+                         .label("Density")
+                         .range(0.0, 10.0)
+                         .category("Scatter")
+                         .description("Density multiplier for point distribution")
+                         .build());
 
   register_parameter(define_bool_parameter("use_face_area", true)
                          .label("Use Face Area")
@@ -52,10 +48,8 @@ ScatterSOP::ScatterSOP(const std::string& node_name)
                          .build());
 }
 
-void ScatterSOP::scatter_points_on_mesh(
-    const core::GeometryContainer& input_geo,
-    core::GeometryContainer& output_geo, int point_count, int seed,
-    float density, bool use_face_area) {
+void ScatterSOP::scatter_points_on_mesh(const core::GeometryContainer& input_geo, core::GeometryContainer& output_geo,
+                                        int point_count, int seed, float density, bool use_face_area) {
   // Setup random number generation
   std::mt19937 generator(seed);
   std::uniform_real_distribution<double> unit_dist(0.0, 1.0);
@@ -69,11 +63,9 @@ void ScatterSOP::scatter_points_on_mesh(
   }
 
   // Get input positions
-  auto* input_positions =
-      input_geo.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* input_positions = input_geo.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!input_positions) {
-    throw std::runtime_error(
-        "ScatterSOP: Input geometry has no position attribute");
+    throw std::runtime_error("ScatterSOP: Input geometry has no position attribute");
   }
 
   // Build face areas for weighted distribution
@@ -142,15 +134,12 @@ void ScatterSOP::scatter_points_on_mesh(
     int face_index;
     if (use_face_area && !cumulative_areas.empty()) {
       double random_area = unit_dist(generator) * cumulative_areas.back();
-      auto area_iterator = std::lower_bound(
-          cumulative_areas.begin(), cumulative_areas.end(), random_area);
-      face_index = static_cast<int>(
-          std::distance(cumulative_areas.begin(), area_iterator));
+      auto area_iterator = std::lower_bound(cumulative_areas.begin(), cumulative_areas.end(), random_area);
+      face_index = static_cast<int>(std::distance(cumulative_areas.begin(), area_iterator));
       face_index = std::min(face_index, static_cast<int>(prim_count - 1));
     } else {
       // Uniform face selection
-      std::uniform_int_distribution<int> face_dist(
-          0, static_cast<int>(prim_count - 1));
+      std::uniform_int_distribution<int> face_dist(0, static_cast<int>(prim_count - 1));
       face_index = face_dist(generator);
     }
 
@@ -175,13 +164,10 @@ void ScatterSOP::scatter_points_on_mesh(
     core::Vector3 vertex_2(p2.x(), p2.y(), p2.z());
 
     // Generate random point on triangle
-    core::Vector3 scattered_point =
-        random_point_on_triangle(vertex_0, vertex_1, vertex_2, generator);
+    core::Vector3 scattered_point = random_point_on_triangle(vertex_0, vertex_1, vertex_2, generator);
 
     // Store position in attribute storage
-    positions->set(point_idx,
-                   core::Vec3f(scattered_point.x(), scattered_point.y(),
-                               scattered_point.z()));
+    positions->set(point_idx, core::Vec3f(scattered_point.x(), scattered_point.y(), scattered_point.z()));
 
     // Store metadata attributes
     point_ids->set(point_idx, point_idx);
@@ -194,9 +180,8 @@ void ScatterSOP::scatter_points_on_mesh(
   }
 }
 
-core::Vector3 ScatterSOP::random_point_on_triangle(
-    const core::Vector3& vertex_0, const core::Vector3& vertex_1,
-    const core::Vector3& vertex_2, std::mt19937& generator) {
+core::Vector3 ScatterSOP::random_point_on_triangle(const core::Vector3& vertex_0, const core::Vector3& vertex_1,
+                                                   const core::Vector3& vertex_2, std::mt19937& generator) {
   std::uniform_real_distribution<double> unit_dist(0.0, 1.0);
 
   // Generate random barycentric coordinates

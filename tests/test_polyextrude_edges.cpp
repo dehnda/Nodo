@@ -14,8 +14,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdges) {
 
   // Add position attribute
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Create a simple line with 4 points
@@ -54,8 +53,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdges) {
   EXPECT_EQ(result->topology().primitive_count(), 3);
 
   // Verify positions exist
-  auto* result_positions =
-      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // In individual mode, we should have 4 points per edge: 3 edges * 4 = 12
@@ -70,8 +68,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeFacesStillWorks) {
   input->set_vertex_count(4);
 
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   (*positions)[0] = nodo::core::Vec3f(0.0F, 0.0F, 0.0F);
@@ -107,8 +104,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithDistance) {
   input->set_vertex_count(2);
 
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Simple horizontal edge
@@ -127,8 +123,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithDistance) {
   auto result = extrude_node.execute_for_test();
   ASSERT_NE(result, nullptr);
 
-  auto* result_positions =
-      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Check that extruded points are offset by distance
@@ -159,8 +154,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithCustomDirection) {
   input->set_vertex_count(2);
 
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Horizontal edge along X-axis
@@ -186,8 +180,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithCustomDirection) {
   auto result = extrude_node.execute_for_test();
   ASSERT_NE(result, nullptr);
 
-  auto* result_positions =
-      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Points: [bottom_p0, bottom_p1, top_p1, top_p0]
@@ -213,8 +206,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
 
   // Add position attribute
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Create a line along X-axis with 4 points
@@ -256,8 +248,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
   EXPECT_EQ(result->topology().vertex_count(), 12);
 
   // Verify positions
-  auto* result_positions =
-      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // Original points should be preserved (indices 0-3)
@@ -312,8 +303,7 @@ TEST(PolyExtrudeSOPTest, ExtrudePoints) {
 
   // Add position attribute
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
-  auto* positions =
-      input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(positions, nullptr);
 
   // Create 3 points in a line
@@ -341,8 +331,7 @@ TEST(PolyExtrudeSOPTest, ExtrudePoints) {
   EXPECT_EQ(result->topology().vertex_count(), 6);
 
   // Verify positions
-  auto* result_positions =
-      result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
+  auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
   ASSERT_NE(result_positions, nullptr);
 
   // In auto mode, points extrude along Y-axis by default

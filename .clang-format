@@ -22,7 +22,7 @@ IndentRequiresClause: true
 IndentWrappedFunctionNames: false
 
 # Line Breaking
-ColumnLimit: 80
+ColumnLimit: 120
 AlwaysBreakAfterReturnType: None
 AlwaysBreakAfterDefinitionReturnType: None
 

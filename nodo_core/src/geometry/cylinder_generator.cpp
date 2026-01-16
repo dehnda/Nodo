@@ -8,37 +8,31 @@ namespace attrs = nodo::core::standard_attrs;
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error CylinderGenerator::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error CylinderGenerator::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown,
+                                                        "No error"};
 
-std::optional<core::GeometryContainer>
-CylinderGenerator::generate(double radius, double height, int radial_segments,
-                            int height_segments, bool top_cap,
-                            bool bottom_cap) {
+std::optional<core::GeometryContainer> CylinderGenerator::generate(double radius, double height, int radial_segments,
+                                                                   int height_segments, bool top_cap, bool bottom_cap) {
   if (radius <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Cylinder radius must be positive"});
     return std::nullopt;
   }
 
   if (height <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Cylinder height must be positive"});
     return std::nullopt;
   }
 
   if (radial_segments < 3) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Cylinder requires at least 3 radial segments"});
     return std::nullopt;
   }
 
   if (height_segments < 1) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidFormat,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidFormat,
                                "Cylinder requires at least 1 height segment"});
     return std::nullopt;
   }
@@ -49,8 +43,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
   const int total_vertices = ring_vertices + cap_vertices;
 
   const int side_faces = height_segments * radial_segments * 2;
-  const int cap_faces =
-      (top_cap ? radial_segments : 0) + (bottom_cap ? radial_segments : 0);
+  const int cap_faces = (top_cap ? radial_segments : 0) + (bottom_cap ? radial_segments : 0);
   const int total_faces = side_faces + cap_faces;
 
   // Create GeometryContainer
@@ -71,21 +64,14 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
 
   // Generate ring vertices
   for (int height_ring = 0; height_ring <= height_segments; ++height_ring) {
-    const double coord_y = (static_cast<double>(height_ring) /
-                                static_cast<double>(height_segments) -
-                            0.5) *
-                           height;
+    const double coord_y = (static_cast<double>(height_ring) / static_cast<double>(height_segments) - 0.5) * height;
 
     for (int segment = 0; segment < radial_segments; ++segment) {
-      const double angle = 2.0 * std::numbers::pi *
-                           static_cast<double>(segment) /
-                           static_cast<double>(radial_segments);
+      const double angle = 2.0 * std::numbers::pi * static_cast<double>(segment) / static_cast<double>(radial_segments);
       const double coord_x = radius * std::cos(angle);
       const double coord_z = radius * std::sin(angle);
 
-      positions.push_back({static_cast<float>(coord_x),
-                           static_cast<float>(coord_y),
-                           static_cast<float>(coord_z)});
+      positions.push_back({static_cast<float>(coord_x), static_cast<float>(coord_y), static_cast<float>(coord_z)});
       ++vertex_index;
     }
   }
@@ -121,9 +107,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_vertex_next_ring = next_ring_base + next_segment;
 
       // Single quad (counter-clockwise winding)
-      primitive_vertices.push_back({current_vertex, next_vertex,
-                                    next_vertex_next_ring,
-                                    current_vertex_next_ring});
+      primitive_vertices.push_back({current_vertex, next_vertex, next_vertex_next_ring, current_vertex_next_ring});
     }
   }
 
@@ -134,8 +118,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_segment = (segment + 1) % radial_segments;
 
       // Reversed winding: center, next, current (CCW from top view)
-      primitive_vertices.push_back(
-          {top_center, top_ring_base + next_segment, top_ring_base + segment});
+      primitive_vertices.push_back({top_center, top_ring_base + next_segment, top_ring_base + segment});
     }
   }
 
@@ -146,8 +129,7 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
       const int next_segment = (segment + 1) % radial_segments;
 
       // Reversed winding: center, current, next (CCW from bottom view)
-      primitive_vertices.push_back({bottom_center, bottom_ring_base + segment,
-                                    bottom_ring_base + next_segment});
+      primitive_vertices.push_back({bottom_center, bottom_ring_base + segment, bottom_ring_base + next_segment});
     }
   }
 
@@ -180,13 +162,11 @@ CylinderGenerator::generate(double radius, double height, int radial_segments,
     int idx = 0;
     for (int height_ring = 0; height_ring <= height_segments; ++height_ring) {
       for (int segment = 0; segment < radial_segments; ++segment) {
-        const double angle = 2.0 * std::numbers::pi *
-                             static_cast<double>(segment) /
-                             static_cast<double>(radial_segments);
+        const double angle =
+            2.0 * std::numbers::pi * static_cast<double>(segment) / static_cast<double>(radial_segments);
         // Normal points radially outward (Y component is 0 for straight
         // cylinder)
-        core::Vec3f normal = {static_cast<float>(std::cos(angle)), 0.0F,
-                              static_cast<float>(std::sin(angle))};
+        core::Vec3f normal = {static_cast<float>(std::cos(angle)), 0.0F, static_cast<float>(std::sin(angle))};
         n_span[idx++] = normal;
       }
     }

@@ -22,11 +22,9 @@ class ScatterVolumeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ScatterVolumeSOP(const std::string& node_name = "scatter_volume")
-      : SOPNode(node_name, "Scatter Volume") {
+  explicit ScatterVolumeSOP(const std::string& node_name = "scatter_volume") : SOPNode(node_name, "Scatter Volume") {
     // Required input: use input geometry bounding box
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Number of points
     register_parameter(define_int_parameter("count", 100)
@@ -53,23 +51,21 @@ public:
                            .build());
 
     // Volume mode
-    register_parameter(
-        define_int_parameter("volume_mode", 0)
-            .label("Volume Mode")
-            .options({"Bounding Box", "Inside Mesh"})
-            .category("Distribution")
-            .description("Scatter in bounding box or only inside mesh volume")
-            .build());
+    register_parameter(define_int_parameter("volume_mode", 0)
+                           .label("Volume Mode")
+                           .options({"Bounding Box", "Inside Mesh"})
+                           .category("Distribution")
+                           .description("Scatter in bounding box or only inside mesh volume")
+                           .build());
 
     // Minimum distance (for Poisson disk)
-    register_parameter(
-        define_float_parameter("min_distance", 0.1f)
-            .label("Min Distance")
-            .range(0.001f, 10.0f)
-            .category("Distribution")
-            .visible_when("distribution_mode", 2)
-            .description("Minimum distance between points (Poisson disk)")
-            .build());
+    register_parameter(define_float_parameter("min_distance", 0.1f)
+                           .label("Min Distance")
+                           .range(0.001f, 10.0f)
+                           .category("Distribution")
+                           .visible_when("distribution_mode", 2)
+                           .description("Minimum distance between points (Poisson disk)")
+                           .build());
   }
 
   InputConfig get_input_config() const override {
@@ -99,11 +95,9 @@ protected:
       return nullptr;
     }
 
-    Eigen::Vector3f min_bounds(std::numeric_limits<float>::max(),
-                               std::numeric_limits<float>::max(),
+    Eigen::Vector3f min_bounds(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(),
                                std::numeric_limits<float>::max());
-    Eigen::Vector3f max_bounds(std::numeric_limits<float>::lowest(),
-                               std::numeric_limits<float>::lowest(),
+    Eigen::Vector3f max_bounds(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(),
                                std::numeric_limits<float>::lowest());
 
     for (size_t i = 0; i < input->point_count(); ++i) {
@@ -134,8 +128,7 @@ protected:
     } else if (distribution_mode == 2) {
       // Poisson disk (simplified version)
       const float min_distance = get_parameter<float>("min_distance", 0.1f);
-      scatter_poisson_disk(rng, count, min_bounds, max_bounds, min_distance,
-                           P_out);
+      scatter_poisson_disk(rng, count, min_bounds, max_bounds, min_distance, P_out);
     }
 
     // Filter points if "Inside Mesh" mode is enabled
@@ -150,8 +143,7 @@ protected:
 
 private:
   // Helper: Test if a point is inside a mesh using ray casting
-  bool is_point_inside_mesh(const Eigen::Vector3f& point,
-                            const core::GeometryContainer* geometry) const {
+  bool is_point_inside_mesh(const Eigen::Vector3f& point, const core::GeometryContainer* geometry) const {
     // Get mesh topology and positions
     const auto& topo = geometry->topology();
     auto* positions = geometry->get_point_attribute_typed<Eigen::Vector3f>("P");
@@ -190,11 +182,8 @@ private:
   }
 
   // Helper: Ray-triangle intersection test (Möller-Trumbore algorithm)
-  bool ray_intersects_triangle(const Eigen::Vector3f& ray_origin,
-                               const Eigen::Vector3f& ray_dir,
-                               const Eigen::Vector3f& v0,
-                               const Eigen::Vector3f& v1,
-                               const Eigen::Vector3f& v2) const {
+  bool ray_intersects_triangle(const Eigen::Vector3f& ray_origin, const Eigen::Vector3f& ray_dir,
+                               const Eigen::Vector3f& v0, const Eigen::Vector3f& v1, const Eigen::Vector3f& v2) const {
     const float EPSILON = 0.0000001f;
 
     Eigen::Vector3f edge1 = v1 - v0;
@@ -228,9 +217,8 @@ private:
 
   // Helper: Filter points to keep only those inside the mesh
   // Returns the number of points remaining after filtering
-  size_t
-  filter_inside_mesh(const std::shared_ptr<core::GeometryContainer>& geometry,
-                     core::AttributeStorage<Eigen::Vector3f>* positions) {
+  size_t filter_inside_mesh(const std::shared_ptr<core::GeometryContainer>& geometry,
+                            core::AttributeStorage<Eigen::Vector3f>* positions) {
     if (!positions || !geometry) {
       return positions ? positions->size() : 0;
     }
@@ -252,10 +240,8 @@ private:
     return filtered_points.size();
   }
 
-  void scatter_in_box(std::mt19937& rng,
-                      std::uniform_real_distribution<float>& dist, int count,
-                      const Eigen::Vector3f& min_bounds,
-                      const Eigen::Vector3f& max_bounds,
+  void scatter_in_box(std::mt19937& rng, std::uniform_real_distribution<float>& dist, int count,
+                      const Eigen::Vector3f& min_bounds, const Eigen::Vector3f& max_bounds,
                       core::AttributeStorage<Eigen::Vector3f>* P) {
     for (int i = 0; i < count; ++i) {
       Eigen::Vector3f pos;
@@ -266,8 +252,7 @@ private:
     }
   }
 
-  void scatter_uniform_grid(int count, const Eigen::Vector3f& min_bounds,
-                            const Eigen::Vector3f& max_bounds,
+  void scatter_uniform_grid(int count, const Eigen::Vector3f& min_bounds, const Eigen::Vector3f& max_bounds,
                             core::AttributeStorage<Eigen::Vector3f>* P) {
     // Create roughly cubic grid
     int points_per_axis = static_cast<int>(std::cbrt(count)) + 1;
@@ -277,16 +262,11 @@ private:
     for (int z = 0; z < points_per_axis && actual_count < count; ++z) {
       for (int y = 0; y < points_per_axis && actual_count < count; ++y) {
         for (int x = 0; x < points_per_axis && actual_count < count; ++x) {
-          float fx =
-              static_cast<float>(x) / static_cast<float>(points_per_axis - 1);
-          float fy =
-              static_cast<float>(y) / static_cast<float>(points_per_axis - 1);
-          float fz =
-              static_cast<float>(z) / static_cast<float>(points_per_axis - 1);
+          float fx = static_cast<float>(x) / static_cast<float>(points_per_axis - 1);
+          float fy = static_cast<float>(y) / static_cast<float>(points_per_axis - 1);
+          float fz = static_cast<float>(z) / static_cast<float>(points_per_axis - 1);
 
-          Eigen::Vector3f pos =
-              min_bounds +
-              Eigen::Vector3f(fx * size.x(), fy * size.y(), fz * size.z());
+          Eigen::Vector3f pos = min_bounds + Eigen::Vector3f(fx * size.x(), fy * size.y(), fz * size.z());
           P->set(actual_count, pos);
           actual_count++;
         }
@@ -294,10 +274,8 @@ private:
     }
   }
 
-  void scatter_poisson_disk(std::mt19937& rng, int count,
-                            const Eigen::Vector3f& min_bounds,
-                            const Eigen::Vector3f& max_bounds,
-                            float min_distance,
+  void scatter_poisson_disk(std::mt19937& rng, int count, const Eigen::Vector3f& min_bounds,
+                            const Eigen::Vector3f& max_bounds, float min_distance,
                             core::AttributeStorage<Eigen::Vector3f>* P) {
     // Simplified Poisson disk sampling
     // Use dart throwing with limited attempts
@@ -305,16 +283,11 @@ private:
     std::vector<Eigen::Vector3f> points;
     const int max_attempts = count * 30;
 
-    for (int attempt = 0;
-         attempt < max_attempts && points.size() < static_cast<size_t>(count);
-         ++attempt) {
+    for (int attempt = 0; attempt < max_attempts && points.size() < static_cast<size_t>(count); ++attempt) {
       Eigen::Vector3f candidate;
-      candidate.x() =
-          min_bounds.x() + dist(rng) * (max_bounds.x() - min_bounds.x());
-      candidate.y() =
-          min_bounds.y() + dist(rng) * (max_bounds.y() - min_bounds.y());
-      candidate.z() =
-          min_bounds.z() + dist(rng) * (max_bounds.z() - min_bounds.z());
+      candidate.x() = min_bounds.x() + dist(rng) * (max_bounds.x() - min_bounds.x());
+      candidate.y() = min_bounds.y() + dist(rng) * (max_bounds.y() - min_bounds.y());
+      candidate.z() = min_bounds.z() + dist(rng) * (max_bounds.z() - min_bounds.z());
 
       // Check distance to all existing points
       bool valid = true;

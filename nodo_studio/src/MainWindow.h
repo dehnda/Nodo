@@ -61,17 +61,14 @@ private:
   void updateDisplayFlagVisuals();
 
   // Helper to create custom title bar matching PropertyPanel style
-  QWidget* createCustomTitleBar(const QString& title,
-                                QWidget* parent = nullptr);
+  QWidget* createCustomTitleBar(const QString& title, QWidget* parent = nullptr);
 
   // Setters for MenuManager to store action pointers
   void setUndoAction(QAction* action) { undo_action_ = action; }
   void setRedoAction(QAction* action) { redo_action_ = action; }
   void setVerticesAction(QAction* action) { vertices_action_ = action; }
   void setEdgesAction(QAction* action) { edges_action_ = action; }
-  void setVertexNormalsAction(QAction* action) {
-    vertex_normals_action_ = action;
-  }
+  void setVertexNormalsAction(QAction* action) { vertex_normals_action_ = action; }
   void setFaceNormalsAction(QAction* action) { face_normals_action_ = action; }
   void setRecentProjectsMenu(QMenu* menu) { recent_projects_menu_ = menu; }
 
@@ -183,8 +180,7 @@ private slots:
   // Node graph actions
   void onCreateTestGraph();
   void onNodeCreated(int node_id);
-  void onConnectionCreated(int source_node, int source_pin, int target_node,
-                           int target_pin);
+  void onConnectionCreated(int source_node, int source_pin, int target_node, int target_pin);
   void onConnectionsDeleted(QVector<int> connection_ids);
   void onNodesDeleted(QVector<int> node_ids);
   void onNodeSelectionChanged();

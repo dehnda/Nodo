@@ -10,8 +10,7 @@ namespace nodo::sop {
 
 UVUnwrapSOP::UVUnwrapSOP(const std::string& name) : SOPNode(name, "UVUnwrap") {
   // Single geometry input
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   // Chart options
   register_parameter(define_float_parameter("max_chart_size", 0.0f)
@@ -28,22 +27,20 @@ UVUnwrapSOP::UVUnwrapSOP(const std::string& name) : SOPNode(name, "UVUnwrap") {
                          .description("Maximum cost for chart creation")
                          .build());
 
-  register_parameter(
-      define_int_parameter("max_iterations", 1)
-          .label("Max Iterations")
-          .range(1, 10)
-          .category("Charts")
-          .description("Maximum unwrapping iterations for refinement")
-          .build());
+  register_parameter(define_int_parameter("max_iterations", 1)
+                         .label("Max Iterations")
+                         .range(1, 10)
+                         .category("Charts")
+                         .description("Maximum unwrapping iterations for refinement")
+                         .build());
 
   // Seam control
-  register_parameter(
-      define_float_parameter("normal_deviation_weight", 2.0f)
-          .label("Normal Deviation Weight")
-          .range(0.0f, 10.0f)
-          .category("Seams")
-          .description("Weight for normal direction changes when placing seams")
-          .build());
+  register_parameter(define_float_parameter("normal_deviation_weight", 2.0f)
+                         .label("Normal Deviation Weight")
+                         .range(0.0f, 10.0f)
+                         .category("Seams")
+                         .description("Weight for normal direction changes when placing seams")
+                         .build());
 
   register_parameter(define_float_parameter("normal_seam_weight", 4.0f)
                          .label("Normal Seam Weight")
@@ -66,22 +63,20 @@ UVUnwrapSOP::UVUnwrapSOP(const std::string& name) : SOPNode(name, "UVUnwrap") {
                          .description("Weight for preferring straight seams")
                          .build());
 
-  register_parameter(
-      define_float_parameter("texture_seam_weight", 0.5f)
-          .label("Texture Seam Weight")
-          .range(0.0f, 10.0f)
-          .category("Seams")
-          .description("Weight for texture coordinate discontinuities")
-          .build());
+  register_parameter(define_float_parameter("texture_seam_weight", 0.5f)
+                         .label("Texture Seam Weight")
+                         .range(0.0f, 10.0f)
+                         .category("Seams")
+                         .description("Weight for texture coordinate discontinuities")
+                         .build());
 
   // Pack options
-  register_parameter(
-      define_int_parameter("resolution", 1024)
-          .label("Resolution")
-          .range(256, 4096)
-          .category("Packing")
-          .description("Texture resolution for packing calculations")
-          .build());
+  register_parameter(define_int_parameter("resolution", 1024)
+                         .label("Resolution")
+                         .range(256, 4096)
+                         .category("Packing")
+                         .description("Texture resolution for packing calculations")
+                         .build());
 
   register_parameter(define_float_parameter("padding", 2.0f)
                          .label("Padding")
@@ -103,8 +98,7 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
   float max_chart_size = get_parameter<float>("max_chart_size", 0.0f);
   float max_cost = get_parameter<float>("max_cost", 2.0f);
   int max_iterations = get_parameter<int>("max_iterations", 1);
-  float normal_deviation_weight =
-      get_parameter<float>("normal_deviation_weight", 2.0f);
+  float normal_deviation_weight = get_parameter<float>("normal_deviation_weight", 2.0f);
   float normal_seam_weight = get_parameter<float>("normal_seam_weight", 4.0f);
   float roundness_weight = get_parameter<float>("roundness_weight", 0.01f);
   float straightness_weight = get_parameter<float>("straightness_weight", 6.0f);
@@ -112,8 +106,8 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
   int resolution = get_parameter<int>("resolution", 1024);
   float padding = get_parameter<float>("padding", 2.0f);
 
-  std::cerr << "UVUnwrapSOP: Unwrapping " << result->point_count()
-            << " points, " << result->primitive_count() << " primitives\n";
+  std::cerr << "UVUnwrapSOP: Unwrapping " << result->point_count() << " points, " << result->primitive_count()
+            << " primitives\n";
 
   // Create xatlas atlas
   xatlas::Atlas* atlas = xatlas::Create();
@@ -148,18 +142,15 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
     // Triangulate the primitive (simple fan triangulation for quads/n-gons)
     if (verts.size() >= 3) {
       for (size_t i = 1; i < verts.size() - 1; ++i) {
-        indices.push_back(
-            static_cast<uint32_t>(topo.get_vertex_point(verts[0])));
-        indices.push_back(
-            static_cast<uint32_t>(topo.get_vertex_point(verts[i])));
-        indices.push_back(
-            static_cast<uint32_t>(topo.get_vertex_point(verts[i + 1])));
+        indices.push_back(static_cast<uint32_t>(topo.get_vertex_point(verts[0])));
+        indices.push_back(static_cast<uint32_t>(topo.get_vertex_point(verts[i])));
+        indices.push_back(static_cast<uint32_t>(topo.get_vertex_point(verts[i + 1])));
       }
     }
   }
 
-  std::cerr << "UVUnwrapSOP: Built " << indices.size() / 3 << " triangles from "
-            << result->primitive_count() << " primitives\n";
+  std::cerr << "UVUnwrapSOP: Built " << indices.size() / 3 << " triangles from " << result->primitive_count()
+            << " primitives\n";
 
   // Convert geometry to xatlas mesh
   xatlas::MeshDecl mesh_decl;
@@ -173,8 +164,7 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
   // Add mesh to atlas
   xatlas::AddMeshError add_error = xatlas::AddMesh(atlas, mesh_decl, 1);
   if (add_error != xatlas::AddMeshError::Success) {
-    std::cerr << "UVUnwrapSOP: xatlas::AddMesh failed: "
-              << xatlas::StringForEnum(add_error) << "\n";
+    std::cerr << "UVUnwrapSOP: xatlas::AddMesh failed: " << xatlas::StringForEnum(add_error) << "\n";
     xatlas::Destroy(atlas);
     return result;
   }
@@ -202,18 +192,15 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
   std::cerr << "UVUnwrapSOP: Packing charts...\n";
   xatlas::PackCharts(atlas, pack_options);
 
-  std::cerr << "UVUnwrapSOP: Generated " << atlas->chartCount << " charts, "
-            << atlas->atlasCount << " atlases\n";
+  std::cerr << "UVUnwrapSOP: Generated " << atlas->chartCount << " charts, " << atlas->atlasCount << " atlases\n";
 
   // Extract UVs back to geometry with proper seam handling
   if (atlas->meshCount > 0) {
     const xatlas::Mesh& output_mesh = atlas->meshes[0];
 
-    std::cerr << "UVUnwrapSOP: xatlas created " << output_mesh.vertexCount
-              << " vertices (input had " << result->vertex_count()
-              << " vertices), seams added "
-              << (output_mesh.vertexCount - result->vertex_count())
-              << " vertices\n";
+    std::cerr << "UVUnwrapSOP: xatlas created " << output_mesh.vertexCount << " vertices (input had "
+              << result->vertex_count() << " vertices), seams added "
+              << (output_mesh.vertexCount - result->vertex_count()) << " vertices\n";
 
     // Create new geometry with proper seam topology
     auto new_geo = std::make_shared<core::GeometryContainer>();
@@ -235,12 +222,8 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
         const auto& desc = src_attr->descriptor();
         switch (desc.type()) {
           case core::AttributeType::VEC3F: {
-            auto* src_typed =
-                dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(
-                    src_attr);
-            auto* dst_typed =
-                dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(
-                    dst_attr);
+            auto* src_typed = dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(src_attr);
+            auto* dst_typed = dynamic_cast<core::AttributeStorage<Eigen::Vector3f>*>(dst_attr);
             if (src_typed != nullptr && dst_typed != nullptr) {
               for (size_t i = 0; i < result->point_count(); ++i) {
                 (*dst_typed)[i] = (*src_typed)[i];
@@ -290,16 +273,13 @@ std::shared_ptr<core::GeometryContainer> UVUnwrapSOP::execute() {
         uint32_t vert1 = output_mesh.indexArray[(tri_idx * 3) + 1];
         uint32_t vert2 = output_mesh.indexArray[(tri_idx * 3) + 2];
 
-        std::vector<int> tri_verts = {static_cast<int>(vert0),
-                                      static_cast<int>(vert1),
-                                      static_cast<int>(vert2)};
+        std::vector<int> tri_verts = {static_cast<int>(vert0), static_cast<int>(vert1), static_cast<int>(vert2)};
 
         new_geo->topology().add_primitive(tri_verts);
       }
 
-      std::cerr << "UVUnwrapSOP: Created " << new_geo->vertex_count()
-                << " vertices with UVs, " << new_geo->primitive_count()
-                << " triangles\n";
+      std::cerr << "UVUnwrapSOP: Created " << new_geo->vertex_count() << " vertices with UVs, "
+                << new_geo->primitive_count() << " triangles\n";
 
       result = new_geo;
     }

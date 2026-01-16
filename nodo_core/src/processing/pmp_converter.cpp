@@ -26,16 +26,14 @@ pmp::SurfaceMesh PMPConverter::to_pmp(const core::Mesh& mesh) {
   vertices.reserve(mesh.vertices().rows());
 
   for (int i = 0; i < mesh.vertices().rows(); ++i) {
-    pmp::Point point(static_cast<float>(mesh.vertices()(i, 0)),
-                     static_cast<float>(mesh.vertices()(i, 1)),
+    pmp::Point point(static_cast<float>(mesh.vertices()(i, 0)), static_cast<float>(mesh.vertices()(i, 1)),
                      static_cast<float>(mesh.vertices()(i, 2)));
     vertices.push_back(result.add_vertex(point));
   }
 
   // Add faces
   for (int i = 0; i < mesh.faces().rows(); ++i) {
-    std::vector<pmp::Vertex> face_verts = {vertices[mesh.faces()(i, 0)],
-                                           vertices[mesh.faces()(i, 1)],
+    std::vector<pmp::Vertex> face_verts = {vertices[mesh.faces()(i, 0)], vertices[mesh.faces()(i, 1)],
                                            vertices[mesh.faces()(i, 2)]};
     result.add_face(face_verts);
   }
@@ -46,16 +44,13 @@ pmp::SurfaceMesh PMPConverter::to_pmp(const core::Mesh& mesh) {
   return result;
 }
 
-pmp::SurfaceMesh
-PMPConverter::to_pmp(const core::GeometryContainer& container) {
+pmp::SurfaceMesh PMPConverter::to_pmp(const core::GeometryContainer& container) {
   pmp::SurfaceMesh result;
 
   // Extract positions
-  const auto* positions =
-      container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  const auto* positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (positions == nullptr) {
-    throw std::runtime_error(
-        "GeometryContainer missing position attribute 'P'");
+    throw std::runtime_error("GeometryContainer missing position attribute 'P'");
   }
 
   auto pos_span = positions->values();
@@ -116,9 +111,8 @@ PMPConverter::to_pmp(const core::GeometryContainer& container) {
   }
 
   if (skipped_degenerate > 0) {
-    std::cout << "PMPConverter: Skipped " << skipped_degenerate
-              << " degenerate faces out of " << topology.primitive_count()
-              << "\n";
+    std::cout << "PMPConverter: Skipped " << skipped_degenerate << " degenerate faces out of "
+              << topology.primitive_count() << "\n";
   }
 
   // Compute normals if not present
@@ -134,8 +128,7 @@ core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh& pmp_mesh) {
   const size_t num_faces = pmp_mesh.n_faces();
 
   // Extract vertices
-  Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::RowMajor> vertices_matrix(
-      num_vertices, 3);
+  Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::RowMajor> vertices_matrix(num_vertices, 3);
   auto points = pmp_mesh.get_vertex_property<pmp::Point>("v:point");
 
   size_t vert_idx = 0;
@@ -148,8 +141,7 @@ core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh& pmp_mesh) {
   }
 
   // Extract faces
-  Eigen::Matrix<int, Eigen::Dynamic, 3, Eigen::RowMajor> faces_matrix(num_faces,
-                                                                      3);
+  Eigen::Matrix<int, Eigen::Dynamic, 3, Eigen::RowMajor> faces_matrix(num_faces, 3);
 
   size_t face_idx = 0;
   for (auto face : pmp_mesh.faces()) {
@@ -167,9 +159,7 @@ core::Mesh PMPConverter::from_pmp(const pmp::SurfaceMesh& pmp_mesh) {
   return result;
 }
 
-core::GeometryContainer
-PMPConverter::from_pmp_container(const pmp::SurfaceMesh& pmp_mesh,
-                                 bool preserve_attributes) {
+core::GeometryContainer PMPConverter::from_pmp_container(const pmp::SurfaceMesh& pmp_mesh, bool preserve_attributes) {
   core::GeometryContainer result;
 
   // Create mapping from PMP vertex indices to sequential indices
@@ -242,8 +232,7 @@ PMPConverter::from_pmp_container(const pmp::SurfaceMesh& pmp_mesh,
 
       // Validate index is in range
       if (mapped_idx < 0 || mapped_idx >= static_cast<int>(num_vertices)) {
-        throw std::runtime_error(
-            "Internal error: Invalid vertex index mapping");
+        throw std::runtime_error("Internal error: Invalid vertex index mapping");
       }
 
       face_indices.push_back(mapped_idx);
@@ -277,8 +266,7 @@ std::string PMPConverter::validate_for_pmp(const core::Mesh& mesh) {
   return ""; // Valid
 }
 
-std::string
-PMPConverter::validate_for_pmp(const core::GeometryContainer& container) {
+std::string PMPConverter::validate_for_pmp(const core::GeometryContainer& container) {
   if (container.topology().point_count() < 3) {
     return "Container must have at least 3 points";
   }

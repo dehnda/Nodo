@@ -22,20 +22,17 @@ class ExportSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit ExportSOP(const std::string& node_name = "export")
-      : SOPNode(node_name, "Export") {
+  explicit ExportSOP(const std::string& node_name = "export") : SOPNode(node_name, "Export") {
     // Add input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // File path parameter
-    register_parameter(
-        define_string_parameter("file_path", "")
-            .label("File Path")
-            .category("Export")
-            .description("Destination file path for export (e.g., output.obj)")
-            .hint("filepath_save")
-            .build());
+    register_parameter(define_string_parameter("file_path", "")
+                           .label("File Path")
+                           .category("Export")
+                           .description("Destination file path for export (e.g., output.obj)")
+                           .hint("filepath_save")
+                           .build());
 
     // Export button (int parameter acting as button)
     register_parameter(define_int_parameter("export_now", 0)
@@ -67,8 +64,7 @@ protected:
     }
 
     const std::string file_path = get_parameter<std::string>("file_path", "");
-    const bool should_export =
-        static_cast<bool>(get_parameter<int>("export_now", 0));
+    const bool should_export = static_cast<bool>(get_parameter<int>("export_now", 0));
 
     // Reset export flag
     if (should_export) {
@@ -96,8 +92,7 @@ protected:
         // Export based on file format
         if (extension == ".obj") {
           // Convert GeometryContainer to Mesh for export
-          auto* positions =
-              input->get_point_attribute_typed<Eigen::Vector3f>("P");
+          auto* positions = input->get_point_attribute_typed<Eigen::Vector3f>("P");
           if (!positions) {
             set_error("Input geometry missing position attribute");
             return input;
@@ -119,8 +114,7 @@ protected:
             return input; // Still pass through input even on error
           }
         } else {
-          set_error("Unsupported file format: " + extension +
-                    " (Supported: .obj)");
+          set_error("Unsupported file format: " + extension + " (Supported: .obj)");
           return input; // Still pass through input even on error
         }
 

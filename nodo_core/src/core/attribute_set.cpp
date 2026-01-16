@@ -30,14 +30,11 @@ void AttributeSet::clear_all() {
   element_count_ = 0;
 }
 
-bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
-                                 InterpolationMode interpolation) {
+bool AttributeSet::add_attribute(std::string_view name, AttributeType type, InterpolationMode interpolation) {
   std::string name_str(name);
 
-  std::cerr << "AttributeSet::add_attribute('" << name_str
-            << "', element_class=" << static_cast<int>(element_class_)
-            << ", element_count_=" << element_count_
-            << ", existing_attrs=" << attributes_.size() << ")\n";
+  std::cerr << "AttributeSet::add_attribute('" << name_str << "', element_class=" << static_cast<int>(element_class_)
+            << ", element_count_=" << element_count_ << ", existing_attrs=" << attributes_.size() << ")\n";
 
   // Check if already exists
   if (attributes_.contains(name_str)) {
@@ -63,8 +60,7 @@ bool AttributeSet::add_attribute(std::string_view name, AttributeType type,
     if (first_attr && first_attr->size() > 0) {
       element_count_ = first_attr->size();
       storage->resize(element_count_);
-      std::cerr << "  Inferred element_count_=" << element_count_
-                << " from existing attributes\n";
+      std::cerr << "  Inferred element_count_=" << element_count_ << " from existing attributes\n";
     }
   } else {
     std::cerr << "  WARNING: element_count_ is 0 and no existing attributes to "
@@ -114,8 +110,7 @@ bool AttributeSet::has_attribute(std::string_view name) const {
   return attributes_.contains(name_str);
 }
 
-std::optional<AttributeDescriptor>
-AttributeSet::get_descriptor(std::string_view name) const {
+std::optional<AttributeDescriptor> AttributeSet::get_descriptor(std::string_view name) const {
   auto* storage = get_storage(name);
   if (!storage) {
     return std::nullopt;
@@ -140,8 +135,7 @@ IAttributeStorage* AttributeSet::get_storage(std::string_view name) {
   return (iter != attributes_.end()) ? iter->second.get() : nullptr;
 }
 
-const IAttributeStorage*
-AttributeSet::get_storage(std::string_view name) const {
+const IAttributeStorage* AttributeSet::get_storage(std::string_view name) const {
   std::string name_str(name);
   auto iter = attributes_.find(name_str);
   return (iter != attributes_.end()) ? iter->second.get() : nullptr;

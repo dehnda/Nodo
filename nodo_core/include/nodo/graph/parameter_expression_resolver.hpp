@@ -44,12 +44,9 @@ public:
    * @param current_node_id The ID of the node evaluating the expression (for
    * ch())
    */
-  ParameterExpressionResolver(const NodeGraph& graph,
-                              const std::vector<NodeParameter>* node_params,
+  ParameterExpressionResolver(const NodeGraph& graph, const std::vector<NodeParameter>* node_params,
                               int current_node_id = -1)
-      : graph_(graph),
-        node_params_(node_params),
-        current_node_id_(current_node_id) {}
+      : graph_(graph), node_params_(node_params), current_node_id_(current_node_id) {}
 
   /**
    * @brief Check if a string contains parameter references
@@ -57,8 +54,7 @@ public:
    * @return True if expression contains $ or @ references
    */
   static bool has_references(const std::string& expression) {
-    return expression.find('$') != std::string::npos ||
-           expression.find('@') != std::string::npos;
+    return expression.find('$') != std::string::npos || expression.find('@') != std::string::npos;
   }
 
   /**
@@ -201,8 +197,7 @@ public:
    * @param expression The expression to analyze
    * @return Vector of parameter names found
    */
-  static std::vector<std::string>
-  extract_references(const std::string& expression) {
+  static std::vector<std::string> extract_references(const std::string& expression) {
     std::vector<std::string> references;
 
     std::regex pattern(R"((\$|@)(\w+)|\$\{(\w+)\})");
@@ -245,8 +240,7 @@ private:
         return param.string_value;
 
       case NodeParameter::Type::Vector3:
-        return std::to_string(param.vector3_value[0]) + "," +
-               std::to_string(param.vector3_value[1]) + "," +
+        return std::to_string(param.vector3_value[0]) + "," + std::to_string(param.vector3_value[1]) + "," +
                std::to_string(param.vector3_value[2]);
     }
 
@@ -291,8 +285,7 @@ private:
 
       case GraphParameter::Type::Vector3: {
         const auto& vec = param->get_vector3_value();
-        return std::to_string(vec[0]) + "," + std::to_string(vec[1]) + "," +
-               std::to_string(vec[2]);
+        return std::to_string(vec[0]) + "," + std::to_string(vec[1]) + "," + std::to_string(vec[2]);
       }
     }
 

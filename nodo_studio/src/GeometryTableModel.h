@@ -31,23 +31,19 @@ public:
   // QAbstractTableModel interface
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-  QVariant data(const QModelIndex& index,
-                int role = Qt::DisplayRole) const override;
-  QVariant headerData(int section, Qt::Orientation orientation,
-                      int role = Qt::DisplayRole) const override;
+  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
 protected:
   virtual void buildColumns() = 0;
   virtual size_t getElementCount() const = 0;
-  virtual QVariant getElementData(size_t element_index,
-                                  const ColumnInfo& column) const = 0;
+  virtual QVariant getElementData(size_t element_index, const ColumnInfo& column) const = 0;
 
   std::shared_ptr<core::GeometryContainer> geometry_;
   std::vector<ColumnInfo> columns_;
 
   // Helper to expand vector attributes into columns
-  void addAttributeColumns(const std::string& attr_name,
-                           core::AttributeType type);
+  void addAttributeColumns(const std::string& attr_name, core::AttributeType type);
   QString formatValue(const QVariant& value) const;
 };
 
@@ -61,8 +57,7 @@ public:
 protected:
   void buildColumns() override;
   size_t getElementCount() const override;
-  QVariant getElementData(size_t element_index,
-                          const ColumnInfo& column) const override;
+  QVariant getElementData(size_t element_index, const ColumnInfo& column) const override;
 };
 
 // Vertices attribute table
@@ -75,8 +70,7 @@ public:
 protected:
   void buildColumns() override;
   size_t getElementCount() const override;
-  QVariant getElementData(size_t element_index,
-                          const ColumnInfo& column) const override;
+  QVariant getElementData(size_t element_index, const ColumnInfo& column) const override;
 };
 
 // Primitives attribute table
@@ -89,8 +83,7 @@ public:
 protected:
   void buildColumns() override;
   size_t getElementCount() const override;
-  QVariant getElementData(size_t element_index,
-                          const ColumnInfo& column) const override;
+  QVariant getElementData(size_t element_index, const ColumnInfo& column) const override;
 };
 
 // Detail (global) attribute table
@@ -103,8 +96,7 @@ public:
 protected:
   void buildColumns() override;
   size_t getElementCount() const override;
-  QVariant getElementData(size_t element_index,
-                          const ColumnInfo& column) const override;
+  QVariant getElementData(size_t element_index, const ColumnInfo& column) const override;
 };
 
 } // namespace nodo::studio

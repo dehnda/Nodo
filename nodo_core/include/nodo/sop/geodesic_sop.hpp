@@ -28,11 +28,9 @@ class GeodesicSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GeodesicSOP(const std::string& node_name = "geodesic")
-      : SOPNode(node_name, "Geodesic") {
+  explicit GeodesicSOP(const std::string& node_name = "geodesic") : SOPNode(node_name, "Geodesic") {
     // Add input port
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Method selection
     register_parameter(define_int_parameter("method", 1) // Default to Heat
@@ -70,17 +68,14 @@ public:
                            .build());
 
     // Output attribute name
-    register_parameter(
-        define_string_parameter("output_attribute", "geodesic_dist")
-            .label("Output Attribute")
-            .category("Output")
-            .description("Name of the output distance attribute")
-            .build());
+    register_parameter(define_string_parameter("output_attribute", "geodesic_dist")
+                           .label("Output Attribute")
+                           .category("Output")
+                           .description("Name of the output distance attribute")
+                           .build());
   }
 
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::SINGLE, 1, 1, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
   std::shared_ptr<core::GeometryContainer> execute() override;

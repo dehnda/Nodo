@@ -25,9 +25,7 @@ class BaseParameterWidget : public QWidget {
   Q_OBJECT
 
 public:
-  explicit BaseParameterWidget(const QString& label,
-                               const QString& description = QString(),
-                               QWidget* parent = nullptr);
+  explicit BaseParameterWidget(const QString& label, const QString& description = QString(), QWidget* parent = nullptr);
 
   virtual ~BaseParameterWidget() = default;
 

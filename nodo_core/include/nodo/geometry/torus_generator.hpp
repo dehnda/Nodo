@@ -24,11 +24,10 @@ public:
   /// @param minor_segments Number of segments around the minor circumference
   /// (tube)
   /// @return Generated torus as GeometryContainer or nullopt on error
-  static std::optional<core::GeometryContainer>
-  generate(double major_radius = DEFAULT_MAJOR_RADIUS,
-           double minor_radius = DEFAULT_MINOR_RADIUS,
-           int major_segments = DEFAULT_MAJOR_SEGMENTS,
-           int minor_segments = DEFAULT_MINOR_SEGMENTS);
+  static std::optional<core::GeometryContainer> generate(double major_radius = DEFAULT_MAJOR_RADIUS,
+                                                         double minor_radius = DEFAULT_MINOR_RADIUS,
+                                                         int major_segments = DEFAULT_MAJOR_SEGMENTS,
+                                                         int minor_segments = DEFAULT_MINOR_SEGMENTS);
 
   /// @brief Get the last error that occurred
   /// @return Reference to the last error

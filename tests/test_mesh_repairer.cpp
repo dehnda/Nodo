@@ -10,8 +10,7 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
   const auto& topology = container.topology();
 
   // Extract positions
-  auto* p_storage =
-      container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
+  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
   if (!p_storage)
     return core::Mesh();
 
@@ -35,19 +34,15 @@ static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
 
     if (point_indices.size() == 3) {
       // Triangle - add directly
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
     } else if (point_indices.size() == 4) {
       // Quad - triangulate (fan from first vertex)
-      triangle_list.emplace_back(point_indices[0], point_indices[1],
-                                 point_indices[2]);
-      triangle_list.emplace_back(point_indices[0], point_indices[2],
-                                 point_indices[3]);
+      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
+      triangle_list.emplace_back(point_indices[0], point_indices[2], point_indices[3]);
     } else if (point_indices.size() > 4) {
       // N-gon - triangulate (fan from first vertex)
       for (size_t i = 1; i < point_indices.size() - 1; ++i) {
-        triangle_list.emplace_back(point_indices[0], point_indices[i],
-                                   point_indices[i + 1]);
+        triangle_list.emplace_back(point_indices[0], point_indices[i], point_indices[i + 1]);
       }
     }
   }
@@ -93,16 +88,14 @@ protected:
 TEST_F(MeshRepairerTest, RemoveUnreferencedVertices) {
   auto original_vertex_count = problematic_mesh_.vertices().rows();
 
-  auto removed_count =
-      geometry::MeshRepairer::remove_unreferenced_vertices(problematic_mesh_);
+  auto removed_count = geometry::MeshRepairer::remove_unreferenced_vertices(problematic_mesh_);
   EXPECT_GT(removed_count, 0);
 
   // Should have fewer vertices after removing unreferenced ones
   EXPECT_LT(problematic_mesh_.vertices().rows(), original_vertex_count);
 
   // All vertices should now be referenced
-  auto unreferenced =
-      geometry::MeshValidator::find_unreferenced_vertices(problematic_mesh_);
+  auto unreferenced = geometry::MeshValidator::find_unreferenced_vertices(problematic_mesh_);
   EXPECT_TRUE(unreferenced.empty());
 }
 
@@ -110,8 +103,7 @@ TEST_F(MeshRepairerTest, RemoveDuplicateVertices) {
   auto original_vertex_count = problematic_mesh_.vertices().rows();
   auto test_mesh = problematic_mesh_; // Copy for testing
 
-  auto merged_count =
-      geometry::MeshRepairer::merge_duplicate_vertices(test_mesh);
+  auto merged_count = geometry::MeshRepairer::merge_duplicate_vertices(test_mesh);
   EXPECT_GT(merged_count, 0);
 
   // Should have fewer vertices after removing duplicates
@@ -129,8 +121,7 @@ TEST_F(MeshRepairerTest, RemoveDegenerateFaces) {
   auto original_face_count = problematic_mesh_.faces().rows();
   auto test_mesh = problematic_mesh_; // Copy for testing
 
-  auto removed_count =
-      geometry::MeshRepairer::remove_degenerate_faces(test_mesh);
+  auto removed_count = geometry::MeshRepairer::remove_degenerate_faces(test_mesh);
   EXPECT_GT(removed_count, 0);
 
   // Should have fewer faces after removing degenerate ones
@@ -156,12 +147,9 @@ TEST_F(MeshRepairerTest, FullRepair) {
   EXPECT_LT(test_mesh.faces().rows(), problematic_mesh_.faces().rows());
 
   // Should have no duplicates, unreferenced vertices, or degenerate faces
-  EXPECT_TRUE(
-      geometry::MeshValidator::find_duplicate_vertices(test_mesh).empty());
-  EXPECT_TRUE(
-      geometry::MeshValidator::find_unreferenced_vertices(test_mesh).empty());
-  EXPECT_TRUE(
-      geometry::MeshValidator::find_degenerate_faces(test_mesh).empty());
+  EXPECT_TRUE(geometry::MeshValidator::find_duplicate_vertices(test_mesh).empty());
+  EXPECT_TRUE(geometry::MeshValidator::find_unreferenced_vertices(test_mesh).empty());
+  EXPECT_TRUE(geometry::MeshValidator::find_degenerate_faces(test_mesh).empty());
 }
 
 TEST_F(MeshRepairerTest, ToleranceSettings) {
@@ -169,10 +157,8 @@ TEST_F(MeshRepairerTest, ToleranceSettings) {
   auto test_mesh1 = problematic_mesh_; // Copy for testing
   auto test_mesh2 = problematic_mesh_; // Copy for testing
 
-  [[maybe_unused]] auto result_strict =
-      geometry::MeshRepairer::merge_duplicate_vertices(test_mesh1, 1e-12);
-  [[maybe_unused]] auto result_loose =
-      geometry::MeshRepairer::merge_duplicate_vertices(test_mesh2, 1e-6);
+  [[maybe_unused]] auto result_strict = geometry::MeshRepairer::merge_duplicate_vertices(test_mesh1, 1e-12);
+  [[maybe_unused]] auto result_loose = geometry::MeshRepairer::merge_duplicate_vertices(test_mesh2, 1e-6);
 
   // Should get same results for exact duplicates regardless of tolerance
   EXPECT_EQ(test_mesh1.vertices().rows(), test_mesh2.vertices().rows());
@@ -225,8 +211,7 @@ TEST_F(MeshRepairerTest, RepairStatistics) {
 TEST_F(MeshRepairerTest, VertexRemapping) {
   // Test that vertex indices are properly remapped after vertex removal
   auto test_mesh = problematic_mesh_; // Copy for testing
-  auto merged_count =
-      geometry::MeshRepairer::merge_duplicate_vertices(test_mesh);
+  auto merged_count = geometry::MeshRepairer::merge_duplicate_vertices(test_mesh);
   EXPECT_GT(merged_count, 0);
 
   // All face indices should be valid

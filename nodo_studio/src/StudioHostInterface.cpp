@@ -2,8 +2,7 @@
 
 StudioHostInterface::StudioHostInterface(QObject* parent) : QObject(parent) {}
 
-bool StudioHostInterface::report_progress(int current, int total,
-                                          const std::string& message) {
+bool StudioHostInterface::report_progress(int current, int total, const std::string& message) {
   emit progressReported(current, total, QString::fromStdString(message));
 
   // Check if user requested cancellation
@@ -14,10 +13,8 @@ bool StudioHostInterface::is_cancelled() const {
   return cancelled_;
 }
 
-void StudioHostInterface::log(const std::string& level,
-                              const std::string& message) {
-  emit logMessage(QString::fromStdString(level),
-                  QString::fromStdString(message));
+void StudioHostInterface::log(const std::string& level, const std::string& message) {
+  emit logMessage(QString::fromStdString(level), QString::fromStdString(message));
 }
 
 std::string StudioHostInterface::get_host_info() const {

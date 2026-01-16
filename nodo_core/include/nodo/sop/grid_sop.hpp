@@ -36,17 +36,15 @@ private:
   }
 
 public:
-  explicit GridSOP(const std::string& node_name = "grid")
-      : SOPNode(node_name, "Grid") {
+  explicit GridSOP(const std::string& node_name = "grid") : SOPNode(node_name, "Grid") {
     // Universal: Primitive Type
-    register_parameter(
-        define_int_parameter("primitive_type", 0)
-            .label("Primitive Type")
-            .options({primitive_type_to_string(PrimitiveType::Polygon),
-                      primitive_type_to_string(PrimitiveType::Points)})
-            .category("Universal")
-            .description("Output geometry type (polygon mesh or point cloud)")
-            .build());
+    register_parameter(define_int_parameter("primitive_type", 0)
+                           .label("Primitive Type")
+                           .options({primitive_type_to_string(PrimitiveType::Polygon),
+                                     primitive_type_to_string(PrimitiveType::Points)})
+                           .category("Universal")
+                           .description("Output geometry type (polygon mesh or point cloud)")
+                           .build());
 
     // Size parameters
     register_parameter(define_float_parameter("size_x", DEFAULT_SIZE)
@@ -80,9 +78,7 @@ public:
   }
 
   // Generator node - no inputs required
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::NONE, 0, 0, 0);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
   void set_size(float size_x, float size_z) {
     set_parameter("size_x", size_x);
@@ -100,21 +96,18 @@ protected:
     const auto height = get_parameter<float>("size_z", DEFAULT_SIZE);
     const auto columns = get_parameter<int>("columns", DEFAULT_RESOLUTION);
     const auto rows = get_parameter<int>("rows", DEFAULT_RESOLUTION);
-    const auto primitive_type =
-        static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
+    const auto primitive_type = static_cast<PrimitiveType>(get_parameter<int>("primitive_type", 0));
 
     try {
-      auto result = geometry::PlaneGenerator::generate(
-          static_cast<double>(width), static_cast<double>(height), columns,
-          rows);
+      auto result =
+          geometry::PlaneGenerator::generate(static_cast<double>(width), static_cast<double>(height), columns, rows);
 
       if (!result.has_value()) {
         set_error("Grid generation failed");
         return nullptr;
       }
 
-      auto container =
-          std::make_shared<core::GeometryContainer>(std::move(result.value()));
+      auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
 
       if (primitive_type == PrimitiveType::Points) {
         auto& topology = container->topology();
@@ -124,8 +117,7 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during grid generation: " +
-                std::string(exception.what()));
+      set_error("Exception during grid generation: " + std::string(exception.what()));
       return nullptr;
     }
   }

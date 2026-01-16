@@ -40,10 +40,8 @@ public:
    * @param description Tooltip description
    * @param parent Parent widget
    */
-  Vector3Widget(const QString& label, double x, double y, double z,
-                double min = -1000.0, double max = 1000.0,
-                const QString& description = QString(),
-                QWidget* parent = nullptr);
+  Vector3Widget(const QString& label, double x, double y, double z, double min = -1000.0, double max = 1000.0,
+                const QString& description = QString(), QWidget* parent = nullptr);
 
   // Value access
   double getX() const { return values_[0]; }
@@ -66,8 +64,7 @@ public:
   bool isUniformEnabled() const { return uniform_enabled_; }
 
   // Callback support
-  void
-  setValueChangedCallback(std::function<void(double, double, double)> callback);
+  void setValueChangedCallback(std::function<void(double, double, double)> callback);
 
   // Expression mode support (M3.3 Phase 1)
   void setExpressionMode(bool enabled);

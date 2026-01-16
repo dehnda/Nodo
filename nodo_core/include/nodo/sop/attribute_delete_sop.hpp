@@ -20,31 +20,27 @@ class AttributeDeleteSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit AttributeDeleteSOP(const std::string& node_name = "attribdelete")
-      : SOPNode(node_name, "AttributeDelete") {
+  explicit AttributeDeleteSOP(const std::string& node_name = "attribdelete") : SOPNode(node_name, "AttributeDelete") {
     // Single geometry input
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Attribute pattern (supports wildcards)
-    register_parameter(
-        define_string_parameter("pattern", "temp_*")
-            .label("Pattern")
-            .category("Attribute")
-            .description("Attribute name pattern (supports * and ? wildcards)")
-            .build());
+    register_parameter(define_string_parameter("pattern", "temp_*")
+                           .label("Pattern")
+                           .category("Attribute")
+                           .description("Attribute name pattern (supports * and ? wildcards)")
+                           .build());
 
     // Universal class parameter (from SOPNode base class)
     add_class_parameter();
 
     // Invert pattern (delete everything EXCEPT matching)
-    register_parameter(
-        define_int_parameter("invert", 0)
-            .label("Invert Pattern")
-            .options({"No", "Yes"})
-            .category("Options")
-            .description("Delete all attributes except those matching pattern")
-            .build());
+    register_parameter(define_int_parameter("invert", 0)
+                           .label("Invert Pattern")
+                           .options({"No", "Yes"})
+                           .category("Options")
+                           .description("Delete all attributes except those matching pattern")
+                           .build());
   }
 
 protected:
@@ -97,55 +93,33 @@ protected:
     switch (attr_class) {
       case 0: // Point
         delete_from_class([&]() { return output->get_point_attribute_names(); },
-                          [&](const std::string& name) {
-                            output->remove_point_attribute(name);
-                          });
+                          [&](const std::string& name) { output->remove_point_attribute(name); });
         break;
 
       case 1: // Primitive
-        delete_from_class(
-            [&]() { return output->get_primitive_attribute_names(); },
-            [&](const std::string& name) {
-              output->remove_primitive_attribute(name);
-            });
+        delete_from_class([&]() { return output->get_primitive_attribute_names(); },
+                          [&](const std::string& name) { output->remove_primitive_attribute(name); });
         break;
 
       case 2: // Vertex
-        delete_from_class(
-            [&]() { return output->get_vertex_attribute_names(); },
-            [&](const std::string& name) {
-              output->remove_vertex_attribute(name);
-            });
+        delete_from_class([&]() { return output->get_vertex_attribute_names(); },
+                          [&](const std::string& name) { output->remove_vertex_attribute(name); });
         break;
 
       case 3: // Detail
-        delete_from_class(
-            [&]() { return output->get_detail_attribute_names(); },
-            [&](const std::string& name) {
-              output->remove_detail_attribute(name);
-            });
+        delete_from_class([&]() { return output->get_detail_attribute_names(); },
+                          [&](const std::string& name) { output->remove_detail_attribute(name); });
         break;
 
       case 4: // All classes
         delete_from_class([&]() { return output->get_point_attribute_names(); },
-                          [&](const std::string& name) {
-                            output->remove_point_attribute(name);
-                          });
-        delete_from_class(
-            [&]() { return output->get_primitive_attribute_names(); },
-            [&](const std::string& name) {
-              output->remove_primitive_attribute(name);
-            });
-        delete_from_class(
-            [&]() { return output->get_vertex_attribute_names(); },
-            [&](const std::string& name) {
-              output->remove_vertex_attribute(name);
-            });
-        delete_from_class(
-            [&]() { return output->get_detail_attribute_names(); },
-            [&](const std::string& name) {
-              output->remove_detail_attribute(name);
-            });
+                          [&](const std::string& name) { output->remove_point_attribute(name); });
+        delete_from_class([&]() { return output->get_primitive_attribute_names(); },
+                          [&](const std::string& name) { output->remove_primitive_attribute(name); });
+        delete_from_class([&]() { return output->get_vertex_attribute_names(); },
+                          [&](const std::string& name) { output->remove_vertex_attribute(name); });
+        delete_from_class([&]() { return output->get_detail_attribute_names(); },
+                          [&](const std::string& name) { output->remove_detail_attribute(name); });
         break;
     }
 

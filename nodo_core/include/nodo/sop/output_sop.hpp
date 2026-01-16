@@ -21,11 +21,9 @@ class OutputSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit OutputSOP(const std::string& node_name = "output")
-      : SOPNode(node_name, "Output") {
+  explicit OutputSOP(const std::string& node_name = "output") : SOPNode(node_name, "Output") {
     // Single geometry input
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Output name
     register_parameter(define_string_parameter("output_name", "output1")

@@ -3,8 +3,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-StatusBarWidget::StatusBarWidget(QWidget* parent)
-    : QWidget(parent), current_status_(Status::Ready) {
+StatusBarWidget::StatusBarWidget(QWidget* parent) : QWidget(parent), current_status_(Status::Ready) {
   setupUI();
   setStatus(Status::Ready, "Ready");
 }
@@ -37,8 +36,7 @@ void StatusBarWidget::setupUI() {
 
   // Node count
   node_count_label_ = new QLabel("Nodes: 0/17", this);
-  node_count_label_->setStyleSheet(
-      "QLabel { color: #808088; font-size: 12px; }");
+  node_count_label_->setStyleSheet("QLabel { color: #808088; font-size: 12px; }");
   left_layout->addWidget(node_count_label_);
 
   left_section_->setLayout(left_layout);

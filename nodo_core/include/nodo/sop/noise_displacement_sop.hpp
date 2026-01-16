@@ -31,8 +31,7 @@ protected:
 
 private:
   // Noise generation functions
-  float fractal_noise(float pos_x, float pos_y, float pos_z, int seed,
-                      float frequency, int octaves, float lacunarity,
+  float fractal_noise(float pos_x, float pos_y, float pos_z, int seed, float frequency, int octaves, float lacunarity,
                       float persistence) const;
   float simple_noise(float pos_x, float pos_y, float pos_z, int seed) const;
 };

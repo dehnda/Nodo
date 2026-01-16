@@ -21,10 +21,9 @@ namespace nodo_studio {
 using namespace widgets;
 
 // Create widget from SOPNode::ParameterDefinition
-BaseParameterWidget* ParameterWidgetFactory::createWidget(
-    const nodo::sop::SOPNode::ParameterDefinition& def, QWidget* parent) {
-  QString label =
-      QString::fromStdString(def.label.empty() ? def.name : def.label);
+BaseParameterWidget* ParameterWidgetFactory::createWidget(const nodo::sop::SOPNode::ParameterDefinition& def,
+                                                          QWidget* parent) {
+  QString label = QString::fromStdString(def.label.empty() ? def.name : def.label);
   QString description = QString::fromStdString(def.description);
 
   switch (def.type) {
@@ -59,8 +58,7 @@ BaseParameterWidget* ParameterWidgetFactory::createWidget(
       }
 
       // Regular integer widget
-      return createIntWidget(label, value, def.int_min, def.int_max,
-                             description, parent);
+      return createIntWidget(label, value, def.int_min, def.int_max, description, parent);
     }
 
     case nodo::sop::SOPNode::ParameterDefinition::Type::Bool: {
@@ -72,13 +70,10 @@ BaseParameterWidget* ParameterWidgetFactory::createWidget(
       std::string value = std::get<std::string>(def.default_value);
       QString qvalue = QString::fromStdString(value);
 
-      if (def.ui_hint == "filepath" || def.ui_hint == "filepath_save" ||
-          def.name.find("file") != std::string::npos ||
-          def.name.find("path") != std::string::npos ||
-          def.name.find("texture") != std::string::npos) {
-        FilePathWidget::Mode mode = (def.ui_hint == "filepath_save")
-                                        ? FilePathWidget::Mode::SaveFile
-                                        : FilePathWidget::Mode::OpenFile;
+      if (def.ui_hint == "filepath" || def.ui_hint == "filepath_save" || def.name.find("file") != std::string::npos ||
+          def.name.find("path") != std::string::npos || def.name.find("texture") != std::string::npos) {
+        FilePathWidget::Mode mode =
+            (def.ui_hint == "filepath_save") ? FilePathWidget::Mode::SaveFile : FilePathWidget::Mode::OpenFile;
         return createFilePathWidget(label, qvalue, description, parent, mode);
       }
 
@@ -95,8 +90,7 @@ BaseParameterWidget* ParameterWidgetFactory::createWidget(
       auto vec = std::get<Eigen::Vector3f>(def.default_value);
       float min = static_cast<float>(def.float_min);
       float max = static_cast<float>(def.float_max);
-      return createVector3Widget(label, vec.x(), vec.y(), vec.z(), min, max,
-                                 description, parent);
+      return createVector3Widget(label, vec.x(), vec.y(), vec.z(), min, max, description, parent);
     }
 
     case nodo::sop::SOPNode::ParameterDefinition::Type::GroupSelector: {
@@ -111,18 +105,14 @@ BaseParameterWidget* ParameterWidgetFactory::createWidget(
 }
 
 // Create widget from NodeGraph::NodeParameter
-BaseParameterWidget*
-ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
-                                     QWidget* parent) {
-  QString label =
-      QString::fromStdString(param.label.empty() ? param.name : param.label);
+BaseParameterWidget* ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param, QWidget* parent) {
+  QString label = QString::fromStdString(param.label.empty() ? param.name : param.label);
   QString description = ""; // NodeParameter doesn't store descriptions yet
 
   switch (param.type) {
     case nodo::graph::NodeParameter::Type::Float: {
-      auto* widget =
-          createFloatWidget(label, param.float_value, param.ui_range.float_min,
-                            param.ui_range.float_max, description, parent);
+      auto* widget = createFloatWidget(label, param.float_value, param.ui_range.float_min, param.ui_range.float_max,
+                                       description, parent);
       if (param.has_expression()) {
         auto* float_widget = dynamic_cast<FloatWidget*>(widget);
         if (float_widget) {
@@ -166,17 +156,14 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
         }
 
         if (options.size() >= 2 && options.size() <= 4) {
-          return createModeSelector(label, param.int_value, options,
-                                    description, parent);
+          return createModeSelector(label, param.int_value, options, description, parent);
         } else {
-          return createDropdown(label, param.int_value, options, description,
-                                parent);
+          return createDropdown(label, param.int_value, options, description, parent);
         }
       }
 
       auto* widget =
-          createIntWidget(label, param.int_value, param.ui_range.int_min,
-                          param.ui_range.int_max, description, parent);
+          createIntWidget(label, param.int_value, param.ui_range.int_min, param.ui_range.int_max, description, parent);
       if (param.has_expression()) {
         auto* int_widget = dynamic_cast<IntWidget*>(widget);
         if (int_widget) {
@@ -216,12 +203,10 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
       // Check if it's a file path parameter (ui_hint or common naming
       // conventions)
       if (param.ui_hint == "filepath" || param.ui_hint == "filepath_save" ||
-          param.name.find("file") != std::string::npos ||
-          param.name.find("path") != std::string::npos ||
+          param.name.find("file") != std::string::npos || param.name.find("path") != std::string::npos ||
           param.name.find("texture") != std::string::npos) {
-        FilePathWidget::Mode mode = (param.ui_hint == "filepath_save")
-                                        ? FilePathWidget::Mode::SaveFile
-                                        : FilePathWidget::Mode::OpenFile;
+        FilePathWidget::Mode mode =
+            (param.ui_hint == "filepath_save") ? FilePathWidget::Mode::SaveFile : FilePathWidget::Mode::OpenFile;
         return createFilePathWidget(label, value, description, parent, mode);
       }
 
@@ -234,10 +219,8 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
     }
 
     case nodo::graph::NodeParameter::Type::Vector3: {
-      auto* widget = createVector3Widget(
-          label, param.vector3_value[0], param.vector3_value[1],
-          param.vector3_value[2], param.ui_range.float_min,
-          param.ui_range.float_max, description, parent);
+      auto* widget = createVector3Widget(label, param.vector3_value[0], param.vector3_value[1], param.vector3_value[2],
+                                         param.ui_range.float_min, param.ui_range.float_max, description, parent);
       if (param.has_expression()) {
         auto* vec3_widget = dynamic_cast<Vector3Widget*>(widget);
         if (vec3_widget) {
@@ -249,9 +232,7 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
 
           if (has_references) {
             // Has references - show as valid, use cached value
-            vec3_widget->setResolvedValue(param.vector3_value[0],
-                                          param.vector3_value[1],
-                                          param.vector3_value[2]);
+            vec3_widget->setResolvedValue(param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]);
           } else {
             // Pure math - try to evaluate
             nodo::graph::NodeGraph empty_graph;
@@ -261,9 +242,7 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
             if (result.has_value()) {
               // For vector3, we use the cached values (proper vector parsing
               // comes later)
-              vec3_widget->setResolvedValue(param.vector3_value[0],
-                                            param.vector3_value[1],
-                                            param.vector3_value[2]);
+              vec3_widget->setResolvedValue(param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]);
             } else {
               vec3_widget->setExpressionError("Invalid expression");
             }
@@ -285,72 +264,64 @@ ParameterWidgetFactory::createWidget(const nodo::graph::NodeParameter& param,
 
 // Individual widget creators
 
-BaseParameterWidget* ParameterWidgetFactory::createFloatWidget(
-    const QString& label, float value, float min, float max,
-    const QString& description, QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createFloatWidget(const QString& label, float value, float min, float max,
+                                                               const QString& description, QWidget* parent) {
   auto* widget = new FloatWidget(label, value, min, max, description, parent);
   widget->setSliderVisible(true); // Always show slider for visual feedback
   return widget;
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createIntWidget(
-    const QString& label, int value, int min, int max,
-    const QString& description, QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createIntWidget(const QString& label, int value, int min, int max,
+                                                             const QString& description, QWidget* parent) {
   return new IntWidget(label, value, min, max, description, parent);
 }
 
-BaseParameterWidget*
-ParameterWidgetFactory::createBoolWidget(const QString& label, bool value,
-                                         const QString& description,
-                                         QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createBoolWidget(const QString& label, bool value,
+                                                              const QString& description, QWidget* parent) {
   return new CheckboxWidget(label, value, description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createButtonWidget(
-    const QString& label, const QString& description, QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createButtonWidget(const QString& label, const QString& description,
+                                                                QWidget* parent) {
   return new ButtonWidget(label, description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createStringWidget(
-    const QString& label, const QString& value, const QString& description,
-    QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createStringWidget(const QString& label, const QString& value,
+                                                                const QString& description, QWidget* parent) {
   return new TextWidget(label, value, "", description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createMultiLineTextWidget(
-    const QString& label, const QString& value, const QString& description,
-    QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createMultiLineTextWidget(const QString& label, const QString& value,
+                                                                       const QString& description, QWidget* parent) {
   return new MultiLineTextWidget(label, value, "", description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createVector3Widget(
-    const QString& label, float x, float y, float z, float min, float max,
-    const QString& description, QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createVector3Widget(const QString& label, float x, float y, float z,
+                                                                 float min, float max, const QString& description,
+                                                                 QWidget* parent) {
   return new Vector3Widget(label, x, y, z, min, max, description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createModeSelector(
-    const QString& label, int value, const std::vector<QString>& options,
-    const QString& description, QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createModeSelector(const QString& label, int value,
+                                                                const std::vector<QString>& options,
+                                                                const QString& description, QWidget* parent) {
   return new ModeSelectorWidget(label, options, value, description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createDropdown(
-    const QString& label, int value, const std::vector<QString>& options,
-    const QString& description, QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createDropdown(const QString& label, int value,
+                                                            const std::vector<QString>& options,
+                                                            const QString& description, QWidget* parent) {
   return new DropdownWidget(label, options, value, description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createFilePathWidget(
-    const QString& label, const QString& value, const QString& description,
-    QWidget* parent, FilePathWidget::Mode mode) {
-  return new FilePathWidget(label, value, mode, "All Files (*)", description,
-                            parent);
+BaseParameterWidget* ParameterWidgetFactory::createFilePathWidget(const QString& label, const QString& value,
+                                                                  const QString& description, QWidget* parent,
+                                                                  FilePathWidget::Mode mode) {
+  return new FilePathWidget(label, value, mode, "All Files (*)", description, parent);
 }
 
-BaseParameterWidget* ParameterWidgetFactory::createGroupSelectorWidget(
-    const QString& label, const QString& value, const QString& description,
-    QWidget* parent) {
+BaseParameterWidget* ParameterWidgetFactory::createGroupSelectorWidget(const QString& label, const QString& value,
+                                                                       const QString& description, QWidget* parent) {
   return new GroupSelectorWidget(label, value, description, parent);
 }
 

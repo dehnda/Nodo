@@ -34,12 +34,11 @@ void ViewportStatsOverlay::setupUI() {
 
   // Vertices
   verts_label_ = new QLabel("Vertices: 0", this);
-  verts_label_->setStyleSheet(
-      "QLabel {"
-      "   color: #a0a0a8;"
-      "   font-size: 12px;"
-      "   font-family: 'SF Mono', 'Consolas', monospace;"
-      "}");
+  verts_label_->setStyleSheet("QLabel {"
+                              "   color: #a0a0a8;"
+                              "   font-size: 12px;"
+                              "   font-family: 'SF Mono', 'Consolas', monospace;"
+                              "}");
   layout->addWidget(verts_label_);
 
   // Triangles
@@ -53,12 +52,11 @@ void ViewportStatsOverlay::setupUI() {
 
   // Memory
   memory_label_ = new QLabel("Memory: 0 KB", this);
-  memory_label_->setStyleSheet(
-      "QLabel {"
-      "   color: #a0a0a8;"
-      "   font-size: 12px;"
-      "   font-family: 'SF Mono', 'Consolas', monospace;"
-      "}");
+  memory_label_->setStyleSheet("QLabel {"
+                               "   color: #a0a0a8;"
+                               "   font-size: 12px;"
+                               "   font-family: 'SF Mono', 'Consolas', monospace;"
+                               "}");
   layout->addWidget(memory_label_);
 
   setLayout(layout);
@@ -95,8 +93,7 @@ void ViewportStatsOverlay::setMemoryUsage(const QString& memory) {
 // ViewportControlsOverlay
 // ============================================================================
 
-ViewportControlsOverlay::ViewportControlsOverlay(QWidget* parent)
-    : QWidget(parent) {
+ViewportControlsOverlay::ViewportControlsOverlay(QWidget* parent) : QWidget(parent) {
   setupUI();
 }
 
@@ -107,8 +104,7 @@ void ViewportControlsOverlay::setupUI() {
 
   // Wireframe toggle button
   wireframe_btn_ = new QPushButton(this);
-  wireframe_btn_->setIcon(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Wireframe));
+  wireframe_btn_->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Wireframe));
   wireframe_btn_->setCheckable(true);
   wireframe_btn_->setToolTip("Toggle Wireframe");
   wireframe_btn_->setFixedSize(40, 40);
@@ -128,14 +124,12 @@ void ViewportControlsOverlay::setupUI() {
                                 "   border-color: #4a9eff;"
                                 "   color: white;"
                                 "}");
-  connect(wireframe_btn_, &QPushButton::toggled, this,
-          &ViewportControlsOverlay::wireframeToggled);
+  connect(wireframe_btn_, &QPushButton::toggled, this, &ViewportControlsOverlay::wireframeToggled);
   layout->addWidget(wireframe_btn_);
 
   // Shaded mode button
   shaded_btn_ = new QPushButton(this);
-  shaded_btn_->setIcon(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Sphere));
+  shaded_btn_->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Sphere));
   shaded_btn_->setCheckable(true);
   shaded_btn_->setChecked(true);
   shaded_btn_->setToolTip("Toggle Shading");
@@ -156,37 +150,33 @@ void ViewportControlsOverlay::setupUI() {
                              "   border-color: #4a9eff;"
                              "   color: white;"
                              "}");
-  connect(shaded_btn_, &QPushButton::toggled, this, [this](bool checked) {
-    emit shadingModeChanged(checked ? "smooth" : "flat");
-  });
+  connect(shaded_btn_, &QPushButton::toggled, this,
+          [this](bool checked) { emit shadingModeChanged(checked ? "smooth" : "flat"); });
   layout->addWidget(shaded_btn_);
 
   // Point numbers toggle button
   point_numbers_btn_ = new QPushButton(this);
-  point_numbers_btn_->setIcon(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PointNumbers));
+  point_numbers_btn_->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PointNumbers));
   point_numbers_btn_->setCheckable(true);
   point_numbers_btn_->setToolTip("Toggle Point Numbers");
   point_numbers_btn_->setFixedSize(40, 40);
-  point_numbers_btn_->setStyleSheet(
-      "QPushButton {"
-      "   background: rgba(0, 0, 0, 0.6);"
-      "   border: 1px solid rgba(255, 255, 255, 0.1);"
-      "   border-radius: 8px;"
-      "   color: #e0e0e0;"
-      "   font-size: 18px;"
-      "}"
-      "QPushButton:hover {"
-      "   background: rgba(0, 0, 0, 0.8);"
-      "   border-color: rgba(255, 255, 255, 0.2);"
-      "}"
-      "QPushButton:checked {"
-      "   background: #4a9eff;"
-      "   border-color: #4a9eff;"
-      "   color: white;"
-      "}");
-  connect(point_numbers_btn_, &QPushButton::toggled, this,
-          &ViewportControlsOverlay::pointNumbersToggled);
+  point_numbers_btn_->setStyleSheet("QPushButton {"
+                                    "   background: rgba(0, 0, 0, 0.6);"
+                                    "   border: 1px solid rgba(255, 255, 255, 0.1);"
+                                    "   border-radius: 8px;"
+                                    "   color: #e0e0e0;"
+                                    "   font-size: 18px;"
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "   background: rgba(0, 0, 0, 0.8);"
+                                    "   border-color: rgba(255, 255, 255, 0.2);"
+                                    "}"
+                                    "QPushButton:checked {"
+                                    "   background: #4a9eff;"
+                                    "   border-color: #4a9eff;"
+                                    "   color: white;"
+                                    "}");
+  connect(point_numbers_btn_, &QPushButton::toggled, this, &ViewportControlsOverlay::pointNumbersToggled);
   layout->addWidget(point_numbers_btn_);
 
   // Separator (visual only)
@@ -197,31 +187,27 @@ void ViewportControlsOverlay::setupUI() {
 
   // Reset camera button
   reset_camera_btn_ = new QPushButton(this);
-  reset_camera_btn_->setIcon(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::ResetCamera));
+  reset_camera_btn_->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::ResetCamera));
   reset_camera_btn_->setToolTip("Reset Camera");
   reset_camera_btn_->setFixedSize(40, 40);
-  reset_camera_btn_->setStyleSheet(
-      "QPushButton {"
-      "   background: rgba(0, 0, 0, 0.6);"
-      "   border: 1px solid rgba(255, 255, 255, 0.1);"
-      "   border-radius: 8px;"
-      "   color: #e0e0e0;"
-      "   font-size: 18px;"
-      "}"
-      "QPushButton:hover {"
-      "   background: rgba(0, 0, 0, 0.8);"
-      "   border-color: rgba(255, 255, 255, 0.2);"
-      "   transform: scale(1.05);"
-      "}");
-  connect(reset_camera_btn_, &QPushButton::clicked, this,
-          &ViewportControlsOverlay::cameraReset);
+  reset_camera_btn_->setStyleSheet("QPushButton {"
+                                   "   background: rgba(0, 0, 0, 0.6);"
+                                   "   border: 1px solid rgba(255, 255, 255, 0.1);"
+                                   "   border-radius: 8px;"
+                                   "   color: #e0e0e0;"
+                                   "   font-size: 18px;"
+                                   "}"
+                                   "QPushButton:hover {"
+                                   "   background: rgba(0, 0, 0, 0.8);"
+                                   "   border-color: rgba(255, 255, 255, 0.2);"
+                                   "   transform: scale(1.05);"
+                                   "}");
+  connect(reset_camera_btn_, &QPushButton::clicked, this, &ViewportControlsOverlay::cameraReset);
   layout->addWidget(reset_camera_btn_);
 
   // Fit to view button
   fit_view_btn_ = new QPushButton(this);
-  fit_view_btn_->setIcon(
-      nodo_studio::Icons::get(nodo_studio::IconManager::Icon::FitView));
+  fit_view_btn_->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::FitView));
   fit_view_btn_->setToolTip("Fit to View");
   fit_view_btn_->setFixedSize(40, 40);
   fit_view_btn_->setStyleSheet("QPushButton {"
@@ -235,8 +221,7 @@ void ViewportControlsOverlay::setupUI() {
                                "   background: rgba(0, 0, 0, 0.8);"
                                "   border-color: rgba(255, 255, 255, 0.2);"
                                "}");
-  connect(fit_view_btn_, &QPushButton::clicked, this,
-          &ViewportControlsOverlay::cameraFitToView);
+  connect(fit_view_btn_, &QPushButton::clicked, this, &ViewportControlsOverlay::cameraFitToView);
   layout->addWidget(fit_view_btn_);
 
   setLayout(layout);
@@ -282,10 +267,8 @@ void ViewportAxisGizmo::paintEvent(QPaintEvent* event) {
   painter.drawLine(center, center + QPointF(radius, 0));
   // Use system font stack with fallbacks for cross-platform support
   QFont axisFont;
-  axisFont.setFamilies(QStringList()
-                       << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell"
-                       << "Noto Sans" << "Liberation Sans" << "DejaVu Sans"
-                       << "sans-serif");
+  axisFont.setFamilies(QStringList() << "Segoe UI" << "Ubuntu" << "Roboto" << "Cantarell" << "Noto Sans"
+                                     << "Liberation Sans" << "DejaVu Sans" << "sans-serif");
   axisFont.setWeight(QFont::Bold);
   axisFont.setPointSize(10);
   painter.setFont(axisFont);

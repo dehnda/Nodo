@@ -28,8 +28,7 @@ public:
    * @param b Second mesh
    * @return Optional mesh containing the union, or nullopt on failure
    */
-  static std::optional<core::Mesh> union_meshes(const core::Mesh& a,
-                                                const core::Mesh& b);
+  static std::optional<core::Mesh> union_meshes(const core::Mesh& a, const core::Mesh& b);
 
   /**
    * @brief Perform intersection of two meshes
@@ -37,8 +36,7 @@ public:
    * @param b Second mesh
    * @return Optional mesh containing the intersection, or nullopt on failure
    */
-  static std::optional<core::Mesh> intersect_meshes(const core::Mesh& a,
-                                                    const core::Mesh& b);
+  static std::optional<core::Mesh> intersect_meshes(const core::Mesh& a, const core::Mesh& b);
 
   /**
    * @brief Perform difference of two meshes (a - b)
@@ -46,8 +44,7 @@ public:
    * @param b Second mesh (subtrahend)
    * @return Optional mesh containing the difference, or nullopt on failure
    */
-  static std::optional<core::Mesh> difference_meshes(const core::Mesh& a,
-                                                     const core::Mesh& b);
+  static std::optional<core::Mesh> difference_meshes(const core::Mesh& a, const core::Mesh& b);
 
   /**
    * @brief Get the last error that occurred
@@ -72,9 +69,8 @@ public:
 
 private:
   /// Internal Manifold boolean operation implementation (Apache 2.0 license)
-  static std::optional<core::Mesh>
-  manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
-                             int operation_type);
+  static std::optional<core::Mesh> manifold_boolean_operation(const core::Mesh& a, const core::Mesh& b,
+                                                              int operation_type);
 
   /// Set the last error for error reporting
   static void set_last_error(const core::Error& error);

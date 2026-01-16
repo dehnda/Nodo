@@ -43,13 +43,11 @@ void GeometrySpreadsheet::setupUI() {
   searchLayout->setContentsMargins(12, 8, 12, 8);
   searchLayout->setSpacing(8);
 
-  searchContainer->setStyleSheet(
-      "QWidget { background: #2e2e34; border-bottom: 1px solid rgba(255, 255, "
-      "255, 0.06); }");
+  searchContainer->setStyleSheet("QWidget { background: #2e2e34; border-bottom: 1px solid rgba(255, 255, "
+                                 "255, 0.06); }");
 
   auto* searchLabel = new QLabel("Search:", this);
-  searchLabel->setStyleSheet(
-      "QLabel { color: #808088; background: transparent; border: none; }");
+  searchLabel->setStyleSheet("QLabel { color: #808088; background: transparent; border: none; }");
   searchLayout->addWidget(searchLabel);
 
   searchBox_ = new QLineEdit(this);
@@ -67,8 +65,7 @@ void GeometrySpreadsheet::setupUI() {
   searchLayout->addWidget(searchBox_);
   mainLayout->addWidget(searchContainer);
 
-  connect(searchBox_, &QLineEdit::textChanged, this,
-          &GeometrySpreadsheet::onSearchTextChanged);
+  connect(searchBox_, &QLineEdit::textChanged, this, &GeometrySpreadsheet::onSearchTextChanged);
 
   // Tab widget with styling
   tabWidget_ = new QTabWidget(this);
@@ -122,18 +119,16 @@ void GeometrySpreadsheet::setupUI() {
 
   // Status label with styling
   statusLabel_ = new QLabel("No geometry", this);
-  statusLabel_->setStyleSheet(
-      "QLabel {"
-      "  color: #808088;"
-      "  font-size: 11px;"
-      "  background: #2e2e34;"
-      "  padding: 6px 12px;"
-      "  border-top: 1px solid rgba(255, 255, 255, 0.06);"
-      "}");
+  statusLabel_->setStyleSheet("QLabel {"
+                              "  color: #808088;"
+                              "  font-size: 11px;"
+                              "  background: #2e2e34;"
+                              "  padding: 6px 12px;"
+                              "  border-top: 1px solid rgba(255, 255, 255, 0.06);"
+                              "}");
   mainLayout->addWidget(statusLabel_);
 
-  connect(tabWidget_, &QTabWidget::currentChanged, this,
-          &GeometrySpreadsheet::updateStatusLabel);
+  connect(tabWidget_, &QTabWidget::currentChanged, this, &GeometrySpreadsheet::updateStatusLabel);
 }
 
 QTableView* GeometrySpreadsheet::createTableView(GeometryTableModel* model) {
@@ -146,85 +141,83 @@ QTableView* GeometrySpreadsheet::createTableView(GeometryTableModel* model) {
   table->setEditTriggers(QAbstractItemView::NoEditTriggers); // Read-only
 
   // Apply dark theme styling
-  table->setStyleSheet(
-      "QTableView {"
-      "  background-color: #2a2a30;"
-      "  alternate-background-color: #252529;"
-      "  color: #e0e0e0;"
-      "  gridline-color: rgba(255, 255, 255, 0.08);"
-      "  selection-background-color: #4a9eff;"
-      "  selection-color: #ffffff;"
-      "  border: none;"
-      "}"
-      "QTableView::item {"
-      "  padding: 4px 8px;"
-      "}"
-      "QTableView::item:selected {"
-      "  background-color: #4a9eff;"
-      "}"
-      "QTableView::item:hover {"
-      "  background-color: rgba(74, 158, 255, 0.3);"
-      "}"
-      "QHeaderView::section {"
-      "  background-color: #1e1e24;"
-      "  color: #a0a0a8;"
-      "  padding: 6px 8px;"
-      "  border: none;"
-      "  border-right: 1px solid rgba(255, 255, 255, 0.08);"
-      "  border-bottom: 1px solid rgba(255, 255, 255, 0.12);"
-      "  font-weight: 600;"
-      "}"
-      "QHeaderView::section:hover {"
-      "  background-color: #252529;"
-      "}"
-      "QScrollBar:vertical {"
-      "  background: rgba(255, 255, 255, 0.03);"
-      "  width: 10px;"
-      "  border: none;"
-      "  border-radius: 5px;"
-      "  margin: 2px;"
-      "}"
-      "QScrollBar::handle:vertical {"
-      "  background: rgba(255, 255, 255, 0.15);"
-      "  border-radius: 5px;"
-      "  min-height: 30px;"
-      "}"
-      "QScrollBar::handle:vertical:hover {"
-      "  background: rgba(255, 255, 255, 0.25);"
-      "}"
-      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
-      "  height: 0px;"
-      "}"
-      "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
-      "  background: none;"
-      "}"
-      "QScrollBar:horizontal {"
-      "  background: rgba(255, 255, 255, 0.03);"
-      "  height: 10px;"
-      "  border: none;"
-      "  border-radius: 5px;"
-      "  margin: 2px;"
-      "}"
-      "QScrollBar::handle:horizontal {"
-      "  background: rgba(255, 255, 255, 0.15);"
-      "  border-radius: 5px;"
-      "  min-width: 30px;"
-      "}"
-      "QScrollBar::handle:horizontal:hover {"
-      "  background: rgba(255, 255, 255, 0.25);"
-      "}"
-      "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {"
-      "  width: 0px;"
-      "}"
-      "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
-      "  background: none;"
-      "}");
+  table->setStyleSheet("QTableView {"
+                       "  background-color: #2a2a30;"
+                       "  alternate-background-color: #252529;"
+                       "  color: #e0e0e0;"
+                       "  gridline-color: rgba(255, 255, 255, 0.08);"
+                       "  selection-background-color: #4a9eff;"
+                       "  selection-color: #ffffff;"
+                       "  border: none;"
+                       "}"
+                       "QTableView::item {"
+                       "  padding: 4px 8px;"
+                       "}"
+                       "QTableView::item:selected {"
+                       "  background-color: #4a9eff;"
+                       "}"
+                       "QTableView::item:hover {"
+                       "  background-color: rgba(74, 158, 255, 0.3);"
+                       "}"
+                       "QHeaderView::section {"
+                       "  background-color: #1e1e24;"
+                       "  color: #a0a0a8;"
+                       "  padding: 6px 8px;"
+                       "  border: none;"
+                       "  border-right: 1px solid rgba(255, 255, 255, 0.08);"
+                       "  border-bottom: 1px solid rgba(255, 255, 255, 0.12);"
+                       "  font-weight: 600;"
+                       "}"
+                       "QHeaderView::section:hover {"
+                       "  background-color: #252529;"
+                       "}"
+                       "QScrollBar:vertical {"
+                       "  background: rgba(255, 255, 255, 0.03);"
+                       "  width: 10px;"
+                       "  border: none;"
+                       "  border-radius: 5px;"
+                       "  margin: 2px;"
+                       "}"
+                       "QScrollBar::handle:vertical {"
+                       "  background: rgba(255, 255, 255, 0.15);"
+                       "  border-radius: 5px;"
+                       "  min-height: 30px;"
+                       "}"
+                       "QScrollBar::handle:vertical:hover {"
+                       "  background: rgba(255, 255, 255, 0.25);"
+                       "}"
+                       "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+                       "  height: 0px;"
+                       "}"
+                       "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+                       "  background: none;"
+                       "}"
+                       "QScrollBar:horizontal {"
+                       "  background: rgba(255, 255, 255, 0.03);"
+                       "  height: 10px;"
+                       "  border: none;"
+                       "  border-radius: 5px;"
+                       "  margin: 2px;"
+                       "}"
+                       "QScrollBar::handle:horizontal {"
+                       "  background: rgba(255, 255, 255, 0.15);"
+                       "  border-radius: 5px;"
+                       "  min-width: 30px;"
+                       "}"
+                       "QScrollBar::handle:horizontal:hover {"
+                       "  background: rgba(255, 255, 255, 0.25);"
+                       "}"
+                       "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {"
+                       "  width: 0px;"
+                       "}"
+                       "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
+                       "  background: none;"
+                       "}");
 
   return table;
 }
 
-void GeometrySpreadsheet::setGeometry(
-    std::shared_ptr<core::GeometryContainer> geometry) {
+void GeometrySpreadsheet::setGeometry(std::shared_ptr<core::GeometryContainer> geometry) {
   geometry_ = geometry;
 
   pointModel_->setGeometry(geometry);

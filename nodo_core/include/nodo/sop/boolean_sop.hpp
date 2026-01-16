@@ -30,9 +30,7 @@ public:
   explicit BooleanSOP(const std::string& node_name = "boolean");
 
   // Dual-input node - requires exactly 2 inputs
-  InputConfig get_input_config() const override {
-    return InputConfig(InputType::DUAL, 2, 2, 2);
-  }
+  InputConfig get_input_config() const override { return InputConfig(InputType::DUAL, 2, 2, 2); }
 
   /**
    * @brief Execute the boolean operation

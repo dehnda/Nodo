@@ -416,8 +416,7 @@ TEST_F(AttributeSystemIntegrationTest, CustomAttributes) {
 // ============================================================================
 
 // Performance test - disabled in CI due to timing sensitivity
-TEST_F(AttributeSystemIntegrationTest,
-       DISABLED_PerformanceBaseline_1M_Positions) {
+TEST_F(AttributeSystemIntegrationTest, DISABLED_PerformanceBaseline_1M_Positions) {
   const size_t COUNT = 1000000;
 
   GeometryContainer geo;
@@ -433,13 +432,11 @@ TEST_F(AttributeSystemIntegrationTest,
   auto start = std::chrono::high_resolution_clock::now();
 
   for (size_t i = 0; i < COUNT; ++i) {
-    (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i * 2),
-                            static_cast<float>(i * 3));
+    (*positions)[i] = Vec3f(static_cast<float>(i), static_cast<float>(i * 2), static_cast<float>(i * 3));
   }
 
   auto end = std::chrono::high_resolution_clock::now();
-  auto write_duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  auto write_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
   // Benchmark: Sequential read
   start = std::chrono::high_resolution_clock::now();
@@ -450,8 +447,7 @@ TEST_F(AttributeSystemIntegrationTest,
   }
 
   end = std::chrono::high_resolution_clock::now();
-  auto read_duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  auto read_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
   // Report results
   std::cout << "\n=== Performance Baseline (1M Vec3f positions) ===\n";

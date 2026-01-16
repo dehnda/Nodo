@@ -3,8 +3,7 @@
 namespace nodo_studio {
 namespace widgets {
 
-CheckboxWidget::CheckboxWidget(const QString& label, bool initial_value,
-                               const QString& description, QWidget* parent)
+CheckboxWidget::CheckboxWidget(const QString& label, bool initial_value, const QString& description, QWidget* parent)
     : BaseParameterWidget(label, description, parent), checked_(initial_value) {
   // Create and add the control widget
   addControlWidget(createControlWidget());
@@ -37,8 +36,7 @@ QWidget* CheckboxWidget::createControlWidget() {
                                .arg(COLOR_INPUT_BG)
                                .arg(COLOR_ACCENT));
 
-  connect(checkbox_, &QCheckBox::stateChanged, this,
-          &CheckboxWidget::onCheckStateChanged);
+  connect(checkbox_, &QCheckBox::stateChanged, this, &CheckboxWidget::onCheckStateChanged);
 
   return checkbox_;
 }
@@ -65,8 +63,7 @@ void CheckboxWidget::setChecked(bool checked) {
   }
 }
 
-void CheckboxWidget::setValueChangedCallback(
-    std::function<void(bool)> callback) {
+void CheckboxWidget::setValueChangedCallback(std::function<void(bool)> callback) {
   value_changed_callback_ = callback;
 }
 

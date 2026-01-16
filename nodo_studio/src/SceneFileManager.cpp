@@ -29,8 +29,7 @@ void SceneFileManager::newScene() {
 void SceneFileManager::openScene() {
   using nodo::graph::GraphSerializer;
 
-  QString file_path = QFileDialog::getOpenFileName(
-      parent_, "Open Node Graph", "", "Nodo Graph (*.nfg);;All Files (*)");
+  QString file_path = QFileDialog::getOpenFileName(parent_, "Open Node Graph", "", "Nodo Graph (*.nfg);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return; // User cancelled
@@ -56,8 +55,7 @@ void SceneFileManager::openScene() {
     // Add to recent files
     addToRecentFiles(file_path);
   } else {
-    QMessageBox::warning(parent_, "Load Failed",
-                         "Failed to load node graph from file.");
+    QMessageBox::warning(parent_, "Load Failed", "Failed to load node graph from file.");
   }
 }
 
@@ -68,15 +66,13 @@ bool SceneFileManager::saveScene() {
   // If we have a current file, save to it directly
   if (!current_file_path_.isEmpty()) {
     using nodo::graph::GraphSerializer;
-    bool success = GraphSerializer::save_to_file(
-        *node_graph_, current_file_path_.toStdString());
+    bool success = GraphSerializer::save_to_file(*node_graph_, current_file_path_.toStdString());
     if (success) {
       is_modified_ = false;
       addToRecentFiles(current_file_path_);
       return true;
     } else {
-      QMessageBox::warning(parent_, "Save Failed",
-                           "Failed to save node graph to file.");
+      QMessageBox::warning(parent_, "Save Failed", "Failed to save node graph to file.");
       return false;
     }
   } else {
@@ -91,8 +87,8 @@ bool SceneFileManager::saveSceneAs() {
 
   using nodo::graph::GraphSerializer;
 
-  QString file_path = QFileDialog::getSaveFileName(
-      parent_, "Save Node Graph As", "", "Nodo Graph (*.nfg);;All Files (*)");
+  QString file_path =
+      QFileDialog::getSaveFileName(parent_, "Save Node Graph As", "", "Nodo Graph (*.nfg);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return false; // User cancelled
@@ -103,8 +99,7 @@ bool SceneFileManager::saveSceneAs() {
     file_path += ".nfg";
   }
 
-  bool success =
-      GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
+  bool success = GraphSerializer::save_to_file(*node_graph_, file_path.toStdString());
 
   if (success) {
     current_file_path_ = file_path;
@@ -113,8 +108,7 @@ bool SceneFileManager::saveSceneAs() {
     return true;
   }
 
-  QMessageBox::warning(parent_, "Save Failed",
-                       "Failed to save node graph to file.");
+  QMessageBox::warning(parent_, "Save Failed", "Failed to save node graph to file.");
   return false;
 }
 
@@ -123,14 +117,12 @@ void SceneFileManager::revertToSaved() {
     return;
   }
 
-  auto reply = QMessageBox::question(
-      parent_, "Revert to Saved", "Discard all changes and reload from disk?",
-      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  auto reply = QMessageBox::question(parent_, "Revert to Saved", "Discard all changes and reload from disk?",
+                                     QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
     using nodo::graph::GraphSerializer;
-    auto loaded_graph =
-        GraphSerializer::load_from_file(current_file_path_.toStdString());
+    auto loaded_graph = GraphSerializer::load_from_file(current_file_path_.toStdString());
 
     if (loaded_graph.has_value()) {
       // Replace the current node graph with the loaded one
@@ -145,8 +137,7 @@ void SceneFileManager::revertToSaved() {
 
       is_modified_ = false;
     } else {
-      QMessageBox::warning(parent_, "Revert Failed",
-                           "Failed to reload graph from file.");
+      QMessageBox::warning(parent_, "Revert Failed", "Failed to reload graph from file.");
     }
   }
 }
@@ -175,11 +166,10 @@ void SceneFileManager::exportGeometry() {
   int display_node_id = node_graph_->get_display_node();
 
   if (display_node_id < 0) {
-    QMessageBox::information(
-        parent_, "No Mesh to Export",
-        "Please set a display flag on a node first.\n\n"
-        "Right-click a node in the graph and select 'Set Display' to mark it "
-        "for export.");
+    QMessageBox::information(parent_, "No Mesh to Export",
+                             "Please set a display flag on a node first.\n\n"
+                             "Right-click a node in the graph and select 'Set Display' to mark it "
+                             "for export.");
     return;
   }
 
@@ -202,8 +192,7 @@ void SceneFileManager::exportGeometry() {
   }
 
   // Open file dialog for export location
-  QString file_path = QFileDialog::getSaveFileName(
-      parent_, "Export Mesh", "", "Wavefront OBJ (*.obj);;All Files (*)");
+  QString file_path = QFileDialog::getSaveFileName(parent_, "Export Mesh", "", "Wavefront OBJ (*.obj);;All Files (*)");
 
   if (file_path.isEmpty()) {
     return; // User cancelled
@@ -215,16 +204,13 @@ void SceneFileManager::exportGeometry() {
   }
 
   // Export the geometry
-  bool success =
-      ObjExporter::export_geometry(*geometry, file_path.toStdString());
+  bool success = ObjExporter::export_geometry(*geometry, file_path.toStdString());
 
   if (success) {
     int point_count = static_cast<int>(geometry->point_count());
     int prim_count = static_cast<int>(geometry->primitive_count());
     QString message =
-        QString("Geometry exported successfully\n%1 points, %2 primitives")
-            .arg(point_count)
-            .arg(prim_count);
+        QString("Geometry exported successfully\n%1 points, %2 primitives").arg(point_count).arg(prim_count);
     QMessageBox::information(parent_, "Export Successful", message);
   } else {
     QMessageBox::critical(parent_, "Export Failed",

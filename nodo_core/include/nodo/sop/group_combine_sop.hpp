@@ -21,10 +21,8 @@ class GroupCombineSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
 
-  explicit GroupCombineSOP(const std::string& name = "group_combine")
-      : SOPNode(name, "GroupCombine") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+  explicit GroupCombineSOP(const std::string& name = "group_combine") : SOPNode(name, "GroupCombine") {
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // First group
     register_parameter(define_string_parameter("group_a", "group1")
@@ -44,8 +42,7 @@ public:
     register_parameter(
         define_int_parameter("operation", 0)
             .label("Operation")
-            .options({"Union (A | B)", "Intersect (A & B)", "Subtract (A - B)",
-                      "Symmetric Diff (A ^ B)"})
+            .options({"Union (A | B)", "Intersect (A & B)", "Subtract (A - B)", "Symmetric Diff (A ^ B)"})
             .category("Operation")
             .description("Boolean operation to combine groups (union, "
                          "intersect, subtract, or XOR)")
@@ -76,8 +73,7 @@ protected:
 
     std::string group_a_name = get_parameter<std::string>("group_a", "group1");
     std::string group_b_name = get_parameter<std::string>("group_b", "group2");
-    std::string output_name =
-        get_parameter<std::string>("output_group", "combined");
+    std::string output_name = get_parameter<std::string>("output_group", "combined");
     int operation = get_parameter<int>("operation", 0);
     int elem_class = get_parameter<int>("element_class", 0);
 
@@ -146,8 +142,7 @@ protected:
 
       // Create output group
       result->add_primitive_attribute(output_name, core::AttributeType::INT);
-      auto* output_attr =
-          result->get_primitive_attribute_typed<int>(output_name);
+      auto* output_attr = result->get_primitive_attribute_typed<int>(output_name);
 
       // Perform operation
       for (size_t i = 0; i < elem_count; ++i) {

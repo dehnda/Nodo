@@ -17,10 +17,8 @@ void ViewportToolbar::setupUI() {
   // Create toggle buttons
   vertices_button_ = createToggleButton("●", "Show Vertices (V)", true);
   edges_button_ = createToggleButton("─", "Show Edges (E)", true);
-  vertex_normals_button_ =
-      createToggleButton("↑V", "Show Vertex Normals (N)", false);
-  face_normals_button_ =
-      createToggleButton("↑F", "Show Face Normals (F)", false);
+  vertex_normals_button_ = createToggleButton("↑V", "Show Vertex Normals (N)", false);
+  face_normals_button_ = createToggleButton("↑F", "Show Face Normals (F)", false);
   grid_button_ = createToggleButton("#", "Show Grid (G)", true);
   axes_button_ = createToggleButton("⊕", "Show Axes (A)", true);
 
@@ -42,13 +40,10 @@ void ViewportToolbar::setupUI() {
   // Viewport control buttons (from ViewportControlsOverlay)
   addSeparator();
   wireframe_button_ = createIconButton("Wireframe", "Toggle Wireframe", true);
-  shading_button_ =
-      createIconButton("Sphere", "Toggle Shading (Smooth/Flat)", true);
+  shading_button_ = createIconButton("Sphere", "Toggle Shading (Smooth/Flat)", true);
   shading_button_->setChecked(true);
-  point_numbers_button_ =
-      createIconButton("PointNumbers", "Toggle Point Numbers", true);
-  primitive_numbers_button_ =
-      createIconButton("PrimitiveNumbers", "Toggle Primitive Numbers", true);
+  point_numbers_button_ = createIconButton("PointNumbers", "Toggle Point Numbers", true);
+  primitive_numbers_button_ = createIconButton("PrimitiveNumbers", "Toggle Primitive Numbers", true);
   addWidget(wireframe_button_);
   addWidget(shading_button_);
   addWidget(point_numbers_button_);
@@ -61,38 +56,24 @@ void ViewportToolbar::setupUI() {
   addWidget(fit_view_button_);
 
   // Connect signals
-  connect(vertices_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::verticesToggled);
-  connect(edges_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::edgesToggled);
-  connect(vertex_normals_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::vertexNormalsToggled);
-  connect(face_normals_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::faceNormalsToggled);
-  connect(grid_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::gridToggled);
-  connect(axes_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::axesToggled);
+  connect(vertices_button_, &QToolButton::toggled, this, &ViewportToolbar::verticesToggled);
+  connect(edges_button_, &QToolButton::toggled, this, &ViewportToolbar::edgesToggled);
+  connect(vertex_normals_button_, &QToolButton::toggled, this, &ViewportToolbar::vertexNormalsToggled);
+  connect(face_normals_button_, &QToolButton::toggled, this, &ViewportToolbar::faceNormalsToggled);
+  connect(grid_button_, &QToolButton::toggled, this, &ViewportToolbar::gridToggled);
+  connect(axes_button_, &QToolButton::toggled, this, &ViewportToolbar::axesToggled);
 
   // Connect viewport control signals
-  connect(wireframe_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::wireframeToggled);
-  connect(shading_button_, &QToolButton::toggled, this, [this](bool checked) {
-    emit shadingModeChanged(checked ? "smooth" : "flat");
-  });
-  connect(point_numbers_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::pointNumbersToggled);
-  connect(primitive_numbers_button_, &QToolButton::toggled, this,
-          &ViewportToolbar::primitiveNumbersToggled);
-  connect(reset_camera_button_, &QToolButton::clicked, this,
-          &ViewportToolbar::cameraReset);
-  connect(fit_view_button_, &QToolButton::clicked, this,
-          &ViewportToolbar::cameraFitToView);
+  connect(wireframe_button_, &QToolButton::toggled, this, &ViewportToolbar::wireframeToggled);
+  connect(shading_button_, &QToolButton::toggled, this,
+          [this](bool checked) { emit shadingModeChanged(checked ? "smooth" : "flat"); });
+  connect(point_numbers_button_, &QToolButton::toggled, this, &ViewportToolbar::pointNumbersToggled);
+  connect(primitive_numbers_button_, &QToolButton::toggled, this, &ViewportToolbar::primitiveNumbersToggled);
+  connect(reset_camera_button_, &QToolButton::clicked, this, &ViewportToolbar::cameraReset);
+  connect(fit_view_button_, &QToolButton::clicked, this, &ViewportToolbar::cameraFitToView);
 }
 
-QToolButton* ViewportToolbar::createToggleButton(const QString& icon_text,
-                                                 const QString& tooltip,
-                                                 bool checked) {
+QToolButton* ViewportToolbar::createToggleButton(const QString& icon_text, const QString& tooltip, bool checked) {
   auto* button = new QToolButton(this);
   button->setText(icon_text);
   button->setToolTip(tooltip);
@@ -105,30 +86,22 @@ QToolButton* ViewportToolbar::createToggleButton(const QString& icon_text,
   return button;
 }
 
-QToolButton* ViewportToolbar::createIconButton(const QString& icon_name,
-                                               const QString& tooltip,
-                                               bool checkable) {
+QToolButton* ViewportToolbar::createIconButton(const QString& icon_name, const QString& tooltip, bool checkable) {
   auto* button = new QToolButton(this);
 
   // Map icon names to IconManager enum values
   if (icon_name == "Wireframe") {
-    button->setIcon(
-        nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Wireframe));
+    button->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Wireframe));
   } else if (icon_name == "Sphere") {
-    button->setIcon(
-        nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Sphere));
+    button->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::Sphere));
   } else if (icon_name == "PointNumbers") {
-    button->setIcon(
-        nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PointNumbers));
+    button->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PointNumbers));
   } else if (icon_name == "PrimitiveNumbers") {
-    button->setIcon(nodo_studio::Icons::get(
-        nodo_studio::IconManager::Icon::PrimitiveNumbers));
+    button->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::PrimitiveNumbers));
   } else if (icon_name == "ResetCamera") {
-    button->setIcon(
-        nodo_studio::Icons::get(nodo_studio::IconManager::Icon::ResetCamera));
+    button->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::ResetCamera));
   } else if (icon_name == "FitToView") {
-    button->setIcon(
-        nodo_studio::Icons::get(nodo_studio::IconManager::Icon::FitView));
+    button->setIcon(nodo_studio::Icons::get(nodo_studio::IconManager::Icon::FitView));
   }
 
   button->setToolTip(tooltip);

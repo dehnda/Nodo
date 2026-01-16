@@ -5,32 +5,28 @@
 
 namespace nodo::sop {
 
-DecimationSOP::DecimationSOP(const std::string& name)
-    : SOPNode(name, "Decimate") {
+DecimationSOP::DecimationSOP(const std::string& name) : SOPNode(name, "Decimate") {
   // Add input port
-  input_ports_.add_port("0", NodePort::Type::INPUT,
-                        NodePort::DataType::GEOMETRY, this);
+  input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
   initialize_parameters();
 }
 
 void DecimationSOP::initialize_parameters() {
   // Target reduction method
-  register_parameter(
-      define_bool_parameter("use_vertex_count", false)
-          .label("Use Vertex Count")
-          .category("Target")
-          .description("Use target vertex count instead of percentage")
-          .build());
+  register_parameter(define_bool_parameter("use_vertex_count", false)
+                         .label("Use Vertex Count")
+                         .category("Target")
+                         .description("Use target vertex count instead of percentage")
+                         .build());
 
   // Target percentage (0.0 to 1.0)
-  register_parameter(
-      define_float_parameter("target_percentage", 0.5F)
-          .label("Target %")
-          .range(0.01F, 1.0F)
-          .category("Target")
-          .description("Target as percentage of original vertices")
-          .build());
+  register_parameter(define_float_parameter("target_percentage", 0.5F)
+                         .label("Target %")
+                         .range(0.01F, 1.0F)
+                         .category("Target")
+                         .description("Target as percentage of original vertices")
+                         .build());
 
   // Target vertex count
   register_parameter(define_int_parameter("target_vertex_count", 1000)
@@ -41,13 +37,12 @@ void DecimationSOP::initialize_parameters() {
                          .build());
 
   // Quality controls
-  register_parameter(
-      define_float_parameter("aspect_ratio", 0.0F)
-          .label("Aspect Ratio")
-          .range(0.0F, 10.0F)
-          .category("Quality")
-          .description("Shape preservation (0=disabled, higher=better quality)")
-          .build());
+  register_parameter(define_float_parameter("aspect_ratio", 0.0F)
+                         .label("Aspect Ratio")
+                         .range(0.0F, 10.0F)
+                         .category("Quality")
+                         .description("Shape preservation (0=disabled, higher=better quality)")
+                         .build());
 
   // Topology preservation
   register_parameter(define_bool_parameter("preserve_topology", true)
@@ -79,14 +74,11 @@ std::shared_ptr<core::GeometryContainer> DecimationSOP::execute() {
 
   // Get parameters
   const bool use_vertex_count = get_parameter<bool>("use_vertex_count", false);
-  const float target_percentage =
-      get_parameter<float>("target_percentage", 0.5F);
-  const int target_vertex_count =
-      get_parameter<int>("target_vertex_count", 1000);
+  const float target_percentage = get_parameter<float>("target_percentage", 0.5F);
+  const int target_vertex_count = get_parameter<int>("target_vertex_count", 1000);
   const float aspect_ratio = get_parameter<float>("aspect_ratio", 0.0F);
   const bool preserve_topology = get_parameter<bool>("preserve_topology", true);
-  const bool preserve_boundaries =
-      get_parameter<bool>("preserve_boundaries", true);
+  const bool preserve_boundaries = get_parameter<bool>("preserve_boundaries", true);
 
   // Set up decimation parameters
   processing::DecimationParams params;

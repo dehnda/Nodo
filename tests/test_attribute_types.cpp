@@ -38,16 +38,11 @@ TEST_F(AttributeTypesTest, ComponentCounts) {
 TEST_F(AttributeTypesTest, DefaultInterpolation) {
   using namespace attribute_traits;
 
-  EXPECT_EQ(default_interpolation(AttributeType::FLOAT),
-            InterpolationMode::LINEAR);
-  EXPECT_EQ(default_interpolation(AttributeType::VEC3F),
-            InterpolationMode::LINEAR);
-  EXPECT_EQ(default_interpolation(AttributeType::INT),
-            InterpolationMode::DISCRETE);
-  EXPECT_EQ(default_interpolation(AttributeType::STRING),
-            InterpolationMode::DISCRETE);
-  EXPECT_EQ(default_interpolation(AttributeType::QUATERNION),
-            InterpolationMode::QUATERNION_SLERP);
+  EXPECT_EQ(default_interpolation(AttributeType::FLOAT), InterpolationMode::LINEAR);
+  EXPECT_EQ(default_interpolation(AttributeType::VEC3F), InterpolationMode::LINEAR);
+  EXPECT_EQ(default_interpolation(AttributeType::INT), InterpolationMode::DISCRETE);
+  EXPECT_EQ(default_interpolation(AttributeType::STRING), InterpolationMode::DISCRETE);
+  EXPECT_EQ(default_interpolation(AttributeType::QUATERNION), InterpolationMode::QUATERNION_SLERP);
 }
 
 TEST_F(AttributeTypesTest, TypeChecks) {
@@ -101,10 +96,8 @@ TEST_F(AttributeTypesTest, InterpolationModeNames) {
   using namespace attribute_traits;
 
   EXPECT_STREQ(interpolation_mode_name(InterpolationMode::LINEAR), "linear");
-  EXPECT_STREQ(interpolation_mode_name(InterpolationMode::DISCRETE),
-               "discrete");
-  EXPECT_STREQ(interpolation_mode_name(InterpolationMode::QUATERNION_SLERP),
-               "quaternion_slerp");
+  EXPECT_STREQ(interpolation_mode_name(InterpolationMode::DISCRETE), "discrete");
+  EXPECT_STREQ(interpolation_mode_name(InterpolationMode::QUATERNION_SLERP), "quaternion_slerp");
   EXPECT_STREQ(interpolation_mode_name(InterpolationMode::SMOOTH), "smooth");
 }
 

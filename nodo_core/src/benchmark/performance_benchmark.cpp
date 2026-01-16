@@ -41,10 +41,8 @@ struct BenchmarkResult {
 class PerformanceBenchmark {
 public:
   void run_benchmark(const BenchmarkConfig& config) {
-    std::cout
-        << "\n╔════════════════════════════════════════════════════════╗\n";
-    std::cout << "║  Running Benchmark: " << std::left << std::setw(32)
-              << config.name << " ║\n";
+    std::cout << "\n╔════════════════════════════════════════════════════════╗\n";
+    std::cout << "║  Running Benchmark: " << std::left << std::setw(32) << config.name << " ║\n";
     std::cout << "╚════════════════════════════════════════════════════════╝\n";
 
     // Load graph
@@ -82,13 +80,11 @@ public:
         continue;
       }
 
-      auto duration =
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
       double time_ms = duration.count() / 1000.0;
       execution_times.push_back(time_ms);
 
-      std::cout << "  Iteration " << (i + 1) << "/" << config.iterations << ": "
-                << time_ms << " ms\n";
+      std::cout << "  Iteration " << (i + 1) << "/" << config.iterations << ": " << time_ms << " ms\n";
     }
 
     // Calculate statistics
@@ -140,28 +136,18 @@ public:
     }
 
     // Print results
-    std::cout
-        << "\n╔════════════════════════════════════════════════════════╗\n";
-    std::cout << "║  Results: " << std::left << std::setw(44) << config.name
-              << " ║\n";
+    std::cout << "\n╔════════════════════════════════════════════════════════╗\n";
+    std::cout << "║  Results: " << std::left << std::setw(44) << config.name << " ║\n";
     std::cout << "╠════════════════════════════════════════════════════════╣\n";
-    std::cout << "║  Average:  " << std::setw(8) << avg_time << " ms"
-              << std::string(29, ' ') << "║\n";
-    std::cout << "║  Min:      " << std::setw(8) << min_time << " ms"
-              << std::string(29, ' ') << "║\n";
-    std::cout << "║  Max:      " << std::setw(8) << max_time << " ms"
-              << std::string(29, ' ') << "║\n";
-    std::cout << "║  Std Dev:  " << std::setw(8) << std_dev << " ms"
-              << std::string(29, ' ') << "║\n";
+    std::cout << "║  Average:  " << std::setw(8) << avg_time << " ms" << std::string(29, ' ') << "║\n";
+    std::cout << "║  Min:      " << std::setw(8) << min_time << " ms" << std::string(29, ' ') << "║\n";
+    std::cout << "║  Max:      " << std::setw(8) << max_time << " ms" << std::string(29, ' ') << "║\n";
+    std::cout << "║  Std Dev:  " << std::setw(8) << std_dev << " ms" << std::string(29, ' ') << "║\n";
     std::cout << "║  " << std::string(52, '-') << "║\n";
-    std::cout << "║  Nodes:        " << std::setw(8) << graph.get_nodes().size()
-              << std::string(29, ' ') << "║\n";
-    std::cout << "║  Points:       " << std::setw(8) << point_count
-              << std::string(29, ' ') << "║\n";
-    std::cout << "║  Primitives:   " << std::setw(8) << prim_count
-              << std::string(29, ' ') << "║\n";
-    std::cout << "║  Cache Used:   " << std::setw(8)
-              << (!config.clear_cache_between_runs ? "Yes" : "No")
+    std::cout << "║  Nodes:        " << std::setw(8) << graph.get_nodes().size() << std::string(29, ' ') << "║\n";
+    std::cout << "║  Points:       " << std::setw(8) << point_count << std::string(29, ' ') << "║\n";
+    std::cout << "║  Primitives:   " << std::setw(8) << prim_count << std::string(29, ' ') << "║\n";
+    std::cout << "║  Cache Used:   " << std::setw(8) << (!config.clear_cache_between_runs ? "Yes" : "No")
               << std::string(29, ' ') << "║\n";
     std::cout << "╚════════════════════════════════════════════════════════╝\n";
 
@@ -169,18 +155,15 @@ public:
     std::cout << "\nPer-Node Cook Times:\n";
     std::cout << "────────────────────\n";
     for (const auto& node_ptr : graph.get_nodes()) {
-      std::cout << "  Node " << node_ptr->get_id() << " ("
-                << node_ptr->get_name() << "): " << node_ptr->get_cook_time()
+      std::cout << "  Node " << node_ptr->get_id() << " (" << node_ptr->get_name() << "): " << node_ptr->get_cook_time()
                 << " ms\n";
     }
   }
 
   void run_cache_comparison(const std::string& graph_file) {
-    std::cout
-        << "\n╔═══════════════════════════════════════════════════════╗\n";
+    std::cout << "\n╔═══════════════════════════════════════════════════════╗\n";
     std::cout << "║           CACHE PERFORMANCE COMPARISON                ║\n";
-    std::cout
-        << "╚═══════════════════════════════════════════════════════╝\n\n";
+    std::cout << "╚═══════════════════════════════════════════════════════╝\n\n";
 
     // Test with cache enabled
     std::cout << "Testing WITH cache...\n";
@@ -208,12 +191,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Usage:\n";
     std::cout << "  " << argv[0] << " <graph.nfg> [--cache-compare]\n\n";
     std::cout << "Options:\n";
-    std::cout
-        << "  --cache-compare  Compare performance with/without caching\n\n";
+    std::cout << "  --cache-compare  Compare performance with/without caching\n\n";
     std::cout << "Examples:\n";
     std::cout << "  " << argv[0] << " projects/Simple_A.nfg\n";
-    std::cout << "  " << argv[0]
-              << " projects/copy_to_points.nfg --cache-compare\n";
+    std::cout << "  " << argv[0] << " projects/copy_to_points.nfg --cache-compare\n";
     return 1;
   }
 

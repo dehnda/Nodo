@@ -72,8 +72,7 @@ TEST_F(GeometryContainerTest, AddPrimitiveAttributes) {
   geo.set_primitive_count(20);
 
   EXPECT_TRUE(geo.add_primitive_attribute("material_id", AttributeType::INT));
-  EXPECT_TRUE(
-      geo.add_primitive_attribute("primitive_Cd", AttributeType::VEC3F));
+  EXPECT_TRUE(geo.add_primitive_attribute("primitive_Cd", AttributeType::VEC3F));
 
   EXPECT_TRUE(geo.has_primitive_attribute("material_id"));
   EXPECT_TRUE(geo.has_primitive_attribute("primitive_Cd"));

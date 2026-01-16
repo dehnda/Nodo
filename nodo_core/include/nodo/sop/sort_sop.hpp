@@ -23,8 +23,7 @@ public:
   static constexpr int NODE_VERSION = 1;
 
   explicit SortSOP(const std::string& name = "sort") : SOPNode(name, "Sort") {
-    input_ports_.add_port("0", NodePort::Type::INPUT,
-                          NodePort::DataType::GEOMETRY, this);
+    input_ports_.add_port("0", NodePort::Type::INPUT, NodePort::DataType::GEOMETRY, this);
 
     // Element class to sort
     register_parameter(define_int_parameter("class", 0)
@@ -37,8 +36,7 @@ public:
     // Sort key
     register_parameter(define_int_parameter("key", 0)
                            .label("Sort By")
-                           .options({"X Position", "Y Position", "Z Position",
-                                     "Reverse", "Random", "Attribute"})
+                           .options({"X Position", "Y Position", "Z Position", "Reverse", "Random", "Attribute"})
                            .category("Sort")
                            .description("Criteria for sorting elements")
                            .build());
@@ -52,13 +50,12 @@ public:
                            .build());
 
     // Sort order (visible for position and attribute modes)
-    register_parameter(
-        define_int_parameter("order", 0)
-            .label("Order")
-            .options({"Ascending", "Descending"})
-            .category("Sort")
-            .description("Sort direction (ascending or descending)")
-            .build());
+    register_parameter(define_int_parameter("order", 0)
+                           .label("Order")
+                           .options({"Ascending", "Descending"})
+                           .category("Sort")
+                           .description("Sort direction (ascending or descending)")
+                           .build());
 
     // Random seed
     register_parameter(define_int_parameter("seed", 0)

@@ -11,11 +11,9 @@ namespace attrs = nodo::core::standard_attrs;
 namespace nodo::geometry {
 
 // Thread-local storage for error reporting
-thread_local core::Error MeshGenerator::last_error_{
-    core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
+thread_local core::Error MeshGenerator::last_error_{core::ErrorCategory::Unknown, core::ErrorCode::Unknown, "No error"};
 
-core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d& min_corner,
-                                           const Eigen::Vector3d& max_corner) {
+core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d& min_corner, const Eigen::Vector3d& max_corner) {
   core::GeometryContainer container;
 
   // Set up topology - 8 vertices, 12 triangular faces
@@ -24,22 +22,14 @@ core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d& min_corner,
 
   // Store positions
   std::vector<core::Vec3f> positions = {
-      {static_cast<float>(min_corner.x()), static_cast<float>(min_corner.y()),
-       static_cast<float>(min_corner.z())}, // 0
-      {static_cast<float>(max_corner.x()), static_cast<float>(min_corner.y()),
-       static_cast<float>(min_corner.z())}, // 1
-      {static_cast<float>(max_corner.x()), static_cast<float>(max_corner.y()),
-       static_cast<float>(min_corner.z())}, // 2
-      {static_cast<float>(min_corner.x()), static_cast<float>(max_corner.y()),
-       static_cast<float>(min_corner.z())}, // 3
-      {static_cast<float>(min_corner.x()), static_cast<float>(min_corner.y()),
-       static_cast<float>(max_corner.z())}, // 4
-      {static_cast<float>(max_corner.x()), static_cast<float>(min_corner.y()),
-       static_cast<float>(max_corner.z())}, // 5
-      {static_cast<float>(max_corner.x()), static_cast<float>(max_corner.y()),
-       static_cast<float>(max_corner.z())}, // 6
-      {static_cast<float>(min_corner.x()), static_cast<float>(max_corner.y()),
-       static_cast<float>(max_corner.z())} // 7
+      {static_cast<float>(min_corner.x()), static_cast<float>(min_corner.y()), static_cast<float>(min_corner.z())}, // 0
+      {static_cast<float>(max_corner.x()), static_cast<float>(min_corner.y()), static_cast<float>(min_corner.z())}, // 1
+      {static_cast<float>(max_corner.x()), static_cast<float>(max_corner.y()), static_cast<float>(min_corner.z())}, // 2
+      {static_cast<float>(min_corner.x()), static_cast<float>(max_corner.y()), static_cast<float>(min_corner.z())}, // 3
+      {static_cast<float>(min_corner.x()), static_cast<float>(min_corner.y()), static_cast<float>(max_corner.z())}, // 4
+      {static_cast<float>(max_corner.x()), static_cast<float>(min_corner.y()), static_cast<float>(max_corner.z())}, // 5
+      {static_cast<float>(max_corner.x()), static_cast<float>(max_corner.y()), static_cast<float>(max_corner.z())}, // 6
+      {static_cast<float>(min_corner.x()), static_cast<float>(max_corner.y()), static_cast<float>(max_corner.z())}  // 7
   };
 
   // Add faces (12 triangles, 2 per cube face)
@@ -93,9 +83,7 @@ core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d& min_corner,
     // Normalize and copy
     for (size_t i = 0; i < 8; ++i) {
       core::Vec3f normal = normals[i];
-      const float length =
-          std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) +
-                    (normal[2] * normal[2]));
+      const float length = std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) + (normal[2] * normal[2]));
       if (length > 0.0F) {
         normal[0] /= length;
         normal[1] /= length;
@@ -108,9 +96,8 @@ core::GeometryContainer MeshGenerator::box(const Eigen::Vector3d& min_corner,
   return container;
 }
 
-std::optional<core::GeometryContainer>
-MeshGenerator::sphere(const Eigen::Vector3d& center, double radius,
-                      int subdivisions) {
+std::optional<core::GeometryContainer> MeshGenerator::sphere(const Eigen::Vector3d& center, double radius,
+                                                             int subdivisions) {
   if (!validate_sphere_params(radius, subdivisions)) {
     return std::nullopt;
   }
@@ -126,12 +113,10 @@ MeshGenerator::sphere(const Eigen::Vector3d& center, double radius,
 
   // Translate the sphere to the desired center if needed
   if (center != Eigen::Vector3d::Zero()) {
-    auto* positions =
-        container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+    auto* positions = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
     if (positions != nullptr) {
       auto p_span = positions->values_writable();
-      const core::Vec3f offset{static_cast<float>(center.x()),
-                               static_cast<float>(center.y()),
+      const core::Vec3f offset{static_cast<float>(center.x()), static_cast<float>(center.y()),
                                static_cast<float>(center.z())};
       for (size_t i = 0; i < p_span.size(); ++i) {
         p_span[i][0] += offset[0];
@@ -144,25 +129,22 @@ MeshGenerator::sphere(const Eigen::Vector3d& center, double radius,
   return container;
 }
 
-std::optional<core::GeometryContainer>
-MeshGenerator::cylinder(const Eigen::Vector3d& bottom_center,
-                        const Eigen::Vector3d& top_center, double radius,
-                        int segments) {
+std::optional<core::GeometryContainer> MeshGenerator::cylinder(const Eigen::Vector3d& bottom_center,
+                                                               const Eigen::Vector3d& top_center, double radius,
+                                                               int segments) {
   if (!validate_cylinder_params(radius, segments)) {
     return std::nullopt;
   }
 
-  return generate_cylinder_geometry(bottom_center, top_center, radius,
-                                    segments);
+  return generate_cylinder_geometry(bottom_center, top_center, radius, segments);
 }
 
 const core::Error& MeshGenerator::last_error() {
   return last_error_;
 }
 
-core::GeometryContainer
-MeshGenerator::generate_icosphere(const Eigen::Vector3d& center, double radius,
-                                  [[maybe_unused]] int subdivisions) {
+core::GeometryContainer MeshGenerator::generate_icosphere(const Eigen::Vector3d& center, double radius,
+                                                          [[maybe_unused]] int subdivisions) {
   // Simple octahedron approximation projected to sphere
   // This is a simplified implementation - for real icosphere use
   // SphereGenerator
@@ -175,18 +157,12 @@ MeshGenerator::generate_icosphere(const Eigen::Vector3d& center, double radius,
 
   // Store positions (octahedron vertices)
   std::vector<core::Vec3f> positions = {
-      {static_cast<float>(center.x() + radius), static_cast<float>(center.y()),
-       static_cast<float>(center.z())}, // +X
-      {static_cast<float>(center.x() - radius), static_cast<float>(center.y()),
-       static_cast<float>(center.z())}, // -X
-      {static_cast<float>(center.x()), static_cast<float>(center.y() + radius),
-       static_cast<float>(center.z())}, // +Y
-      {static_cast<float>(center.x()), static_cast<float>(center.y() - radius),
-       static_cast<float>(center.z())}, // -Y
-      {static_cast<float>(center.x()), static_cast<float>(center.y()),
-       static_cast<float>(center.z() + radius)}, // +Z
-      {static_cast<float>(center.x()), static_cast<float>(center.y()),
-       static_cast<float>(center.z() - radius)} // -Z
+      {static_cast<float>(center.x() + radius), static_cast<float>(center.y()), static_cast<float>(center.z())}, // +X
+      {static_cast<float>(center.x() - radius), static_cast<float>(center.y()), static_cast<float>(center.z())}, // -X
+      {static_cast<float>(center.x()), static_cast<float>(center.y() + radius), static_cast<float>(center.z())}, // +Y
+      {static_cast<float>(center.x()), static_cast<float>(center.y() - radius), static_cast<float>(center.z())}, // -Y
+      {static_cast<float>(center.x()), static_cast<float>(center.y()), static_cast<float>(center.z() + radius)}, // +Z
+      {static_cast<float>(center.x()), static_cast<float>(center.y()), static_cast<float>(center.z() - radius)}  // -Z
   };
 
   // Octahedron faces (8 faces)
@@ -212,17 +188,13 @@ MeshGenerator::generate_icosphere(const Eigen::Vector3d& center, double radius,
   auto* n_storage = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
   if (n_storage != nullptr) {
     auto n_span = n_storage->values_writable();
-    const core::Vec3f center_vec{static_cast<float>(center.x()),
-                                 static_cast<float>(center.y()),
+    const core::Vec3f center_vec{static_cast<float>(center.x()), static_cast<float>(center.y()),
                                  static_cast<float>(center.z())};
 
     for (size_t i = 0; i < positions.size(); ++i) {
-      core::Vec3f normal = {positions[i][0] - center_vec[0],
-                            positions[i][1] - center_vec[1],
+      core::Vec3f normal = {positions[i][0] - center_vec[0], positions[i][1] - center_vec[1],
                             positions[i][2] - center_vec[2]};
-      const float length =
-          std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) +
-                    (normal[2] * normal[2]));
+      const float length = std::sqrt((normal[0] * normal[0]) + (normal[1] * normal[1]) + (normal[2] * normal[2]));
       if (length > 0.0F) {
         normal[0] /= length;
         normal[1] /= length;
@@ -235,10 +207,9 @@ MeshGenerator::generate_icosphere(const Eigen::Vector3d& center, double radius,
   return container;
 }
 
-core::GeometryContainer
-MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
-                                          const Eigen::Vector3d& top_center,
-                                          double radius, int segments) {
+core::GeometryContainer MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
+                                                                  const Eigen::Vector3d& top_center, double radius,
+                                                                  int segments) {
   core::GeometryContainer container;
   auto& topology = container.topology();
 
@@ -250,37 +221,27 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
   positions.reserve(num_vertices);
 
   // Bottom center (index 0)
-  positions.push_back({static_cast<float>(bottom_center.x()),
-                       static_cast<float>(bottom_center.y()),
+  positions.push_back({static_cast<float>(bottom_center.x()), static_cast<float>(bottom_center.y()),
                        static_cast<float>(bottom_center.z())});
 
   // Top center (index 1)
-  positions.push_back({static_cast<float>(top_center.x()),
-                       static_cast<float>(top_center.y()),
-                       static_cast<float>(top_center.z())});
+  positions.push_back(
+      {static_cast<float>(top_center.x()), static_cast<float>(top_center.y()), static_cast<float>(top_center.z())});
 
   // Bottom ring (indices 2 to 2+segments-1)
   for (int i = 0; i < segments; ++i) {
-    const double angle = nodo::core::math::TAU * static_cast<double>(i) /
-                         static_cast<double>(segments);
-    const Eigen::Vector3d offset(radius * std::cos(angle),
-                                 radius * std::sin(angle), 0);
+    const double angle = nodo::core::math::TAU * static_cast<double>(i) / static_cast<double>(segments);
+    const Eigen::Vector3d offset(radius * std::cos(angle), radius * std::sin(angle), 0);
     const Eigen::Vector3d pos = bottom_center + offset;
-    positions.push_back({static_cast<float>(pos.x()),
-                         static_cast<float>(pos.y()),
-                         static_cast<float>(pos.z())});
+    positions.push_back({static_cast<float>(pos.x()), static_cast<float>(pos.y()), static_cast<float>(pos.z())});
   }
 
   // Top ring (indices 2+segments to 2+segments*2-1)
   for (int i = 0; i < segments; ++i) {
-    const double angle = nodo::core::math::TAU * static_cast<double>(i) /
-                         static_cast<double>(segments);
-    const Eigen::Vector3d offset(radius * std::cos(angle),
-                                 radius * std::sin(angle), 0);
+    const double angle = nodo::core::math::TAU * static_cast<double>(i) / static_cast<double>(segments);
+    const Eigen::Vector3d offset(radius * std::cos(angle), radius * std::sin(angle), 0);
     const Eigen::Vector3d pos = top_center + offset;
-    positions.push_back({static_cast<float>(pos.x()),
-                         static_cast<float>(pos.y()),
-                         static_cast<float>(pos.z())});
+    positions.push_back({static_cast<float>(pos.x()), static_cast<float>(pos.y()), static_cast<float>(pos.z())});
   }
 
   // Generate faces
@@ -326,17 +287,14 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
     const Eigen::Vector3d axis = (top_center - bottom_center).normalized();
 
     // Bottom center normal (pointing down)
-    n_span[0] = {static_cast<float>(-axis.x()), static_cast<float>(-axis.y()),
-                 static_cast<float>(-axis.z())};
+    n_span[0] = {static_cast<float>(-axis.x()), static_cast<float>(-axis.y()), static_cast<float>(-axis.z())};
 
     // Top center normal (pointing up)
-    n_span[1] = {static_cast<float>(axis.x()), static_cast<float>(axis.y()),
-                 static_cast<float>(axis.z())};
+    n_span[1] = {static_cast<float>(axis.x()), static_cast<float>(axis.y()), static_cast<float>(axis.z())};
 
     // Bottom ring normals (radial outward)
     for (int i = 0; i < segments; ++i) {
-      const double angle = nodo::core::math::TAU * static_cast<double>(i) /
-                           static_cast<double>(segments);
+      const double angle = nodo::core::math::TAU * static_cast<double>(i) / static_cast<double>(segments);
       const float nx = static_cast<float>(std::cos(angle));
       const float ny = static_cast<float>(std::sin(angle));
       n_span[2 + i] = {nx, ny, 0.0F};
@@ -344,8 +302,7 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
 
     // Top ring normals (same radial pattern)
     for (int i = 0; i < segments; ++i) {
-      const double angle = nodo::core::math::TAU * static_cast<double>(i) /
-                           static_cast<double>(segments);
+      const double angle = nodo::core::math::TAU * static_cast<double>(i) / static_cast<double>(segments);
       const float nx = static_cast<float>(std::cos(angle));
       const float ny = static_cast<float>(std::sin(angle));
       n_span[2 + segments + i] = {nx, ny, 0.0F};
@@ -357,15 +314,13 @@ MeshGenerator::generate_cylinder_geometry(const Eigen::Vector3d& bottom_center,
 
 bool MeshGenerator::validate_sphere_params(double radius, int subdivisions) {
   if (radius <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidMesh,
-                               "Sphere radius must be positive"});
+    set_last_error(
+        core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh, "Sphere radius must be positive"});
     return false;
   }
 
   if (subdivisions < 0 || subdivisions > 5) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidMesh,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
                                "Sphere subdivisions must be between 0 and 5"});
     return false;
   }
@@ -375,15 +330,13 @@ bool MeshGenerator::validate_sphere_params(double radius, int subdivisions) {
 
 bool MeshGenerator::validate_cylinder_params(double radius, int segments) {
   if (radius <= 0.0) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidMesh,
-                               "Cylinder radius must be positive"});
+    set_last_error(
+        core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh, "Cylinder radius must be positive"});
     return false;
   }
 
   if (segments < 3) {
-    set_last_error(core::Error{core::ErrorCategory::Validation,
-                               core::ErrorCode::InvalidMesh,
+    set_last_error(core::Error{core::ErrorCategory::Validation, core::ErrorCode::InvalidMesh,
                                "Cylinder must have at least 3 segments"});
     return false;
   }
