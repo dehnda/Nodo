@@ -33,7 +33,6 @@ set(NODO_CORE_SOURCES
     src/core/geometry_attributes.cpp
     src/core/geometry_container.cpp
     src/core/math.cpp
-    src/core/mesh.cpp
 
     # Host Interface (M2.1)
     src/IHostInterface.cpp
@@ -102,7 +101,6 @@ set(NODO_CORE_HEADERS
     include/nodo/core/error.hpp
     include/nodo/core/geometry_attributes.hpp
     include/nodo/core/math.hpp
-    include/nodo/core/mesh.hpp
     # Add more headers as needed
 )
 

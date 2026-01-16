@@ -13,8 +13,6 @@ add_executable(nodo_tests
     test_math.cpp
 
     # Mesh & Geometry Core
-    test_mesh.cpp
-    test_mesh_generator.cpp
     test_element_topology.cpp
     test_geometry_container.cpp
 

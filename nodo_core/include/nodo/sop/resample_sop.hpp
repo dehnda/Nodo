@@ -1,6 +1,5 @@
 #pragma once
 
-#include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
 
 #include <memory>

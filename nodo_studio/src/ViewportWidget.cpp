@@ -11,7 +11,6 @@
 #include <QtMath>
 
 #include <nodo/core/geometry_container.hpp>
-#include <nodo/core/mesh.hpp>
 
 // Vertex shader source (GLSL 330)
 static const char* vertex_shader_source = R"(

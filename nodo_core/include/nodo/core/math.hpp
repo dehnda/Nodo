@@ -4,11 +4,6 @@
 
 #include <cmath>
 
-// Forward declaration
-namespace nodo::core {
-class Mesh;
-} // namespace nodo::core
-
 namespace nodo::core::math {
 
 // ============================================================================
