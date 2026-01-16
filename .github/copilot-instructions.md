@@ -32,5 +32,38 @@ Use the VS Code task "CMake Configure & Build" but note it uses the default pres
 - GTest (for tests)
 
 ## Coding Standards
-- C++20
-- Follow existing code style in the project
+
+### Language & Style
+- **C++20** standard
+- Project uses **clang-format**, **clang-tidy**, and **clangd** for code quality
+- All style rules are defined in `.clang-format` and `.clang-tidy` at project root
+
+### Naming Conventions (enforced by clang-tidy)
+- **Classes/Structs/Enums**: `PascalCase` (e.g., `GeometryContainer`, `NodeGraph`)
+- **Methods/Functions**: `camelBack` (e.g., `setupShaders()`, `computeNormals()`)
+- **Variables/Parameters**: `snake_case` (e.g., `vertex_count`, `node_id`)
+- **Member Variables**: `snake_case` with trailing underscore (e.g., `camera_distance_`, `frame_count_`)
+- **Constants**: `UPPER_CASE` (e.g., `MAX_VERTICES`, `NODE_VERSION`)
+- **Namespaces**: `snake_case` (e.g., `nodo::core`, `nodo::sop`)
+
+### Formatting Rules (clang-format)
+- **Indentation**: 2 spaces (no tabs)
+- **Line Length**: 120 characters max
+- **Braces**: K&R style (opening brace on same line)
+- **Pointer/Reference**: Left-aligned (e.g., `int* ptr`, `const std::string& str`)
+- **Spacing**: Space after keywords, before `{`, in control statements
+
+### Include Order (clang-format enforced)
+1. Project headers: `"nodo/..."`
+2. Other local headers: `"..."`
+3. Qt headers: `<Q...>`
+4. Eigen headers: `<Eigen/...>`
+5. Standard library: `<vector>`, `<string>`, etc.
+6. Other system headers
+
+### Best Practices
+- Use `auto` for complex types, explicit types for clarity
+- Prefer `const` correctness
+- Use smart pointers (`std::unique_ptr`, `std::shared_ptr`) over raw pointers
+- Document public APIs with Doxygen-style comments (`/** @brief ... */`)
+- Write unit tests for new features (GTest framework)

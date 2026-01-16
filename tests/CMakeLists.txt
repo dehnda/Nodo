@@ -24,6 +24,9 @@ add_executable(nodo_tests
     # Processing (PMP Integration)
     test_pmp_converter.cpp
 
+    # Boolean Operations
+    test_boolean_ops.cpp
+
     # Attribute System
     test_attribute_types.cpp
     test_attribute_storage.cpp

@@ -77,9 +77,10 @@ std::optional<core::GeometryContainer> SphereGenerator::generate_uv_sphere(doubl
 
   // Generate faces
   // Top cap faces (triangles - pole creates triangles, not quads)
+  // Counter-clockwise winding when viewed from outside
   for (int segment = 0; segment < u_segments; ++segment) {
     const int next_segment = (segment + 1) % u_segments;
-    primitive_vertices.push_back({0, 1 + segment, 1 + next_segment});
+    primitive_vertices.push_back({0, 1 + next_segment, 1 + segment});
   }
 
   // Middle faces (quads)
@@ -89,18 +90,19 @@ std::optional<core::GeometryContainer> SphereGenerator::generate_uv_sphere(doubl
       const int current_ring = 1 + (ring * u_segments);
       const int next_ring = 1 + ((ring + 1) * u_segments);
 
-      // Single quad (counter-clockwise winding)
+      // Single quad (counter-clockwise winding when viewed from outside)
       primitive_vertices.push_back(
-          {current_ring + segment, next_ring + segment, next_ring + next_segment, current_ring + next_segment});
+          {current_ring + segment, current_ring + next_segment, next_ring + next_segment, next_ring + segment});
     }
   }
 
   // Bottom cap faces (triangles - pole creates triangles, not quads)
+  // Counter-clockwise winding when viewed from outside
   const int bottom_pole = num_vertices - 1;
   const int last_ring = 1 + ((v_segments - 2) * u_segments);
   for (int segment = 0; segment < u_segments; ++segment) {
     const int next_segment = (segment + 1) % u_segments;
-    primitive_vertices.push_back({bottom_pole, last_ring + next_segment, last_ring + segment});
+    primitive_vertices.push_back({bottom_pole, last_ring + segment, last_ring + next_segment});
   }
 
   // Update counts to actual size
