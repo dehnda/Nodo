@@ -1,7 +1,6 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
-#include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
 
 #include <memory>

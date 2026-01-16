@@ -1,3 +1,5 @@
+#include "test_utils.hpp"
+
 #include <gtest/gtest.h>
 #include <nodo/geometry/box_generator.hpp>
 #include <nodo/geometry/cylinder_generator.hpp>
@@ -5,54 +7,8 @@
 #include <nodo/geometry/sphere_generator.hpp>
 #include <nodo/geometry/torus_generator.hpp>
 
+
 using namespace nodo;
-
-// Helper to convert GeometryContainer to Mesh
-// Handles both triangles and quads
-static core::Mesh container_to_mesh(const core::GeometryContainer& container) {
-  const auto& topology = container.topology();
-
-  // Extract positions
-  auto* p_storage = container.get_point_attribute_typed<core::Vec3f>(core::standard_attrs::P);
-  if (!p_storage)
-    return core::Mesh();
-
-  Eigen::MatrixXd vertices(topology.point_count(), 3);
-  auto p_span = p_storage->values();
-  for (size_t i = 0; i < p_span.size(); ++i) {
-    vertices.row(i) = p_span[i].cast<double>();
-  }
-
-  // Extract faces - convert vertex indices to point indices
-  // Mesh class requires triangles, so triangulate quads if needed
-  std::vector<Eigen::Vector3i> triangle_list;
-  for (size_t prim_idx = 0; prim_idx < topology.primitive_count(); ++prim_idx) {
-    const auto& vert_indices = topology.get_primitive_vertices(prim_idx);
-
-    // Convert vertex indices to point indices
-    std::vector<int> point_indices;
-    for (int vert_idx : vert_indices) {
-      point_indices.push_back(topology.get_vertex_point(vert_idx));
-    }
-
-    if (point_indices.size() == 3) {
-      // Triangle - add directly
-      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
-    } else if (point_indices.size() == 4) {
-      // Quad - triangulate (fan from first vertex)
-      triangle_list.emplace_back(point_indices[0], point_indices[1], point_indices[2]);
-      triangle_list.emplace_back(point_indices[0], point_indices[2], point_indices[3]);
-    }
-  }
-
-  // Convert to Eigen matrix
-  Eigen::MatrixXi faces(triangle_list.size(), 3);
-  for (size_t i = 0; i < triangle_list.size(); ++i) {
-    faces.row(i) = triangle_list[i];
-  }
-
-  return core::Mesh(vertices, faces);
-}
 
 class MeshGeneratorTest : public ::testing::Test {
 protected:
@@ -70,7 +26,7 @@ TEST_F(MeshGeneratorTest, BoxGeneration) {
   auto container_result = geometry::BoxGenerator::generate(size_, size_, size_);
 
   ASSERT_TRUE(container_result.has_value());
-  auto result = container_to_mesh(*container_result);
+  auto result = test::container_to_mesh(*container_result);
   EXPECT_GT(result.vertices().rows(), 0);
   EXPECT_GT(result.faces().rows(), 0);
   EXPECT_EQ(result.vertices().cols(), 3);
@@ -87,7 +43,7 @@ TEST_F(MeshGeneratorTest, BoxDimensions) {
   auto container_result = geometry::BoxGenerator::generate(width, height, depth);
 
   ASSERT_TRUE(container_result.has_value());
-  auto result = container_to_mesh(*container_result);
+  auto result = test::container_to_mesh(*container_result);
 
   // Check bounding box
   Eigen::Vector3d min_bound = result.vertices().row(0).transpose();
@@ -108,7 +64,7 @@ TEST_F(MeshGeneratorTest, SphereUVGeneration) {
   auto container_result = geometry::SphereGenerator::generate_uv_sphere(size_, subdivisions_, subdivisions_);
 
   ASSERT_TRUE(container_result.has_value());
-  auto result = container_to_mesh(*container_result);
+  auto result = test::container_to_mesh(*container_result);
   EXPECT_GT(result.vertices().rows(), 0);
   EXPECT_GT(result.faces().rows(), 0);
 
@@ -124,7 +80,7 @@ TEST_F(MeshGeneratorTest, SphereIcospherGeneration) {
   auto container_result = geometry::SphereGenerator::generate_icosphere(size_, 2);
 
   ASSERT_TRUE(container_result.has_value());
-  auto result = container_to_mesh(*container_result);
+  auto result = test::container_to_mesh(*container_result);
   EXPECT_GT(result.vertices().rows(), 0);
   EXPECT_GT(result.faces().rows(), 0);
 
@@ -141,7 +97,7 @@ TEST_F(MeshGeneratorTest, CylinderGeneration) {
   auto container_result = geometry::CylinderGenerator::generate(size_, size_, subdivisions_);
 
   ASSERT_TRUE(container_result.has_value());
-  auto result = container_to_mesh(*container_result);
+  auto result = test::container_to_mesh(*container_result);
   EXPECT_GT(result.vertices().rows(), 0);
   EXPECT_GT(result.faces().rows(), 0);
 
@@ -172,7 +128,7 @@ TEST_F(MeshGeneratorTest, PlaneGeneration) {
   auto container_result = geometry::PlaneGenerator::generate(size_, size_, subdivisions_, subdivisions_);
 
   ASSERT_TRUE(container_result.has_value());
-  auto result = container_to_mesh(*container_result);
+  auto result = test::container_to_mesh(*container_result);
   EXPECT_GT(result.vertices().rows(), 0);
   EXPECT_GT(result.faces().rows(), 0);
 

@@ -4,7 +4,6 @@
 
 #include "nodo/graph/execution_engine.hpp"
 
-#include "nodo/core/mesh.hpp"
 #include "nodo/geometry/mesh_generator.hpp"
 #include "nodo/geometry/plane_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"

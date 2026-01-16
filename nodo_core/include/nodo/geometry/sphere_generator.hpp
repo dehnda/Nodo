@@ -2,7 +2,6 @@
 
 #include "../core/error.hpp"
 #include "../core/geometry_container.hpp"
-#include "../core/mesh.hpp"
 
 #include <optional>
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "nodo/core/geometry_container.hpp"
-#include "nodo/core/mesh.hpp"
 #include "nodo/sop/sop_node.hpp"
 
 #include <Eigen/Dense>
@@ -91,22 +90,6 @@ protected:
    * @brief Execute the extrusion operation (SOPNode override)
    */
   std::shared_ptr<core::GeometryContainer> execute() override;
-
-private:
-  /// Extrude faces along their individual normals
-  core::Mesh extrude_face_normals(const core::Mesh& input);
-
-  /// Extrude all faces in uniform direction
-  core::Mesh extrude_uniform_direction(const core::Mesh& input);
-
-  /// Extrude faces along averaged region normals
-  core::Mesh extrude_region_normals(const core::Mesh& input);
-
-  /// Calculate face normals for the mesh
-  Eigen::MatrixXd calculate_face_normals(const core::Mesh& mesh);
-
-  /// Create inset faces if inset > 0
-  void apply_inset(core::Mesh& mesh, double inset_amount);
 };
 
 } // namespace nodo::sop
