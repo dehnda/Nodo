@@ -42,10 +42,6 @@ set(NODO_CORE_SOURCES
     src/geometry/boolean_ops.cpp
     src/geometry/box_generator.cpp
     src/geometry/cylinder_generator.cpp
-    src/geometry/mesh_generator.cpp
-    src/geometry/mesh_generator_new.cpp
-    src/geometry/mesh_repairer.cpp
-    src/geometry/mesh_validator.cpp
     src/geometry/plane_generator.cpp
     src/geometry/sphere_generator.cpp
     src/geometry/torus_generator.cpp

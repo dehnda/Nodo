@@ -57,7 +57,6 @@
 #include "nodo/sop/wrangle_sop.hpp"
 
 // Include geometry generators (these will need SOP wrappers)
-#include "nodo/geometry/mesh_generator.hpp"
 #include "nodo/geometry/plane_generator.hpp"
 #include "nodo/geometry/sphere_generator.hpp"
 #include "nodo/geometry/torus_generator.hpp"

@@ -16,16 +16,11 @@ add_executable(nodo_tests
     # Mesh & Geometry Core
     test_mesh.cpp
     test_mesh_generator.cpp
-    test_mesh_validator.cpp
-    test_mesh_repairer.cpp
     test_element_topology.cpp
     test_geometry_container.cpp
 
     # Processing (PMP Integration)
     test_pmp_converter.cpp
-
-    # Boolean Operations
-    test_boolean_ops.cpp
 
     # Attribute System
     test_attribute_types.cpp

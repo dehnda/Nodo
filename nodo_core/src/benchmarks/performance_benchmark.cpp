@@ -1,7 +1,6 @@
 #include "nodo/benchmarks/performance_benchmark.hpp"
 
 #include "nodo/geometry/boolean_ops.hpp"
-#include "nodo/geometry/mesh_generator.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -324,27 +323,6 @@ core::Mesh PerformanceBenchmark::create_test_mesh(ComplexityLevel level) {
     default:
       return create_test_mesh(1000);
   }
-}
-
-core::Mesh PerformanceBenchmark::create_test_mesh(size_t triangle_count) {
-  // Create a sphere with appropriate subdivision level to reach target triangle
-  // count
-  int subdivisions = 0;
-  size_t current_triangles = 8; // Base icosahedron
-
-  while (current_triangles < triangle_count && subdivisions < 10) {
-    subdivisions++;
-    current_triangles *= 4; // Each subdivision quadruples triangle count
-  }
-
-  auto sphere_opt = geometry::MeshGenerator::sphere(Eigen::Vector3d::Zero(), 1.0, subdivisions);
-
-  if (sphere_opt) {
-    return *sphere_opt;
-  }
-
-  // Fallback to box if sphere generation fails
-  return geometry::MeshGenerator::box(Eigen::Vector3d(-1, -1, -1), Eigen::Vector3d(1, 1, 1));
 }
 
 std::vector<double> PerformanceBenchmark::time_function(std::function<void()> func, size_t iterations) {

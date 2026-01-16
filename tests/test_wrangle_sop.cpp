@@ -1,7 +1,6 @@
 #include "nodo/core/attribute_types.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
-#include "nodo/geometry/mesh_generator.hpp"
 #include "nodo/sop/wrangle_sop.hpp"
 
 #include <gtest/gtest.h>
