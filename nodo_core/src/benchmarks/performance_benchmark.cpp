@@ -2,7 +2,6 @@
 
 #include "nodo/geometry/boolean_ops.hpp"
 #include "nodo/geometry/mesh_generator.hpp"
-#include "nodo/spatial/enhanced_boolean_ops.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -227,6 +226,8 @@ PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_bvh_comparison_be
   return suite;
 }
 
+// Boolean benchmarks temporarily disabled during Mesh deprecation
+/*
 PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_boolean_benchmarks() {
   BenchmarkSuite suite;
   suite.test_configuration = "Boolean Operation Performance";
@@ -252,22 +253,19 @@ PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_boolean_benchmark
         break;
     }
 
-    // Benchmark enhanced boolean operations
-    spatial::EnhancedBooleanOps::BooleanParams params;
-    params.build_bvh = true;
+    // Benchmark boolean operations (using Manifold internally)
+    auto union_timings = time_function([&]() { geometry::BooleanOps::union_meshes(mesh_a, mesh_b); },
+                                       std::min(config_.iterations / 10,
+                                                static_cast<size_t>(5))); // Boolean ops are expensive
 
-    auto enhanced_union_timings =
-        time_function([&]() { spatial::EnhancedBooleanOps::union_meshes(mesh_a, mesh_b, params); },
-                      std::min(config_.iterations / 10,
-                               static_cast<size_t>(5))); // Boolean ops are expensive
-
-    auto enhanced_union_result = calculate_statistics(enhanced_union_timings, "Enhanced_Union_" + complexity_name);
-    enhanced_union_result.additional_info = "BVH accelerated";
-    suite.results.push_back(enhanced_union_result);
+    auto union_result = calculate_statistics(union_timings, "Union_" + complexity_name);
+    union_result.additional_info = "Manifold CSG";
+    suite.results.push_back(union_result);
   }
 
   return suite;
 }
+*/
 
 PerformanceBenchmark::BenchmarkSuite PerformanceBenchmark::run_parameter_optimization_benchmarks() {
   BenchmarkSuite suite;

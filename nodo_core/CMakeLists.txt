@@ -99,7 +99,6 @@ set(NODO_CORE_SOURCES
 
     # Spatial
     src/spatial/bvh.cpp
-    src/spatial/enhanced_boolean_ops.cpp
 
     # Expressions (M3.3 Phase 2)
     src/expressions/ExpressionEvaluator.cpp
