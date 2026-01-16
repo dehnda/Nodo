@@ -39,7 +39,7 @@ public:
   bool report_progress(int current, int total, const std::string& message) override {
     if (verbose_) {
       // Calculate percentage
-      float percent = (static_cast<float>(current) / total) * 100.0f;
+      float percent = (static_cast<float>(current) / static_cast<float>(total)) * 100.0f;
 
       // Print progress bar
       std::cout << "\r[";
