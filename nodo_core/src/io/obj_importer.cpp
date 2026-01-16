@@ -1,12 +1,17 @@
 #include "nodo/io/obj_importer.hpp"
 
+#include "nodo/core/attribute_types.hpp"
+#include "nodo/core/standard_attributes.hpp"
+
 #include <algorithm>
 #include <fstream>
 #include <sstream>
 
+namespace attrs = nodo::core::standard_attrs;
+
 namespace nodo::io {
 
-std::optional<core::Mesh> ObjImporter::import_mesh(const std::string& filename) {
+std::optional<core::GeometryContainer> ObjImporter::import(const std::string& filename) {
   auto content = read_file(filename);
   if (!content) {
     return std::nullopt;
@@ -15,33 +20,59 @@ std::optional<core::Mesh> ObjImporter::import_mesh(const std::string& filename) 
   return import_from_string(*content);
 }
 
-std::optional<core::Mesh> ObjImporter::import_from_string(const std::string& obj_content) {
+std::optional<core::GeometryContainer> ObjImporter::import_from_string(const std::string& obj_content) {
   auto parsed = parse_obj_content(obj_content);
   if (!parsed || parsed->vertices.empty()) {
     return std::nullopt;
   }
 
-  // Convert vectors to Eigen matrices
-  const int vertex_count = static_cast<int>(parsed->vertices.size());
+  core::GeometryContainer container;
+
+  const int point_count = static_cast<int>(parsed->vertices.size());
   const int face_count = static_cast<int>(parsed->faces.size());
 
-  Eigen::MatrixXd vertices(vertex_count, 3);
-  for (int i = 0; i < vertex_count; ++i) {
-    vertices.row(i) = parsed->vertices[i];
+  // Set topology (1:1 mapping: each point is a vertex)
+  container.topology().set_point_count(point_count);
+  container.topology().set_vertex_count(point_count);
+
+  // Initialize vertex→point mapping (1:1)
+  for (int i = 0; i < point_count; ++i) {
+    container.topology().set_vertex_point(i, i);
   }
 
-  Eigen::MatrixXi faces(face_count, 3);
+  // Add position attribute
+  container.add_point_attribute(attrs::P, core::AttributeType::VEC3F);
+  auto* pos_attr = container.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  pos_attr->resize(point_count);
+  auto pos_span = pos_attr->values_writable();
+
+  for (int i = 0; i < point_count; ++i) {
+    const auto& v = parsed->vertices[i];
+    pos_span[i] = core::Vec3f(static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z()));
+  }
+
+  // Add faces
   for (int i = 0; i < face_count; ++i) {
-    faces.row(i) = parsed->faces[i];
+    const auto& face = parsed->faces[i];
+    container.topology().add_primitive({face.x(), face.y(), face.z()});
   }
 
-  // Create mesh
-  // Note: The Mesh class automatically computes vertex normals, so we don't
-  // need to manually set the normals from the OBJ file. The computed normals
-  // will be more accurate for our rendering anyway.
-  core::Mesh mesh(vertices, faces);
+  // Add normals if present in OBJ file
+  if (parsed->has_normals && !parsed->normals.empty()) {
+    container.add_point_attribute(attrs::N, core::AttributeType::VEC3F);
+    auto* normal_attr = container.get_point_attribute_typed<core::Vec3f>(attrs::N);
+    normal_attr->resize(point_count);
+    auto normal_span = normal_attr->values_writable();
 
-  return mesh;
+    // Use provided normals (up to point_count)
+    const int normal_count = std::min(point_count, static_cast<int>(parsed->normals.size()));
+    for (int i = 0; i < normal_count; ++i) {
+      const auto& n = parsed->normals[i];
+      normal_span[i] = core::Vec3f(static_cast<float>(n.x()), static_cast<float>(n.y()), static_cast<float>(n.z()));
+    }
+  }
+
+  return container;
 }
 
 std::optional<ObjImporter::ParsedData> ObjImporter::parse_obj_content(const std::string& content) {

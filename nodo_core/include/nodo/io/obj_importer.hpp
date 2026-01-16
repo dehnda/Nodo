@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nodo/core/mesh.hpp"
+#include "nodo/core/geometry_container.hpp"
 
 #include <optional>
 #include <string>
@@ -8,9 +8,9 @@
 namespace nodo::io {
 
 /**
- * @brief OBJ file format importer for meshes
+ * @brief OBJ file format importer for geometry
  *
- * Provides functionality to import meshes from Wavefront OBJ format.
+ * Provides functionality to import geometry from Wavefront OBJ format.
  * Supports vertex positions, vertex normals, and triangular faces.
  *
  * Supported OBJ formats:
@@ -27,18 +27,18 @@ namespace nodo::io {
 class ObjImporter {
 public:
   /**
-   * @brief Import mesh from OBJ file
+   * @brief Import geometry from OBJ file
    * @param filename Path to the input OBJ file
-   * @return Mesh object if successful, nullopt on failure
+   * @return GeometryContainer if successful, nullopt on failure
    */
-  static std::optional<core::Mesh> import_mesh(const std::string& filename);
+  static std::optional<core::GeometryContainer> import(const std::string& filename);
 
   /**
-   * @brief Import mesh from OBJ string
+   * @brief Import geometry from OBJ string
    * @param obj_content OBJ formatted string
-   * @return Mesh object if successful, nullopt on failure
+   * @return GeometryContainer if successful, nullopt on failure
    */
-  static std::optional<core::Mesh> import_from_string(const std::string& obj_content);
+  static std::optional<core::GeometryContainer> import_from_string(const std::string& obj_content);
 
 private:
   struct ParsedData {
