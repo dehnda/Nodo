@@ -8,6 +8,7 @@
 #include "KeyboardShortcutsDialog.h"
 #include "MenuManager.h"
 #include "NodeGraphWidget.h"
+#include "NodoDocument.h"
 #include "PropertyPanel.h"
 #include "SceneFileManager.h"
 #include "StatusBarWidget.h"
@@ -48,13 +49,12 @@
 #include <nodo/sop/sop_node.hpp>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), current_file_path_(""), is_modified_(false) {
-  // Initialize backend graph system
-  node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
-  execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
+  // Initialize backend document (contains graph + execution engine)
+  document_ = std::make_unique<nodo::studio::NodoDocument>();
 
   // Initialize host interface for progress reporting
   host_interface_ = std::make_unique<StudioHostInterface>(this);
-  execution_engine_->set_host_interface(host_interface_.get());
+  document_->get_execution_engine()->set_host_interface(host_interface_.get());
 
   // Connect progress signals
   connect(host_interface_.get(), &StudioHostInterface::progressReported, this, &MainWindow::onProgressReported);
@@ -75,8 +75,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), current_file_path
 
   // Initialize scene file manager
   scene_file_manager_ = std::make_unique<SceneFileManager>(this);
-  scene_file_manager_->setNodeGraph(node_graph_.get());
-  scene_file_manager_->setExecutionEngine(execution_engine_.get());
+  scene_file_manager_->setNodeGraph(document_->get_graph());
+  scene_file_manager_->setExecutionEngine(document_->get_execution_engine());
 
   // Load and apply dark theme stylesheet
   QFile styleFile(":/resources/styles/dark_theme.qss");
@@ -252,7 +252,8 @@ auto MainWindow::setupDockWidgets() -> void {
 
   // Create node graph widget and connect to backend
   node_graph_widget_ = new NodeGraphWidget(node_graph_container);
-  node_graph_widget_->set_graph(node_graph_.get());
+  node_graph_widget_->set_graph(document_->get_graph());
+  node_graph_widget_->set_document(document_.get());
   node_graph_widget_->set_undo_stack(undo_stack_.get());
 
   // Set node graph widget in scene file manager
@@ -305,7 +306,8 @@ auto MainWindow::setupDockWidgets() -> void {
   property_panel_ = new PropertyPanel(this);
   property_panel_->setUndoStack(undo_stack_.get());
   property_panel_->setNodeGraphWidget(node_graph_widget_);
-  property_panel_->setExecutionEngine(execution_engine_.get());
+  property_panel_->setDocument(document_.get());
+  property_panel_->setExecutionEngine(document_->get_execution_engine());
   property_dock_->setWidget(property_panel_);
 
   // Add properties to the right of node graph
@@ -324,6 +326,10 @@ auto MainWindow::setupDockWidgets() -> void {
   // Connect live parameter changes during slider drag (no cache invalidation)
   connect(property_panel_, &PropertyPanel::parameterChangedLive, this, &MainWindow::onParameterChangedLive);
 
+  // Connect NodoDocument signals to PropertyPanel for automatic updates (undo/redo)
+  connect(document_.get(), &nodo::studio::NodoDocument::parameterChanged, property_panel_,
+          &PropertyPanel::onDocumentParameterChanged);
+
   // Create dock widget for graph parameters (tabbed with properties)
   graph_parameters_dock_ = new QDockWidget("Graph Parameters", this);
   graph_parameters_dock_->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -331,7 +337,7 @@ auto MainWindow::setupDockWidgets() -> void {
 
   // Create graph parameters panel
   graph_parameters_panel_ = new GraphParametersPanel(this);
-  graph_parameters_panel_->set_graph(node_graph_.get());
+  graph_parameters_panel_->set_graph(document_->get_graph());
   graph_parameters_dock_->setWidget(graph_parameters_panel_);
 
   // Tab it with the property panel on the right
@@ -381,8 +387,13 @@ void MainWindow::onParameterChanged() {
     int node_id = selected_nodes.first();
 
     // Invalidate cache for this node and all downstream nodes
-    if (execution_engine_ && node_graph_) {
-      execution_engine_->invalidate_node(*node_graph_, node_id);
+    if (document_) {
+      document_->invalidate_node(node_id);
+    }
+
+    // Refresh property panel to reflect any parameter changes from undo/redo
+    if (property_panel_) {
+      property_panel_->refreshFromCurrentNode();
     }
 
     // Find which node has the display flag set and update viewport if needed
@@ -403,9 +414,9 @@ void MainWindow::onParameterChanged() {
 void MainWindow::onGraphParameterValueChanged() {
   // Graph parameter value changed - invalidate all nodes since any node could
   // reference it via $param_name in an expression
-  if (execution_engine_ && node_graph_) {
+  if (document_) {
     // Clear the entire geometry cache to force re-execution
-    execution_engine_->clear_cache();
+    document_->clear_cache();
   }
 
   // Find which node has the display flag set and update viewport
@@ -453,7 +464,7 @@ auto MainWindow::setupStatusBar() -> void {
 // Slot implementations
 void MainWindow::onNewScene() {
   // Ask for confirmation if graph has nodes
-  if (!node_graph_->get_nodes().empty()) {
+  if (!document_->get_graph()->get_nodes().empty()) {
     auto reply = QMessageBox::question(this, "New Scene", "This will clear the current graph. Are you sure?",
                                        QMessageBox::Yes | QMessageBox::No);
 
@@ -462,20 +473,21 @@ void MainWindow::onNewScene() {
     }
   }
 
-  // Create a fresh empty graph to avoid signal issues
-  node_graph_ = std::make_unique<nodo::graph::NodeGraph>();
-  execution_engine_ = std::make_unique<nodo::graph::ExecutionEngine>();
+  // Create a fresh empty document to avoid signal issues
+  document_ = std::make_unique<nodo::studio::NodoDocument>();
+  document_->get_execution_engine()->set_host_interface(host_interface_.get());
 
-  // Update scene file manager with new graph
-  scene_file_manager_->setNodeGraph(node_graph_.get());
-  scene_file_manager_->setExecutionEngine(execution_engine_.get());
+  // Update scene file manager with new document
+  scene_file_manager_->setNodeGraph(document_->get_graph());
+  scene_file_manager_->setExecutionEngine(document_->get_execution_engine());
   scene_file_manager_->newScene();
 
   // Reconnect the node graph widget to the new graph
-  node_graph_widget_->set_graph(node_graph_.get());
+  node_graph_widget_->set_graph(document_->get_graph());
+  node_graph_widget_->set_document(document_.get());
 
   // Reconnect graph parameters panel to the new graph
-  graph_parameters_panel_->set_graph(node_graph_.get());
+  graph_parameters_panel_->set_graph(document_->get_graph());
   graph_parameters_panel_->refresh();
 
   // Clear viewport and property panel
@@ -505,7 +517,7 @@ void MainWindow::onOpenScene() {
   geometry_spreadsheet_->clear();
 
   // Update status bar
-  status_bar_widget_->setNodeCount(node_graph_->get_nodes().size());
+  status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
   status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
 
   // Update window title with filename
@@ -516,10 +528,10 @@ void MainWindow::onOpenScene() {
   }
 
   // Find and execute the node with the display flag
-  if (node_graph_) {
+  if (document_) {
     // Collect nodes that need wireframe overlays restored
     pending_wireframe_node_ids_.clear();
-    for (const auto& node : node_graph_->get_nodes()) {
+    for (const auto& node : document_->get_graph()->get_nodes()) {
       if (node->has_render_flag()) {
         pending_wireframe_node_ids_.append(node->get_id());
       }
@@ -527,7 +539,7 @@ void MainWindow::onOpenScene() {
 
     // Execute display node - wireframe overlays will be restored after
     // execution completes
-    for (const auto& node : node_graph_->get_nodes()) {
+    for (const auto& node : document_->get_graph()->get_nodes()) {
       if (node->has_display_flag()) {
         executeAndDisplayNode(node->get_id());
         break;
@@ -569,14 +581,14 @@ void MainWindow::onRevertToSaved() {
   geometry_spreadsheet_->clear();
 
   // Update status bar
-  status_bar_widget_->setNodeCount(node_graph_->get_nodes().size());
+  status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
   status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
 
   // Find and execute the node with the display flag
-  if (node_graph_) {
+  if (document_) {
     // Collect nodes that need wireframe overlays restored
     pending_wireframe_node_ids_.clear();
-    for (const auto& node : node_graph_->get_nodes()) {
+    for (const auto& node : document_->get_graph()->get_nodes()) {
       if (node->has_render_flag()) {
         pending_wireframe_node_ids_.append(node->get_id());
       }
@@ -584,7 +596,7 @@ void MainWindow::onRevertToSaved() {
 
     // Execute display node - wireframe overlays will be restored after
     // execution completes
-    for (const auto& node : node_graph_->get_nodes()) {
+    for (const auto& node : document_->get_graph()->get_nodes()) {
       if (node->has_display_flag()) {
         executeAndDisplayNode(node->get_id());
         break;
@@ -617,7 +629,7 @@ void MainWindow::onExportMesh() {
   using nodo::io::ObjExporter;
 
   // Get the display node (the node that's currently being shown in viewport)
-  int display_node_id = node_graph_->get_display_node();
+  int display_node_id = document_->get_graph()->get_display_node();
 
   if (display_node_id < 0) {
     QMessageBox::information(this, "No Mesh to Export",
@@ -628,7 +640,7 @@ void MainWindow::onExportMesh() {
   }
 
   // Get the geometry result for the display node
-  auto geometry = execution_engine_->get_node_geometry(display_node_id);
+  auto geometry = document_->get_execution_engine()->get_node_geometry(display_node_id);
 
   if (!geometry) {
     QMessageBox::warning(this, "Export Failed",
@@ -709,21 +721,21 @@ void MainWindow::onCreateTestGraph() {
   using namespace nodo::graph;
 
   // Clear existing graph
-  node_graph_->clear();
+  document_->get_graph()->clear();
 
   // Create some test nodes
-  int sphere_id = node_graph_->add_node(NodeType::Sphere, "Test Sphere");
-  int box_id = node_graph_->add_node(NodeType::Box, "Test Box");
-  int cylinder_id = node_graph_->add_node(NodeType::Cylinder, "Test Cylinder");
+  int sphere_id = document_->add_node(NodeType::Sphere);
+  int box_id = document_->add_node(NodeType::Box);
+  int cylinder_id = document_->add_node(NodeType::Cylinder);
 
   // Set positions for nice layout
-  if (auto* sphere_node = node_graph_->get_node(sphere_id)) {
+  if (auto* sphere_node = document_->get_node(sphere_id)) {
     sphere_node->set_position(50.0F, 100.0F);
   }
-  if (auto* box_node = node_graph_->get_node(box_id)) {
+  if (auto* box_node = document_->get_node(box_id)) {
     box_node->set_position(250.0F, 100.0F);
   }
-  if (auto* cylinder_node = node_graph_->get_node(cylinder_id)) {
+  if (auto* cylinder_node = document_->get_node(cylinder_id)) {
     cylinder_node->set_position(450.0F, 100.0F);
   }
 
@@ -741,8 +753,8 @@ void MainWindow::onNodeCreated(int node_id) {
   QTimer::singleShot(0, this, [this, node_id]() { executeAndDisplayNode(node_id); });
 
   // Update node count in status bar
-  if (node_graph_ != nullptr && status_bar_widget_ != nullptr) {
-    int node_count = static_cast<int>(node_graph_->get_nodes().size());
+  if (document_ != nullptr && status_bar_widget_ != nullptr) {
+    int node_count = static_cast<int>(document_->get_graph()->get_nodes().size());
     status_bar_widget_->setNodeCount(node_count);
   }
 
@@ -761,11 +773,11 @@ void MainWindow::onConnectionCreated(int /*source_node*/, int /*source_pin*/, in
 void MainWindow::onConnectionsDeleted(QVector<int> /*connection_ids*/) {
   // When connections are deleted, re-execute the display node if one is set
   // This ensures the viewport shows the updated graph state
-  if (node_graph_ != nullptr) {
-    int display_node = node_graph_->get_display_node();
+  if (document_ != nullptr) {
+    int display_node = document_->get_graph()->get_display_node();
     if (display_node != -1) {
       // Mark the display node as needing update
-      auto* node = node_graph_->get_node(display_node);
+      auto* node = document_->get_node(display_node);
       if (node != nullptr) {
         node->mark_for_update();
       }
@@ -778,7 +790,7 @@ void MainWindow::onConnectionsDeleted(QVector<int> /*connection_ids*/) {
 }
 
 void MainWindow::onNodesDeleted(QVector<int> node_ids) {
-  if (node_graph_ == nullptr) {
+  if (document_ == nullptr) {
     return;
   }
 
@@ -810,7 +822,7 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
 
   // Update node count in status bar
   if (status_bar_widget_ != nullptr) {
-    int node_count = static_cast<int>(node_graph_->get_nodes().size());
+    int node_count = static_cast<int>(document_->get_graph()->get_nodes().size());
     status_bar_widget_->setNodeCount(node_count);
   }
 
@@ -818,11 +830,11 @@ void MainWindow::onNodesDeleted(QVector<int> node_ids) {
   updateUndoRedoActions();
 
   // update display if needed
-  if (node_graph_->get_display_node() == -1) {
-    if (node_graph_->get_nodes().empty()) {
+  if (document_->get_graph()->get_display_node() == -1) {
+    if (document_->get_graph()->get_nodes().empty()) {
       return; // No nodes left to display
     }
-    int new_display_node_id = node_graph_->get_nodes().back()->get_id();
+    int new_display_node_id = document_->get_graph()->get_nodes().back()->get_id();
     if (new_display_node_id != -1) {
       executeAndDisplayNode(new_display_node_id);
     }
@@ -842,10 +854,10 @@ void MainWindow::onNodeSelectionChanged() {
     int selected_id = selected_nodes.first();
 
     // Update property panel to show selected node's parameters
-    if (node_graph_ != nullptr) {
-      auto* node = node_graph_->get_node(selected_id);
+    if (document_ != nullptr) {
+      auto* node = document_->get_graph()->get_node(selected_id);
       if (node != nullptr) {
-        property_panel_->setGraphNode(node, node_graph_.get());
+        property_panel_->setGraphNode(node, document_->get_graph());
 
         // Update geometry spreadsheet if this is a SOP node
         // Use SOPFactory to automatically check if node type is a SOP
@@ -854,8 +866,8 @@ void MainWindow::onNodeSelectionChanged() {
 
         if (is_sop) {
           // Get geometry from execution engine for spreadsheet
-          if (execution_engine_) {
-            auto geo_data = execution_engine_->get_node_geometry(selected_id);
+          if (document_->get_execution_engine()) {
+            auto geo_data = document_->get_execution_engine()->get_node_geometry(selected_id);
             if (geo_data) {
               geometry_spreadsheet_->setGeometry(geo_data);
             } else {
@@ -894,16 +906,16 @@ void MainWindow::onNodeWireframeFlagChanged(int node_id, bool wireframe_flag) {
   }
 
   // Wireframe turned on - execute and show this node's geometry in wireframe
-  if (node_graph_ == nullptr || execution_engine_ == nullptr) {
+  if (document_ == nullptr) {
     return;
   }
 
   // Execute the entire graph to get this node's geometry
-  bool success = execution_engine_->execute_graph(*node_graph_);
+  bool success = document_->get_execution_engine()->execute_graph(*document_->get_graph());
 
   if (success) {
     // Get the geometry result for this specific node
-    auto geometry = execution_engine_->get_node_geometry(node_id);
+    auto geometry = document_->get_execution_engine()->get_node_geometry(node_id);
 
     qDebug() << "MainWindow::onNodeWireframeFlagChanged - node_id:" << node_id
              << "geometry:" << (geometry ? "found" : "NULL");
@@ -921,28 +933,28 @@ void MainWindow::onNodeWireframeFlagChanged(int node_id, bool wireframe_flag) {
 }
 
 void MainWindow::onNodePassThroughFlagChanged(int node_id, bool pass_through_flag) {
-  if (node_graph_ == nullptr || execution_engine_ == nullptr) {
+  if (document_ == nullptr) {
     return;
   }
 
   // Mark this node as needing update
-  auto* node = node_graph_->get_node(node_id);
+  auto* node = document_->get_graph()->get_node(node_id);
   if (node != nullptr) {
     node->mark_for_update();
   }
 
   // Invalidate downstream nodes so they re-execute with the new pass-through
   // state
-  execution_engine_->invalidate_node(*node_graph_, node_id);
+  document_->get_execution_engine()->invalidate_node(*document_->get_graph(), node_id);
 
   // Re-execute the graph to see the effect
   // If there's a display node, execute up to it
-  int display_node = node_graph_->get_display_node();
+  int display_node = document_->get_graph()->get_display_node();
   if (display_node >= 0) {
     executeAndDisplayNode(display_node);
   } else {
     // No display node, just execute everything
-    execution_engine_->execute_graph(*node_graph_);
+    document_->get_execution_engine()->execute_graph(*document_->get_graph());
   }
 
   qDebug() << "Pass-through" << (pass_through_flag ? "enabled" : "disabled") << "for node" << node_id;
@@ -955,7 +967,7 @@ void MainWindow::updateDisplayFlagVisuals() {
 }
 
 void MainWindow::executeAndDisplayNode(int node_id) {
-  if (node_graph_ == nullptr || execution_engine_ == nullptr) {
+  if (document_ == nullptr) {
     return;
   }
 
@@ -966,7 +978,7 @@ void MainWindow::executeAndDisplayNode(int node_id) {
   }
 
   // Set display flag on this node (clears it from all others)
-  node_graph_->set_display_node(node_id);
+  document_->get_graph()->set_display_node(node_id);
 
   // Update display flag visuals without rebuilding everything
   updateDisplayFlagVisuals();
@@ -975,7 +987,8 @@ void MainWindow::executeAndDisplayNode(int node_id) {
   pending_display_node_id_ = node_id;
 
   // Execute asynchronously using QtConcurrent
-  QFuture<bool> future = QtConcurrent::run([this]() { return execution_engine_->execute_graph(*node_graph_); });
+  QFuture<bool> future =
+      QtConcurrent::run([this]() { return document_->get_execution_engine()->execute_graph(*document_->get_graph()); });
 
   execution_watcher_->setFuture(future);
 }
@@ -989,7 +1002,7 @@ void MainWindow::onExecutionFinished() {
 
   if (success && node_id >= 0) {
     // Get the geometry result for this specific node
-    auto geometry = execution_engine_->get_node_geometry(node_id);
+    auto geometry = document_->get_execution_engine()->get_node_geometry(node_id);
 
     qDebug() << "MainWindow::on_node_display_requested - node_id:" << node_id
              << "geometry:" << (geometry ? "found" : "NULL");
@@ -1012,7 +1025,7 @@ void MainWindow::onExecutionFinished() {
       int memory_kb = memory_bytes / 1024;
 
       // Get node and cook time
-      auto* node = node_graph_->get_node(node_id);
+      auto* node = document_->get_node(node_id);
       double cook_time_ms = (node != nullptr) ? node->get_cook_time() : 0.0;
 
       // Update node stats and parameters in graph widget
@@ -1049,7 +1062,7 @@ void MainWindow::onExecutionFinished() {
   // Restore wireframe overlays for pending nodes (after scene load)
   if (!pending_wireframe_node_ids_.isEmpty() && success) {
     for (int wireframe_node_id : pending_wireframe_node_ids_) {
-      auto geometry = execution_engine_->get_node_geometry(wireframe_node_id);
+      auto geometry = document_->get_execution_engine()->get_node_geometry(wireframe_node_id);
       if (geometry) {
         viewport_widget_->addWireframeOverlay(wireframe_node_id, *geometry);
         qDebug() << "Restored wireframe overlay for node" << wireframe_node_id;
@@ -1068,12 +1081,19 @@ void MainWindow::setupUndoRedo() {
 
 void MainWindow::onUndo() {
   if (undo_stack_->can_undo()) {
+    // Block document signals during undo to prevent feedback loops
+    document_->blockSignals(true);
     undo_stack_->undo();
+    document_->blockSignals(false);
+
     updateUndoRedoActions();
 
+    // Manually refresh UI after undo completes
+    property_panel_->refreshFromCurrentNode();
+
     // Trigger re-execution and display update
-    if (!node_graph_->get_nodes().empty()) {
-      int display_node = node_graph_->get_display_node();
+    if (!document_->get_graph()->get_nodes().empty()) {
+      int display_node = document_->get_graph()->get_display_node();
       if (display_node >= 0) {
         executeAndDisplayNode(display_node);
       }
@@ -1085,11 +1105,18 @@ void MainWindow::onUndo() {
 
 void MainWindow::onRedo() {
   if (undo_stack_->can_redo()) {
+    // Block document signals during redo to prevent feedback loops
+    document_->blockSignals(true);
     undo_stack_->redo();
+    document_->blockSignals(false);
+
     updateUndoRedoActions();
 
+    // Manually refresh UI after redo completes
+    property_panel_->refreshFromCurrentNode();
+
     // Trigger re-execution and display update
-    int display_node = node_graph_->get_display_node();
+    int display_node = document_->get_graph()->get_display_node();
     if (display_node >= 0) {
       executeAndDisplayNode(display_node);
     }
@@ -1168,7 +1195,7 @@ void MainWindow::onInvertSelection() {
 // ============================================================================
 
 void MainWindow::onCut() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1187,7 +1214,7 @@ void MainWindow::onCut() {
 }
 
 void MainWindow::onCopy() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1205,7 +1232,7 @@ void MainWindow::onCopy() {
   std::unordered_map<int, int> old_to_new_id_map;
 
   for (int old_node_id : selected_nodes) {
-    auto* node = node_graph_->get_node(old_node_id);
+    auto* node = document_->get_graph()->get_node(old_node_id);
     if (node == nullptr)
       continue;
 
@@ -1228,7 +1255,7 @@ void MainWindow::onCopy() {
   }
 
   // Copy connections between selected nodes
-  for (const auto& conn : node_graph_->get_connections()) {
+  for (const auto& conn : document_->get_graph()->get_connections()) {
     // Only copy connections where both ends are in selected nodes
     if (old_to_new_id_map.contains(conn.source_node_id) && old_to_new_id_map.contains(conn.target_node_id)) {
       int new_source_id = old_to_new_id_map[conn.source_node_id];
@@ -1248,7 +1275,7 @@ void MainWindow::onCopy() {
 }
 
 void MainWindow::onPaste() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1272,8 +1299,8 @@ void MainWindow::onPaste() {
   node_graph_widget_->clear_selection();
 
   // Create and execute paste command (with 50px offset)
-  auto cmd = nodo::studio::create_paste_nodes_command(node_graph_widget_, node_graph_.get(),
-                                                      clipboard_text.toStdString(), 50.0f, 50.0f);
+  auto cmd = nodo::studio::createPasteNodesCommand(node_graph_widget_, document_.get(), clipboard_text.toStdString(),
+                                                   50.0f, 50.0f);
 
   undo_stack_->push(std::move(cmd));
 
@@ -1285,7 +1312,7 @@ void MainWindow::onPaste() {
 }
 
 void MainWindow::onDuplicate() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1312,7 +1339,7 @@ void MainWindow::onDuplicate() {
 }
 
 void MainWindow::onDelete() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1328,7 +1355,7 @@ void MainWindow::onDelete() {
   // Delete key)
   if (undo_stack_ != nullptr) {
     for (int node_id : selected_nodes) {
-      auto cmd = nodo::studio::create_delete_node_command(node_graph_widget_, node_graph_.get(), node_id);
+      auto cmd = nodo::studio::createDeleteNodeCommand(node_graph_widget_, document_.get(), node_id);
       undo_stack_->push(std::move(cmd));
     }
     // Emit signal so MainWindow can update UI
@@ -1398,7 +1425,7 @@ void MainWindow::onFrameSelected() {
 // ============================================================================
 
 void MainWindow::onBypassSelected() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1410,14 +1437,14 @@ void MainWindow::onBypassSelected() {
   }
 
   // Create and execute bypass command
-  auto cmd = nodo::studio::create_bypass_nodes_command(node_graph_widget_, node_graph_.get(), selected_nodes);
+  auto cmd = nodo::studio::createBypassNodesCommand(node_graph_widget_, document_.get(), selected_nodes);
   undo_stack_->push(std::move(cmd));
 
   statusBar()->showMessage(QString("Toggled bypass for %1 nodes").arg(selected_nodes.size()), 2000);
 }
 
 void MainWindow::onDisconnectSelected() {
-  if (node_graph_widget_ == nullptr || node_graph_ == nullptr) {
+  if (node_graph_widget_ == nullptr || document_ == nullptr) {
     return;
   }
 
@@ -1431,7 +1458,7 @@ void MainWindow::onDisconnectSelected() {
   // Collect all connections to/from selected nodes
   QVector<int> connections_to_delete;
 
-  for (const auto& conn : node_graph_->get_connections()) {
+  for (const auto& conn : document_->get_graph()->get_connections()) {
     int source_node = conn.source_node_id;
     int target_node = conn.target_node_id;
 
@@ -1452,7 +1479,7 @@ void MainWindow::onDisconnectSelected() {
       QString("Disconnect %1 connections").arg(connections_to_delete.size()));
 
   for (int conn_id : connections_to_delete) {
-    auto cmd = nodo::studio::create_disconnect_command(node_graph_widget_, node_graph_.get(), conn_id);
+    auto cmd = nodo::studio::createDisconnectCommand(node_graph_widget_, document_.get(), conn_id);
     composite->add_command(std::move(cmd));
   }
 
@@ -1583,17 +1610,20 @@ void MainWindow::openRecentFile() {
     auto loaded_graph = nodo::graph::GraphSerializer::load_from_file(filename.toStdString());
 
     if (loaded_graph.has_value()) {
-      // Replace current graph with loaded graph
-      node_graph_ = std::make_unique<nodo::graph::NodeGraph>(std::move(loaded_graph.value()));
+      // Create new document with loaded graph
+      document_ = std::make_unique<nodo::studio::NodoDocument>();
+      *document_->get_graph() = std::move(loaded_graph.value());
+      document_->get_execution_engine()->set_host_interface(host_interface_.get());
 
       // Update SceneFileManager with new graph pointer
-      scene_file_manager_->setNodeGraph(node_graph_.get());
+      scene_file_manager_->setNodeGraph(document_->get_graph());
 
       // Reconnect the node graph widget to the new graph
-      node_graph_widget_->set_graph(node_graph_.get());
+      node_graph_widget_->set_graph(document_->get_graph());
+      node_graph_widget_->set_document(document_.get());
 
       // Reconnect and refresh graph parameters panel
-      graph_parameters_panel_->set_graph(node_graph_.get());
+      graph_parameters_panel_->set_graph(document_->get_graph());
       graph_parameters_panel_->refresh();
 
       // Clear viewport and property panel
@@ -1602,7 +1632,7 @@ void MainWindow::openRecentFile() {
       geometry_spreadsheet_->clear();
 
       // Update status bar
-      status_bar_widget_->setNodeCount(node_graph_->get_nodes().size());
+      status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
       status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
 
       // Set current file path in SceneFileManager so Save works correctly
@@ -1621,7 +1651,7 @@ void MainWindow::openRecentFile() {
 
       // Collect nodes that need wireframe overlays restored
       pending_wireframe_node_ids_.clear();
-      for (const auto& node : node_graph_->get_nodes()) {
+      for (const auto& node : document_->get_graph()->get_nodes()) {
         if (node->has_render_flag()) {
           pending_wireframe_node_ids_.append(node->get_id());
         }
@@ -1629,7 +1659,7 @@ void MainWindow::openRecentFile() {
 
       // Find and execute the node with the display flag
       // Wireframe overlays will be restored after execution completes
-      for (const auto& node : node_graph_->get_nodes()) {
+      for (const auto& node : document_->get_graph()->get_nodes()) {
         if (node->has_display_flag()) {
           executeAndDisplayNode(node->get_id());
           break;

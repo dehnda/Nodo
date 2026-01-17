@@ -20,6 +20,7 @@ class ExecutionEngine;
 
 namespace nodo::studio {
 class UndoStack;
+class NodoDocument;
 } // namespace nodo::studio
 
 namespace nodo_studio::widgets {
@@ -59,11 +60,18 @@ public:
   // Set undo stack for parameter change commands
   void setUndoStack(nodo::studio::UndoStack* undo_stack) { undo_stack_ = undo_stack; }
 
+  // Set document for command creation
+  void setDocument(nodo::studio::NodoDocument* document) { document_ = document; }
+
   // Set node graph widget for node selection during undo/redo
   void setNodeGraphWidget(NodeGraphWidget* widget) { node_graph_widget_ = widget; }
 
   // Set execution engine for accessing node geometry
   void setExecutionEngine(nodo::graph::ExecutionEngine* engine) { execution_engine_ = engine; }
+
+public slots:
+  // Slot to handle parameter changes from NodoDocument (undo/redo)
+  void onDocumentParameterChanged(int node_id, const QString& param_name);
 
 signals:
   // Emitted when a parameter changes (triggers full graph execution)
@@ -87,6 +95,9 @@ private:
   // Current graph node (new system)
   nodo::graph::GraphNode* current_graph_node_ = nullptr;
   nodo::graph::NodeGraph* current_graph_ = nullptr;
+
+  // Document (for command creation)
+  nodo::studio::NodoDocument* document_ = nullptr;
 
   // Undo/redo support
   nodo::studio::UndoStack* undo_stack_ = nullptr;

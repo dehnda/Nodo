@@ -22,14 +22,12 @@ class StudioHostInterface;
 namespace nodo::studio {
 class UndoStack;
 class GeometrySpreadsheet;
+class NodoDocument;
 } // namespace nodo::studio
 
 // Forward declare node types
 namespace nodo {
-namespace graph {
-class NodeGraph;
-class ExecutionEngine;
-} // namespace graph
+namespace graph {} // namespace graph
 } // namespace nodo
 
 class MainWindow : public QMainWindow {
@@ -93,8 +91,7 @@ private:
   std::unique_ptr<SceneFileManager> scene_file_manager_;
 
   // Backend graph system
-  std::unique_ptr<nodo::graph::NodeGraph> node_graph_;
-  std::unique_ptr<nodo::graph::ExecutionEngine> execution_engine_;
+  std::unique_ptr<nodo::studio::NodoDocument> document_;
 
   // Host interface for progress reporting
   std::unique_ptr<StudioHostInterface> host_interface_;

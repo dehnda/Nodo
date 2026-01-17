@@ -20,6 +20,7 @@ enum class NodeType;
 
 namespace nodo::studio {
 class UndoStack;
+class NodoDocument;
 } // namespace nodo::studio
 
 #include <nodo/graph/node_graph.hpp>
@@ -241,6 +242,10 @@ public:
   void set_graph(nodo::graph::NodeGraph* graph);
   nodo::graph::NodeGraph* get_graph() const { return graph_; }
 
+  // Document management (for command creation)
+  void set_document(nodo::studio::NodoDocument* document) { document_ = document; }
+  nodo::studio::NodoDocument* get_document() const { return document_; }
+
   // Undo/Redo management
   void set_undo_stack(nodo::studio::UndoStack* undo_stack) { undo_stack_ = undo_stack; }
   nodo::studio::UndoStack* get_undo_stack() const { return undo_stack_; }
@@ -326,6 +331,9 @@ private slots:
 private:
   // Backend graph reference (not owned)
   nodo::graph::NodeGraph* graph_ = nullptr;
+
+  // Backend document reference for command creation (not owned)
+  nodo::studio::NodoDocument* document_ = nullptr;
 
   // Undo/Redo stack reference (not owned)
   nodo::studio::UndoStack* undo_stack_ = nullptr;

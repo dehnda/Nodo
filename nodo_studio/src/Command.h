@@ -8,19 +8,19 @@
 
 #include <nodo/sop/sop_node.hpp>
 
-
 // Forward declarations
 class NodeGraphWidget;
 
 namespace nodo {
 namespace graph {
-class NodeGraph;
-struct NodeParameter;
 enum class NodeType;
 } // namespace graph
 } // namespace nodo
 
 namespace nodo::studio {
+
+// Forward declare NodoDocument
+class NodoDocument;
 
 /**
  * @brief Base class for all undoable commands
@@ -87,40 +87,40 @@ class BypassNodesCommand;
 struct ParameterChange;
 
 // Factory functions to create commands
-std::unique_ptr<Command> create_add_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                 nodo::graph::NodeType type, const QPointF& position);
+std::unique_ptr<Command> createAddNodeCommand(NodeGraphWidget* widget, NodoDocument* document,
+                                              nodo::graph::NodeType type, const QPointF& position);
 
-std::unique_ptr<Command> create_delete_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                    int node_id);
+std::unique_ptr<Command> createDeleteNodeCommand(NodeGraphWidget* widget, NodoDocument* document, int node_id);
 
-std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph, int node_id, const QPointF& old_pos,
-                                                  const QPointF& new_pos);
+std::unique_ptr<Command> createMoveNodeCommand(NodoDocument* document, int node_id, const QPointF& old_pos,
+                                               const QPointF& new_pos);
 
 /**
  * @brief Create a command to change node parameter(s)
  *
- * @param graph The node graph
+ * No callbacks needed - NodoDocument emits signals automatically
+ *
+ * @param document The document containing the node graph
  * @param node_id The ID of the node to modify
  * @param param_name The parameter name
  * @param old_value The current/old value
  * @param new_value The new value to set
  * @return Command that can be pushed to undo stack
  */
-std::unique_ptr<Command> create_change_parameter_command(nodo::graph::NodeGraph* graph, int node_id,
-                                                         const std::string& param_name,
-                                                         const nodo::sop::SOPNode::ParameterValue& old_value,
-                                                         const nodo::sop::SOPNode::ParameterValue& new_value);
+std::unique_ptr<Command> createChangeParameterCommand(NodoDocument* document, int node_id,
+                                                      const std::string& param_name,
+                                                      const nodo::sop::SOPNode::ParameterValue& old_value,
+                                                      const nodo::sop::SOPNode::ParameterValue& new_value);
 
-std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int source_id,
-                                                int source_pin, int target_id, int target_pin);
+std::unique_ptr<Command> createConnectCommand(NodeGraphWidget* widget, NodoDocument* document, int source_id,
+                                              int source_pin, int target_id, int target_pin);
 
-std::unique_ptr<Command> create_disconnect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                   int connection_id);
+std::unique_ptr<Command> createDisconnectCommand(NodeGraphWidget* widget, NodoDocument* document, int connection_id);
 
-std::unique_ptr<Command> create_paste_nodes_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                    const std::string& json_data, float offset_x, float offset_y);
+std::unique_ptr<Command> createPasteNodesCommand(NodeGraphWidget* widget, NodoDocument* document,
+                                                 const std::string& json_data, float offset_x, float offset_y);
 
-std::unique_ptr<Command> create_bypass_nodes_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                     const QVector<int>& node_ids);
+std::unique_ptr<Command> createBypassNodesCommand(NodeGraphWidget* widget, NodoDocument* document,
+                                                  const QVector<int>& node_ids);
 
 } // namespace nodo::studio

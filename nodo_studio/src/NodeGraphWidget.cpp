@@ -1229,8 +1229,8 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
         // Valid connection target found - create connection using command
         if (graph_ != nullptr && undo_stack_ != nullptr) {
           auto cmd =
-              nodo::studio::create_connect_command(this, graph_, connection_source_node_->get_node_id(),
-                                                   connection_source_pin_, target_node_item->get_node_id(), pin_index);
+              nodo::studio::createConnectCommand(this, document_, connection_source_node_->get_node_id(),
+                                                 connection_source_pin_, target_node_item->get_node_id(), pin_index);
           undo_stack_->push(std::move(cmd));
 
           // Signal is now emitted from the command's execute() method
@@ -1280,7 +1280,7 @@ void NodeGraphWidget::mouseReleaseEvent(QMouseEvent* event) {
           QPointF current_pos = node_item->pos();
           // Only create command if position actually changed
           if ((current_pos - start_pos).manhattanLength() > 1.0) {
-            auto cmd = nodo::studio::create_move_node_command(graph_, node_id, start_pos, current_pos);
+            auto cmd = nodo::studio::createMoveNodeCommand(document_, node_id, start_pos, current_pos);
             undo_stack_->push(std::move(cmd));
           }
         }
@@ -1331,7 +1331,7 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent* event) {
     // Delete connections using commands if undo_stack is available
     if (undo_stack_ != nullptr && graph_ != nullptr) {
       for (int conn_id : connection_ids_to_delete) {
-        auto cmd = nodo::studio::create_disconnect_command(this, graph_, conn_id);
+        auto cmd = nodo::studio::createDisconnectCommand(this, document_, conn_id);
         undo_stack_->push(std::move(cmd));
       }
     } else {
@@ -1353,7 +1353,7 @@ void NodeGraphWidget::keyPressEvent(QKeyEvent* event) {
     QVector<int> node_ids = get_selected_node_ids();
     if (undo_stack_ != nullptr && graph_ != nullptr && !node_ids.isEmpty()) {
       for (int node_id : node_ids) {
-        auto cmd = nodo::studio::create_delete_node_command(this, graph_, node_id);
+        auto cmd = nodo::studio::createDeleteNodeCommand(this, document_, node_id);
         undo_stack_->push(std::move(cmd));
       }
       // Emit signal so MainWindow can update UI
@@ -1600,7 +1600,7 @@ void NodeGraphWidget::create_node_at_position(nodo::graph::NodeType type, const 
 
   // Use undo/redo command if available
   if (undo_stack_ != nullptr) {
-    auto cmd = nodo::studio::create_add_node_command(this, graph_, type, pos);
+    auto cmd = nodo::studio::createAddNodeCommand(this, document_, type, pos);
     undo_stack_->push(std::move(cmd));
 
     // Get the node ID from the command (it was executed during push)
@@ -1700,8 +1700,8 @@ void NodeGraphWidget::on_node_menu_selected(const QString& type_id) {
       // Check if the new node has at least one input pin
       if (new_node != nullptr && !new_node->get_input_pins().empty()) {
         // Connect to the first input pin (index 0)
-        auto cmd = nodo::studio::create_connect_command(this, graph_, pending_connection_source_node_id_,
-                                                        pending_connection_source_pin_, new_node_id, 0);
+        auto cmd = nodo::studio::createConnectCommand(this, document_, pending_connection_source_node_id_,
+                                                      pending_connection_source_pin_, new_node_id, 0);
         undo_stack_->push(std::move(cmd));
       }
     }

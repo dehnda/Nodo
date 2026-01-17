@@ -31,6 +31,7 @@ set(STUDIO_SOURCES
     src/StatusBarWidget.cpp
     src/ViewportOverlay.cpp
     src/ViewportToolbar.cpp
+    src/NodoDocument.cpp
     src/Command.cpp
     src/UndoStack.cpp
     src/GeometrySpreadsheet.cpp
@@ -68,6 +69,7 @@ set(STUDIO_HEADERS
     src/StatusBarWidget.h
     src/ViewportOverlay.h
     src/ViewportToolbar.h
+    src/NodoDocument.h
     src/Command.h
     src/UndoStack.h
     src/GeometrySpreadsheet.h

@@ -830,7 +830,10 @@ void PropertyPanel::pushParameterChange(nodo::graph::GraphNode* node, nodo::grap
 
   // Create and push command if we have an undo stack
   if (undo_stack_) {
-    auto cmd = nodo::studio::create_change_parameter_command(graph, node->get_id(), param_name, old_value, new_value);
+    // Create a callback to emit parameterChanged signal after undo/redo
+    auto callback = [this]() { emit parameterChanged(); };
+
+    auto cmd = nodo::studio::createChangeParameterCommand(document_, node->get_id(), param_name, old_value, new_value);
     undo_stack_->push(std::move(cmd));
   } else {
     // Fallback: apply directly if no undo stack
@@ -1307,4 +1310,21 @@ void PropertyPanel::addInfoLabel(const QString& text) {
                       "  line-height: 1.4; "
                       "}");
   content_layout_->insertWidget(content_layout_->count() - 1, info);
+}
+
+void PropertyPanel::onDocumentParameterChanged(int node_id, const QString& param_name) {
+  // Only update if this is the currently displayed node
+  if (!current_graph_node_ || current_graph_node_->get_id() != node_id) {
+    return;
+  }
+
+  // Stop any pending slider updates
+  if (slider_update_timer_ && slider_update_timer_->isActive()) {
+    slider_update_timer_->stop();
+    has_pending_update_ = false;
+    pending_slider_callback_ = nullptr;
+  }
+
+  // Refresh to show updated values from undo/redo
+  refreshFromCurrentNode();
 }
