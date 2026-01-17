@@ -66,6 +66,8 @@ set(NODO_CORE_SOURCES
     src/processing/geodesic.cpp
 
     # SOPs
+    src/sop/node_registry.cpp
+
     src/sop/array_sop.cpp
     src/sop/boolean_sop.cpp
     src/sop/blast_sop.cpp
@@ -87,6 +89,8 @@ set(NODO_CORE_SOURCES
     src/sop/resample_sop.cpp
     src/sop/scatter_sop.cpp
     src/sop/sop_factory.cpp
+    src/sop/register_all_nodes.cpp
+    src/sop/node_registry.cpp
     src/sop/subdivision_sop.cpp
     src/sop/transform_sop.cpp
     src/sop/uv_unwrap_sop.cpp

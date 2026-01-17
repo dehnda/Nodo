@@ -19,6 +19,7 @@ struct NodeMetadata {
   std::string name;        // Display name (e.g., "Sphere", "Boolean")
   std::string category;    // Category (e.g., "Generator", "Modifier", "Array")
   std::string description; // Short description for tooltips
+  std::function<std::shared_ptr<SOPNode>(const std::string& name)> factory;
 };
 
 /**
