@@ -12,9 +12,9 @@ This document outlines architectural improvements for nodo_core to address techn
 
 ## Table of Contents
 
-1. [High Priority: Unify Node Representation](#1-unify-node-representation)
-2. [High Priority: Copy-on-Write Geometry](#2-copy-on-write-geometry)
-3. [High Priority: Remove Legacy Mesh Type](#3-remove-legacy-mesh-type)
+1. [High Priority: Unify Node Representation](#1-unify-node-representation) // done
+2. [High Priority: Copy-on-Write Geometry](#2-copy-on-write-geometry) // done
+3. [High Priority: Remove Legacy Mesh Type](#3-remove-legacy-mesh-type) // done
 4. [Medium Priority: Node Registration System](#4-node-registration-system)
 5. [Medium Priority: Thread Safety Foundation](#5-thread-safety-foundation)
 6. [Medium Priority: Standardize Error Handling](#6-standardize-error-handling)
