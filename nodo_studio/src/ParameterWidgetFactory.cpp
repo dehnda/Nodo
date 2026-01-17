@@ -20,7 +20,100 @@ namespace nodo_studio {
 
 using namespace widgets;
 
-// Create widget from SOPNode::ParameterDefinition
+// Create widget from SOPNode::ParameterDefinition with current value
+BaseParameterWidget* ParameterWidgetFactory::createWidget(const nodo::sop::SOPNode::ParameterDefinition& def,
+                                                          const nodo::sop::SOPNode::ParameterValue& current_value,
+                                                          QWidget* parent) {
+  QString label = QString::fromStdString(def.label.empty() ? def.name : def.label);
+  QString description = QString::fromStdString(def.description);
+
+  switch (def.type) {
+    case nodo::sop::SOPNode::ParameterDefinition::Type::Float: {
+      float value = std::holds_alternative<float>(current_value) ? std::get<float>(current_value)
+                                                                 : std::get<float>(def.default_value);
+      float min = static_cast<float>(def.float_min);
+      float max = static_cast<float>(def.float_max);
+      return createFloatWidget(label, value, min, max, description, parent);
+    }
+
+    case nodo::sop::SOPNode::ParameterDefinition::Type::Int: {
+      int value =
+          std::holds_alternative<int>(current_value) ? std::get<int>(current_value) : std::get<int>(def.default_value);
+
+      // Check for button hint first
+      if (def.ui_hint == "button") {
+        return createButtonWidget(label, description, parent);
+      }
+
+      // If has options, create mode selector or dropdown
+      if (!def.options.empty()) {
+        std::vector<QString> options;
+        for (const auto& opt : def.options) {
+          options.push_back(QString::fromStdString(opt));
+        }
+
+        // Use mode selector for 2-4 options, dropdown for 5+
+        if (options.size() >= 2 && options.size() <= 4) {
+          return createModeSelector(label, value, options, description, parent);
+        } else {
+          return createDropdown(label, value, options, description, parent);
+        }
+      }
+
+      // Regular integer widget
+      return createIntWidget(label, value, def.int_min, def.int_max, description, parent);
+    }
+
+    case nodo::sop::SOPNode::ParameterDefinition::Type::Bool: {
+      bool value = std::holds_alternative<bool>(current_value) ? std::get<bool>(current_value)
+                                                               : std::get<bool>(def.default_value);
+      return createBoolWidget(label, value, description, parent);
+    }
+
+    case nodo::sop::SOPNode::ParameterDefinition::Type::String: {
+      std::string value = std::holds_alternative<std::string>(current_value) ? std::get<std::string>(current_value)
+                                                                             : std::get<std::string>(def.default_value);
+      QString qvalue = QString::fromStdString(value);
+
+      if (def.ui_hint == "filepath" || def.ui_hint == "filepath_save" || def.name.find("file") != std::string::npos ||
+          def.name.find("path") != std::string::npos || def.name.find("texture") != std::string::npos) {
+        FilePathWidget::Mode mode =
+            (def.ui_hint == "filepath_save") ? FilePathWidget::Mode::SaveFile : FilePathWidget::Mode::OpenFile;
+        return createFilePathWidget(label, qvalue, description, parent, mode);
+      }
+
+      return createStringWidget(label, qvalue, description, parent);
+    }
+
+    case nodo::sop::SOPNode::ParameterDefinition::Type::Code: {
+      std::string value = std::holds_alternative<std::string>(current_value) ? std::get<std::string>(current_value)
+                                                                             : std::get<std::string>(def.default_value);
+      QString qvalue = QString::fromStdString(value);
+      return createMultiLineTextWidget(label, qvalue, description, parent);
+    }
+
+    case nodo::sop::SOPNode::ParameterDefinition::Type::Vector3: {
+      Eigen::Vector3f vec = std::holds_alternative<Eigen::Vector3f>(current_value)
+                                ? std::get<Eigen::Vector3f>(current_value)
+                                : std::get<Eigen::Vector3f>(def.default_value);
+      float min = static_cast<float>(def.float_min);
+      float max = static_cast<float>(def.float_max);
+      return createVector3Widget(label, vec.x(), vec.y(), vec.z(), min, max, description, parent);
+    }
+
+    case nodo::sop::SOPNode::ParameterDefinition::Type::GroupSelector: {
+      std::string value = std::holds_alternative<std::string>(current_value) ? std::get<std::string>(current_value)
+                                                                             : std::get<std::string>(def.default_value);
+      QString qvalue = QString::fromStdString(value);
+      return createGroupSelectorWidget(label, qvalue, description, parent);
+    }
+
+    default:
+      return nullptr;
+  }
+}
+
+// Create widget from SOPNode::ParameterDefinition (uses default value)
 BaseParameterWidget* ParameterWidgetFactory::createWidget(const nodo::sop::SOPNode::ParameterDefinition& def,
                                                           QWidget* parent) {
   QString label = QString::fromStdString(def.label.empty() ? def.name : def.label);

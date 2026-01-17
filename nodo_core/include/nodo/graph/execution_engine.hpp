@@ -117,19 +117,7 @@ private:
 
   /**
    * @brief Transfer parameters from GraphNode to SOPNode
-   * Automatically converts parameter types and values
-   * Resolves graph parameter expressions (e.g., $param_name)
-   * @param graph_node Source node with parameters
-   * @param sop_node Target SOP node
-   * @param graph Node graph for parameter resolution
    */
-  void transfer_parameters(const GraphNode& graph_node, sop::SOPNode& sop_node, const NodeGraph& graph);
-
-  /**
-   * @brief Sync parameters from SOPNode back to GraphNode
-   * Handles dynamically added parameters (e.g., Wrangle ch() params)
-   */
-  void sync_parameters_from_sop(const sop::SOPNode& sop_node, GraphNode& graph_node);
 };
 
 } // namespace nodo::graph

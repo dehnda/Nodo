@@ -15,7 +15,7 @@ namespace nodo::studio {
 class AddNodeCommand;
 class DeleteNodeCommand;
 class MoveNodeCommand;
-class ChangeParameterCommand;
+// class ChangeParameterCommand; // TODO: Reimplement for SOP-based system
 class ConnectCommand;
 class DisconnectCommand;
 class PasteNodesCommand;
@@ -39,11 +39,12 @@ public:
       // Restore with same ID and name
       graph_->add_node_with_id(node_id_, node_type_, node_name_.toStdString());
 
-      // Restore parameters
+      // Restore parameters to SOP
       auto* node = graph_->get_node(node_id_);
-      if (node != nullptr) {
-        for (const auto& param : parameters_) {
-          node->set_parameter(param.name, param);
+      if (node != nullptr && node->get_sop() != nullptr) {
+        auto* sop = node->get_sop();
+        for (const auto& [param_name, param_value] : parameters_) {
+          sop->set_parameter(param_name, param_value);
         }
       }
     }
@@ -76,11 +77,8 @@ public:
     if (node != nullptr) {
       node_name_ = QString::fromStdString(node->get_name());
 
-      // Store parameters
-      parameters_.clear();
-      for (const auto& param : node->get_parameters()) {
-        parameters_.push_back(param);
-      }
+      // Store SOP parameters
+      parameters_ = node->get_parameters();
     }
 
     // Remove visual item first
@@ -99,7 +97,7 @@ private:
   QPointF position_;
   int node_id_;
   QString node_name_;
-  std::vector<nodo::graph::NodeParameter> parameters_;
+  nodo::sop::SOPNode::ParameterMap parameters_;
 };
 
 /**
@@ -117,10 +115,8 @@ public:
       auto pos = node->get_position();
       position_ = QPointF(pos.first, pos.second);
 
-      // Store parameters
-      for (const auto& param : node->get_parameters()) {
-        parameters_.push_back(param);
-      }
+      // Store SOP parameters
+      parameters_ = node->get_parameters();
     }
 
     // Store connections
@@ -148,9 +144,12 @@ public:
     if (node != nullptr) {
       node->set_position(position_.x(), position_.y());
 
-      // Restore parameters
-      for (const auto& param : parameters_) {
-        node->set_parameter(param.name, param);
+      // Restore parameters to SOP
+      if (node->get_sop() != nullptr) {
+        auto* sop = node->get_sop();
+        for (const auto& [param_name, param_value] : parameters_) {
+          sop->set_parameter(param_name, param_value);
+        }
       }
     }
 
@@ -183,7 +182,7 @@ private:
   nodo::graph::NodeType node_type_;
   QString node_name_;
   QPointF position_;
-  std::vector<nodo::graph::NodeParameter> parameters_;
+  nodo::sop::SOPNode::ParameterMap parameters_;
   std::vector<nodo::graph::NodeConnection> connections_;
 };
 
@@ -229,101 +228,124 @@ private:
 };
 
 /**
- * @brief Command to change a node parameter
+ * @brief Type-safe parameter change with validation
  */
-class ChangeParameterCommand : public Command {
-public:
-  ChangeParameterCommand(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int node_id,
-                         const std::string& param_name, const nodo::graph::NodeParameter& old_value,
-                         const nodo::graph::NodeParameter& new_value)
-      : Command("Change Parameter"),
-        widget_(widget),
-        graph_(graph),
-        node_id_(node_id),
-        param_name_(param_name),
-        old_value_(old_value),
-        new_value_(new_value) {}
+struct ParameterChange {
+  std::string name;
+  nodo::sop::SOPNode::ParameterValue old_value;
+  nodo::sop::SOPNode::ParameterValue new_value;
 
-  void execute() override {
-    auto* node = graph_->get_node(node_id_);
-    if (node != nullptr) {
-      node->set_parameter(param_name_, new_value_);
-      if (widget_ != nullptr) {
-        // Use QPointer to safely track the widget
-        QPointer<NodeGraphWidget> widget_ptr(widget_);
-        int node_id = node_id_;
-        nodo::graph::NodeGraph* graph = graph_;
+  // Validate that old and new values are the same type
+  bool is_valid() const { return old_value.index() == new_value.index(); }
 
-        // Delay both selection and viewport update to ensure proper state after
-        // graph was empty
-        QTimer::singleShot(0, [widget_ptr, node_id, graph]() {
-          if (widget_ptr && graph && graph->get_node(node_id) != nullptr) {
-            // Select node first to update property panel
-            widget_ptr->select_node_public(node_id);
-            // Then trigger viewport update
-            widget_ptr->emit_parameter_changed_signal();
+  // Check if values are actually different
+  bool has_changed() const {
+    if (!is_valid())
+      return false;
+
+    return std::visit(
+        [this](const auto& old_val) {
+          using T = std::decay_t<decltype(old_val)>;
+          if (auto* new_val = std::get_if<T>(&new_value)) {
+            if constexpr (std::is_same_v<T, Eigen::Vector3f>) {
+              return !old_val.isApprox(*new_val);
+            } else {
+              return old_val != *new_val;
+            }
           }
-        });
+          return false;
+        },
+        old_value);
+  }
+};
+
+/**
+ * @brief Command to change node parameters (enhanced, type-safe)
+ *
+ * Features:
+ * - Type-safe variant handling
+ * - Supports multiple parameter changes in one command
+ * - No widget coupling
+ * - Robust validation
+ * - Smart merging for smooth interactions
+ */
+class ChangeParametersCommand : public Command {
+public:
+  ChangeParametersCommand(nodo::graph::NodeGraph* graph, int node_id, std::vector<ParameterChange> changes)
+      : Command("Change Parameter"), graph_(graph), node_id_(node_id), changes_(std::move(changes)) {
+    // Validate all changes
+    for (const auto& change : changes_) {
+      if (!change.is_valid()) {
+        throw std::runtime_error("Invalid parameter change: type mismatch for " + change.name);
       }
     }
+
+    // Remove changes that don't actually change anything
+    changes_.erase(
+        std::remove_if(changes_.begin(), changes_.end(), [](const ParameterChange& c) { return !c.has_changed(); }),
+        changes_.end());
+  }
+
+  void execute() override {
+    apply_changes(changes_, true); // true = apply new values
   }
 
   void undo() override {
-    auto* node = graph_->get_node(node_id_);
-    if (node != nullptr) {
-      node->set_parameter(param_name_, old_value_);
-      if (widget_ != nullptr) {
-        // Trigger parameter changed signal to update viewport
-        widget_->emit_parameter_changed_signal();
-
-        // Reselect the node after a 0ms delay to ensure it happens AFTER
-        // all Qt event processing that might be clearing selection
-        // Use QPointer to safely track the widget in case it's deleted before
-        // timer fires
-        QPointer<NodeGraphWidget> widget_ptr(widget_);
-        int node_id = node_id_;
-        nodo::graph::NodeGraph* graph = graph_;
-        QTimer::singleShot(0, [widget_ptr, node_id, graph]() {
-          if (widget_ptr && graph && graph->get_node(node_id) != nullptr) {
-            widget_ptr->select_node_public(node_id);
-          }
-        });
-      }
-    }
+    apply_changes(changes_, false); // false = apply old values
   }
 
   bool can_merge_with(const Command* other) const override {
-    auto* other_param = dynamic_cast<const ChangeParameterCommand*>(other);
-    return (other_param != nullptr) && (other_param->node_id_ == node_id_) && (other_param->param_name_ == param_name_);
+    auto* other_cmd = dynamic_cast<const ChangeParametersCommand*>(other);
+    if (!other_cmd)
+      return false;
+
+    // Can merge if same node and same set of parameters
+    if (other_cmd->node_id_ != node_id_)
+      return false;
+    if (other_cmd->changes_.size() != changes_.size())
+      return false;
+
+    for (size_t i = 0; i < changes_.size(); ++i) {
+      if (other_cmd->changes_[i].name != changes_[i].name)
+        return false;
+    }
+
+    return true;
   }
 
   void merge_with(const Command* other) override {
-    auto* other_param = dynamic_cast<const ChangeParameterCommand*>(other);
-    if (other_param != nullptr) {
-      new_value_ = other_param->new_value_;
+    auto* other_cmd = dynamic_cast<const ChangeParametersCommand*>(other);
+    if (!other_cmd)
+      return;
 
-      // CRITICAL: When commands merge, execute() is not called on the new
-      // command. We must apply the parameter change here so the viewport
-      // updates during dragging.
-      auto* node = graph_->get_node(node_id_);
-      if (node != nullptr) {
-        node->set_parameter(param_name_, new_value_);
-        // Emit signal to update viewport during continuous changes (e.g.,
-        // slider drag)
-        if (widget_ != nullptr) {
-          widget_->emit_parameter_changed_signal();
-        }
-      }
+    // Keep our old values, take their new values
+    for (size_t i = 0; i < changes_.size(); ++i) {
+      changes_[i].new_value = other_cmd->changes_[i].new_value;
     }
+
+    // Apply the merged changes
+    apply_changes(changes_, true);
   }
 
 private:
-  NodeGraphWidget* widget_;
+  void apply_changes(const std::vector<ParameterChange>& changes, bool use_new_value) {
+    auto* node = graph_->get_node(node_id_);
+    if (!node)
+      return;
+
+    auto* sop = node->get_sop();
+    if (!sop)
+      return;
+
+    for (const auto& change : changes) {
+      const auto& value = use_new_value ? change.new_value : change.old_value;
+      sop->set_parameter(change.name, value);
+    }
+  }
+
   nodo::graph::NodeGraph* graph_;
   int node_id_;
-  std::string param_name_;
-  nodo::graph::NodeParameter old_value_;
-  nodo::graph::NodeParameter new_value_;
+  std::vector<ParameterChange> changes_;
 };
 
 /**
@@ -476,11 +498,15 @@ std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph,
   return std::make_unique<MoveNodeCommand>(graph, node_id, old_pos, new_pos);
 }
 
-std::unique_ptr<Command> create_change_parameter_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                         int node_id, const std::string& param_name,
-                                                         const nodo::graph::NodeParameter& old_value,
-                                                         const nodo::graph::NodeParameter& new_value) {
-  return std::make_unique<ChangeParameterCommand>(widget, graph, node_id, param_name, old_value, new_value);
+std::unique_ptr<Command> create_change_parameter_command(nodo::graph::NodeGraph* graph, int node_id,
+                                                         const std::string& param_name,
+                                                         const nodo::sop::SOPNode::ParameterValue& old_value,
+                                                         const nodo::sop::SOPNode::ParameterValue& new_value) {
+  // Create a single parameter change
+  std::vector<ParameterChange> changes;
+  changes.push_back({param_name, old_value, new_value});
+
+  return std::make_unique<ChangeParametersCommand>(graph, node_id, std::move(changes));
 }
 
 std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int source_id,
@@ -571,9 +597,12 @@ public:
         if (new_node) {
           new_node->set_position(info.position.x(), info.position.y());
 
-          // Copy all parameters
-          for (const auto& param : info.parameters) {
-            new_node->set_parameter(param.name, param);
+          // Copy SOP parameters
+          if (new_node->get_sop() != nullptr) {
+            auto* sop = new_node->get_sop();
+            for (const auto& [param_name, param_value] : info.parameters) {
+              sop->set_parameter(param_name, param_value);
+            }
           }
         }
 
@@ -619,8 +648,12 @@ public:
         auto* node = graph_->get_node(info.node_id);
         if (node) {
           node->set_position(info.position.x(), info.position.y());
-          for (const auto& param : info.parameters) {
-            node->set_parameter(param.name, param);
+          // Restore SOP parameters
+          if (node->get_sop() != nullptr) {
+            auto* sop = node->get_sop();
+            for (const auto& [param_name, param_value] : info.parameters) {
+              sop->set_parameter(param_name, param_value);
+            }
           }
         }
 
@@ -660,7 +693,7 @@ private:
     int node_id;
     nodo::graph::NodeType node_type;
     QPointF position;
-    std::vector<nodo::graph::NodeParameter> parameters;
+    nodo::sop::SOPNode::ParameterMap parameters;
   };
 
   struct ConnectionInfo {

@@ -41,6 +41,17 @@ public:
                                                     QWidget* parent = nullptr);
 
   /**
+   * @brief Create a widget for a SOPNode parameter with current value
+   * @param def Parameter definition from SOPNode
+   * @param current_value Current value from ParameterMap
+   * @param parent Parent widget
+   * @return Newly created parameter widget, or nullptr if type not supported
+   */
+  static widgets::BaseParameterWidget* createWidget(const nodo::sop::SOPNode::ParameterDefinition& def,
+                                                    const nodo::sop::SOPNode::ParameterValue& current_value,
+                                                    QWidget* parent = nullptr);
+
+  /**
    * @brief Create a widget for a NodeGraph parameter
    * @param param Node parameter from graph system
    * @param parent Parent widget

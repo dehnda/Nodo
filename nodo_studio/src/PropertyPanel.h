@@ -13,9 +13,10 @@
 namespace nodo::graph {
 class GraphNode;
 class NodeGraph;
-struct NodeParameter;
 class ExecutionEngine;
 } // namespace nodo::graph
+
+#include <nodo/sop/sop_node.hpp>
 
 namespace nodo::studio {
 class UndoStack;
@@ -105,8 +106,12 @@ private:
 
   // Connect parameter widget callbacks to backend updates
   void connectParameterWidget(nodo_studio::widgets::BaseParameterWidget* widget,
-                              const nodo::graph::NodeParameter& param, nodo::graph::GraphNode* node,
+                              const nodo::sop::SOPNode::ParameterDefinition& param_def, nodo::graph::GraphNode* node,
                               nodo::graph::NodeGraph* graph);
+
+  // Helper to push parameter change command to undo stack
+  void pushParameterChange(nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph, const std::string& param_name,
+                           const nodo::sop::SOPNode::ParameterValue& new_value);
 
   // Populate group selector widget with available groups from input geometry
   void populateGroupWidget(nodo_studio::widgets::GroupSelectorWidget* widget, nodo::graph::GraphNode* node,
@@ -127,19 +132,6 @@ private:
                            std::function<void(double, double, double)> callback);
   void addInfoLabel(const QString& text);
 
-  // Builder methods for specific node types
-  // todo remove if not needed anymore
-  void buildSphereParameters(nodo::graph::GraphNode* node);
-  void buildBoxParameters(nodo::graph::GraphNode* node);
-  void buildCylinderParameters(nodo::graph::GraphNode* node);
-  void buildPlaneParameters(nodo::graph::GraphNode* node);
-  void buildTorusParameters(nodo::graph::GraphNode* node);
-  void buildTransformParameters(nodo::graph::GraphNode* node);
-  void buildArrayParameters(nodo::graph::GraphNode* node);
-  void buildBooleanParameters(nodo::graph::GraphNode* node);
-  void buildLineParameters(nodo::graph::GraphNode* node);
-  void buildPolyExtrudeParameters(nodo::graph::GraphNode* node);
-  void buildResampleParameters(nodo::graph::GraphNode* node);
-  void buildScatterParameters(nodo::graph::GraphNode* node);
-  void buildCopyToPointsParameters(nodo::graph::GraphNode* node);
+  // Note: Node-specific builder functions removed - buildFromNode now uses
+  // universal parameter system from SOPNode definitions
 };

@@ -22,116 +22,17 @@ std::string get_node_type_name(NodeType type) {
 
 namespace {
 
-/**
- * @brief Convert SOP ParameterDefinition to GraphNode NodeParameter
- */
-NodeParameter convert_parameter_definition(const sop::SOPNode::ParameterDefinition& def) {
-  using ParamType = sop::SOPNode::ParameterDefinition::Type;
-
-  NodeParameter param(def.name, 0.0F); // Temporary, will be overwritten
-
-  switch (def.type) {
-    case ParamType::Float: {
-      float default_val = std::get<float>(def.default_value);
-      param = NodeParameter(def.name, default_val, def.label, static_cast<float>(def.float_min),
-                            static_cast<float>(def.float_max), def.category);
-      break;
-    }
-
-    case ParamType::Int: {
-      int default_val = std::get<int>(def.default_value);
-      if (!def.options.empty()) {
-        // Combo box
-        param = NodeParameter(def.name, default_val, def.options, def.label, def.category);
-      } else {
-        // Regular int
-        param = NodeParameter(def.name, default_val, def.label, def.int_min, def.int_max, def.category);
-      }
-      break;
-    }
-
-    case ParamType::Bool: {
-      bool default_val = std::get<bool>(def.default_value);
-      param = NodeParameter(def.name, default_val, def.label, def.category);
-      break;
-    }
-
-    case ParamType::String: {
-      std::string default_val = std::get<std::string>(def.default_value);
-      param = NodeParameter(def.name, default_val, def.label, def.category);
-      break;
-    }
-
-    case ParamType::Code: {
-      std::string default_val = std::get<std::string>(def.default_value);
-      param = NodeParameter(def.name, default_val, def.label, def.category);
-      // Override type to Code after construction
-      param.type = nodo::graph::NodeParameter::Type::Code;
-      break;
-    }
-
-    case ParamType::Vector3: {
-      auto vec3_eigen = std::get<Eigen::Vector3f>(def.default_value);
-      std::array<float, 3> vec3_array = {vec3_eigen.x(), vec3_eigen.y(), vec3_eigen.z()};
-      param = NodeParameter(def.name, vec3_array, def.label, static_cast<float>(def.float_min),
-                            static_cast<float>(def.float_max), def.category);
-      break;
-    }
-
-    case ParamType::GroupSelector: {
-      std::string default_val = std::get<std::string>(def.default_value);
-      param = NodeParameter(def.name, default_val, def.label, def.category);
-      // Override type to GroupSelector after construction
-      param.type = nodo::graph::NodeParameter::Type::GroupSelector;
-      break;
-    }
-  }
-
-  // Copy visibility control metadata
-  param.category_control_param = def.category_control_param;
-  param.category_control_value = def.category_control_value;
-
-  // Copy UI hint for widget selection
-  param.ui_hint = def.ui_hint;
-
-  return param;
-}
-
-/**
- * @brief Initialize GraphNode parameters from SOPNode parameter definitions
- */
-void initialize_node_parameters_from_sop(GraphNode& node) {
-  // Create a temporary SOP instance to get its parameter definitions
-  auto sop = sop::SOPFactory::create(node.get_type(), node.get_name());
-
-  if (!sop) {
-    // Node type doesn't have a SOP implementation (e.g., Switch)
-    return;
-  }
-
-  // Get parameter definitions from the SOP
-  const auto& param_defs = sop->get_parameter_definitions();
-
-  if (param_defs.empty()) {
-    // warning if not parameters defined
-
-    return;
-  }
-
-  // Convert and add parameters to GraphNode
-  for (const auto& def : param_defs) {
-    NodeParameter param = convert_parameter_definition(def);
-    node.add_parameter(param);
-  }
+std::string generate_name_from_type(NodeType type) {
+  return get_node_type_name(type);
 }
 
 } // anonymous namespace
 
 GraphNode::GraphNode(int node_id, NodeType type) : id_(node_id), type_(type) {
-  // Setup pins based on node type
-  // can we cast to type and get the name
-
   setup_pins_for_type();
+
+  // Create SOP immediately (no longer lazy) so parameters are available
+  sop_instance_ = sop::SOPFactory::create(type_, generate_name_from_type(type_));
 }
 
 void GraphNode::setup_pins_for_type() {
@@ -177,34 +78,14 @@ void GraphNode::setup_pins_for_type() {
   output_pins_.push_back({NodePin::Type::Output, NodePin::DataType::Mesh, "Mesh", 0});
 }
 
-void GraphNode::add_parameter(const NodeParameter& param) {
-  auto iterator = std::find_if(parameters_.begin(), parameters_.end(),
-                               [&param](const NodeParameter& parameter) { return parameter.name == param.name; });
-
-  if (iterator != parameters_.end()) {
-    *iterator = param;
-  } else {
-    parameters_.push_back(param);
-  }
-  needs_update_ = true;
+const sop::SOPNode::ParameterMap& GraphNode::get_parameters() const {
+  static const sop::SOPNode::ParameterMap empty_map;
+  return sop_instance_ ? sop_instance_->get_parameters() : empty_map;
 }
 
-void GraphNode::remove_parameter(const std::string& name) {
-  parameters_.erase(std::remove_if(parameters_.begin(), parameters_.end(),
-                                   [&name](const NodeParameter& p) { return p.name == name; }),
-                    parameters_.end());
-  needs_update_ = true;
-}
-
-std::optional<NodeParameter> GraphNode::get_parameter(const std::string& name) const {
-  auto it =
-      std::find_if(parameters_.begin(), parameters_.end(), [&name](const NodeParameter& p) { return p.name == name; });
-
-  return (it != parameters_.end()) ? std::make_optional(*it) : std::nullopt;
-}
-
-void GraphNode::set_parameter([[maybe_unused]] const std::string& name, const NodeParameter& param) {
-  add_parameter(param);
+const std::vector<sop::SOPNode::ParameterDefinition>& GraphNode::get_parameter_definitions() const {
+  static const std::vector<sop::SOPNode::ParameterDefinition> empty_vec;
+  return sop_instance_ ? sop_instance_->get_parameter_definitions() : empty_vec;
 }
 
 int NodeGraph::add_node(NodeType type, const std::string& name) {
@@ -221,9 +102,6 @@ int NodeGraph::add_node_with_id(int node_id, NodeType type, const std::string& n
 
   auto node = std::make_unique<GraphNode>(node_id, type);
   node->set_name(final_name);
-
-  // Initialize parameters from the SOP definition
-  initialize_node_parameters_from_sop(*node);
 
   nodes_.push_back(std::move(node));
   notify_node_changed(node_id);
@@ -688,37 +566,46 @@ std::optional<std::string> NodeGraph::resolve_parameter_path(int current_node_id
     return std::nullopt;
   }
 
-  // Get the parameter from the target node
-  auto param_opt = target_node->get_parameter(param_name);
-  if (!param_opt.has_value()) {
+  // Get the parameter from the target node's SOP
+  const auto* sop = target_node->get_sop();
+  if (!sop) {
+    return std::nullopt;
+  }
+
+  const auto& param_values = sop->get_parameters();
+  auto param_it = param_values.find(param_name);
+  if (param_it == param_values.end()) {
     // Parameter not found
     return std::nullopt;
   }
 
-  const NodeParameter& param = param_opt.value();
+  // Convert parameter value to string based on variant type
+  const auto& value = param_it->second;
 
-  // Convert parameter value to string based on type
-  switch (param.type) {
-    case NodeParameter::Type::Float:
-      return std::to_string(param.float_value);
-
-    case NodeParameter::Type::Int:
-      return std::to_string(param.int_value);
-
-    case NodeParameter::Type::Bool:
-      return param.bool_value ? "1" : "0";
-
-    case NodeParameter::Type::String:
-    case NodeParameter::Type::Code:
-    case NodeParameter::Type::GroupSelector:
-      return param.string_value;
-
-    case NodeParameter::Type::Vector3:
-      return std::to_string(param.vector3_value[0]) + "," + std::to_string(param.vector3_value[1]) + "," +
-             std::to_string(param.vector3_value[2]);
+  if (std::holds_alternative<float>(value)) {
+    return std::to_string(std::get<float>(value));
+  } else if (std::holds_alternative<int>(value)) {
+    return std::to_string(std::get<int>(value));
+  } else if (std::holds_alternative<bool>(value)) {
+    return std::get<bool>(value) ? "1" : "0";
+  } else if (std::holds_alternative<std::string>(value)) {
+    return std::get<std::string>(value);
+  } else if (std::holds_alternative<Eigen::Vector3f>(value)) {
+    const auto& vec = std::get<Eigen::Vector3f>(value);
+    return std::to_string(vec.x()) + "," + std::to_string(vec.y()) + "," + std::to_string(vec.z());
   }
 
   return std::nullopt;
+}
+
+// ===== Persistent SOPNode Implementation =====
+
+sop::SOPNode* GraphNode::get_sop() {
+  return sop_instance_.get();
+}
+
+const sop::SOPNode* GraphNode::get_sop() const {
+  return sop_instance_.get();
 }
 
 } // namespace nodo::graph

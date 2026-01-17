@@ -42,9 +42,9 @@ TEST_F(GraphSerializationTest, BasicSerializeDeserialize) {
   ASSERT_NE(box_node, nullptr);
 
   // Set some parameters
-  box_node->add_parameter(NodeParameter("width", 2.0f));
-  box_node->add_parameter(NodeParameter("height", 3.0f));
-  box_node->add_parameter(NodeParameter("depth", 1.5f));
+  box_node->get_sop()->set_parameter("width", 2.0f);
+  box_node->get_sop()->set_parameter("height", 3.0f);
+  box_node->get_sop()->set_parameter("depth", 1.5f);
 
   // Set position
   box_node->set_position(100.0f, 200.0f);
@@ -56,8 +56,6 @@ TEST_F(GraphSerializationTest, BasicSerializeDeserialize) {
 
   // Deserialize back
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify the loaded graph
   auto* loaded_box = loaded_graph->get_node(box_id);
   ASSERT_NE(loaded_box, nullptr);
@@ -69,13 +67,11 @@ TEST_F(GraphSerializationTest, BasicSerializeDeserialize) {
   EXPECT_FLOAT_EQ(pos.second, 200.0f);
 
   // Check parameters
-  auto width_param = loaded_box->get_parameter("width");
-  ASSERT_TRUE(width_param.has_value());
-  EXPECT_FLOAT_EQ(width_param->float_value, 2.0f);
+  auto width_param = loaded_box->get_sop()->get_parameters().at("width");
+  EXPECT_FLOAT_EQ(std::get<float>(width_param), 2.0f);
 
-  auto height_param = loaded_box->get_parameter("height");
-  ASSERT_TRUE(height_param.has_value());
-  EXPECT_FLOAT_EQ(height_param->float_value, 3.0f);
+  auto height_param = loaded_box->get_sop()->get_parameters().at("height");
+  EXPECT_FLOAT_EQ(std::get<float>(height_param), 3.0f);
 }
 
 // Test all parameter types
@@ -87,53 +83,39 @@ TEST_F(GraphSerializationTest, AllParameterTypes) {
   ASSERT_NE(node, nullptr);
 
   // Add different parameter types
-  node->add_parameter(NodeParameter("float_param", 3.14f));
-  node->add_parameter(NodeParameter("int_param", 42));
-  node->add_parameter(NodeParameter("bool_param", true));
-  node->add_parameter(NodeParameter("string_param", std::string("test_string")));
-  node->add_parameter(NodeParameter("vector3_param", std::array<float, 3>{1.0f, 2.0f, 3.0f}));
-
-  // Add Code parameter (for Wrangle nodes) - created as String but set type to
-  // Code
-  NodeParameter code_param("code_param", std::string("@P.y = @P.y + 1.0;"));
-  code_param.type = NodeParameter::Type::Code;
-  node->add_parameter(code_param);
+  node->get_sop()->set_parameter("float_param", 3.14f);
+  node->get_sop()->set_parameter("int_param", 42);
+  node->get_sop()->set_parameter("bool_param", true);
+  node->get_sop()->set_parameter("string_param", std::string("test_string"));
+  node->get_sop()->set_parameter("vector3_param", Eigen::Vector3f(1.0f, 2.0f, 3.0f));
+  node->get_sop()->set_parameter("code_param", std::string("@P.y = @P.y + 1.0;"));
 
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(original_graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   auto* loaded_node = loaded_graph->get_node(node_id);
   ASSERT_NE(loaded_node, nullptr);
 
   // Verify each parameter type
-  auto float_param = loaded_node->get_parameter("float_param");
-  ASSERT_TRUE(float_param.has_value());
-  EXPECT_FLOAT_EQ(float_param->float_value, 3.14f);
+  auto float_param = loaded_node->get_sop()->get_parameters().at("float_param");
+  EXPECT_FLOAT_EQ(std::get<float>(float_param), 3.14f);
 
-  auto int_param = loaded_node->get_parameter("int_param");
-  ASSERT_TRUE(int_param.has_value());
-  EXPECT_EQ(int_param->int_value, 42);
+  auto int_param = loaded_node->get_sop()->get_parameters().at("int_param");
+  EXPECT_EQ(std::get<int>(int_param), 42);
 
-  auto bool_param = loaded_node->get_parameter("bool_param");
-  ASSERT_TRUE(bool_param.has_value());
-  EXPECT_TRUE(bool_param->bool_value);
+  auto bool_param = loaded_node->get_sop()->get_parameters().at("bool_param");
+  EXPECT_TRUE(std::get<bool>(bool_param));
 
-  auto string_param = loaded_node->get_parameter("string_param");
-  ASSERT_TRUE(string_param.has_value());
-  EXPECT_EQ(string_param->string_value, "test_string");
+  auto string_param = loaded_node->get_sop()->get_parameters().at("string_param");
+  EXPECT_EQ(std::get<std::string>(string_param), "test_string");
 
-  auto vector3_param = loaded_node->get_parameter("vector3_param");
-  ASSERT_TRUE(vector3_param.has_value());
-  EXPECT_FLOAT_EQ(vector3_param->vector3_value[0], 1.0f);
-  EXPECT_FLOAT_EQ(vector3_param->vector3_value[1], 2.0f);
-  EXPECT_FLOAT_EQ(vector3_param->vector3_value[2], 3.0f);
+  auto vector3_param = loaded_node->get_sop()->get_parameters().at("vector3_param");
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(vector3_param)[0], 1.0f);
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(vector3_param)[1], 2.0f);
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(vector3_param)[2], 3.0f);
 
-  auto code_param_loaded = loaded_node->get_parameter("code_param");
-  ASSERT_TRUE(code_param_loaded.has_value());
-  EXPECT_EQ(code_param_loaded->type, NodeParameter::Type::Code);
-  EXPECT_EQ(code_param_loaded->string_value, "@P.y = @P.y + 1.0;");
+  auto code_param_loaded = loaded_node->get_sop()->get_parameters().at("code_param");
+  EXPECT_EQ(std::get<std::string>(code_param_loaded), "@P.y = @P.y + 1.0;");
 }
 
 // Test connections
@@ -149,8 +131,6 @@ TEST_F(GraphSerializationTest, Connections) {
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(original_graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify connections
   const auto& connections = loaded_graph->get_connections();
   EXPECT_EQ(connections.size(), 1);
@@ -187,8 +167,6 @@ TEST_F(GraphSerializationTest, ComplexGraph) {
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(original_graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify all nodes exist
   EXPECT_NE(loaded_graph->get_node(box_id), nullptr);
   EXPECT_NE(loaded_graph->get_node(transform_id), nullptr);
@@ -206,7 +184,7 @@ TEST_F(GraphSerializationTest, SaveLoadFile) {
 
   int box_id = original_graph.add_node(NodeType::Box, "SavedBox");
   auto* box_node = original_graph.get_node(box_id);
-  box_node->add_parameter(NodeParameter("width", 5.0f));
+  box_node->get_sop()->set_parameter("width", 5.0f);
   box_node->set_position(150.0f, 250.0f);
 
   // Save to file
@@ -217,15 +195,12 @@ TEST_F(GraphSerializationTest, SaveLoadFile) {
 
   // Load from file
   auto loaded_graph = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded_graph.has_value());
-
   auto* loaded_box = loaded_graph->get_node(box_id);
   ASSERT_NE(loaded_box, nullptr);
   EXPECT_EQ(loaded_box->get_name(), "SavedBox");
 
-  auto width_param = loaded_box->get_parameter("width");
-  ASSERT_TRUE(width_param.has_value());
-  EXPECT_FLOAT_EQ(width_param->float_value, 5.0f);
+  auto width_param = loaded_box->get_sop()->get_parameters().at("width");
+  EXPECT_FLOAT_EQ(std::get<float>(width_param), 5.0f);
 }
 
 // Test Wrangle node with ch() parameters
@@ -236,39 +211,30 @@ TEST_F(GraphSerializationTest, WrangleWithChannels) {
   auto* wrangle_node = original_graph.get_node(wrangle_id);
   ASSERT_NE(wrangle_node, nullptr);
 
-  // Add expression with ch() parameters - created as String but set type to
-  // Code
-  NodeParameter expr_param("expression", std::string("@P.y = @P.y + ch(\"amplitude\") * "
-                                                     "sin(@ptnum * ch(\"frequency\"));"));
-  expr_param.type = NodeParameter::Type::Code;
-  wrangle_node->add_parameter(expr_param);
+  // Add expression with ch() parameters
+  wrangle_node->get_sop()->set_parameter("expression", std::string("@P.y = @P.y + ch(\"amplitude\") * "
+                                                                   "sin(@ptnum * ch(\"frequency\"));"));
 
   // Add the dynamic channel parameters
-  wrangle_node->add_parameter(NodeParameter("amplitude", 1.5f));
-  wrangle_node->add_parameter(NodeParameter("frequency", 0.1f));
+  wrangle_node->get_sop()->set_parameter("amplitude", 1.5f);
+  wrangle_node->get_sop()->set_parameter("frequency", 0.1f);
 
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(original_graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   auto* loaded_wrangle = loaded_graph->get_node(wrangle_id);
   ASSERT_NE(loaded_wrangle, nullptr);
 
   // Verify expression
-  auto expr = loaded_wrangle->get_parameter("expression");
-  ASSERT_TRUE(expr.has_value());
-  EXPECT_EQ(expr->type, NodeParameter::Type::Code);
-  EXPECT_EQ(expr->string_value, "@P.y = @P.y + ch(\"amplitude\") * sin(@ptnum * ch(\"frequency\"));");
+  auto expr = loaded_wrangle->get_sop()->get_parameters().at("expression");
+  EXPECT_EQ(std::get<std::string>(expr), "@P.y = @P.y + ch(\"amplitude\") * sin(@ptnum * ch(\"frequency\"));");
 
   // Verify channel parameters
-  auto amp = loaded_wrangle->get_parameter("amplitude");
-  ASSERT_TRUE(amp.has_value());
-  EXPECT_FLOAT_EQ(amp->float_value, 1.5f);
+  auto amp = loaded_wrangle->get_sop()->get_parameters().at("amplitude");
+  EXPECT_FLOAT_EQ(std::get<float>(amp), 1.5f);
 
-  auto freq = loaded_wrangle->get_parameter("frequency");
-  ASSERT_TRUE(freq.has_value());
-  EXPECT_FLOAT_EQ(freq->float_value, 0.1f);
+  auto freq = loaded_wrangle->get_sop()->get_parameters().at("frequency");
+  EXPECT_FLOAT_EQ(std::get<float>(freq), 0.1f);
 }
 
 // Test invalid JSON handling
@@ -286,8 +252,6 @@ TEST_F(GraphSerializationTest, EmptyGraph) {
   EXPECT_FALSE(json.empty());
 
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   EXPECT_TRUE(loaded_graph->get_nodes().empty());
   EXPECT_TRUE(loaded_graph->get_connections().empty());
 }
@@ -306,7 +270,7 @@ TEST_F(GraphSerializationTest, RoundtripStability) {
 
   int box_id = graph.add_node(NodeType::Box, "Box");
   auto* box = graph.get_node(box_id);
-  box->add_parameter(NodeParameter("width", 2.0f));
+  box->get_sop()->set_parameter("width", 2.0f);
   box->set_position(100.0f, 200.0f);
 
   // First serialization
@@ -314,7 +278,6 @@ TEST_F(GraphSerializationTest, RoundtripStability) {
 
   // Deserialize and serialize again
   auto loaded = GraphSerializer::deserialize_from_json(json1);
-  ASSERT_TRUE(loaded.has_value());
   std::string json2 = GraphSerializer::serialize_to_json(loaded.value());
 
   // Parse both as JSON and compare (allows for formatting differences)
@@ -334,14 +297,12 @@ TEST_F(GraphSerializationTest, SphereNode) {
   auto* node = graph.get_node(id);
   ASSERT_NE(node, nullptr);
 
-  node->add_parameter(NodeParameter("radius", 2.5f));
-  node->add_parameter(NodeParameter("subdivisions", 3));
+  node->get_sop()->set_parameter("radius", 2.5f);
+  node->get_sop()->set_parameter("subdivisions", 3);
   node->set_position(50.0f, 100.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Sphere);
@@ -353,14 +314,12 @@ TEST_F(GraphSerializationTest, BoxNode) {
   int id = graph.add_node(NodeType::Box, "TestBox");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("width", 1.0f));
-  node->add_parameter(NodeParameter("height", 2.0f));
-  node->add_parameter(NodeParameter("depth", 3.0f));
+  node->get_sop()->set_parameter("width", 1.0f);
+  node->get_sop()->set_parameter("height", 2.0f);
+  node->get_sop()->set_parameter("depth", 3.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Box);
@@ -371,14 +330,12 @@ TEST_F(GraphSerializationTest, CylinderNode) {
   int id = graph.add_node(NodeType::Cylinder, "TestCylinder");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("radius", 1.5f));
-  node->add_parameter(NodeParameter("height", 3.0f));
-  node->add_parameter(NodeParameter("segments", 32));
+  node->get_sop()->set_parameter("radius", 1.5f);
+  node->get_sop()->set_parameter("height", 3.0f);
+  node->get_sop()->set_parameter("segments", 32);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Cylinder);
 }
@@ -388,14 +345,12 @@ TEST_F(GraphSerializationTest, GridNode) {
   int id = graph.add_node(NodeType::Grid, "TestGrid");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("rows", 10));
-  node->add_parameter(NodeParameter("columns", 10));
-  node->add_parameter(NodeParameter("size", 5.0f));
+  node->get_sop()->set_parameter("rows", 10);
+  node->get_sop()->set_parameter("columns", 10);
+  node->get_sop()->set_parameter("size", 5.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Grid);
 }
@@ -405,13 +360,11 @@ TEST_F(GraphSerializationTest, TorusNode) {
   int id = graph.add_node(NodeType::Torus, "TestTorus");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("major_radius", 2.0f));
-  node->add_parameter(NodeParameter("minor_radius", 0.5f));
+  node->get_sop()->set_parameter("major_radius", 2.0f);
+  node->get_sop()->set_parameter("minor_radius", 0.5f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Torus);
 }
@@ -421,13 +374,11 @@ TEST_F(GraphSerializationTest, LineNode) {
   int id = graph.add_node(NodeType::Line, "TestLine");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("points", 10));
-  node->add_parameter(NodeParameter("length", 5.0f));
+  node->get_sop()->set_parameter("points", 10);
+  node->get_sop()->set_parameter("length", 5.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Line);
 }
@@ -438,23 +389,20 @@ TEST_F(GraphSerializationTest, TransformNode) {
   int id = graph.add_node(NodeType::Transform, "TestTransform");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("translate", std::array<float, 3>{1.0f, 2.0f, 3.0f}));
-  node->add_parameter(NodeParameter("rotate", std::array<float, 3>{45.0f, 0.0f, 0.0f}));
-  node->add_parameter(NodeParameter("scale", std::array<float, 3>{1.5f, 1.5f, 1.5f}));
+  node->get_sop()->set_parameter("translate", Eigen::Vector3f(1.0f, 2.0f, 3.0f));
+  node->get_sop()->set_parameter("rotate", Eigen::Vector3f(45.0f, 0.0f, 0.0f));
+  node->get_sop()->set_parameter("scale", Eigen::Vector3f(1.5f, 1.5f, 1.5f));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Transform);
 
-  auto translate = loaded_node->get_parameter("translate");
-  ASSERT_TRUE(translate.has_value());
-  EXPECT_FLOAT_EQ(translate->vector3_value[0], 1.0f);
-  EXPECT_FLOAT_EQ(translate->vector3_value[1], 2.0f);
-  EXPECT_FLOAT_EQ(translate->vector3_value[2], 3.0f);
+  auto translate = loaded_node->get_sop()->get_parameters().at("translate");
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(translate)[0], 1.0f);
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(translate)[1], 2.0f);
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(translate)[2], 3.0f);
 }
 
 TEST_F(GraphSerializationTest, ArrayNode) {
@@ -462,14 +410,12 @@ TEST_F(GraphSerializationTest, ArrayNode) {
   int id = graph.add_node(NodeType::Array, "TestArray");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("count", 5));
-  node->add_parameter(NodeParameter("offset", std::array<float, 3>{2.0f, 0.0f, 0.0f}));
-  node->add_parameter(NodeParameter("mode", 0)); // Linear
+  node->get_sop()->set_parameter("count", 5);
+  node->get_sop()->set_parameter("offset", Eigen::Vector3f(2.0f, 0.0f, 0.0f));
+  node->get_sop()->set_parameter("mode", 0); // Linear
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Array);
 }
@@ -479,13 +425,11 @@ TEST_F(GraphSerializationTest, ExtrudeNode) {
   int id = graph.add_node(NodeType::Extrude, "TestExtrude");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("distance", 2.0f));
-  node->add_parameter(NodeParameter("divisions", 1));
+  node->get_sop()->set_parameter("distance", 2.0f);
+  node->get_sop()->set_parameter("divisions", 1);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Extrude);
 }
@@ -495,13 +439,11 @@ TEST_F(GraphSerializationTest, MirrorNode) {
   int id = graph.add_node(NodeType::Mirror, "TestMirror");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("axis", 0)); // X axis
-  node->add_parameter(NodeParameter("offset", 0.0f));
+  node->get_sop()->set_parameter("axis", 0); // X axis
+  node->get_sop()->set_parameter("offset", 0.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Mirror);
 }
@@ -511,14 +453,12 @@ TEST_F(GraphSerializationTest, NoiseDisplacementNode) {
   int id = graph.add_node(NodeType::NoiseDisplacement, "TestNoise");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("amplitude", 0.5f));
-  node->add_parameter(NodeParameter("frequency", 2.0f));
-  node->add_parameter(NodeParameter("octaves", 3));
+  node->get_sop()->set_parameter("amplitude", 0.5f);
+  node->get_sop()->set_parameter("frequency", 2.0f);
+  node->get_sop()->set_parameter("octaves", 3);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::NoiseDisplacement);
 }
@@ -528,13 +468,11 @@ TEST_F(GraphSerializationTest, NormalNode) {
   int id = graph.add_node(NodeType::Normal, "TestNormal");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("type", 0)); // Vertex normals
-  node->add_parameter(NodeParameter("cusp_angle", 60.0f));
+  node->get_sop()->set_parameter("type", 0); // Vertex normals
+  node->get_sop()->set_parameter("cusp_angle", 60.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Normal);
 }
@@ -544,13 +482,11 @@ TEST_F(GraphSerializationTest, BevelNode) {
   int id = graph.add_node(NodeType::Bevel, "TestBevel");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("distance", 0.1f));
-  node->add_parameter(NodeParameter("segments", 2));
+  node->get_sop()->set_parameter("distance", 0.1f);
+  node->get_sop()->set_parameter("segments", 2);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Bevel);
 }
@@ -561,13 +497,11 @@ TEST_F(GraphSerializationTest, BendNode) {
   int id = graph.add_node(NodeType::Bend, "TestBend");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("angle", 45.0f));
-  node->add_parameter(NodeParameter("axis", 1)); // Y axis
+  node->get_sop()->set_parameter("angle", 45.0f);
+  node->get_sop()->set_parameter("axis", 1); // Y axis
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Bend);
 }
@@ -577,13 +511,11 @@ TEST_F(GraphSerializationTest, TwistNode) {
   int id = graph.add_node(NodeType::Twist, "TestTwist");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("angle", 90.0f));
-  node->add_parameter(NodeParameter("axis", 1)); // Y axis
+  node->get_sop()->set_parameter("angle", 90.0f);
+  node->get_sop()->set_parameter("axis", 1); // Y axis
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Twist);
 }
@@ -594,12 +526,10 @@ TEST_F(GraphSerializationTest, BooleanNode) {
   int id = graph.add_node(NodeType::Boolean, "TestBoolean");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("operation", 0)); // Union
+  node->get_sop()->set_parameter("operation", 0); // Union
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Boolean);
 }
@@ -610,13 +540,11 @@ TEST_F(GraphSerializationTest, ScatterNode) {
   int id = graph.add_node(NodeType::Scatter, "TestScatter");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("count", 100));
-  node->add_parameter(NodeParameter("seed", 42));
+  node->get_sop()->set_parameter("count", 100);
+  node->get_sop()->set_parameter("seed", 42);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Scatter);
 }
@@ -626,13 +554,11 @@ TEST_F(GraphSerializationTest, CopyToPointsNode) {
   int id = graph.add_node(NodeType::CopyToPoints, "TestCopyToPoints");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("scale", 1.0f));
-  node->add_parameter(NodeParameter("use_normal", true));
+  node->get_sop()->set_parameter("scale", 1.0f);
+  node->get_sop()->set_parameter("use_normal", true);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::CopyToPoints);
 }
@@ -643,13 +569,11 @@ TEST_F(GraphSerializationTest, GroupNode) {
   int id = graph.add_node(NodeType::Group, "TestGroup");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("group_name", std::string("mygroup")));
-  node->add_parameter(NodeParameter("keep_existing", false));
+  node->get_sop()->set_parameter("group_name", std::string("mygroup"));
+  node->get_sop()->set_parameter("keep_existing", false);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Group);
 }
@@ -659,12 +583,10 @@ TEST_F(GraphSerializationTest, GroupDeleteNode) {
   int id = graph.add_node(NodeType::GroupDelete, "TestGroupDelete");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("group_name", std::string("unwanted")));
+  node->get_sop()->set_parameter("group_name", std::string("unwanted"));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::GroupDelete);
 }
@@ -679,8 +601,6 @@ TEST_F(GraphSerializationTest, MergeNode) {
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Merge);
 
@@ -694,12 +614,10 @@ TEST_F(GraphSerializationTest, SwitchNode) {
   int id = graph.add_node(NodeType::Switch, "TestSwitch");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("input_index", 0));
+  node->get_sop()->set_parameter("input_index", 0);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Switch);
 }
@@ -710,8 +628,6 @@ TEST_F(GraphSerializationTest, NullNode) {
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Null);
 }
@@ -722,21 +638,18 @@ TEST_F(GraphSerializationTest, ColorNode) {
   int id = graph.add_node(NodeType::Color, "TestColor");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.0f}));
-  node->add_parameter(NodeParameter("mode", 0)); // Constant color
+  node->get_sop()->set_parameter("color", Eigen::Vector3f(1.0f, 0.5f, 0.0f));
+  node->get_sop()->set_parameter("mode", 0); // Constant color
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Color);
 
-  auto color = loaded_node->get_parameter("color");
-  ASSERT_TRUE(color.has_value());
-  EXPECT_FLOAT_EQ(color->vector3_value[0], 1.0f);
-  EXPECT_FLOAT_EQ(color->vector3_value[1], 0.5f);
-  EXPECT_FLOAT_EQ(color->vector3_value[2], 0.0f);
+  auto color = loaded_node->get_sop()->get_parameters().at("color");
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(color)[0], 1.0f);
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(color)[1], 0.5f);
+  EXPECT_FLOAT_EQ(std::get<Eigen::Vector3f>(color)[2], 0.0f);
 }
 
 // ============================================================================
@@ -770,8 +683,6 @@ TEST_F(GraphSerializationTest, GraphParametersAllTypes) {
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify all graph parameters were preserved
   const auto& loaded_params = loaded_graph->get_graph_parameters();
   EXPECT_EQ(loaded_params.size(), 5);
@@ -830,19 +741,17 @@ TEST_F(GraphSerializationTest, GraphParametersWithNodes) {
   // Add nodes that could reference these parameters
   int sphere_id = graph.add_node(NodeType::Sphere, "Sphere");
   auto* sphere = graph.get_node(sphere_id);
-  sphere->add_parameter(NodeParameter("radius", 2.0f));
+  sphere->get_sop()->set_parameter("radius", 2.0f);
 
   int array_id = graph.add_node(NodeType::Array, "Array");
   auto* array = graph.get_node(array_id);
-  array->add_parameter(NodeParameter("count", 5));
+  array->get_sop()->set_parameter("count", 5);
 
   graph.add_connection(sphere_id, 0, array_id, 0);
 
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify graph parameters
   const auto& loaded_params = loaded_graph->get_graph_parameters();
   EXPECT_EQ(loaded_params.size(), 2);
@@ -883,8 +792,6 @@ TEST_F(GraphSerializationTest, GraphParametersFileRoundtrip) {
 
   // Load from file
   auto loaded_graph = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify parameters
   const auto* loaded_seed = loaded_graph->get_graph_parameter("global_seed");
   ASSERT_NE(loaded_seed, nullptr);
@@ -904,8 +811,6 @@ TEST_F(GraphSerializationTest, EmptyGraphParameters) {
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded_graph = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded_graph.has_value());
-
   // Verify no graph parameters
   const auto& loaded_params = loaded_graph->get_graph_parameters();
   EXPECT_EQ(loaded_params.size(), 0);
@@ -924,20 +829,17 @@ TEST_F(GraphSerializationTest, FileNode) {
   int id = graph.add_node(NodeType::File, "TestFile");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("filepath", std::string("/path/to/model.obj")));
+  node->get_sop()->set_parameter("filepath", std::string("/path/to/model.obj"));
   node->set_position(100.0f, 100.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::File);
 
-  auto filepath = loaded_node->get_parameter("filepath");
-  ASSERT_TRUE(filepath.has_value());
-  EXPECT_EQ(filepath->string_value, "/path/to/model.obj");
+  auto filepath = loaded_node->get_sop()->get_parameters().at("filepath");
+  EXPECT_EQ(std::get<std::string>(filepath), "/path/to/model.obj");
 }
 
 TEST_F(GraphSerializationTest, ExportNode) {
@@ -945,21 +847,18 @@ TEST_F(GraphSerializationTest, ExportNode) {
   int id = graph.add_node(NodeType::Export, "TestExport");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("filepath", std::string("/path/to/output.obj")));
-  node->add_parameter(NodeParameter("format", 0)); // OBJ format
+  node->get_sop()->set_parameter("filepath", std::string("/path/to/output.obj"));
+  node->get_sop()->set_parameter("format", 0); // OBJ format
   node->set_position(200.0f, 100.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Export);
 
-  auto filepath = loaded_node->get_parameter("filepath");
-  ASSERT_TRUE(filepath.has_value());
-  EXPECT_EQ(filepath->string_value, "/path/to/output.obj");
+  auto filepath = loaded_node->get_sop()->get_parameters().at("filepath");
+  EXPECT_EQ(std::get<std::string>(filepath), "/path/to/output.obj");
 }
 
 // Attribute Nodes
@@ -968,22 +867,19 @@ TEST_F(GraphSerializationTest, AttributeCreateNode) {
   int id = graph.add_node(NodeType::AttributeCreate, "TestAttributeCreate");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("name", std::string("custom_attr")));
-  node->add_parameter(NodeParameter("type", 0));  // Float
-  node->add_parameter(NodeParameter("class", 0)); // Point
-  node->add_parameter(NodeParameter("value", 1.5f));
+  node->get_sop()->set_parameter("name", std::string("custom_attr"));
+  node->get_sop()->set_parameter("type", 0);  // Float
+  node->get_sop()->set_parameter("class", 0); // Point
+  node->get_sop()->set_parameter("value", 1.5f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::AttributeCreate);
 
-  auto name = loaded_node->get_parameter("name");
-  ASSERT_TRUE(name.has_value());
-  EXPECT_EQ(name->string_value, "custom_attr");
+  auto name = loaded_node->get_sop()->get_parameters().at("name");
+  EXPECT_EQ(std::get<std::string>(name), "custom_attr");
 }
 
 TEST_F(GraphSerializationTest, AttributeDeleteNode) {
@@ -991,20 +887,17 @@ TEST_F(GraphSerializationTest, AttributeDeleteNode) {
   int id = graph.add_node(NodeType::AttributeDelete, "TestAttributeDelete");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("pattern", std::string("temp_*")));
-  node->add_parameter(NodeParameter("class", 0)); // Point attributes
+  node->get_sop()->set_parameter("pattern", std::string("temp_*"));
+  node->get_sop()->set_parameter("class", 0); // Point attributes
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::AttributeDelete);
 
-  auto pattern = loaded_node->get_parameter("pattern");
-  ASSERT_TRUE(pattern.has_value());
-  EXPECT_EQ(pattern->string_value, "temp_*");
+  auto pattern = loaded_node->get_sop()->get_parameters().at("pattern");
+  EXPECT_EQ(std::get<std::string>(pattern), "temp_*");
 }
 
 TEST_F(GraphSerializationTest, UVUnwrapNode) {
@@ -1012,13 +905,11 @@ TEST_F(GraphSerializationTest, UVUnwrapNode) {
   int id = graph.add_node(NodeType::UVUnwrap, "TestUVUnwrap");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("method", 0)); // xatlas
-  node->add_parameter(NodeParameter("scale", 1.0f));
+  node->get_sop()->set_parameter("method", 0); // xatlas
+  node->get_sop()->set_parameter("scale", 1.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::UVUnwrap);
@@ -1030,21 +921,18 @@ TEST_F(GraphSerializationTest, GroupPromoteNode) {
   int id = graph.add_node(NodeType::GroupPromote, "TestGroupPromote");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("group_name", std::string("selected")));
-  node->add_parameter(NodeParameter("from_type", 0)); // Point to Face
-  node->add_parameter(NodeParameter("to_type", 1));
+  node->get_sop()->set_parameter("group_name", std::string("selected"));
+  node->get_sop()->set_parameter("from_type", 0); // Point to Face
+  node->get_sop()->set_parameter("to_type", 1);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::GroupPromote);
 
-  auto group_name = loaded_node->get_parameter("group_name");
-  ASSERT_TRUE(group_name.has_value());
-  EXPECT_EQ(group_name->string_value, "selected");
+  auto group_name = loaded_node->get_sop()->get_parameters().at("group_name");
+  EXPECT_EQ(std::get<std::string>(group_name), "selected");
 }
 
 TEST_F(GraphSerializationTest, GroupCombineNode) {
@@ -1052,14 +940,12 @@ TEST_F(GraphSerializationTest, GroupCombineNode) {
   int id = graph.add_node(NodeType::GroupCombine, "TestGroupCombine");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("group_a", std::string("group1")));
-  node->add_parameter(NodeParameter("group_b", std::string("group2")));
-  node->add_parameter(NodeParameter("operation", 0)); // Union
+  node->get_sop()->set_parameter("group_a", std::string("group1"));
+  node->get_sop()->set_parameter("group_b", std::string("group2"));
+  node->get_sop()->set_parameter("operation", 0); // Union
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::GroupCombine);
@@ -1070,14 +956,12 @@ TEST_F(GraphSerializationTest, GroupExpandNode) {
   int id = graph.add_node(NodeType::GroupExpand, "TestGroupExpand");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("group_name", std::string("border")));
-  node->add_parameter(NodeParameter("iterations", 2));
-  node->add_parameter(NodeParameter("mode", 0)); // Grow
+  node->get_sop()->set_parameter("group_name", std::string("border"));
+  node->get_sop()->set_parameter("iterations", 2);
+  node->get_sop()->set_parameter("mode", 0); // Grow
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::GroupExpand);
@@ -1088,13 +972,11 @@ TEST_F(GraphSerializationTest, GroupTransferNode) {
   int id = graph.add_node(NodeType::GroupTransfer, "TestGroupTransfer");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("source_group", std::string("src")));
-  node->add_parameter(NodeParameter("target_group", std::string("dst")));
+  node->get_sop()->set_parameter("source_group", std::string("src"));
+  node->get_sop()->set_parameter("target_group", std::string("dst"));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::GroupTransfer);
@@ -1105,20 +987,17 @@ TEST_F(GraphSerializationTest, BlastNode) {
   int id = graph.add_node(NodeType::Blast, "TestBlast");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("group", std::string("to_delete")));
-  node->add_parameter(NodeParameter("delete_non_selected", false));
+  node->get_sop()->set_parameter("group", std::string("to_delete"));
+  node->get_sop()->set_parameter("delete_non_selected", false);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Blast);
 
-  auto group = loaded_node->get_parameter("group");
-  ASSERT_TRUE(group.has_value());
-  EXPECT_EQ(group->string_value, "to_delete");
+  auto group = loaded_node->get_sop()->get_parameters().at("group");
+  EXPECT_EQ(std::get<std::string>(group), "to_delete");
 }
 
 TEST_F(GraphSerializationTest, SortNode) {
@@ -1126,13 +1005,11 @@ TEST_F(GraphSerializationTest, SortNode) {
   int id = graph.add_node(NodeType::Sort, "TestSort");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("element_type", 0)); // Points
-  node->add_parameter(NodeParameter("key", 0));          // Position X
+  node->get_sop()->set_parameter("element_type", 0); // Points
+  node->get_sop()->set_parameter("key", 0);          // Position X
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Sort);
@@ -1144,12 +1021,10 @@ TEST_F(GraphSerializationTest, CacheNode) {
   int id = graph.add_node(NodeType::Cache, "TestCache");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("enabled", true));
+  node->get_sop()->set_parameter("enabled", true);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Cache);
@@ -1160,13 +1035,11 @@ TEST_F(GraphSerializationTest, TimeNode) {
   int id = graph.add_node(NodeType::Time, "TestTime");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("frame", 24));
-  node->add_parameter(NodeParameter("fps", 30.0f));
+  node->get_sop()->set_parameter("frame", 24);
+  node->get_sop()->set_parameter("fps", 30.0f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Time);
@@ -1181,8 +1054,6 @@ TEST_F(GraphSerializationTest, OutputNode) {
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Output);
@@ -1198,20 +1069,17 @@ TEST_F(GraphSerializationTest, ParameterizeNode) {
   int id = graph.add_node(NodeType::Parameterize, "TestParameterize");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("method", 0)); // Harmonic
-  node->add_parameter(NodeParameter("uv_name", std::string("uv")));
+  node->get_sop()->set_parameter("method", 0); // Harmonic
+  node->get_sop()->set_parameter("uv_name", std::string("uv"));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Parameterize);
 
-  auto uv_name = loaded_node->get_parameter("uv_name");
-  ASSERT_TRUE(uv_name.has_value());
-  EXPECT_EQ(uv_name->string_value, "uv");
+  auto uv_name = loaded_node->get_sop()->get_parameters().at("uv_name");
+  EXPECT_EQ(std::get<std::string>(uv_name), "uv");
 }
 
 TEST_F(GraphSerializationTest, GeodesicNode) {
@@ -1219,22 +1087,19 @@ TEST_F(GraphSerializationTest, GeodesicNode) {
   int id = graph.add_node(NodeType::Geodesic, "TestGeodesic");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("method", 1)); // Heat method
-  node->add_parameter(NodeParameter("seed_group", std::string("seeds")));
-  node->add_parameter(NodeParameter("max_distance", 10.0f));
-  node->add_parameter(NodeParameter("output_attribute", std::string("distance")));
+  node->get_sop()->set_parameter("method", 1); // Heat method
+  node->get_sop()->set_parameter("seed_group", std::string("seeds"));
+  node->get_sop()->set_parameter("max_distance", 10.0f);
+  node->get_sop()->set_parameter("output_attribute", std::string("distance"));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Geodesic);
 
-  auto output_attr = loaded_node->get_parameter("output_attribute");
-  ASSERT_TRUE(output_attr.has_value());
-  EXPECT_EQ(output_attr->string_value, "distance");
+  auto output_attr = loaded_node->get_sop()->get_parameters().at("output_attribute");
+  EXPECT_EQ(std::get<std::string>(output_attr), "distance");
 }
 
 // Modifier Nodes (Missing ones)
@@ -1243,13 +1108,11 @@ TEST_F(GraphSerializationTest, SmoothNode) {
   int id = graph.add_node(NodeType::Smooth, "TestSmooth");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("iterations", 5));
-  node->add_parameter(NodeParameter("factor", 0.5f));
+  node->get_sop()->set_parameter("iterations", 5);
+  node->get_sop()->set_parameter("factor", 0.5f);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Smooth);
@@ -1260,13 +1123,11 @@ TEST_F(GraphSerializationTest, SubdivideNode) {
   int id = graph.add_node(NodeType::Subdivide, "TestSubdivide");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("iterations", 2));
-  node->add_parameter(NodeParameter("method", 0)); // Catmull-Clark
+  node->get_sop()->set_parameter("iterations", 2);
+  node->get_sop()->set_parameter("method", 0); // Catmull-Clark
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Subdivide);
@@ -1277,13 +1138,11 @@ TEST_F(GraphSerializationTest, PolyExtrudeNode) {
   int id = graph.add_node(NodeType::PolyExtrude, "TestPolyExtrude");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("distance", 1.0f));
-  node->add_parameter(NodeParameter("group", std::string("selected_faces")));
+  node->get_sop()->set_parameter("distance", 1.0f);
+  node->get_sop()->set_parameter("group", std::string("selected_faces"));
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::PolyExtrude);
@@ -1294,13 +1153,11 @@ TEST_F(GraphSerializationTest, AlignNode) {
   int id = graph.add_node(NodeType::Align, "TestAlign");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("mode", 0)); // To origin
-  node->add_parameter(NodeParameter("axis", 1)); // Y axis
+  node->get_sop()->set_parameter("mode", 0); // To origin
+  node->get_sop()->set_parameter("axis", 1); // Y axis
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Align);
@@ -1311,12 +1168,10 @@ TEST_F(GraphSerializationTest, SplitNode) {
   int id = graph.add_node(NodeType::Split, "TestSplit");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("mode", 0)); // By connectivity
+  node->get_sop()->set_parameter("mode", 0); // By connectivity
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Split);
@@ -1327,14 +1182,12 @@ TEST_F(GraphSerializationTest, ScatterVolumeNode) {
   int id = graph.add_node(NodeType::ScatterVolume, "TestScatterVolume");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("count", 100));
-  node->add_parameter(NodeParameter("seed", 42));
-  node->add_parameter(NodeParameter("volume_type", 0)); // Box
+  node->get_sop()->set_parameter("count", 100);
+  node->get_sop()->set_parameter("seed", 42);
+  node->get_sop()->set_parameter("volume_type", 0); // Box
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::ScatterVolume);
@@ -1345,14 +1198,12 @@ TEST_F(GraphSerializationTest, LatticeNode) {
   int id = graph.add_node(NodeType::Lattice, "TestLattice");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("divisions_x", 3));
-  node->add_parameter(NodeParameter("divisions_y", 3));
-  node->add_parameter(NodeParameter("divisions_z", 3));
+  node->get_sop()->set_parameter("divisions_x", 3);
+  node->get_sop()->set_parameter("divisions_y", 3);
+  node->get_sop()->set_parameter("divisions_z", 3);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Lattice);
@@ -1364,13 +1215,11 @@ TEST_F(GraphSerializationTest, ResampleNode) {
   int id = graph.add_node(NodeType::Resample, "TestResample");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("edge_length", 0.1f));
-  node->add_parameter(NodeParameter("iterations", 5));
+  node->get_sop()->set_parameter("edge_length", 0.1f);
+  node->get_sop()->set_parameter("iterations", 5);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Resample);
@@ -1381,13 +1230,11 @@ TEST_F(GraphSerializationTest, RemeshNode) {
   int id = graph.add_node(NodeType::Remesh, "TestRemesh");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("target_edge_length", 0.1f));
-  node->add_parameter(NodeParameter("iterations", 10));
+  node->get_sop()->set_parameter("target_edge_length", 0.1f);
+  node->get_sop()->set_parameter("iterations", 10);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Remesh);
@@ -1398,13 +1245,11 @@ TEST_F(GraphSerializationTest, DecimateNode) {
   int id = graph.add_node(NodeType::Decimate, "TestDecimate");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("target_percentage", 50.0f));
-  node->add_parameter(NodeParameter("preserve_boundary", true));
+  node->get_sop()->set_parameter("target_percentage", 50.0f);
+  node->get_sop()->set_parameter("preserve_boundary", true);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Decimate);
@@ -1415,13 +1260,11 @@ TEST_F(GraphSerializationTest, RepairMeshNode) {
   int id = graph.add_node(NodeType::RepairMesh, "TestRepairMesh");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("remove_duplicates", true));
-  node->add_parameter(NodeParameter("fix_normals", true));
+  node->get_sop()->set_parameter("remove_duplicates", true);
+  node->get_sop()->set_parameter("fix_normals", true);
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::RepairMesh);
@@ -1432,13 +1275,11 @@ TEST_F(GraphSerializationTest, CurvatureNode) {
   int id = graph.add_node(NodeType::Curvature, "TestCurvature");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("curvature_type", 0));
-  node->add_parameter(NodeParameter("attribute_name", "curvature"));
+  node->get_sop()->set_parameter("curvature_type", 0);
+  node->get_sop()->set_parameter("attribute_name", "curvature");
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Curvature);
@@ -1449,13 +1290,11 @@ TEST_F(GraphSerializationTest, WrangleNode) {
   int id = graph.add_node(NodeType::Wrangle, "TestWrangle");
   auto* node = graph.get_node(id);
 
-  node->add_parameter(NodeParameter("code", "@P.y = @P.y + 1.0;"));
-  node->add_parameter(NodeParameter("run_over", 0)); // 0 = points
+  node->get_sop()->set_parameter("code", "@P.y = @P.y + 1.0;");
+  node->get_sop()->set_parameter("run_over", 0); // 0 = points
 
   std::string json = GraphSerializer::serialize_to_json(graph);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(id);
   ASSERT_NE(loaded_node, nullptr);
   EXPECT_EQ(loaded_node->get_type(), NodeType::Wrangle);
@@ -1474,15 +1313,15 @@ TEST_F(GraphSerializationTest, FullGraph_SimpleChain) {
   int subdivide_id = original.add_node(NodeType::Subdivide, "MySubdivide");
 
   // Set parameters
-  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 2.5f));
-  original.get_node(sphere_id)->add_parameter(NodeParameter("rows", 24));
-  original.get_node(sphere_id)->add_parameter(NodeParameter("columns", 48));
+  original.get_node(sphere_id)->get_sop()->set_parameter("radius", 2.5f);
+  original.get_node(sphere_id)->get_sop()->set_parameter("rows", 24);
+  original.get_node(sphere_id)->get_sop()->set_parameter("columns", 48);
 
-  original.get_node(transform_id)->add_parameter(NodeParameter("translate_x", 1.0f));
-  original.get_node(transform_id)->add_parameter(NodeParameter("translate_y", 2.0f));
-  original.get_node(transform_id)->add_parameter(NodeParameter("scale", 1.5f));
+  original.get_node(transform_id)->get_sop()->set_parameter("translate_x", 1.0f);
+  original.get_node(transform_id)->get_sop()->set_parameter("translate_y", 2.0f);
+  original.get_node(transform_id)->get_sop()->set_parameter("scale", 1.5f);
 
-  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 2));
+  original.get_node(subdivide_id)->get_sop()->set_parameter("subdivisions", 2);
 
   // Set positions
   original.get_node(sphere_id)->set_position(0.0f, 0.0f);
@@ -1501,8 +1340,6 @@ TEST_F(GraphSerializationTest, FullGraph_SimpleChain) {
   ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
 
   auto loaded = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify nodes exist
   ASSERT_NE(loaded->get_node(sphere_id), nullptr);
   ASSERT_NE(loaded->get_node(transform_id), nullptr);
@@ -1514,17 +1351,14 @@ TEST_F(GraphSerializationTest, FullGraph_SimpleChain) {
   EXPECT_EQ(loaded->get_node(subdivide_id)->get_name(), "MySubdivide");
 
   // Verify parameters
-  auto radius = loaded->get_node(sphere_id)->get_parameter("radius");
-  ASSERT_TRUE(radius.has_value());
-  EXPECT_FLOAT_EQ(radius->float_value, 2.5f);
+  auto radius = loaded->get_node(sphere_id)->get_sop()->get_parameters().at("radius");
+  EXPECT_FLOAT_EQ(std::get<float>(radius), 2.5f);
 
-  auto tx = loaded->get_node(transform_id)->get_parameter("translate_x");
-  ASSERT_TRUE(tx.has_value());
-  EXPECT_FLOAT_EQ(tx->float_value, 1.0f);
+  auto tx = loaded->get_node(transform_id)->get_sop()->get_parameters().at("translate_x");
+  EXPECT_FLOAT_EQ(std::get<float>(tx), 1.0f);
 
-  auto subdivs = loaded->get_node(subdivide_id)->get_parameter("subdivisions");
-  ASSERT_TRUE(subdivs.has_value());
-  EXPECT_EQ(subdivs->int_value, 2);
+  auto subdivs = loaded->get_node(subdivide_id)->get_sop()->get_parameters().at("subdivisions");
+  EXPECT_EQ(std::get<int>(subdivs), 2);
 
   // Verify connections
   const auto& connections = loaded->get_connections();
@@ -1543,11 +1377,11 @@ TEST_F(GraphSerializationTest, FullGraph_BranchingNetwork) {
   int merge_id = original.add_node(NodeType::Merge, "Combiner");
 
   // Set parameters
-  original.get_node(box_id)->add_parameter(NodeParameter("width", 1.0f));
-  original.get_node(box_id)->add_parameter(NodeParameter("height", 1.0f));
-  original.get_node(box_id)->add_parameter(NodeParameter("depth", 1.0f));
+  original.get_node(box_id)->get_sop()->set_parameter("width", 1.0f);
+  original.get_node(box_id)->get_sop()->set_parameter("height", 1.0f);
+  original.get_node(box_id)->get_sop()->set_parameter("depth", 1.0f);
 
-  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 0.5f));
+  original.get_node(sphere_id)->get_sop()->set_parameter("radius", 0.5f);
 
   // Set positions
   original.get_node(box_id)->set_position(0.0f, 0.0f);
@@ -1561,8 +1395,6 @@ TEST_F(GraphSerializationTest, FullGraph_BranchingNetwork) {
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(original);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify structure
   EXPECT_EQ(loaded->get_nodes().size(), 3);
   EXPECT_EQ(loaded->get_connections().size(), 2);
@@ -1583,11 +1415,11 @@ TEST_F(GraphSerializationTest, FullGraph_BooleanOperation) {
   int boolean_id = original.add_node(NodeType::Boolean, "BoolOp");
 
   // Configure boxes
-  original.get_node(box_a_id)->add_parameter(NodeParameter("width", 2.0f));
-  original.get_node(box_b_id)->add_parameter(NodeParameter("width", 1.5f));
+  original.get_node(box_a_id)->get_sop()->set_parameter("width", 2.0f);
+  original.get_node(box_b_id)->get_sop()->set_parameter("width", 1.5f);
 
   // Configure boolean operation (0=Union, 1=Intersection, 2=Difference)
-  original.get_node(boolean_id)->add_parameter(NodeParameter("operation", 2));
+  original.get_node(boolean_id)->get_sop()->set_parameter("operation", 2);
 
   // Set positions
   original.get_node(box_a_id)->set_position(0.0f, 0.0f);
@@ -1601,12 +1433,9 @@ TEST_F(GraphSerializationTest, FullGraph_BooleanOperation) {
   // Round-trip
   std::string json = GraphSerializer::serialize_to_json(original);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify boolean operation parameter
-  auto op = loaded->get_node(boolean_id)->get_parameter("operation");
-  ASSERT_TRUE(op.has_value());
-  EXPECT_EQ(op->int_value, 2); // Difference
+  auto op = loaded->get_node(boolean_id)->get_sop()->get_parameters().at("operation");
+  EXPECT_EQ(std::get<int>(op), 2); // Difference
 }
 
 TEST_F(GraphSerializationTest, FullGraph_WithGroups) {
@@ -1618,12 +1447,12 @@ TEST_F(GraphSerializationTest, FullGraph_WithGroups) {
   int blast_id = original.add_node(NodeType::Blast, "DeleteGroup");
 
   // Configure group selection
-  original.get_node(group_id)->add_parameter(NodeParameter("group_name", std::string("top")));
-  original.get_node(group_id)->add_parameter(NodeParameter("element_class", 1)); // Primitives
+  original.get_node(group_id)->get_sop()->set_parameter("group_name", std::string("top"));
+  original.get_node(group_id)->get_sop()->set_parameter("element_class", 1); // Primitives
 
   // Configure blast to delete the group
-  original.get_node(blast_id)->add_parameter(NodeParameter("input_group", std::string("top")));
-  original.get_node(blast_id)->add_parameter(NodeParameter("delete_non_selected", 0));
+  original.get_node(blast_id)->get_sop()->set_parameter("input_group", std::string("top"));
+  original.get_node(blast_id)->get_sop()->set_parameter("delete_non_selected", 0);
 
   // Connect
   original.add_connection(box_id, 0, group_id, 0);
@@ -1634,17 +1463,13 @@ TEST_F(GraphSerializationTest, FullGraph_WithGroups) {
   ASSERT_TRUE(GraphSerializer::save_to_file(original, file_path.string()));
 
   auto loaded = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify group name preserved
-  auto group_name = loaded->get_node(group_id)->get_parameter("group_name");
-  ASSERT_TRUE(group_name.has_value());
-  EXPECT_EQ(group_name->string_value, "top");
+  auto group_name = loaded->get_node(group_id)->get_sop()->get_parameters().at("group_name");
+  EXPECT_EQ(std::get<std::string>(group_name), "top");
 
   // Verify blast group reference
-  auto blast_group = loaded->get_node(blast_id)->get_parameter("input_group");
-  ASSERT_TRUE(blast_group.has_value());
-  EXPECT_EQ(blast_group->string_value, "top");
+  auto blast_group = loaded->get_node(blast_id)->get_sop()->get_parameters().at("input_group");
+  EXPECT_EQ(std::get<std::string>(blast_group), "top");
 }
 
 TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
@@ -1660,16 +1485,16 @@ TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
   int color_id = original.add_node(NodeType::Color, "ColorByUV");
 
   // Configure nodes
-  original.get_node(torus_id)->add_parameter(NodeParameter("major_radius", 1.0f));
-  original.get_node(torus_id)->add_parameter(NodeParameter("minor_radius", 0.3f));
+  original.get_node(torus_id)->get_sop()->set_parameter("major_radius", 1.0f);
+  original.get_node(torus_id)->get_sop()->set_parameter("minor_radius", 0.3f);
 
-  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 1));
+  original.get_node(subdivide_id)->get_sop()->set_parameter("subdivisions", 1);
 
-  original.get_node(twist_id)->add_parameter(NodeParameter("angle", 180.0f));
+  original.get_node(twist_id)->get_sop()->set_parameter("angle", 180.0f);
 
-  original.get_node(smooth_id)->add_parameter(NodeParameter("iterations", 5));
+  original.get_node(smooth_id)->get_sop()->set_parameter("iterations", 5);
 
-  original.get_node(color_id)->add_parameter(NodeParameter("color", std::array<float, 3>{1.0f, 0.5f, 0.2f}));
+  original.get_node(color_id)->get_sop()->set_parameter("color", Eigen::Vector3f(1.0f, 0.5f, 0.2f));
 
   // Set positions
   float x = 0.0f;
@@ -1702,8 +1527,6 @@ TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
 
   // Load and verify
   auto loaded = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify all nodes present
   EXPECT_EQ(loaded->get_nodes().size(), 6);
   EXPECT_EQ(loaded->get_connections().size(), 5);
@@ -1719,9 +1542,9 @@ TEST_F(GraphSerializationTest, FullGraph_ComplexModifierChain) {
   EXPECT_TRUE(loaded->get_node(color_id)->has_render_flag());
 
   // Verify parameters survived
-  auto twist_angle = loaded->get_node(twist_id)->get_parameter("angle");
-  ASSERT_TRUE(twist_angle.has_value());
-  EXPECT_FLOAT_EQ(twist_angle->float_value, 180.0f);
+  auto twist_angle = loaded->get_node(twist_id)->get_sop()->get_parameters().at("angle");
+  ASSERT_TRUE(std::holds_alternative<float>(twist_angle));
+  EXPECT_FLOAT_EQ(std::get<float>(twist_angle), 180.0f);
 }
 
 TEST_F(GraphSerializationTest, FullGraph_ScatterCopyPattern) {
@@ -1734,9 +1557,9 @@ TEST_F(GraphSerializationTest, FullGraph_ScatterCopyPattern) {
   int copy_id = original.add_node(NodeType::CopyToPoints, "Distribute");
 
   // Configure
-  original.get_node(grid_id)->add_parameter(NodeParameter("size", 10.0f));
-  original.get_node(scatter_id)->add_parameter(NodeParameter("count", 50));
-  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 0.2f));
+  original.get_node(grid_id)->get_sop()->set_parameter("size", 10.0f);
+  original.get_node(scatter_id)->get_sop()->set_parameter("count", 50);
+  original.get_node(sphere_id)->get_sop()->set_parameter("radius", 0.2f);
 
   // Positions
   original.get_node(grid_id)->set_position(0.0f, 0.0f);
@@ -1752,8 +1575,6 @@ TEST_F(GraphSerializationTest, FullGraph_ScatterCopyPattern) {
   // Round-trip
   std::string json = GraphSerializer::serialize_to_json(original);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify dual-input node (CopyToPoints) has both connections
   auto copy_inputs = loaded->get_input_nodes(copy_id);
   EXPECT_EQ(copy_inputs.size(), 2);
@@ -1797,8 +1618,8 @@ TEST_F(GraphSerializationTest, FullGraph_WithGraphParameters) {
 
   // Set parameters (in real usage these might reference graph params via
   // expressions)
-  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 1.5f));
-  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 2));
+  original.get_node(sphere_id)->get_sop()->set_parameter("radius", 1.5f);
+  original.get_node(subdivide_id)->get_sop()->set_parameter("subdivisions", 2);
 
   original.add_connection(sphere_id, 0, subdivide_id, 0);
 
@@ -1808,8 +1629,6 @@ TEST_F(GraphSerializationTest, FullGraph_WithGraphParameters) {
 
   // Load
   auto loaded = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify graph parameters
   const auto& graph_params = loaded->get_graph_parameters();
   EXPECT_EQ(graph_params.size(), 3);
@@ -1859,8 +1678,6 @@ TEST_F(GraphSerializationTest, NodeFlagsSerialization) {
 
   // Deserialize
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify all nodes exist
   auto* loaded_sphere = loaded->get_node(sphere_id);
   auto* loaded_box = loaded->get_node(box_id);
@@ -1901,9 +1718,9 @@ TEST_F(GraphSerializationTest, NodeFlagsFileRoundtrip) {
   int subdivide_id = original.add_node(NodeType::Subdivide, "Output");
 
   // Configure parameters
-  original.get_node(sphere_id)->add_parameter(NodeParameter("radius", 1.5f));
-  original.get_node(transform_id)->add_parameter(NodeParameter("translate", std::array<float, 3>{0.0f, 2.0f, 0.0f}));
-  original.get_node(subdivide_id)->add_parameter(NodeParameter("subdivisions", 2));
+  original.get_node(sphere_id)->get_sop()->set_parameter("radius", 1.5f);
+  original.get_node(transform_id)->get_sop()->set_parameter("translate", Eigen::Vector3f(0.0f, 2.0f, 0.0f));
+  original.get_node(subdivide_id)->get_sop()->set_parameter("subdivisions", 2);
 
   // Set positions
   original.get_node(sphere_id)->set_position(0.0f, 0.0f);
@@ -1924,8 +1741,6 @@ TEST_F(GraphSerializationTest, NodeFlagsFileRoundtrip) {
 
   // Load from file
   auto loaded = GraphSerializer::load_from_file(file_path.string());
-  ASSERT_TRUE(loaded.has_value());
-
   // Verify structure
   EXPECT_EQ(loaded->get_nodes().size(), 3);
   EXPECT_EQ(loaded->get_connections().size(), 2);
@@ -1955,9 +1770,9 @@ TEST_F(GraphSerializationTest, NodeFlagsFileRoundtrip) {
   EXPECT_FALSE(loaded_subdivide->is_bypassed());
 
   // Verify parameters also survived
-  auto radius = loaded_sphere->get_parameter("radius");
-  ASSERT_TRUE(radius.has_value());
-  EXPECT_FLOAT_EQ(radius->float_value, 1.5f);
+  auto radius = loaded_sphere->get_sop()->get_parameters().at("radius");
+  ASSERT_TRUE(std::holds_alternative<float>(radius));
+  EXPECT_FLOAT_EQ(std::get<float>(radius), 1.5f);
 }
 
 // Test all flags enabled on same node
@@ -1977,8 +1792,6 @@ TEST_F(GraphSerializationTest, NodeAllFlagsEnabled) {
   // Serialize and deserialize
   std::string json = GraphSerializer::serialize_to_json(original);
   auto loaded = GraphSerializer::deserialize_from_json(json);
-  ASSERT_TRUE(loaded.has_value());
-
   auto* loaded_node = loaded->get_node(node_id);
   ASSERT_NE(loaded_node, nullptr);
 

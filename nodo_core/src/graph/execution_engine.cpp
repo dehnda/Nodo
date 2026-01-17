@@ -90,8 +90,8 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
     // Unified SOP execution path
     std::shared_ptr<core::GeometryContainer> geometry_result = nullptr;
 
-    // Create SOP instance via factory
-    auto sop = sop::SOPFactory::create(node->get_type(), node->get_name());
+    // Get persistent SOP instance
+    auto* sop = node->get_sop();
 
     if (!sop) {
       // Unsupported node type (e.g., Switch)
@@ -99,8 +99,8 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
       continue;
     }
 
-    // Transfer parameters from GraphNode to SOP (with expression resolution)
-    transfer_parameters(*node, *sop, graph);
+    // TODO: Implement expression resolution for SOPNode directly
+    // For now, SOPs use their default parameter values
 
     // Transfer pass-through flag from GraphNode to SOP
     sop->set_pass_through(node->is_pass_through());
@@ -113,11 +113,6 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
 
     // Execute the SOP (cook)
     geometry_result = sop->cook();
-
-    // Sync parameters back from SOP to GraphNode
-    // This handles dynamic parameters added during execution (e.g., Wrangle
-    // ch() params)
-    sync_parameters_from_sop(*sop, *node);
 
     // End timing and calculate duration
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -184,215 +179,6 @@ void ExecutionEngine::invalidate_node(NodeGraph& graph, int node_id) {
       // This node depends on the invalidated node, so invalidate it too
       geometry_cache_.erase(other_id);
     }
-  }
-}
-
-void ExecutionEngine::transfer_parameters(const GraphNode& graph_node, sop::SOPNode& sop_node, const NodeGraph& graph) {
-  const auto& node_params = graph_node.get_parameters();
-  ParameterExpressionResolver resolver(graph, &node_params, graph_node.get_id());
-
-  // Iterate over all parameters in GraphNode and transfer to SOPNode
-  for (const auto& param : node_params) {
-    switch (param.type) {
-      case NodeParameter::Type::Float: {
-        if (param.has_expression()) {
-          // Evaluate expression
-          auto result = resolver.resolve_float(param.get_expression());
-          if (result.has_value()) {
-            sop_node.set_parameter(param.name, result.value());
-          } else {
-            // Fallback to literal value if expression evaluation fails
-            sop_node.set_parameter(param.name, param.float_value);
-          }
-        } else {
-          // Use literal value
-          sop_node.set_parameter(param.name, param.float_value);
-        }
-        break;
-      }
-
-      case NodeParameter::Type::Int: {
-        if (param.has_expression()) {
-          // Evaluate expression
-          auto result = resolver.resolve_int(param.get_expression());
-          if (result.has_value()) {
-            sop_node.set_parameter(param.name, result.value());
-          } else {
-            // Fallback to literal value if expression evaluation fails
-            sop_node.set_parameter(param.name, param.int_value);
-          }
-        } else {
-          // Use literal value
-          sop_node.set_parameter(param.name, param.int_value);
-        }
-        break;
-      }
-
-      case NodeParameter::Type::Bool:
-        sop_node.set_parameter(param.name, param.bool_value);
-        break;
-
-      case NodeParameter::Type::String:
-      case NodeParameter::Type::Code:
-      case NodeParameter::Type::GroupSelector: {
-        // For Code type, pass through directly without resolution
-        // (@ symbols are VEX attribute syntax, not parameter references)
-        // For GroupSelector, treat similarly to String
-        if (param.type == NodeParameter::Type::Code) {
-          sop_node.set_parameter(param.name, param.string_value);
-        } else {
-          // For String and GroupSelector types, resolve any graph parameter
-          // references
-          if (resolver.has_references(param.string_value)) {
-            std::string resolved = resolver.resolve(param.string_value);
-            sop_node.set_parameter(param.name, resolved);
-          } else {
-            sop_node.set_parameter(param.name, param.string_value);
-          }
-        }
-        break;
-      }
-
-      case NodeParameter::Type::Vector3: {
-        Eigen::Vector3f vec3;
-
-        if (param.has_expression()) {
-          // For Vector3, expression could be:
-          // 1. Three comma-separated expressions: "1.0, 2.0, 3.0"
-          // 2. Single expression for all components: "$offset"
-          // 3. Math per component: "$x + 1, $y * 2, $z"
-
-          const std::string& expr = param.get_expression();
-
-          // Try to parse as comma-separated values
-          size_t comma1 = expr.find(',');
-          if (comma1 != std::string::npos) {
-            size_t comma2 = expr.find(',', comma1 + 1);
-            if (comma2 != std::string::npos) {
-              // Three components
-              std::string x_expr = expr.substr(0, comma1);
-              std::string y_expr = expr.substr(comma1 + 1, comma2 - comma1 - 1);
-              std::string z_expr = expr.substr(comma2 + 1);
-
-              // Trim whitespace
-              auto trim = [](std::string& s) {
-                s.erase(0, s.find_first_not_of(" \t"));
-                s.erase(s.find_last_not_of(" \t") + 1);
-              };
-              trim(x_expr);
-              trim(y_expr);
-              trim(z_expr);
-
-              // Evaluate each component
-              auto x_val = resolver.resolve_float(x_expr);
-              auto y_val = resolver.resolve_float(y_expr);
-              auto z_val = resolver.resolve_float(z_expr);
-
-              vec3[0] = x_val.value_or(param.vector3_value[0]);
-              vec3[1] = y_val.value_or(param.vector3_value[1]);
-              vec3[2] = z_val.value_or(param.vector3_value[2]);
-            } else {
-              // Fallback to literal
-              vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]);
-            }
-          } else {
-            // Single expression - use for all components
-            auto result = resolver.resolve_float(expr);
-            float val = result.value_or(0.0f);
-            vec3 = Eigen::Vector3f(val, val, val);
-          }
-        } else {
-          // Use literal value
-          vec3 = Eigen::Vector3f(param.vector3_value[0], param.vector3_value[1], param.vector3_value[2]);
-        }
-
-        sop_node.set_parameter(param.name, vec3);
-        break;
-      }
-    }
-  }
-}
-
-void ExecutionEngine::sync_parameters_from_sop(const sop::SOPNode& sop_node, GraphNode& graph_node) {
-  // Completely rebuild GraphNode parameters from SOP definitions
-  // This handles both adding new parameters and removing obsolete ones
-
-  const auto& sop_params = sop_node.get_parameter_definitions();
-
-  // Build a set of current SOP parameter names
-  std::set<std::string> sop_param_names;
-  for (const auto& sop_param : sop_params) {
-    sop_param_names.insert(sop_param.name);
-  }
-
-  // Get existing GraphNode parameters to preserve their values
-  const auto& existing_params = graph_node.get_parameters();
-
-  // Remove obsolete parameters (that exist in GraphNode but not in SOP)
-  for (const auto& existing : existing_params) {
-    if (sop_param_names.find(existing.name) == sop_param_names.end()) {
-      graph_node.remove_parameter(existing.name);
-    }
-  }
-
-  // Check which parameters are new or need updates
-  for (const auto& sop_param : sop_params) {
-    // Check if parameter already exists in GraphNode
-    auto existing_param_opt = graph_node.get_parameter(sop_param.name);
-
-    if (existing_param_opt.has_value()) {
-      // Parameter exists - update its value from SOP if changed
-      auto& existing_param = existing_param_opt.value();
-
-      // Get current value from SOP's parameter map
-      auto sop_value = sop_node.get_parameters();
-      auto sop_value_it = sop_value.find(sop_param.name);
-
-      if (sop_value_it != sop_value.end()) {
-        // Update the value based on type
-        if (std::holds_alternative<int>(sop_value_it->second)) {
-          int new_value = std::get<int>(sop_value_it->second);
-          if (existing_param.int_value != new_value) {
-            existing_param.int_value = new_value;
-            graph_node.set_parameter(sop_param.name, existing_param);
-          }
-        } else if (std::holds_alternative<float>(sop_value_it->second)) {
-          float new_value = std::get<float>(sop_value_it->second);
-          if (existing_param.float_value != new_value) {
-            existing_param.float_value = new_value;
-            graph_node.set_parameter(sop_param.name, existing_param);
-          }
-        } else if (std::holds_alternative<bool>(sop_value_it->second)) {
-          bool new_value = std::get<bool>(sop_value_it->second);
-          if (existing_param.bool_value != new_value) {
-            existing_param.bool_value = new_value;
-            graph_node.set_parameter(sop_param.name, existing_param);
-          }
-        } else if (std::holds_alternative<std::string>(sop_value_it->second)) {
-          std::string new_value = std::get<std::string>(sop_value_it->second);
-          if (existing_param.string_value != new_value) {
-            existing_param.string_value = new_value;
-            graph_node.set_parameter(sop_param.name, existing_param);
-          }
-        }
-      }
-      continue;
-    }
-
-    // New parameter - add it
-    NodeParameter new_param = NodeParameter(sop_param.name, 0.0F, sop_param.label, sop_param.float_min,
-                                            sop_param.float_max, sop_param.category);
-
-    // Update with actual type and default value
-    if (std::holds_alternative<float>(sop_param.default_value)) {
-      new_param.float_value = std::get<float>(sop_param.default_value);
-    }
-
-    // Copy visibility control
-    new_param.category_control_param = sop_param.category_control_param;
-    new_param.category_control_value = sop_param.category_control_value;
-
-    graph_node.add_parameter(new_param);
   }
 }
 

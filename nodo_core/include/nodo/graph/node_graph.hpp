@@ -6,6 +6,7 @@
 #pragma once
 
 #include "nodo/graph/graph_parameter.hpp"
+#include "nodo/sop/sop_node.hpp" // Full header needed for nested types
 
 #include <array>
 #include <functional>
@@ -292,11 +293,9 @@ public:
     y_ = y;
   }
 
-  void add_parameter(const NodeParameter& param);
-  void remove_parameter(const std::string& name);
-  std::optional<NodeParameter> get_parameter(const std::string& name) const;
-  void set_parameter(const std::string& name, const NodeParameter& param);
-  const std::vector<NodeParameter>& get_parameters() const { return parameters_; }
+  // Parameter access - delegates to SOPNode
+  const sop::SOPNode::ParameterMap& get_parameters() const;
+  const std::vector<sop::SOPNode::ParameterDefinition>& get_parameter_definitions() const;
 
   const std::vector<NodePin>& get_input_pins() const { return input_pins_; }
   const std::vector<NodePin>& get_output_pins() const { return output_pins_; }
@@ -327,6 +326,10 @@ public:
   double get_cook_time() const { return cook_time_ms_; }
   void set_cook_time(double time_ms) { cook_time_ms_ = time_ms; }
 
+  // Persistent SOP instance (lazy creation)
+  sop::SOPNode* get_sop();
+  const sop::SOPNode* get_sop() const;
+
 private:
   void setup_pins_for_type();
   int id_;
@@ -335,7 +338,6 @@ private:
   float x_ = 0.0F;
   float y_ = 0.0F;
 
-  std::vector<NodeParameter> parameters_;
   std::vector<NodePin> input_pins_;
   std::vector<NodePin> output_pins_;
 
@@ -350,6 +352,9 @@ private:
   std::string error_message_;
 
   double cook_time_ms_ = 0.0;
+
+  // Persistent SOP instance - created on first get_sop() call
+  std::shared_ptr<sop::SOPNode> sop_instance_;
 };
 
 /**

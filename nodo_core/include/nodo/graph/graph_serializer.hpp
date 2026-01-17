@@ -49,8 +49,6 @@ public:
 private:
   static std::string node_type_to_string(NodeType type);
   static std::optional<NodeType> string_to_node_type(const std::string& type_str);
-  static std::string parameter_to_json(const NodeParameter& param);
-  static std::optional<NodeParameter> json_to_parameter(const std::string& json_obj);
 };
 
 } // namespace nodo::graph

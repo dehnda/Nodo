@@ -813,9 +813,34 @@ void PropertyPanel::refreshFromCurrentNode() {
   }
 }
 
+void PropertyPanel::pushParameterChange(nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph,
+                                        const std::string& param_name,
+                                        const nodo::sop::SOPNode::ParameterValue& new_value) {
+  // Get current value from SOP
+  auto* sop = node->get_sop();
+  if (!sop)
+    return;
+
+  const auto& param_map = sop->get_parameters();
+  auto param_it = param_map.find(param_name);
+  if (param_it == param_map.end())
+    return;
+
+  const auto& old_value = param_it->second;
+
+  // Create and push command if we have an undo stack
+  if (undo_stack_) {
+    auto cmd = nodo::studio::create_change_parameter_command(graph, node->get_id(), param_name, old_value, new_value);
+    undo_stack_->push(std::move(cmd));
+  } else {
+    // Fallback: apply directly if no undo stack
+    sop->set_parameter(param_name, new_value);
+  }
+}
+
 void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWidget* widget,
-                                           const nodo::graph::NodeParameter& param, nodo::graph::GraphNode* node,
-                                           nodo::graph::NodeGraph* graph) {
+                                           const nodo::sop::SOPNode::ParameterDefinition& param_def,
+                                           nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph) {
   using namespace nodo::graph;
 
   // Connect widget-specific signals based on widget type
@@ -823,155 +848,89 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
   // appropriately
 
   if (auto* float_widget = dynamic_cast<nodo_studio::widgets::FloatWidget*>(widget)) {
-    // Set up live callback for slider drag preview (no cache invalidation)
-    float_widget->setLiveValueChangedCallback([this, node, param](double new_value) {
-      // Update the parameter directly without undo stack or cache invalidation
-      auto updated_param = NodeParameter(param.name, static_cast<float>(new_value), param.label,
-                                         param.ui_range.float_min, param.ui_range.float_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
+    // Get current parameter value from SOP
+    const auto& param_map = node->get_parameters();
+    auto param_it = param_map.find(param_def.name);
+    float current_value = 0.0f;
+    if (param_it != param_map.end() && std::holds_alternative<float>(param_it->second)) {
+      current_value = std::get<float>(param_it->second);
+    }
 
-      node->set_parameter(param.name, updated_param);
+    // Set up live callback for slider drag preview (no cache invalidation)
+    float_widget->setLiveValueChangedCallback([this, node, param_def](double new_value) {
+      // Update the SOP parameter directly
+      if (auto* sop = node->get_sop()) {
+        sop->set_parameter(param_def.name, static_cast<float>(new_value));
+      }
 
       // Emit live signal for viewport preview without full graph rebuild
       emit parameterChangedLive();
     });
 
     // Set up final callback for slider release (full update with undo)
-    float_widget->setValueChangedCallback([this, node, graph, param, float_widget](double new_value) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return; // Parameter doesn't exist, shouldn't happen
-      }
-
-      // Create new parameter with updated value
-      auto updated_param = NodeParameter(param.name, static_cast<float>(new_value), param.label,
-                                         param.ui_range.float_min, param.ui_range.float_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
+    float_widget->setValueChangedCallback([this, node, graph, param_def, float_widget](double new_value) {
       if (float_widget->isExpressionMode()) {
-        // Store the expression string instead of evaluating it here
-        updated_param.set_expression(float_widget->getExpression().toStdString());
+        // TODO: Implement expression handling for SOPs
+        // For now, just set directly without undo
+        if (auto* sop = node->get_sop()) {
+          sop->set_parameter(param_def.name, static_cast<float>(new_value));
+        }
       } else {
-        // Literal mode - expression is cleared automatically in constructor
-        updated_param.clear_expression();
-      }
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        // Fallback to direct parameter change (shouldn't happen)
-        node->set_parameter(param.name, updated_param);
+        // Use undo command for regular value changes
+        pushParameterChange(node, graph, param_def.name, static_cast<float>(new_value));
       }
 
       emit parameterChanged();
     });
   } else if (auto* int_widget = dynamic_cast<nodo_studio::widgets::IntWidget*>(widget)) {
     // Set up live callback for slider drag preview (no cache invalidation)
-    int_widget->setLiveValueChangedCallback([this, node, param](int new_value) {
-      // Update the parameter directly without undo stack or cache invalidation
-      auto updated_param = NodeParameter(param.name, new_value, param.label, param.ui_range.int_min,
-                                         param.ui_range.int_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
-      node->set_parameter(param.name, updated_param);
-
-      // Emit live signal for viewport preview without full graph rebuild
+    int_widget->setLiveValueChangedCallback([this, node, param_def](int new_value) {
+      if (auto* sop = node->get_sop()) {
+        sop->set_parameter(param_def.name, new_value);
+      }
       emit parameterChangedLive();
     });
 
     // Set up final callback for slider release (full update with undo)
-    int_widget->setValueChangedCallback([this, node, graph, param, int_widget](int new_value) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value, param.label, param.ui_range.int_min,
-                                         param.ui_range.int_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
+    int_widget->setValueChangedCallback([this, node, graph, param_def, int_widget](int new_value) {
       if (int_widget->isExpressionMode()) {
-        updated_param.set_expression(int_widget->getExpression().toStdString());
+        // TODO: Implement expression handling for SOPs
+        if (auto* sop = node->get_sop()) {
+          sop->set_parameter(param_def.name, new_value);
+        }
       } else {
-        updated_param.clear_expression();
-      }
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
+        // Use undo command for regular value changes
+        pushParameterChange(node, graph, param_def.name, new_value);
       }
 
       emit parameterChanged();
     });
   } else if (auto* vec3_widget = dynamic_cast<nodo_studio::widgets::Vector3Widget*>(widget)) {
-    vec3_widget->setValueChangedCallback([this, node, graph, param, vec3_widget](double x, double y, double z) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      std::array<float, 3> new_value = {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
-      auto updated_param = NodeParameter(param.name, new_value, param.label, param.ui_range.float_min,
-                                         param.ui_range.float_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
+    vec3_widget->setValueChangedCallback([this, node, graph, param_def, vec3_widget](double x, double y, double z) {
+      Eigen::Vector3f new_value(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 
       if (vec3_widget->isExpressionMode()) {
-        updated_param.set_expression(vec3_widget->getExpression().toStdString());
+        // TODO: Implement expression handling for SOPs
+        if (auto* sop = node->get_sop()) {
+          sop->set_parameter(param_def.name, new_value);
+        }
       } else {
-        updated_param.clear_expression();
-      }
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
+        // Use undo command for regular value changes
+        pushParameterChange(node, graph, param_def.name, new_value);
       }
 
       emit parameterChanged();
     });
   } else if (auto* mode_widget = dynamic_cast<nodo_studio::widgets::ModeSelectorWidget*>(widget)) {
-    mode_widget->setSelectionChangedCallback([this, node, param, graph](int new_value, const QString&) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value, param.string_options, param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
-      }
+    mode_widget->setSelectionChangedCallback([this, node, param_def, graph](int new_value, const QString&) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value);
 
       // Check if this parameter controls visibility of others
+      const auto& param_definitions = node->get_parameter_definitions();
       bool controls_visibility = false;
-      for (const auto& p : node->get_parameters()) {
-        if (p.category_control_param == param.name) {
+      for (const auto& p : param_definitions) {
+        if (p.category_control_param == param_def.name) {
           controls_visibility = true;
           break;
         }
@@ -983,30 +942,15 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
       emit parameterChanged();
     });
   } else if (auto* dropdown_widget = dynamic_cast<nodo_studio::widgets::DropdownWidget*>(widget)) {
-    dropdown_widget->setSelectionChangedCallback([this, node, param, graph](int new_value, const QString&) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value, param.string_options, param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
-      }
+    dropdown_widget->setSelectionChangedCallback([this, node, param_def, graph](int new_value, const QString&) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value);
 
       // Check if this parameter controls visibility
+      const auto& param_definitions = node->get_parameter_definitions();
       bool controls_visibility = false;
-      for (const auto& p : node->get_parameters()) {
-        if (p.category_control_param == param.name) {
+      for (const auto& p : param_definitions) {
+        if (p.category_control_param == param_def.name) {
           controls_visibility = true;
           break;
         }
@@ -1018,134 +962,48 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
       emit parameterChanged();
     });
   } else if (auto* checkbox_widget = dynamic_cast<nodo_studio::widgets::CheckboxWidget*>(widget)) {
-    checkbox_widget->setValueChangedCallback([this, node, graph, param](bool new_value) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value, param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
-      }
+    checkbox_widget->setValueChangedCallback([this, node, graph, param_def](bool new_value) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value);
 
       emit parameterChanged();
     });
   } else if (auto* button_widget = dynamic_cast<nodo_studio::widgets::ButtonWidget*>(widget)) {
     // Button widget triggers an action by setting parameter to 1
     // The node's execute() will reset it back to 0
-    connect(button_widget, &nodo_studio::widgets::ButtonWidget::buttonClicked, this, [this, node, graph, param]() {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      // Create parameter with value 1 to trigger action
-      auto updated_param =
-          NodeParameter(param.name, 1, param.label, param.ui_range.int_min, param.ui_range.int_max, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-      updated_param.ui_hint = param.ui_hint; // Preserve button hint!
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
+    connect(button_widget, &nodo_studio::widgets::ButtonWidget::buttonClicked, this, [this, node, graph, param_def]() {
+      // TODO: Implement proper undo command for SOP parameter changes
+      if (auto* sop = node->get_sop()) {
+        sop->set_parameter(param_def.name, 1);
       }
 
       emit parameterChanged();
     });
   } else if (auto* text_widget = dynamic_cast<nodo_studio::widgets::TextWidget*>(widget)) {
-    text_widget->setTextEditingFinishedCallback([this, node, graph, param](const QString& new_value) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value.toStdString(), param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
-      }
+    text_widget->setTextEditingFinishedCallback([this, node, graph, param_def](const QString& new_value) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value.toStdString());
 
       emit parameterChanged();
     });
   } else if (auto* file_widget = dynamic_cast<nodo_studio::widgets::FilePathWidget*>(widget)) {
-    file_widget->setPathChangedCallback([this, node, graph, param](const QString& new_value) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value.toStdString(), param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
-      }
+    file_widget->setPathChangedCallback([this, node, graph, param_def](const QString& new_value) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value.toStdString());
 
       emit parameterChanged();
     });
   } else if (auto* multiline_widget = dynamic_cast<nodo_studio::widgets::MultiLineTextWidget*>(widget)) {
-    multiline_widget->setTextChangedCallback([this, node, param](const QString& new_value) {
-      auto updated_param = NodeParameter(param.name, new_value.toStdString(), param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-      // Override type to Code
-      updated_param.type = NodeParameter::Type::Code;
-      node->set_parameter(param.name, updated_param);
+    multiline_widget->setTextChangedCallback([this, node, graph, param_def](const QString& new_value) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value.toStdString());
+
       emit parameterChanged();
     });
   } else if (auto* group_widget = dynamic_cast<nodo_studio::widgets::GroupSelectorWidget*>(widget)) {
-    group_widget->setGroupChangedCallback([this, node, graph, param](const QString& new_value) {
-      // Get old parameter value
-      auto old_param_opt = node->get_parameter(param.name);
-      if (!old_param_opt.has_value()) {
-        return;
-      }
-
-      auto updated_param = NodeParameter(param.name, new_value.toStdString(), param.label, param.category);
-      updated_param.category_control_param = param.category_control_param;
-      updated_param.category_control_value = param.category_control_value;
-      // Override type to GroupSelector
-      updated_param.type = NodeParameter::Type::GroupSelector;
-
-      // Push command to undo stack
-      if (undo_stack_ != nullptr && node_graph_widget_ != nullptr && graph != nullptr) {
-        auto cmd = nodo::studio::create_change_parameter_command(node_graph_widget_, graph, node->get_id(), param.name,
-                                                                 old_param_opt.value(), updated_param);
-        undo_stack_->push(std::move(cmd));
-      } else {
-        node->set_parameter(param.name, updated_param);
-      }
+    group_widget->setGroupChangedCallback([this, node, graph, param_def](const QString& new_value) {
+      // Use undo command for parameter changes
+      pushParameterChange(node, graph, param_def.name, new_value.toStdString());
 
       emit parameterChanged();
     });
@@ -1204,10 +1062,11 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
   QString node_name = QString::fromStdString(node->get_name());
   title_label_->setText(node_name + " Properties");
 
-  // Get all parameters from the node
-  const auto& params = node->get_parameters();
+  // Get parameter definitions (schema) and current values
+  const auto& param_definitions = node->get_parameter_definitions();
+  const auto& param_values = node->get_parameters();
 
-  if (params.empty()) {
+  if (param_definitions.empty()) {
     auto* label = new QLabel("No parameters available", content_widget_);
     label->setAlignment(Qt::AlignCenter);
     label->setStyleSheet("QLabel { color: #888; padding: 20px; }");
@@ -1216,23 +1075,26 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
   }
 
   // Separate universal and regular parameters
-  std::vector<const nodo::graph::NodeParameter*> universal_params;
-  std::vector<const nodo::graph::NodeParameter*> regular_params;
+  std::vector<const nodo::sop::SOPNode::ParameterDefinition*> universal_params;
+  std::vector<const nodo::sop::SOPNode::ParameterDefinition*> regular_params;
 
-  for (const auto& param : params) {
+  for (const auto& param_def : param_definitions) {
     // Check visibility conditions
-    if (!param.category_control_param.empty() && param.category_control_value >= 0) {
-      auto control_param = node->get_parameter(param.category_control_param);
-      if (control_param.has_value() && control_param->int_value != param.category_control_value) {
-        continue; // Skip hidden parameter
+    if (!param_def.category_control_param.empty() && param_def.category_control_value >= 0) {
+      auto control_it = param_values.find(param_def.category_control_param);
+      if (control_it != param_values.end() && std::holds_alternative<int>(control_it->second)) {
+        int control_value = std::get<int>(control_it->second);
+        if (control_value != param_def.category_control_value) {
+          continue; // Skip hidden parameter
+        }
       }
     }
 
     // Categorize parameters
-    if (param.category == "Universal" || param.name == "group") {
-      universal_params.push_back(&param);
+    if (param_def.category == "Universal" || param_def.name == "group") {
+      universal_params.push_back(&param_def);
     } else {
-      regular_params.push_back(&param);
+      regular_params.push_back(&param_def);
     }
   }
 
@@ -1251,11 +1113,16 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
     content_layout_->insertWidget(content_layout_->count() - 1, header_label);
 
     // Add universal parameter widgets directly (no container)
-    for (const auto* param : universal_params) {
-      auto* widget = nodo_studio::ParameterWidgetFactory::createWidget(*param, content_widget_);
+    for (const auto* param_def : universal_params) {
+      // Get current value from ParameterMap
+      auto value_it = param_values.find(param_def->name);
+      auto* widget =
+          (value_it != param_values.end())
+              ? nodo_studio::ParameterWidgetFactory::createWidget(*param_def, value_it->second, content_widget_)
+              : nodo_studio::ParameterWidgetFactory::createWidget(*param_def, content_widget_);
       if (widget != nullptr) {
         widget->setMinimumHeight(36); // Ensure minimum height
-        connectParameterWidget(widget, *param, node, graph);
+        connectParameterWidget(widget, *param_def, node, graph);
         content_layout_->insertWidget(content_layout_->count() - 1, widget);
       }
     }
@@ -1265,19 +1132,24 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
   }
 
   // Render regular parameters by category
-  std::map<std::string, std::vector<const nodo::graph::NodeParameter*>> params_by_category;
-  for (const auto* param : regular_params) {
-    std::string category = param->category.empty() ? "Parameters" : param->category;
-    params_by_category[category].push_back(param);
+  std::map<std::string, std::vector<const nodo::sop::SOPNode::ParameterDefinition*>> params_by_category;
+  for (const auto* param_def : regular_params) {
+    std::string category = param_def->category.empty() ? "Parameters" : param_def->category;
+    params_by_category[category].push_back(param_def);
   }
 
   for (const auto& [category, category_params] : params_by_category) {
     addHeader(QString::fromStdString(category));
 
-    for (const auto* param : category_params) {
-      auto* widget = nodo_studio::ParameterWidgetFactory::createWidget(*param, content_widget_);
+    for (const auto* param_def : category_params) {
+      // Get current value from ParameterMap
+      auto value_it = param_values.find(param_def->name);
+      auto* widget =
+          (value_it != param_values.end())
+              ? nodo_studio::ParameterWidgetFactory::createWidget(*param_def, value_it->second, content_widget_)
+              : nodo_studio::ParameterWidgetFactory::createWidget(*param_def, content_widget_);
       if (widget != nullptr) {
-        connectParameterWidget(widget, *param, node, graph);
+        connectParameterWidget(widget, *param_def, node, graph);
         content_layout_->insertWidget(content_layout_->count() - 1, widget);
       }
     }
@@ -1299,603 +1171,6 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
       });
     });
   }
-}
-
-void PropertyPanel::buildSphereParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Geometry");
-
-  // Radius
-  auto radius_param = node->get_parameter("radius");
-  double radius =
-      (radius_param.has_value() && radius_param->type == NodeParameter::Type::Float) ? radius_param->float_value : 1.0;
-
-  addDoubleParameter("Radius", radius, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("radius", NodeParameter("radius", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addHeader("Detail");
-
-  // U Segments
-  auto u_segments_param = node->get_parameter("u_segments");
-  int u_segments = (u_segments_param.has_value() && u_segments_param->type == NodeParameter::Type::Int)
-                       ? u_segments_param->int_value
-                       : 32;
-
-  addIntParameter("U Segments", u_segments, 3, 128, [this, node](int value) {
-    node->set_parameter("u_segments", NodeParameter("u_segments", value));
-    emit parameterChanged();
-  });
-
-  // V Segments
-  auto v_segments_param = node->get_parameter("v_segments");
-  int v_segments = (v_segments_param.has_value() && v_segments_param->type == NodeParameter::Type::Int)
-                       ? v_segments_param->int_value
-                       : 16;
-
-  addIntParameter("V Segments", v_segments, 2, 64, [this, node](int value) {
-    node->set_parameter("v_segments", NodeParameter("v_segments", value));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildBoxParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Dimensions");
-
-  auto width_param = node->get_parameter("width");
-  double width =
-      (width_param.has_value() && width_param->type == NodeParameter::Type::Float) ? width_param->float_value : 1.0;
-
-  addDoubleParameter("Width", width, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("width", NodeParameter("width", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  auto height_param = node->get_parameter("height");
-  double height =
-      (height_param.has_value() && height_param->type == NodeParameter::Type::Float) ? height_param->float_value : 1.0;
-
-  addDoubleParameter("Height", height, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("height", NodeParameter("height", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  auto depth_param = node->get_parameter("depth");
-  double depth =
-      (depth_param.has_value() && depth_param->type == NodeParameter::Type::Float) ? depth_param->float_value : 1.0;
-
-  addDoubleParameter("Depth", depth, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("depth", NodeParameter("depth", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildCylinderParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Geometry");
-
-  auto radius_param = node->get_parameter("radius");
-  double radius =
-      (radius_param.has_value() && radius_param->type == NodeParameter::Type::Float) ? radius_param->float_value : 1.0;
-
-  addDoubleParameter("Radius", radius, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("radius", NodeParameter("radius", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  auto height_param = node->get_parameter("height");
-  double height =
-      (height_param.has_value() && height_param->type == NodeParameter::Type::Float) ? height_param->float_value : 2.0;
-
-  addDoubleParameter("Height", height, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("height", NodeParameter("height", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addHeader("Detail");
-
-  auto segments_param = node->get_parameter("segments");
-  int segments =
-      (segments_param.has_value() && segments_param->type == NodeParameter::Type::Int) ? segments_param->int_value : 32;
-
-  addIntParameter("Radial Segments", segments, 3, 128, [this, node](int value) {
-    node->set_parameter("segments", NodeParameter("segments", value));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildPlaneParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Dimensions");
-
-  auto width_param = node->get_parameter("width");
-  double width =
-      (width_param.has_value() && width_param->type == NodeParameter::Type::Float) ? width_param->float_value : 1.0;
-
-  addDoubleParameter("Width", width, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("width", NodeParameter("width", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  auto height_param = node->get_parameter("height");
-  double height =
-      (height_param.has_value() && height_param->type == NodeParameter::Type::Float) ? height_param->float_value : 1.0;
-
-  addDoubleParameter("Height", height, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("height", NodeParameter("height", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildTorusParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Geometry");
-
-  auto major_radius_param = node->get_parameter("major_radius");
-  double major_radius = (major_radius_param.has_value() && major_radius_param->type == NodeParameter::Type::Float)
-                            ? major_radius_param->float_value
-                            : 1.0;
-
-  addDoubleParameter("Major Radius", major_radius, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("major_radius", NodeParameter("major_radius", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  auto minor_radius_param = node->get_parameter("minor_radius");
-  double minor_radius = (minor_radius_param.has_value() && minor_radius_param->type == NodeParameter::Type::Float)
-                            ? minor_radius_param->float_value
-                            : 0.3;
-
-  addDoubleParameter("Minor Radius", minor_radius, 0.01, 100.0, [this, node](double value) {
-    node->set_parameter("minor_radius", NodeParameter("minor_radius", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addHeader("Detail");
-
-  auto major_segments_param = node->get_parameter("major_segments");
-  int major_segments = (major_segments_param.has_value() && major_segments_param->type == NodeParameter::Type::Int)
-                           ? major_segments_param->int_value
-                           : 48;
-
-  addIntParameter("Major Segments", major_segments, 3, 128, [this, node](int value) {
-    node->set_parameter("major_segments", NodeParameter("major_segments", value));
-    emit parameterChanged();
-  });
-
-  auto minor_segments_param = node->get_parameter("minor_segments");
-  int minor_segments = (minor_segments_param.has_value() && minor_segments_param->type == NodeParameter::Type::Int)
-                           ? minor_segments_param->int_value
-                           : 24;
-
-  addIntParameter("Minor Segments", minor_segments, 3, 64, [this, node](int value) {
-    node->set_parameter("minor_segments", NodeParameter("minor_segments", value));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildTransformParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Translation");
-
-  // Translate X, Y, Z
-  auto translate_x_param = node->get_parameter("translate_x");
-  double translate_x = (translate_x_param.has_value() && translate_x_param->type == NodeParameter::Type::Float)
-                           ? translate_x_param->float_value
-                           : 0.0;
-
-  auto translate_y_param = node->get_parameter("translate_y");
-  double translate_y = (translate_y_param.has_value() && translate_y_param->type == NodeParameter::Type::Float)
-                           ? translate_y_param->float_value
-                           : 0.0;
-
-  auto translate_z_param = node->get_parameter("translate_z");
-  double translate_z = (translate_z_param.has_value() && translate_z_param->type == NodeParameter::Type::Float)
-                           ? translate_z_param->float_value
-                           : 0.0;
-
-  addVector3Parameter("Position", translate_x, translate_y, translate_z, -100.0, 100.0,
-                      [this, node](double x, double y, double z) {
-                        node->set_parameter("translate_x", NodeParameter("translate_x", static_cast<float>(x)));
-                        node->set_parameter("translate_y", NodeParameter("translate_y", static_cast<float>(y)));
-                        node->set_parameter("translate_z", NodeParameter("translate_z", static_cast<float>(z)));
-                        emit parameterChanged();
-                      });
-
-  addHeader("Rotation (Degrees)");
-
-  // Rotate X, Y, Z
-  auto rotate_x_param = node->get_parameter("rotate_x");
-  double rotate_x = (rotate_x_param.has_value() && rotate_x_param->type == NodeParameter::Type::Float)
-                        ? rotate_x_param->float_value
-                        : 0.0;
-
-  auto rotate_y_param = node->get_parameter("rotate_y");
-  double rotate_y = (rotate_y_param.has_value() && rotate_y_param->type == NodeParameter::Type::Float)
-                        ? rotate_y_param->float_value
-                        : 0.0;
-
-  auto rotate_z_param = node->get_parameter("rotate_z");
-  double rotate_z = (rotate_z_param.has_value() && rotate_z_param->type == NodeParameter::Type::Float)
-                        ? rotate_z_param->float_value
-                        : 0.0;
-
-  addVector3Parameter("Rotation", rotate_x, rotate_y, rotate_z, -360.0, 360.0,
-                      [this, node](double x, double y, double z) {
-                        node->set_parameter("rotate_x", NodeParameter("rotate_x", static_cast<float>(x)));
-                        node->set_parameter("rotate_y", NodeParameter("rotate_y", static_cast<float>(y)));
-                        node->set_parameter("rotate_z", NodeParameter("rotate_z", static_cast<float>(z)));
-                        emit parameterChanged();
-                      });
-
-  addHeader("Scale");
-
-  // Scale X, Y, Z
-  auto scale_x_param = node->get_parameter("scale_x");
-  double scale_x = (scale_x_param.has_value() && scale_x_param->type == NodeParameter::Type::Float)
-                       ? scale_x_param->float_value
-                       : 1.0;
-
-  auto scale_y_param = node->get_parameter("scale_y");
-  double scale_y = (scale_y_param.has_value() && scale_y_param->type == NodeParameter::Type::Float)
-                       ? scale_y_param->float_value
-                       : 1.0;
-
-  auto scale_z_param = node->get_parameter("scale_z");
-  double scale_z = (scale_z_param.has_value() && scale_z_param->type == NodeParameter::Type::Float)
-                       ? scale_z_param->float_value
-                       : 1.0;
-
-  addVector3Parameter("Scale", scale_x, scale_y, scale_z, 0.01, 10.0, [this, node](double x, double y, double z) {
-    node->set_parameter("scale_x", NodeParameter("scale_x", static_cast<float>(x)));
-    node->set_parameter("scale_y", NodeParameter("scale_y", static_cast<float>(y)));
-    node->set_parameter("scale_z", NodeParameter("scale_z", static_cast<float>(z)));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildArrayParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Array Mode");
-
-  // Mode (0=Linear, 1=Grid, 2=Radial)
-  auto mode_param = node->get_parameter("mode");
-  int mode = (mode_param.has_value() && mode_param->type == NodeParameter::Type::Int) ? mode_param->int_value : 0;
-
-  addIntParameter("Mode (0=Linear,1=Grid,2=Radial)", mode, 0, 2, [this, node](int value) {
-    node->set_parameter("mode", NodeParameter("mode", value));
-    emit parameterChanged();
-  });
-
-  addHeader("Linear/Radial Settings");
-
-  // Count (for Linear and Radial modes)
-  auto count_param = node->get_parameter("count");
-  int count = (count_param.has_value() && count_param->type == NodeParameter::Type::Int) ? count_param->int_value : 5;
-
-  addIntParameter("Count", count, 1, 100, [this, node](int value) {
-    node->set_parameter("count", NodeParameter("count", value));
-    emit parameterChanged();
-  });
-
-  addHeader("Offset (Linear/Grid)");
-
-  // Offset X
-  auto offset_x_param = node->get_parameter("offset_x");
-  double offset_x = (offset_x_param.has_value() && offset_x_param->type == NodeParameter::Type::Float)
-                        ? offset_x_param->float_value
-                        : 2.0;
-
-  addDoubleParameter("Offset X", offset_x, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("offset_x", NodeParameter("offset_x", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  // Offset Y
-  auto offset_y_param = node->get_parameter("offset_y");
-  double offset_y = (offset_y_param.has_value() && offset_y_param->type == NodeParameter::Type::Float)
-                        ? offset_y_param->float_value
-                        : 2.0;
-
-  addDoubleParameter("Offset Y", offset_y, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("offset_y", NodeParameter("offset_y", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  // Offset Z
-  auto offset_z_param = node->get_parameter("offset_z");
-  double offset_z = (offset_z_param.has_value() && offset_z_param->type == NodeParameter::Type::Float)
-                        ? offset_z_param->float_value
-                        : 0.0;
-
-  addDoubleParameter("Offset Z", offset_z, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("offset_z", NodeParameter("offset_z", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addHeader("Grid Settings");
-
-  // Grid Rows
-  auto grid_rows_param = node->get_parameter("grid_rows");
-  int grid_rows = (grid_rows_param.has_value() && grid_rows_param->type == NodeParameter::Type::Int)
-                      ? grid_rows_param->int_value
-                      : 3;
-
-  addIntParameter("Grid Rows", grid_rows, 1, 20, [this, node](int value) {
-    node->set_parameter("grid_rows", NodeParameter("grid_rows", value));
-    emit parameterChanged();
-  });
-
-  // Grid Columns
-  auto grid_cols_param = node->get_parameter("grid_cols");
-  int grid_cols = (grid_cols_param.has_value() && grid_cols_param->type == NodeParameter::Type::Int)
-                      ? grid_cols_param->int_value
-                      : 3;
-
-  addIntParameter("Grid Cols", grid_cols, 1, 20, [this, node](int value) {
-    node->set_parameter("grid_cols", NodeParameter("grid_cols", value));
-    emit parameterChanged();
-  });
-
-  addHeader("Radial Settings");
-
-  // Radius
-  auto radius_param = node->get_parameter("radius");
-  double radius =
-      (radius_param.has_value() && radius_param->type == NodeParameter::Type::Float) ? radius_param->float_value : 5.0;
-
-  addDoubleParameter("Radius", radius, 0.1, 100.0, [this, node](double value) {
-    node->set_parameter("radius", NodeParameter("radius", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  // Angle
-  auto angle_param = node->get_parameter("angle");
-  double angle =
-      (angle_param.has_value() && angle_param->type == NodeParameter::Type::Float) ? angle_param->float_value : 360.0;
-
-  addDoubleParameter("Angle (degrees)", angle, 0.0, 360.0, [this, node](double value) {
-    node->set_parameter("angle", NodeParameter("angle", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildBooleanParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Boolean Operation");
-
-  // Operation type parameter
-  auto operation_param = node->get_parameter("operation");
-  int operation = (operation_param.has_value() && operation_param->type == NodeParameter::Type::Int)
-                      ? operation_param->int_value
-                      : 0;
-
-  QStringList operations = {"Union", "Intersection", "Difference"};
-
-  addComboParameter("Operation", operation, operations, [this, node](int value) {
-    node->set_parameter("operation", NodeParameter("operation", value));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildLineParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Line Geometry");
-
-  // Start point parameters
-  auto start_x_param = node->get_parameter("start_x");
-  double start_x = (start_x_param.has_value() && start_x_param->type == NodeParameter::Type::Float)
-                       ? start_x_param->float_value
-                       : 0.0;
-
-  auto start_y_param = node->get_parameter("start_y");
-  double start_y = (start_y_param.has_value() && start_y_param->type == NodeParameter::Type::Float)
-                       ? start_y_param->float_value
-                       : 0.0;
-
-  auto start_z_param = node->get_parameter("start_z");
-  double start_z = (start_z_param.has_value() && start_z_param->type == NodeParameter::Type::Float)
-                       ? start_z_param->float_value
-                       : 0.0;
-
-  // End point parameters
-  auto end_x_param = node->get_parameter("end_x");
-  double end_x =
-      (end_x_param.has_value() && end_x_param->type == NodeParameter::Type::Float) ? end_x_param->float_value : 1.0;
-
-  auto end_y_param = node->get_parameter("end_y");
-  double end_y =
-      (end_y_param.has_value() && end_y_param->type == NodeParameter::Type::Float) ? end_y_param->float_value : 0.0;
-
-  auto end_z_param = node->get_parameter("end_z");
-  double end_z =
-      (end_z_param.has_value() && end_z_param->type == NodeParameter::Type::Float) ? end_z_param->float_value : 0.0;
-
-  // Segments parameter
-  auto segments_param = node->get_parameter("segments");
-  int segments =
-      (segments_param.has_value() && segments_param->type == NodeParameter::Type::Int) ? segments_param->int_value : 10;
-
-  // Add UI controls
-  addDoubleParameter("Start X", start_x, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("start_x", NodeParameter("start_x", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addDoubleParameter("Start Y", start_y, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("start_y", NodeParameter("start_y", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addDoubleParameter("Start Z", start_z, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("start_z", NodeParameter("start_z", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addDoubleParameter("End X", end_x, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("end_x", NodeParameter("end_x", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addDoubleParameter("End Y", end_y, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("end_y", NodeParameter("end_y", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addDoubleParameter("End Z", end_z, -100.0, 100.0, [this, node](double value) {
-    node->set_parameter("end_z", NodeParameter("end_z", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  addIntParameter("Segments", segments, 2, 1000, [this, node](int value) {
-    node->set_parameter("segments", NodeParameter("segments", value));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildResampleParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Resample Curve");
-
-  // Mode parameter
-  auto mode_param = node->get_parameter("mode");
-  int mode = (mode_param.has_value() && mode_param->type == NodeParameter::Type::Int) ? mode_param->int_value : 0;
-
-  // Point count parameter
-  auto point_count_param = node->get_parameter("point_count");
-  int point_count = (point_count_param.has_value() && point_count_param->type == NodeParameter::Type::Int)
-                        ? point_count_param->int_value
-                        : 20;
-
-  // Segment length parameter
-  auto segment_length_param = node->get_parameter("segment_length");
-  double segment_length = (segment_length_param.has_value() && segment_length_param->type == NodeParameter::Type::Float)
-                              ? segment_length_param->float_value
-                              : 0.1;
-
-  // Add UI controls
-  QStringList modes = {"By Count", "By Length"};
-
-  addComboParameter("Mode", mode, modes, [this, node](int value) {
-    node->set_parameter("mode", NodeParameter("mode", value));
-    emit parameterChanged();
-  });
-
-  addIntParameter("Point Count", point_count, 2, 10000, [this, node](int value) {
-    node->set_parameter("point_count", NodeParameter("point_count", value));
-    emit parameterChanged();
-  });
-
-  addDoubleParameter("Segment Length", segment_length, 0.001, 100.0, [this, node](double value) {
-    node->set_parameter("segment_length", NodeParameter("segment_length", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-}
-
-// PolyExtrude parameters are automatically generated from SOP parameter
-// definitions No manual UI building needed - the parameter system handles it
-// automatically
-void PropertyPanel::buildPolyExtrudeParameters(nodo::graph::GraphNode* node) {
-  // This function intentionally left empty - parameters are auto-generated
-  (void)node; // Suppress unused parameter warning
-}
-
-void PropertyPanel::buildScatterParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Scatter Points");
-
-  // Point count parameter
-  auto point_count_param = node->get_parameter("point_count");
-  int point_count = (point_count_param.has_value() && point_count_param->type == NodeParameter::Type::Int)
-                        ? point_count_param->int_value
-                        : 100;
-
-  addIntParameter("Point Count", point_count, 1, 100000, [this, node](int value) {
-    node->set_parameter("point_count", NodeParameter("point_count", value));
-    emit parameterChanged();
-  });
-
-  // Seed parameter
-  auto seed_param = node->get_parameter("seed");
-  int seed = (seed_param.has_value() && seed_param->type == NodeParameter::Type::Int) ? seed_param->int_value : 12345;
-
-  addIntParameter("Random Seed", seed, 0, 999999, [this, node](int value) {
-    node->set_parameter("seed", NodeParameter("seed", value));
-    emit parameterChanged();
-  });
-
-  // Density parameter
-  auto density_param = node->get_parameter("density");
-  double density = (density_param.has_value() && density_param->type == NodeParameter::Type::Float)
-                       ? density_param->float_value
-                       : 1.0;
-
-  addDoubleParameter("Density", density, 0.0, 2.0, [this, node](double value) {
-    node->set_parameter("density", NodeParameter("density", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  // Use face area weighting
-  auto use_area_param = node->get_parameter("use_face_area");
-  bool use_area = (use_area_param.has_value() && use_area_param->type == NodeParameter::Type::Int)
-                      ? (use_area_param->int_value != 0)
-                      : true;
-
-  addBoolParameter("Weight by Face Area", use_area, [this, node](bool value) {
-    node->set_parameter("use_face_area", NodeParameter("use_face_area", value ? 1 : 0));
-    emit parameterChanged();
-  });
-}
-
-void PropertyPanel::buildCopyToPointsParameters(nodo::graph::GraphNode* node) {
-  using namespace nodo::graph;
-
-  addHeader("Copy to Points");
-
-  // Scale parameter
-  auto scale_param = node->get_parameter("uniform_scale");
-  double scale =
-      (scale_param.has_value() && scale_param->type == NodeParameter::Type::Float) ? scale_param->float_value : 1.0;
-
-  addDoubleParameter("Scale", scale, 0.01, 10.0, [this, node](double value) {
-    node->set_parameter("uniform_scale", NodeParameter("uniform_scale", static_cast<float>(value)));
-    emit parameterChanged();
-  });
-
-  // Use point normals
-  auto use_normals_param = node->get_parameter("use_point_normals");
-  bool use_normals = (use_normals_param.has_value() && use_normals_param->type == NodeParameter::Type::Int)
-                         ? (use_normals_param->int_value != 0)
-                         : false;
-
-  addBoolParameter("Use Point Normals", use_normals, [this, node](bool value) {
-    node->set_parameter("use_point_normals", NodeParameter("use_point_normals", value ? 1 : 0));
-    emit parameterChanged();
-  });
-
-  // Use point scale
-  auto use_scale_param = node->get_parameter("use_point_scale");
-  bool use_scale = (use_scale_param.has_value() && use_scale_param->type == NodeParameter::Type::Int)
-                       ? (use_scale_param->int_value != 0)
-                       : false;
-
-  addBoolParameter("Use Point Scale", use_scale, [this, node](bool value) {
-    node->set_parameter("use_point_scale", NodeParameter("use_point_scale", value ? 1 : 0));
-    emit parameterChanged();
-  });
 }
 
 void PropertyPanel::addVector3Parameter(const QString& label, double x, double y, double z, double min, double max,

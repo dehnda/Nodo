@@ -1029,9 +1029,11 @@ void MainWindow::onExecutionFinished() {
         // Add parameter info for debugging
         using nodo::graph::NodeType;
         if (node->get_type() == NodeType::Sphere) {
-          auto radius_param = node->get_parameter("radius");
-          if (radius_param.has_value()) {
-            msg += QString(" | radius=%1").arg(radius_param->float_value);
+          const auto& parameters = node->get_parameters();
+          auto radius_it = parameters.find("radius");
+          if (radius_it != parameters.end() && std::holds_alternative<float>(radius_it->second)) {
+            float radius = std::get<float>(radius_it->second);
+            msg += QString(" | radius=%1").arg(radius);
           }
         }
 
@@ -1218,9 +1220,10 @@ void MainWindow::onCopy() {
       new_node->set_position(pos_x, pos_y);
 
       // Copy all parameters
-      for (const auto& param : node->get_parameters()) {
-        new_node->set_parameter(param.name, param);
-      }
+      // TODO: Implement parameter copying for SOP-based system
+      // For now, new nodes will use SOP default parameters
+      // const auto& parameters = node->get_parameters();
+      // Parameter copying will require SOP-to-SOP parameter transfer
     }
   }
 

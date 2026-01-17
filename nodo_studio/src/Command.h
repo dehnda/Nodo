@@ -6,6 +6,9 @@
 #include <memory>
 #include <string>
 
+#include <nodo/sop/sop_node.hpp>
+
+
 // Forward declarations
 class NodeGraphWidget;
 
@@ -75,10 +78,13 @@ private:
 class AddNodeCommand;
 class DeleteNodeCommand;
 class MoveNodeCommand;
-class ChangeParameterCommand;
+class ChangeParametersCommand;
 class ConnectCommand;
 class DisconnectCommand;
 class BypassNodesCommand;
+
+// Forward declare ParameterChange for factory function
+struct ParameterChange;
 
 // Factory functions to create commands
 std::unique_ptr<Command> create_add_node_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
@@ -90,10 +96,20 @@ std::unique_ptr<Command> create_delete_node_command(NodeGraphWidget* widget, nod
 std::unique_ptr<Command> create_move_node_command(nodo::graph::NodeGraph* graph, int node_id, const QPointF& old_pos,
                                                   const QPointF& new_pos);
 
-std::unique_ptr<Command> create_change_parameter_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph,
-                                                         int node_id, const std::string& param_name,
-                                                         const nodo::graph::NodeParameter& old_value,
-                                                         const nodo::graph::NodeParameter& new_value);
+/**
+ * @brief Create a command to change node parameter(s)
+ *
+ * @param graph The node graph
+ * @param node_id The ID of the node to modify
+ * @param param_name The parameter name
+ * @param old_value The current/old value
+ * @param new_value The new value to set
+ * @return Command that can be pushed to undo stack
+ */
+std::unique_ptr<Command> create_change_parameter_command(nodo::graph::NodeGraph* graph, int node_id,
+                                                         const std::string& param_name,
+                                                         const nodo::sop::SOPNode::ParameterValue& old_value,
+                                                         const nodo::sop::SOPNode::ParameterValue& new_value);
 
 std::unique_ptr<Command> create_connect_command(NodeGraphWidget* widget, nodo::graph::NodeGraph* graph, int source_id,
                                                 int source_pin, int target_id, int target_pin);

@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include <nodo/graph/node_graph.hpp>
+#include <nodo/sop/sop_node.hpp>
 
 // ============================================================================
 // NodeGraphicsItem Implementation
@@ -772,29 +773,47 @@ void NodeGraphWidget::update_node_parameters(int node_id) {
 
   // Convert backend parameters to display format
   std::vector<std::pair<QString, QString>> params;
-  for (const auto& param : node->get_parameters()) {
-    QString name = QString::fromStdString(param.name);
+
+  // Get parameter definitions for type information
+  auto param_defs = node->get_parameter_definitions();
+  const auto& param_map = node->get_parameters();
+
+  for (const auto& def : param_defs) {
+    auto it = param_map.find(def.name);
+    if (it == param_map.end())
+      continue;
+
+    QString name = QString::fromStdString(def.name);
     QString value;
 
     // Format value based on type
-    switch (param.type) {
-      case nodo::graph::NodeParameter::Type::Float:
-        value = QString::number(param.float_value, 'f', 2);
+    switch (def.type) {
+      case nodo::sop::SOPNode::ParameterDefinition::Type::Float:
+        if (auto* val = std::get_if<float>(&it->second)) {
+          value = QString::number(*val, 'f', 2);
+        }
         break;
-      case nodo::graph::NodeParameter::Type::Int:
-        value = QString::number(param.int_value);
+      case nodo::sop::SOPNode::ParameterDefinition::Type::Int:
+        if (auto* val = std::get_if<int>(&it->second)) {
+          value = QString::number(*val);
+        }
         break;
-      case nodo::graph::NodeParameter::Type::Bool:
-        value = param.bool_value ? "true" : "false";
+      case nodo::sop::SOPNode::ParameterDefinition::Type::Bool:
+        if (auto* val = std::get_if<bool>(&it->second)) {
+          value = *val ? "true" : "false";
+        }
         break;
-      case nodo::graph::NodeParameter::Type::String:
-        value = QString::fromStdString(param.string_value);
+      case nodo::sop::SOPNode::ParameterDefinition::Type::String:
+        if (auto* val = std::get_if<std::string>(&it->second)) {
+          value = QString::fromStdString(*val);
+        }
         break;
-      case nodo::graph::NodeParameter::Type::Vector3:
-        value = QString("(%1, %2, %3)")
-                    .arg(param.vector3_value[0], 0, 'f', 2)
-                    .arg(param.vector3_value[1], 0, 'f', 2)
-                    .arg(param.vector3_value[2], 0, 'f', 2);
+      case nodo::sop::SOPNode::ParameterDefinition::Type::Vector3:
+        if (auto* val = std::get_if<Eigen::Vector3f>(&it->second)) {
+          value = QString("(%1, %2, %3)").arg((*val)[0], 0, 'f', 2).arg((*val)[1], 0, 'f', 2).arg((*val)[2], 0, 'f', 2);
+        }
+        break;
+      default:
         break;
     }
 
