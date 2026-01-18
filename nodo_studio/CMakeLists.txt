@@ -78,7 +78,7 @@ set(STUDIO_HEADERS
     src/ParameterWidgetFactory.h
     src/GraphParametersPanel.h
     src/KeyboardShortcutsDialog.h
-    include/StudioHostInterface.h
+    src/StudioHostInterface.h
     # Parameter widgets
     src/widgets/BaseParameterWidget.h
     src/widgets/ButtonWidget.h

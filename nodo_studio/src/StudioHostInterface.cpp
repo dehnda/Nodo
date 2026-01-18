@@ -1,4 +1,4 @@
-#include "../include/StudioHostInterface.h"
+#include "StudioHostInterface.h"
 
 StudioHostInterface::StudioHostInterface(QObject* parent) : QObject(parent) {}
 

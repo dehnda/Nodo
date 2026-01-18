@@ -206,3 +206,5 @@ venv/
 *.pyc
 __pycache__/
 .vercel
+
+.continue

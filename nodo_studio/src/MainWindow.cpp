@@ -1,6 +1,5 @@
 #include "MainWindow.h"
 
-#include "../include/StudioHostInterface.h"
 #include "Command.h"
 #include "GeometrySpreadsheet.h"
 #include "GraphParametersPanel.h"
@@ -12,6 +11,7 @@
 #include "PropertyPanel.h"
 #include "SceneFileManager.h"
 #include "StatusBarWidget.h"
+#include "StudioHostInterface.h"
 #include "UndoStack.h"
 #include "ViewportToolbar.h"
 #include "ViewportWidget.h"

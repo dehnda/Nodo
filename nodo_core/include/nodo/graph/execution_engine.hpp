@@ -5,14 +5,14 @@
 
 #pragma once
 
+#include "nodo/core/IHostInterface.h"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/graph/node_graph.hpp"
-
-#include "nodo_core/IHostInterface.h"
 
 #include <functional>
 #include <memory>
 #include <unordered_map>
+
 
 // Forward declarations
 namespace nodo::sop {
