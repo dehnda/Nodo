@@ -7,6 +7,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <set>
 
 #include <nlohmann/json.hpp>
 
@@ -43,6 +44,10 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph& graph) {
         const auto& param_defs = sop->get_parameter_definitions();
         const auto& param_values = sop->get_parameters();
 
+        // Track which parameters have been serialized
+        std::set<std::string> serialized_params;
+
+        // First, serialize parameters with definitions
         for (const auto& def : param_defs) {
           json param_json;
           param_json["name"] = def.name;
@@ -116,6 +121,41 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph& graph) {
                 }
                 break;
             }
+          }
+
+          node_json["parameters"].push_back(param_json);
+          serialized_params.insert(def.name);
+        }
+
+        // Then serialize any dynamic parameters (not in definitions)
+        for (const auto& [param_name, param_value] : param_values) {
+          if (serialized_params.find(param_name) != serialized_params.end()) {
+            continue; // Already serialized
+          }
+
+          json param_json;
+          param_json["name"] = param_name;
+          param_json["label"] = param_name;
+          param_json["category"] = "";
+          param_json["ui_hint"] = "";
+
+          // Infer type from the variant
+          if (std::holds_alternative<float>(param_value)) {
+            param_json["type"] = "float";
+            param_json["value"] = std::get<float>(param_value);
+          } else if (std::holds_alternative<int>(param_value)) {
+            param_json["type"] = "int";
+            param_json["value"] = std::get<int>(param_value);
+          } else if (std::holds_alternative<bool>(param_value)) {
+            param_json["type"] = "bool";
+            param_json["value"] = std::get<bool>(param_value);
+          } else if (std::holds_alternative<std::string>(param_value)) {
+            param_json["type"] = "string";
+            param_json["value"] = std::get<std::string>(param_value);
+          } else if (std::holds_alternative<Eigen::Vector3f>(param_value)) {
+            const auto& vec = std::get<Eigen::Vector3f>(param_value);
+            param_json["type"] = "vector3";
+            param_json["value"] = {vec.x(), vec.y(), vec.z()};
           }
 
           node_json["parameters"].push_back(param_json);
@@ -239,11 +279,38 @@ std::optional<NodeGraph> GraphSerializer::deserialize_from_json(const std::strin
         }
 
         // Deserialize parameters
-        // TODO: Implement parameter deserialization for SOPNode
-        // For now, SOPs use their default parameter values from definitions
         if (node_json.contains("parameters") && node_json["parameters"].is_array()) {
-          // Skip parameter deserialization temporarily
-          // Parameters will be handled via SOP parameter system
+          auto* sop = node->get_sop();
+          if (sop) {
+            for (const auto& param_json : node_json["parameters"]) {
+              if (!param_json.contains("name") || !param_json.contains("type") || !param_json.contains("value")) {
+                continue;
+              }
+
+              std::string param_name = param_json["name"];
+              std::string param_type = param_json["type"];
+
+              // Deserialize value based on type
+              if (param_type == "float" && param_json["value"].is_number()) {
+                sop->set_parameter(param_name, param_json["value"].get<float>());
+              } else if (param_type == "int" && param_json["value"].is_number_integer()) {
+                sop->set_parameter(param_name, param_json["value"].get<int>());
+              } else if (param_type == "bool" && param_json["value"].is_boolean()) {
+                sop->set_parameter(param_name, param_json["value"].get<bool>());
+              } else if ((param_type == "string" || param_type == "code") && param_json["value"].is_string()) {
+                sop->set_parameter(param_name, param_json["value"].get<std::string>());
+              } else if (param_type == "vector3" && param_json["value"].is_array() &&
+                         param_json["value"].size() >= 3) {
+                Eigen::Vector3f vec;
+                vec.x() = param_json["value"][0].get<float>();
+                vec.y() = param_json["value"][1].get<float>();
+                vec.z() = param_json["value"][2].get<float>();
+                sop->set_parameter(param_name, vec);
+              } else if (param_type == "group_selector" && param_json["value"].is_string()) {
+                sop->set_parameter(param_name, param_json["value"].get<std::string>());
+              }
+            }
+          }
         }
       }
 
