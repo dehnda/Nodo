@@ -83,7 +83,7 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry
     auto input = get_input_data(0);
 
@@ -91,8 +91,7 @@ protected:
     fmt::print("RemeshSOP::execute() - input pointer: {}\n", input ? "valid" : "nullptr");
 
     if (!input) {
-      set_error("No input geometry");
-      return nullptr;
+      return {"No input geometry"};
     }
 
     fmt::print("RemeshSOP::execute() - input has {} points, {} prims\n", input->point_count(),
@@ -118,7 +117,7 @@ protected:
 
     if (!result) {
       set_error(error);
-      return nullptr;
+      return {(std::string)error};
     }
 
     return std::make_shared<core::GeometryContainer>(std::move(*result));

@@ -59,7 +59,7 @@ protected:
   /**
    * @brief Execute the poly-extrude operation (SOPNode override)
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   /**

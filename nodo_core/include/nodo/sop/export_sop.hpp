@@ -55,12 +55,12 @@ protected:
   /**
    * @brief Execute export (pass-through node with side effect)
    */
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry
     auto input = get_input_data(0);
     if (!input) {
       set_error("No input geometry to export");
-      return nullptr;
+      return {(std::string) "No input geometry to export"};
     }
 
     const std::string file_path = get_parameter<std::string>("file_path", "");

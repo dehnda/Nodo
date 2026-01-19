@@ -27,7 +27,7 @@ protected:
   /**
    * @brief Execute the noise displacement operation (SOPNode override)
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   // Noise generation functions

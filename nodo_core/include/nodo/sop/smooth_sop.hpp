@@ -76,13 +76,13 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry
     auto input = get_input_data(0);
 
     if (!input) {
       set_error("No input geometry");
-      return nullptr;
+      return {(std::string) "No input geometry"};
     }
 
     // Get parameters
@@ -99,7 +99,7 @@ protected:
 
     if (!result) {
       set_error(error);
-      return nullptr;
+      return {(std::string)error};
     }
 
     return std::make_shared<core::GeometryContainer>(std::move(*result));

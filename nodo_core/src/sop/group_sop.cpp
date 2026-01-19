@@ -82,7 +82,7 @@ GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> GroupSOP::execute() {
   std::cerr << "GroupSOP::execute() called\n";
 
   // Get input
@@ -90,7 +90,7 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   if (input == nullptr) {
     std::cerr << "  ERROR: No input geometry\n";
     set_error("GroupSOP requires input geometry - connect a node to input 0");
-    return nullptr;
+    return {(std::string) "No input geometry"};
   }
 
   std::cerr << "  Input has " << input->point_count() << " points, " << input->primitive_count() << " primitives\n";
@@ -111,7 +111,7 @@ std::shared_ptr<core::GeometryContainer> GroupSOP::execute() {
   if (group_name.empty()) {
     std::cerr << "  ERROR: Empty group name\n";
     set_error("Group name cannot be empty");
-    return nullptr;
+    return {(std::string) "Group name cannot be empty"};
   }
 
   int elem_class_int = get_parameter<int>("element_class", 0);

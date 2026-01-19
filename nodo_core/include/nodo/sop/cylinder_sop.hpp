@@ -95,7 +95,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const auto radius = get_parameter<float>("radius", DEFAULT_RADIUS);
     const auto height = get_parameter<float>("height", DEFAULT_HEIGHT);
     const auto radial_segments = get_parameter<int>("radial_segments", DEFAULT_RADIAL_SEGMENTS);
@@ -109,8 +109,7 @@ protected:
                                                           radial_segments, height_segments, top_cap, bottom_cap);
 
       if (!result.has_value()) {
-        set_error("Cylinder generation failed");
-        return nullptr;
+        return {"Cylinder generation failed"};
       }
 
       // Hard edges
@@ -127,7 +126,7 @@ protected:
 
     } catch (const std::exception& exception) {
       set_error("Exception during cylinder generation: " + std::string(exception.what()));
-      return nullptr;
+      return {(std::string) "Exception during cylinder generation: " + exception.what()};
     }
   }
 };

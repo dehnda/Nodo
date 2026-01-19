@@ -3,6 +3,7 @@
 #include "sop_node.hpp"
 
 #include <memory>
+#include <regex>
 
 namespace nodo::sop {
 
@@ -57,18 +58,18 @@ public:
   ~GroupTransferSOP() override = default;
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     auto source = get_input_data(1);
 
     if (!input) {
       set_error("GroupTransferSOP requires input geometry on port 0");
-      return nullptr;
+      return {(std::string) "GroupTransferSOP requires input geometry on port 0"};
     }
 
     if (!source) {
       set_error("GroupTransferSOP requires source geometry on port 1");
-      return nullptr;
+      return {(std::string) "GroupTransferSOP requires source geometry on port 1"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());

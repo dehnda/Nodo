@@ -7,11 +7,11 @@
 
 namespace nodo::sop {
 
-std::shared_ptr<core::GeometryContainer> BlastSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> BlastSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
     set_error("BlastSOP requires input geometry");
-    return nullptr;
+    return {(std::string) "BlastSOP requires input geometry"};
   }
 
   std::cerr << "\n=== BlastSOP::execute() ===\n";

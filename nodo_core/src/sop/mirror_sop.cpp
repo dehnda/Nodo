@@ -72,7 +72,7 @@ MirrorSOP::MirrorSOP(const std::string& name) : SOPNode(name, "Mirror") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> MirrorSOP::execute() {
   // Sync member variables from parameter system
   plane_ = static_cast<MirrorPlane>(get_parameter<int>("plane", 2));
   keep_original_ = (get_parameter<int>("keep_original", 1) != 0);
@@ -87,12 +87,12 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
   auto input_geo = get_input_data(0);
   if (!input_geo) {
     set_error("No input geometry connected");
-    return nullptr;
+    return {(std::string) "No input geometry connected"};
   }
 
   if (input_geo->topology().point_count() == 0) {
     set_error("Input geometry is empty");
-    return nullptr;
+    return {(std::string) "Input geometry is empty"};
   }
 
   // Determine mirror plane
@@ -122,7 +122,7 @@ std::shared_ptr<core::GeometryContainer> MirrorSOP::execute() {
   auto* input_positions = input_geo->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!input_positions) {
     set_error("Input geometry missing position attribute");
-    return nullptr;
+    return {(std::string) "Input geometry missing position attribute"};
   }
 
   const auto& input_topology = input_geo->topology();

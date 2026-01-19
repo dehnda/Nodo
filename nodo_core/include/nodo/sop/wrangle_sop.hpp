@@ -27,7 +27,7 @@ public:
   void update_expression_channels(const std::string& expression_code);
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   enum class RunOver {

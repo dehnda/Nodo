@@ -57,12 +57,12 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input
     auto input_data = get_input_data(0);
     if (!input_data) {
       fmt::print("RepairMeshSOP: No input geometry\n");
-      return nullptr;
+      return {(std::string) "No input geometry"};
     }
 
     // Get parameters
@@ -83,7 +83,7 @@ protected:
       return std::make_shared<core::GeometryContainer>(std::move(*result));
     } else {
       fmt::print("RepairMeshSOP: Repair failed\n");
-      return nullptr;
+      return {(std::string) "Repair failed"};
     }
   }
 };

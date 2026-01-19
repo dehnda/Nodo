@@ -19,7 +19,7 @@ public:
   explicit UVUnwrapSOP(const std::string& name = "uv_unwrap");
   ~UVUnwrapSOP() override = default;
 
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   /**

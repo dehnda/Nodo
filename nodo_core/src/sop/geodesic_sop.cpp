@@ -6,12 +6,12 @@
 
 namespace nodo::sop {
 
-std::shared_ptr<core::GeometryContainer> GeodesicSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> GeodesicSOP::execute() {
   // Get input
   auto input_data = get_input_data(0);
   if (!input_data) {
     fmt::print("GeodesicSOP: No input geometry\n");
-    return nullptr;
+    return {(std::string) "No input geometry"};
   }
 
   // Get parameters
@@ -48,7 +48,7 @@ std::shared_ptr<core::GeometryContainer> GeodesicSOP::execute() {
 
   if (!result) {
     fmt::print("GeodesicSOP: Failed to compute geodesic distances: {}\n", error);
-    return nullptr;
+    return {(std::string) "Failed to compute geodesic distances: " + error};
   }
 
   return std::make_shared<core::GeometryContainer>(std::move(*result));

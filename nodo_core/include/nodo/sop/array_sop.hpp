@@ -30,7 +30,7 @@ public:
   /**
    * @brief Execute the array operation (SOPNode override)
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   std::unique_ptr<core::GeometryContainer> create_linear_array(const core::GeometryContainer& input_geo, int count);

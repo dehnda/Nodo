@@ -24,13 +24,13 @@ SubdivisionSOP::SubdivisionSOP(const std::string& name) : SOPNode(name, "Subdivi
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> SubdivisionSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> SubdivisionSOP::execute() {
   // Get input geometry
   auto input = get_input_data(0);
 
   if (!input) {
     set_error("No input geometry");
-    return nullptr;
+    return {(std::string) "No input geometry"};
   }
 
   // Get parameters
@@ -59,7 +59,7 @@ std::shared_ptr<core::GeometryContainer> SubdivisionSOP::execute() {
 
   if (!result) {
     set_error(error);
-    return nullptr;
+    return {(std::string)error};
   }
 
   return std::make_shared<core::GeometryContainer>(std::move(*result));

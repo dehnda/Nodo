@@ -74,7 +74,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const auto radius = get_parameter<float>("radius", DEFAULT_RADIUS);
     const auto segments = get_parameter<int>("segments", DEFAULT_SEGMENTS);
     const auto rings = get_parameter<int>("rings", DEFAULT_RINGS);
@@ -85,7 +85,7 @@ protected:
 
       if (!result.has_value()) {
         set_error("Sphere generation failed");
-        return nullptr;
+        return {(std::string) "Sphere generation failed"};
       }
 
       auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
@@ -99,7 +99,7 @@ protected:
 
     } catch (const std::exception& exception) {
       set_error("Exception during sphere generation: " + std::string(exception.what()));
-      return nullptr;
+      return {(std::string) "Exception during sphere generation: " + std::string(exception.what())};
     }
   }
 };

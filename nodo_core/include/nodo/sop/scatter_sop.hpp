@@ -38,16 +38,16 @@ public:
    * @brief Generate scattered points on input geometry
    * Uses new GeometryContainer attribute system
    */
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry from port 0 (execution engine uses numeric indices)
     auto input_data = get_input_data(0);
     if (input_data == nullptr) {
-      return nullptr;
+      return {(std::string) "No input geometry"};
     }
 
     auto* input_geo = input_data->get_point_attribute_typed<core::Vec3f>("P");
     if (input_geo == nullptr || input_geo->size() == 0) {
-      return nullptr;
+      return {(std::string) "Input geometry has no position attribute"};
     }
 
     // Get parameters

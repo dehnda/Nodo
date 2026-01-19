@@ -18,7 +18,7 @@ public:
 
   explicit DeleteSOP(const std::string& name);
 
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 };
 
 } // namespace nodo::sop

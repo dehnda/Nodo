@@ -53,7 +53,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const bool cache_enabled = get_parameter<int>("enable_cache", 0) != 0;
     [[maybe_unused]] const bool cache_locked = get_parameter<int>("lock_cache", 0) != 0;
     const bool should_clear = get_parameter<int>("clear_cache", 0) != 0;
@@ -74,7 +74,7 @@ protected:
     if (!input) {
       set_error("Cache node requires input geometry");
       cached_geometry_.reset();
-      return nullptr;
+      return {(std::string) "Cache node requires input geometry"};
     }
 
     // Cache the result if caching is enabled

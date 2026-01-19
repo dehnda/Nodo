@@ -81,7 +81,7 @@ protected:
    * @brief Execute the transform operation (SOPNode override)
    * @return Transformed geometry container
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   /**

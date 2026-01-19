@@ -74,12 +74,12 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry
     auto input = get_input_data(0);
     if (!input || input->point_count() == 0) {
       set_error("Scatter Volume: Input geometry required");
-      return nullptr;
+      return {(std::string) "Scatter Volume: Input geometry required"};
     }
 
     // Get parameters
@@ -92,7 +92,7 @@ protected:
     auto* P = input->get_point_attribute_typed<Eigen::Vector3f>("P");
     if (!P) {
       set_error("Scatter Volume: Input geometry has no P attribute");
-      return nullptr;
+      return {(std::string) "Scatter Volume: Input geometry has no P attribute"};
     }
 
     Eigen::Vector3f min_bounds(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(),

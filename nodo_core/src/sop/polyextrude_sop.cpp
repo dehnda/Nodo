@@ -70,11 +70,11 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name) : SOPNode(name, "PolyExt
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::execute() {
   auto input = get_input_data(0);
   if (input == nullptr) {
     set_error("No input geometry");
-    return nullptr;
+    return {(std::string) "No input geometry"};
   }
 
   // Get extrusion type
@@ -91,7 +91,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::execute() {
   }
 
   set_error("Invalid extrusion type");
-  return nullptr;
+  return {(std::string) "Invalid extrusion type"};
 }
 
 std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {

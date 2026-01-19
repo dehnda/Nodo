@@ -50,10 +50,10 @@ NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> NormalSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> NormalSOP::execute() {
   auto handle = get_input_handle(0);
   if (!handle.is_valid()) {
-    throw std::runtime_error("NormalSOP requires input geometry");
+    return {(std::string) "NormalSOP requires input geometry"};
   }
 
   auto& result = handle.write();

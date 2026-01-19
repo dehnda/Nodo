@@ -3,6 +3,7 @@
 #include "sop_node.hpp"
 
 #include <memory>
+#include <regex>
 
 namespace nodo::sop {
 
@@ -39,11 +40,11 @@ public:
   ~GroupDeleteSOP() override = default;
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
       set_error("GroupDeleteSOP requires input geometry");
-      return nullptr;
+      return {(std::string) "GroupDeleteSOP requires input geometry"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());

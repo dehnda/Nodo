@@ -21,7 +21,7 @@ MergeSOP::MergeSOP(const std::string& name) : SOPNode(name, "Merge") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> MergeSOP::execute() {
   std::cerr << "MergeSOP::execute() called\n";
 
   // Collect all connected inputs
@@ -84,7 +84,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
   if (result_positions == nullptr) {
     std::cerr << "  ERROR: Failed to create position attribute\n";
     set_error("Failed to create position attribute in result");
-    return nullptr;
+    return {(std::string) "Failed to create position attribute in result"};
   }
 
   std::cerr << "  Got position attribute pointer\n";
@@ -145,7 +145,7 @@ std::shared_ptr<core::GeometryContainer> MergeSOP::execute() {
       } catch (const std::exception& e) {
         std::cerr << "      ERROR adding primitive " << prim_idx << ": " << e.what() << "\n";
         set_error(std::string("Failed to add primitive: ") + e.what());
-        return nullptr;
+        return {(std::string) "Failed to add primitive"};
       }
     }
 

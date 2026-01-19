@@ -128,20 +128,20 @@ ArraySOP::ArraySOP(const std::string& name) : SOPNode(name, "Array") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> ArraySOP::execute() {
   // Get input geometry from "mesh" port
   auto input_geo = get_input_data("0");
 
   if (!input_geo) {
     set_error("No input geometry connected");
-    return nullptr;
+    return {(std::string) "No input geometry connected"};
   }
 
   const size_t point_count = input_geo->topology().point_count();
 
   if (point_count == 0) {
     set_error("Input geometry is empty");
-    return nullptr;
+    return {(std::string) "Input geometry is empty"};
   }
 
   // Read parameters
@@ -166,13 +166,13 @@ std::shared_ptr<core::GeometryContainer> ArraySOP::execute() {
     }
     default:
       set_error("Unknown array type");
-      return nullptr;
+      return {(std::string) "Unknown array type"};
   }
 
   // Check if operation succeeded
   if (!result) {
     set_error("Array operation failed");
-    return nullptr;
+    return {(std::string) "Array operation failed"};
   }
 
   return std::shared_ptr<core::GeometryContainer>(std::move(result));

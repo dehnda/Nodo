@@ -36,11 +36,11 @@ ResampleSOP::ResampleSOP(const std::string& name) : SOPNode(name, "Resample") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> ResampleSOP::execute() {
   auto input = get_input_data(0);
   if (input == nullptr) {
     set_error("No input geometry");
-    return nullptr;
+    return {(std::string) "No input geometry"};
   }
 
   // Get parameters
@@ -52,7 +52,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
   const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
     set_error("Input geometry has no position attribute");
-    return nullptr;
+    return {(std::string) "Input geometry has no position attribute"};
   }
 
   const auto& input_topology = input->topology();
@@ -60,7 +60,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
 
   if (input_prim_count == 0) {
     set_error("Input geometry has no primitives to resample");
-    return nullptr;
+    return {(std::string) "Input geometry has no primitives to resample"};
   }
 
   // Create result container
@@ -119,7 +119,7 @@ std::shared_ptr<core::GeometryContainer> ResampleSOP::execute() {
 
   if (result_positions == nullptr) {
     set_error("Failed to create position attribute in result");
-    return nullptr;
+    return {(std::string) "Failed to create position attribute in result"};
   }
 
   size_t next_point_idx = 0;

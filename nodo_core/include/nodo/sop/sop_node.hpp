@@ -3,6 +3,7 @@
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/geometry_handle.hpp"
+#include "nodo/core/result.hpp"
 
 #include "node_port.hpp"
 
@@ -12,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 
 namespace nodo {
@@ -316,6 +318,65 @@ public:
     }
   }
 
+  auto isNodeClean() const -> bool { return state_ == ExecutionState::CLEAN; }
+
+  auto getCachedOutput() const -> std::shared_ptr<core::GeometryContainer> {
+    if (main_output_->is_cache_valid()) {
+      return main_output_->get_data();
+    }
+    return nullptr;
+  }
+
+  auto setComputingState() -> void { state_ = ExecutionState::COMPUTING; }
+
+  auto preCookInputs() -> void {
+    // Prevent recursive cooking
+    if (state_ == ExecutionState::COMPUTING) {
+      last_error_ = "Circular dependency detected in node: " + node_name_;
+      state_ = ExecutionState::ERROR;
+      // return nullptr;
+    }
+
+    auto cook_start = std::chrono::steady_clock::now();
+    setComputingState();
+    last_error_.clear();
+
+    try {
+      // Cook input dependencies first
+      cookInputs();
+    } catch (const std::exception& exception) {
+      last_error_ = std::string("Exception in node ") + node_name_ + ": " + exception.what();
+      state_ = ExecutionState::ERROR;
+      cook_duration_ =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
+      // return nullptr;
+    }
+  }
+
+  auto getPassthroughResult() const -> std::shared_ptr<core::GeometryContainer> {
+    auto input = get_input_data(0);
+    if (!input || is_pass_through()) {
+      return nullptr;
+    }
+
+    return input;
+  }
+
+  auto executeAndHandleErrors() -> core::Result<std::shared_ptr<core::GeometryContainer>> {
+    try {
+      auto result = execute();
+      return result;
+    } catch (const std::exception& exception) {
+      return {(std::string("Exception in node ") + node_name_ + ": " + exception.what())};
+    }
+  }
+
+  auto updateCacheAndState(std::shared_ptr<core::GeometryContainer> result) -> void {
+    // Update output port cache
+    main_output_->set_data(std::move(result));
+    state_ = ExecutionState::CLEAN;
+  }
+
   /**
    * @brief Cook (execute) this node
    *
@@ -324,64 +385,41 @@ public:
    */
   std::shared_ptr<core::GeometryContainer> cook() {
     // Return cached result if clean
-    if (state_ == ExecutionState::CLEAN && main_output_->is_cache_valid()) {
-      return main_output_->get_data();
-    }
-
-    // Prevent recursive cooking
-    if (state_ == ExecutionState::COMPUTING) {
-      last_error_ = "Circular dependency detected in node: " + node_name_;
-      state_ = ExecutionState::ERROR;
-      return nullptr;
+    if (isNodeClean()) {
+      return getCachedOutput();
     }
 
     auto cook_start = std::chrono::steady_clock::now();
-    state_ = ExecutionState::COMPUTING;
-    last_error_.clear();
+    setComputingState();
 
     try {
       // Cook input dependencies first
-      cook_inputs();
+      preCookInputs();
 
-      // Pass-through mode: return first input without processing
-      // This is useful for temporarily disabling a node while keeping
-      // connections intact
       if (is_pass_through()) {
-        auto first_input = get_input_data(0);
-        if (first_input) {
-          // Pass through the input geometry unchanged
-          main_output_->set_data(first_input);
-          state_ = ExecutionState::CLEAN;
-          cook_duration_ =
-              std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
-          last_cook_time_ = cook_start;
-          return first_input;
-        }
-        // If no input, fall through to normal execution (generators will work)
+        auto result = getPassthroughResult();
+        // Calulate duration for pass-through case
+        cook_duration_ =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
+        return result;
       }
 
       // Execute the node-specific computation
-      auto result = execute();
+      auto result = executeAndHandleErrors();
 
-      // Update timing and state
-      cook_duration_ =
-          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
-      last_cook_time_ = cook_start;
-
-      if (result) {
-        main_output_->set_data(result);
-        state_ = ExecutionState::CLEAN;
-      } else {
-        state_ = ExecutionState::ERROR;
-        if (last_error_.empty()) {
-          last_error_ = "Node execution returned null result";
-        }
+      if (result.isError()) {
+        set_error(*result.error());
+        cook_duration_ =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
+        return nullptr;
       }
 
-      return result;
-
+      updateCacheAndState(*result.value());
+      cook_duration_ =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
+      return *result.value();
     } catch (const std::exception& exception) {
-      last_error_ = std::string("Exception in node ") + node_name_ + ": " + exception.what();
+      last_error_ = std::string("Exception in node: ") + node_name_ + ": " + exception.what();
       state_ = ExecutionState::ERROR;
       cook_duration_ =
           std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
@@ -422,7 +460,7 @@ protected:
    * Derived classes must implement this to define their behavior.
    * @return GeometryContainer with topology and attributes
    */
-  virtual std::shared_ptr<core::GeometryContainer> execute() = 0;
+  virtual core::Result<std::shared_ptr<core::GeometryContainer>> execute() = 0;
 
   /**
    * @brief Set error message
@@ -587,12 +625,6 @@ public:
     }
   }
 
-  /**
-   * @brief Public execute wrapper for testing
-   * Calls the protected execute() method
-   */
-  std::shared_ptr<core::GeometryContainer> execute_for_test() { return execute(); }
-
 protected:
   /**
    * @brief Check if the node has an active group filter
@@ -719,7 +751,7 @@ private:
   /**
    * @brief Cook all input dependencies
    */
-  void cook_inputs() {
+  void cookInputs() {
     for (const auto& port : input_ports_.get_all_ports()) {
       if (port->is_connected()) {
         auto* output_port = port->get_connected_output();

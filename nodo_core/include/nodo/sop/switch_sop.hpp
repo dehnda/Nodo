@@ -31,7 +31,7 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::MULTI_FIXED, 1, 10, 2); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const int index = get_parameter<int>("index", 0);
 
     // Collect all connected inputs
@@ -46,15 +46,15 @@ protected:
     }
 
     if (inputs.empty()) {
-      set_error("Switch has no inputs");
-      return nullptr;
+      return {"Switch has no inputs"};
     }
 
     // Check if index is valid
     if (index < 0 || index >= static_cast<int>(inputs.size())) {
       set_error("Switch index " + std::to_string(index) + " out of range [0, " + std::to_string(inputs.size() - 1) +
                 "]");
-      return nullptr;
+      return {(std::string) "Switch index " + std::to_string(index) + " out of range [0, " +
+              std::to_string(inputs.size() - 1) + "]"};
     }
 
     // Return the selected input

@@ -59,11 +59,10 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input_geo = get_input_data(0);
     if (!input_geo) {
-      set_error("BendSOP requires input geometry");
-      return nullptr;
+      return {"BendSOP requires input geometry"};
     }
 
     // Get parameters
@@ -100,7 +99,7 @@ protected:
     auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
       set_error("BendSOP requires position attribute 'P'");
-      return nullptr;
+      return {(std::string) "BendSOP requires position attribute 'P'"};
     }
 
     // Determine axis indices

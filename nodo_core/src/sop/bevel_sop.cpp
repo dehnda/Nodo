@@ -932,11 +932,11 @@ BevelSOP::BevelSOP(const std::string& name) : SOPNode(name, "Bevel") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
     std::cerr << "BevelSOP: No input geometry\n";
-    return nullptr;
+    return {(std::string) "No input geometry"};
   }
   float bevel_width = get_parameter<float>("width", BevelSOP::DEFAULT_WIDTH);
   int segments = get_parameter<int>("segments", BevelSOP::DEFAULT_SEGMENTS);

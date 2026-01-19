@@ -22,19 +22,19 @@ BooleanSOP::BooleanSOP(const std::string& node_name) : SOPNode(node_name, "Boole
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> BooleanSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> BooleanSOP::execute() {
   // Get input geometries (using numeric port names)
   auto input_a = get_input_data(0); // Port "0"
   auto input_b = get_input_data(1); // Port "1"
 
   if (!input_a) {
     set_error("Missing input geometry A (port 0 not connected)");
-    return nullptr;
+    return {(std::string) "Missing input geometry A (port 0 not connected)"};
   }
 
   if (!input_b) {
     set_error("Missing input geometry B (port 1 not connected)");
-    return nullptr;
+    return {(std::string) "Missing input geometry B (port 1 not connected)"};
   }
 
   // Get operation type parameter
@@ -55,14 +55,14 @@ std::shared_ptr<core::GeometryContainer> BooleanSOP::execute() {
       break;
     default:
       set_error("Invalid operation type: " + std::to_string(operation));
-      return nullptr;
+      return {(std::string) "Invalid operation type: " + std::to_string(operation)};
   }
 
   // Check if operation succeeded
   if (!result.has_value()) {
     const auto& error = geometry::BooleanOps::last_error();
     set_error("Boolean operation failed: " + error.message);
-    return nullptr;
+    return {(std::string) "Boolean operation failed: " + error.message};
   }
 
   return std::make_shared<core::GeometryContainer>(std::move(*result));

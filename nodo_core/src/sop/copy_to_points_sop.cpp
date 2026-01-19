@@ -49,19 +49,19 @@ CopyToPointsSOP::CopyToPointsSOP(const std::string& node_name) : SOPNode(node_na
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> CopyToPointsSOP::execute() {
   // Get inputs (by index: 0 = points, 1 = template)
   auto points_input = get_input_data(0);
   auto template_input = get_input_data(1);
 
   if (!points_input) {
     set_error("Missing 'points' input (port 0)");
-    return nullptr;
+    return {(std::string) "Missing 'points' input (port 0)"};
   }
 
   if (!template_input) {
     set_error("Missing 'template' input (port 1)");
-    return nullptr;
+    return {(std::string) "Missing 'template' input (port 1)"};
   }
 
   // Get parameters
@@ -74,7 +74,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   auto* points_P = points_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (points_P == nullptr) {
     set_error("Points input has no position attribute");
-    return nullptr;
+    return {(std::string) "Points input has no position attribute"};
   }
 
   // Get optional point normals for rotation
@@ -84,7 +84,7 @@ std::shared_ptr<core::GeometryContainer> CopyToPointsSOP::execute() {
   auto* template_P = template_input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (template_P == nullptr) {
     set_error("Template input has no position attribute");
-    return nullptr;
+    return {(std::string) "Template input has no position attribute"};
   }
 
   const size_t num_points = points_input->topology().point_count();

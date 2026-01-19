@@ -90,7 +90,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const auto width = get_parameter<float>("width", DEFAULT_SIZE);
     const auto height = get_parameter<float>("height", DEFAULT_SIZE);
     const auto depth = get_parameter<float>("depth", DEFAULT_SIZE);
@@ -105,8 +105,7 @@ protected:
                                            static_cast<double>(depth), width_segments, height_segments, depth_segments);
 
       if (!result.has_value()) {
-        set_error("Box generation failed");
-        return nullptr;
+        return {"Box generation failed"};
       }
 
       auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
@@ -120,7 +119,7 @@ protected:
 
     } catch (const std::exception& exception) {
       set_error("Exception during box generation: " + std::string(exception.what()));
-      return nullptr;
+      return {(std::string) "Exception during box generation: " + exception.what()};
     }
   }
 };

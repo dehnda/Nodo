@@ -64,11 +64,11 @@ public:
   ~GroupPromoteSOP() override = default;
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
       set_error("GroupPromoteSOP requires input geometry");
-      return nullptr;
+      return {(std::string) "GroupPromoteSOP requires input geometry"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());
@@ -81,7 +81,7 @@ protected:
 
     if (group_name.empty()) {
       set_error("Group name cannot be empty");
-      return nullptr;
+      return {(std::string) "Group name cannot be empty"};
     }
 
     // // Check if source group exists
@@ -98,7 +98,7 @@ protected:
 
     if (src_attr == nullptr) {
       set_error("Source group '" + group_name + "' does not exist");
-      return nullptr;
+      return {(std::string) "Source group '" + group_name + "' does not exist"};
     }
 
     // Create destination group

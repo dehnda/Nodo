@@ -67,7 +67,7 @@ public:
   std::string get_description() const { return "Reduce mesh complexity while preserving shape"; }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   void initialize_parameters();

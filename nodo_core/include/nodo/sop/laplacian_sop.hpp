@@ -103,7 +103,7 @@ protected:
   /**
    * @brief Execute the smoothing operation (SOPNode override)
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   /// Apply uniform Laplacian smoothing

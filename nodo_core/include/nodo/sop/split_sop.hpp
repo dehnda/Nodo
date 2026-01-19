@@ -63,11 +63,10 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("Split requires input geometry");
-      return nullptr;
+      return {"Split requires input geometry"};
     }
 
     // Clone input

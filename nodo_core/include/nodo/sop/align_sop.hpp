@@ -55,11 +55,10 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("Align requires input geometry");
-      return nullptr;
+      return {"Align requires input geometry"};
     }
 
     // Clone input

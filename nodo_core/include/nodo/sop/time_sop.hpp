@@ -67,7 +67,7 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::NONE, 0, 0, 0); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const int frame = get_parameter<int>("frame", 1);
     const float fps = get_parameter<float>("fps", 24.0F);
     const int start_frame = get_parameter<int>("start_frame", 1);

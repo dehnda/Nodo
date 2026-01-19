@@ -42,7 +42,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdges) {
   extrude_node.set_parameter("distance", 1.0F);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute_for_test();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // Each edge should produce a quad (4 vertices)
@@ -88,7 +88,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeFacesStillWorks) {
   extrude_node.set_parameter("distance", 1.0F);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute_for_test();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // Should have more points than input (original + extruded)
@@ -120,7 +120,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithDistance) {
   extrude_node.set_parameter("distance", 2.0F);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute_for_test();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
@@ -177,7 +177,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesWithCustomDirection) {
 
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute_for_test();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   auto* result_positions = result->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
@@ -235,7 +235,7 @@ TEST(PolyExtrudeSOPTest, ExtrudeEdgesSharedMode) {
   extrude_node.set_parameter("individual_faces", 0); // Shared mode
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute_for_test();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // In shared mode: 4 original points + 4 extruded copies = 8 points
@@ -317,7 +317,7 @@ TEST(PolyExtrudeSOPTest, ExtrudePoints) {
   extrude_node.set_parameter("distance", 1.0F);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute_for_test();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // Each point creates a line segment: 3 points -> 6 points total (3 original +

@@ -212,11 +212,10 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("Color node requires input geometry");
-      return nullptr;
+      return {"Color node requires input geometry"};
     }
 
     // Clone input

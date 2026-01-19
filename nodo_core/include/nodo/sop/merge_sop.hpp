@@ -25,7 +25,7 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::MULTI_DYNAMIC, 1, -1, 1); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 };
 
 } // namespace nodo::sop

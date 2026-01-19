@@ -76,7 +76,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const auto major_radius = get_parameter<float>("major_radius", DEFAULT_MAJOR_RADIUS);
     const auto minor_radius = get_parameter<float>("minor_radius", DEFAULT_MINOR_RADIUS);
     const auto major_segments = get_parameter<int>("major_segments", DEFAULT_MAJOR_SEGMENTS);
@@ -88,8 +88,7 @@ protected:
           static_cast<double>(major_radius), static_cast<double>(minor_radius), major_segments, minor_segments);
 
       if (!result.has_value()) {
-        set_error("Torus generation failed");
-        return nullptr;
+        return {"Torus generation failed"};
       }
 
       auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
@@ -103,7 +102,7 @@ protected:
 
     } catch (const std::exception& exception) {
       set_error("Exception during torus generation: " + std::string(exception.what()));
-      return nullptr;
+      return {(std::string) "Exception during torus generation: " + std::string(exception.what())};
     }
   }
 };

@@ -63,7 +63,7 @@ LineSOP::LineSOP(const std::string& name) : SOPNode(name, "Line") {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> LineSOP::execute() {
   // Read parameters from parameter system
   const float start_x = get_parameter<float>("start_x", 0.0F);
   const float start_y = get_parameter<float>("start_y", 0.0F);
@@ -75,7 +75,7 @@ std::shared_ptr<core::GeometryContainer> LineSOP::execute() {
 
   if (segments < 1) {
     set_error("Segments must be at least 1");
-    return nullptr;
+    return {(std::string) "Segments must be at least 1"};
   }
 
   const int num_points = segments + 1;

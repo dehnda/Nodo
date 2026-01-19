@@ -69,12 +69,11 @@ public:
   InputConfig get_input_config() const override { return InputConfig(InputType::SINGLE, 1, 1, 0); }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input
     auto input_data = get_input_data(0);
     if (!input_data) {
-      fmt::print("ParameterizeSOP: No input geometry\n");
-      return nullptr;
+      return {"ParameterizeSOP: No input geometry"};
     }
 
     // Get parameters
@@ -102,7 +101,7 @@ protected:
 
     if (!result) {
       fmt::print("ParameterizeSOP: {}\n", error);
-      return nullptr;
+      return {(std::string) "ParameterizeSOP: " + error};
     }
 
     return std::make_shared<core::GeometryContainer>(std::move(*result));

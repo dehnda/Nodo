@@ -65,7 +65,7 @@ protected:
   /**
    * @brief Execute the bevel operation (SOPNode override)
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 };
 
 } // namespace nodo::sop

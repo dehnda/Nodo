@@ -91,7 +91,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     const auto width = get_parameter<float>("size_x", DEFAULT_SIZE);
     const auto height = get_parameter<float>("size_z", DEFAULT_SIZE);
     const auto columns = get_parameter<int>("columns", DEFAULT_RESOLUTION);
@@ -104,7 +104,7 @@ protected:
 
       if (!result.has_value()) {
         set_error("Grid generation failed");
-        return nullptr;
+        return {"Grid generation failed"};
       }
 
       auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
@@ -118,7 +118,7 @@ protected:
 
     } catch (const std::exception& exception) {
       set_error("Exception during grid generation: " + std::string(exception.what()));
-      return nullptr;
+      return {(std::string) "Exception during grid generation: " + exception.what()};
     }
   }
 };

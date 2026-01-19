@@ -30,7 +30,7 @@ public:
   /**
    * @brief Copy template geometry to all point locations
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 };
 
 } // namespace nodo::sop

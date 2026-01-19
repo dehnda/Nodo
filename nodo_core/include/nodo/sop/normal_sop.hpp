@@ -20,7 +20,7 @@ public:
 
   explicit NormalSOP(const std::string& name = "normal");
 
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
   void compute_vertex_normals(core::GeometryContainer& geo, int weighting, float cusp_angle, bool reverse) const;

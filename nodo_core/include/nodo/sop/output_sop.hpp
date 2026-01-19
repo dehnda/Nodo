@@ -50,12 +50,11 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Simply pass through the input unchanged
     auto input = get_input_data(0);
     if (!input) {
-      set_error("Output node requires input geometry");
-      return nullptr;
+      return {"Output node requires input geometry"};
     }
 
     // In the future, we could store metadata on the geometry container

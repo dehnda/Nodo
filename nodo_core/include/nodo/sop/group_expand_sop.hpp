@@ -55,11 +55,10 @@ public:
   ~GroupExpandSOP() override = default;
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("GroupExpandSOP requires input geometry");
-      return nullptr;
+      return {"GroupExpandSOP requires input geometry"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());
@@ -71,14 +70,14 @@ protected:
 
     if (group_name.empty()) {
       set_error("Group name cannot be empty");
-      return nullptr;
+      return {(std::string) "Group name cannot be empty"};
     }
 
     if (elem_class == 0) { // Point groups
       auto* group_attr = result->get_point_attribute_typed<int>(group_name);
       if (!group_attr) {
         set_error("Group '" + group_name + "' does not exist");
-        return nullptr;
+        return {(std::string) "Group '" + group_name + "' does not exist"};
       }
 
       for (int iter = 0; iter < iterations; ++iter) {
@@ -165,7 +164,7 @@ protected:
       auto* group_attr = result->get_primitive_attribute_typed<int>(group_name);
       if (!group_attr) {
         set_error("Group '" + group_name + "' does not exist");
-        return nullptr;
+        return {(std::string) "Group '" + group_name + "' does not exist"};
       }
 
       for (int iter = 0; iter < iterations; ++iter) {

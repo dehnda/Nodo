@@ -58,18 +58,18 @@ void DecimationSOP::initialize_parameters() {
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> DecimationSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> DecimationSOP::execute() {
   // Get input geometry
   auto input_container = get_input_data(0);
   if (!input_container) {
     set_error("No input geometry connected");
-    return nullptr;
+    return {(std::string) "No input geometry connected"};
   }
 
   // Check that input has triangular mesh
   if (!input_container->has_point_attribute("P")) {
     set_error("Input geometry has no position attribute");
-    return nullptr;
+    return {(std::string) "Input geometry has no position attribute"};
   }
 
   // Get parameters
@@ -96,7 +96,7 @@ std::shared_ptr<core::GeometryContainer> DecimationSOP::execute() {
 
   if (!result.has_value()) {
     set_error("Decimation failed: " + processing::Decimation::get_last_error());
-    return nullptr;
+    return {(std::string) "Decimation failed: " + processing::Decimation::get_last_error()};
   }
 
   // Return the decimated geometry

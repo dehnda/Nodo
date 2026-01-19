@@ -36,7 +36,7 @@ public:
    * @brief Execute the boolean operation
    * @return Result GeometryData or std::nullopt on failure
    */
-  std::shared_ptr<core::GeometryContainer> execute() override;
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
   /**
    * @brief Convert operation type to string

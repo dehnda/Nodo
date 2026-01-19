@@ -24,12 +24,11 @@ public:
   }
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Simply return the input unchanged
     auto input = get_input_data(0);
     if (!input) {
-      set_error("Null node requires input geometry");
-      return nullptr;
+      return {"Null node requires input geometry"};
     }
 
     // Return input directly (no copy needed)

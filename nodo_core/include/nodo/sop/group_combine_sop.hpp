@@ -62,11 +62,10 @@ public:
   ~GroupCombineSOP() override = default;
 
 protected:
-  std::shared_ptr<core::GeometryContainer> execute() override {
+  core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("GroupCombineSOP requires input geometry");
-      return nullptr;
+      return {"GroupCombineSOP requires input geometry"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());
@@ -79,7 +78,7 @@ protected:
 
     if (group_a_name.empty() || group_b_name.empty() || output_name.empty()) {
       set_error("Group names cannot be empty");
-      return nullptr;
+      return {"Group names cannot be empty"};
     }
 
     // Get source groups
@@ -93,7 +92,7 @@ protected:
 
       if (!attr_a || !attr_b) {
         set_error("One or both groups do not exist");
-        return nullptr;
+        return {(std::string) "One or both groups do not exist"};
       }
 
       group_a = &(*attr_a)[0];
@@ -133,7 +132,7 @@ protected:
 
       if (!attr_a || !attr_b) {
         set_error("One or both groups do not exist");
-        return nullptr;
+        return {(std::string) "One or both groups do not exist"};
       }
 
       group_a = &(*attr_a)[0];

@@ -70,12 +70,12 @@ NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string& name) : SOPNode(na
                          .build());
 }
 
-std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::execute() {
   // Get input geometry using COW handle
   auto handle = get_input_handle(0);
   if (!handle.is_valid()) {
     set_error("No input geometry connected");
-    return nullptr;
+    return {(std::string) "No input geometry connected"};
   }
 
   // Get writable access (triggers COW if shared)
@@ -93,7 +93,7 @@ std::shared_ptr<core::GeometryContainer> NoiseDisplacementSOP::execute() {
   auto* p_storage = output.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!p_storage) {
     set_error("Input geometry missing position attribute");
-    return nullptr;
+    return {(std::string) "Input geometry missing position attribute"};
   }
 
   auto p_span = p_storage->values_writable();
