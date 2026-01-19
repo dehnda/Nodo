@@ -4,6 +4,7 @@
 #include "nodo/core/types.hpp"
 
 #include <cmath>
+#include <memory>
 
 namespace attrs = nodo::core::standard_attrs;
 
@@ -133,15 +134,13 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ArraySOP::execute() {
   auto input_geo = get_input_data("0");
 
   if (!input_geo) {
-    set_error("No input geometry connected");
-    return {(std::string) "No input geometry connected"};
+    return {"No input geometry connected"};
   }
 
   const size_t point_count = input_geo->topology().point_count();
 
   if (point_count == 0) {
-    set_error("Input geometry is empty");
-    return {(std::string) "Input geometry is empty"};
+    return {"Input geometry is empty"};
   }
 
   // Read parameters
@@ -149,7 +148,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ArraySOP::execute() {
   const int count = get_parameter<int>("count", 3);
 
   // Execute the appropriate array operation
-  std::unique_ptr<core::GeometryContainer> result;
+  std::optional<core::Result<std::shared_ptr<core::GeometryContainer>>> result;
 
   switch (array_type) {
     case ArrayType::LINEAR:
@@ -165,26 +164,24 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ArraySOP::execute() {
       break;
     }
     default:
-      set_error("Unknown array type");
-      return {(std::string) "Unknown array type"};
+      return {"Unknown array type"};
   }
 
   // Check if operation succeeded
-  if (!result) {
-    set_error("Array operation failed");
-    return {(std::string) "Array operation failed"};
+  if (result->isError()) {
+    return {"Array operation failed"};
   }
 
-  return std::shared_ptr<core::GeometryContainer>(std::move(result));
+  return *result;
 }
 
-std::unique_ptr<core::GeometryContainer> ArraySOP::create_linear_array(const core::GeometryContainer& input_geo,
-                                                                       int count) {
+core::Result<std::shared_ptr<core::GeometryContainer>>
+ArraySOP::create_linear_array(const core::GeometryContainer& input_geo, int count) {
   // Get input positions
   auto* input_positions = input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!input_positions) {
-    return nullptr;
-  }
+    return {"Input geometry missing position attribute 'P'"};
+  };
 
   const size_t input_point_count = input_geo.topology().point_count();
   const size_t input_prim_count = input_geo.topology().primitive_count();
@@ -195,7 +192,7 @@ std::unique_ptr<core::GeometryContainer> ArraySOP::create_linear_array(const cor
                                       get_parameter<float>("linear_offset_z", 0.0F));
 
   // Create output container
-  auto result = std::make_unique<core::GeometryContainer>();
+  auto result = std::make_shared<core::GeometryContainer>();
   const size_t total_points = input_point_count * count;
   const size_t total_vertices = input_geo.topology().vertex_count() * count;
 
@@ -247,12 +244,12 @@ std::unique_ptr<core::GeometryContainer> ArraySOP::create_linear_array(const cor
   return result;
 }
 
-std::unique_ptr<core::GeometryContainer> ArraySOP::create_radial_array(const core::GeometryContainer& input_geo,
-                                                                       int count) {
+core::Result<std::shared_ptr<core::GeometryContainer>>
+ArraySOP::create_radial_array(const core::GeometryContainer& input_geo, int count) {
   // Get input positions
   auto* input_positions = input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (input_positions == nullptr) {
-    return nullptr;
+    return {"Input geometry missing position attribute 'P'"};
   }
 
   const size_t input_point_count = input_geo.topology().point_count();
@@ -266,7 +263,7 @@ std::unique_ptr<core::GeometryContainer> ArraySOP::create_radial_array(const cor
   const float angle_step = get_parameter<float>("angle_step", 60.0F);
 
   // Create output container
-  auto result = std::make_unique<core::GeometryContainer>();
+  auto result = std::shared_ptr<core::GeometryContainer>();
   const size_t total_points = input_point_count * count;
   const size_t total_vertices = input_geo.topology().vertex_count() * count;
 
@@ -332,12 +329,12 @@ std::unique_ptr<core::GeometryContainer> ArraySOP::create_radial_array(const cor
   return result;
 }
 
-std::unique_ptr<core::GeometryContainer> ArraySOP::create_grid_array(const core::GeometryContainer& input_geo,
-                                                                     int grid_width, int grid_height) {
+core::Result<std::shared_ptr<core::GeometryContainer>>
+ArraySOP::create_grid_array(const core::GeometryContainer& input_geo, int grid_width, int grid_height) {
   // Get input positions
   auto* input_positions = input_geo.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (input_positions == nullptr) {
-    return nullptr;
+    return {"Input geometry missing position attribute 'P'"};
   }
 
   const size_t input_point_count = input_geo.topology().point_count();
@@ -348,7 +345,7 @@ std::unique_ptr<core::GeometryContainer> ArraySOP::create_grid_array(const core:
   const float spacing_y = get_parameter<float>("grid_spacing_y", 1.0F);
 
   // Create output container
-  auto result = std::make_unique<core::GeometryContainer>();
+  auto result = std::shared_ptr<core::GeometryContainer>();
   const int total_copies = grid_width * grid_height;
   const size_t total_points = input_point_count * total_copies;
   const size_t total_vertices = input_geo.topology().vertex_count() * total_copies;
@@ -404,7 +401,7 @@ std::unique_ptr<core::GeometryContainer> ArraySOP::create_grid_array(const core:
     }
   }
 
-  return result;
+  return {std::move(result)};
 }
 
 } // namespace nodo::sop

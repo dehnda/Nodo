@@ -89,7 +89,7 @@ UVUnwrapSOP::UVUnwrapSOP(const std::string& name) : SOPNode(name, "UVUnwrap") {
 core::Result<std::shared_ptr<core::GeometryContainer>> UVUnwrapSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
-    return {(std::string) "UVUnwrapSOP requires input geometry"};
+    return {"UVUnwrapSOP requires input geometry"};
   }
 
   auto result = std::make_shared<core::GeometryContainer>(input->clone());

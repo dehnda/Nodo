@@ -33,10 +33,12 @@ public:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
 
 private:
-  std::unique_ptr<core::GeometryContainer> create_linear_array(const core::GeometryContainer& input_geo, int count);
-  std::unique_ptr<core::GeometryContainer> create_radial_array(const core::GeometryContainer& input_geo, int count);
-  std::unique_ptr<core::GeometryContainer> create_grid_array(const core::GeometryContainer& input_geo, int grid_width,
-                                                             int grid_height);
+  core::Result<std::shared_ptr<core::GeometryContainer>> create_linear_array(const core::GeometryContainer& input_geo,
+                                                                             int count);
+  core::Result<std::shared_ptr<core::GeometryContainer>> create_radial_array(const core::GeometryContainer& input_geo,
+                                                                             int count);
+  core::Result<std::shared_ptr<core::GeometryContainer>> create_grid_array(const core::GeometryContainer& input_geo,
+                                                                           int grid_width, int grid_height);
 };
 
 } // namespace nodo::sop

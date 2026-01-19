@@ -101,8 +101,7 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during torus generation: " + std::string(exception.what()));
-      return {(std::string) "Exception during torus generation: " + std::string(exception.what())};
+      return {"Exception during torus generation: " + std::string(exception.what())};
     }
   }
 };

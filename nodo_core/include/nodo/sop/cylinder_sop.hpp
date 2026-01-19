@@ -125,8 +125,7 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during cylinder generation: " + std::string(exception.what()));
-      return {(std::string) "Exception during cylinder generation: " + exception.what()};
+      return {"Exception during cylinder generation: " + std::string(exception.what())};
     }
   }
 };

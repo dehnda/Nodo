@@ -86,13 +86,11 @@ core::Result<std::shared_ptr<core::GeometryContainer>> MirrorSOP::execute() {
   // Get input geometry
   auto input_geo = get_input_data(0);
   if (!input_geo) {
-    set_error("No input geometry connected");
-    return {(std::string) "No input geometry connected"};
+    return {"No input geometry connected"};
   }
 
   if (input_geo->topology().point_count() == 0) {
-    set_error("Input geometry is empty");
-    return {(std::string) "Input geometry is empty"};
+    return {"Input geometry is empty"};
   }
 
   // Determine mirror plane
@@ -121,8 +119,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> MirrorSOP::execute() {
   // Get input positions and topology
   auto* input_positions = input_geo->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!input_positions) {
-    set_error("Input geometry missing position attribute");
-    return {(std::string) "Input geometry missing position attribute"};
+    return {"Input geometry missing position attribute"};
   }
 
   const auto& input_topology = input_geo->topology();

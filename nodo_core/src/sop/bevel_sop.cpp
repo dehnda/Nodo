@@ -936,7 +936,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
     std::cerr << "BevelSOP: No input geometry\n";
-    return {(std::string) "No input geometry"};
+    return {"No input geometry"};
   }
   float bevel_width = get_parameter<float>("width", BevelSOP::DEFAULT_WIDTH);
   int segments = get_parameter<int>("segments", BevelSOP::DEFAULT_SEGMENTS);
@@ -966,8 +966,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
       CornerReuseMap reuse;
       auto after_edges = bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap, &reuse);
       if (!after_edges) {
-        result = nullptr;
-        break;
+        return {"Edge bevel failed during EdgeVertex operation"};
       }
       // For stitching, prefer RingStart so outer ring can reuse edge endpoints.
       auto effective_corner_style = (corner_style == CornerStyle::ApexFan) ? CornerStyle::RingStart : corner_style;
@@ -980,6 +979,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
   }
   if (result) {
     std::cout << "Result: " << result->point_count() << " pts, " << result->primitive_count() << " prims\n";
+  } else {
+    return {"Bevel operation failed"};
   }
   std::cout << "================================\n";
   return result;

@@ -74,9 +74,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> LineSOP::execute() {
   const int segments = get_parameter<int>("segments", 10);
 
   if (segments < 1) {
-    set_error("Segments must be at least 1");
-    return {(std::string) "Segments must be at least 1"};
-  }
+    return {"Segments must be at least 1"};
+  };
 
   const int num_points = segments + 1;
 

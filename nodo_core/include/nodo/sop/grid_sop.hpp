@@ -103,7 +103,6 @@ protected:
           geometry::PlaneGenerator::generate(static_cast<double>(width), static_cast<double>(height), columns, rows);
 
       if (!result.has_value()) {
-        set_error("Grid generation failed");
         return {"Grid generation failed"};
       }
 
@@ -117,7 +116,6 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during grid generation: " + std::string(exception.what()));
       return {(std::string) "Exception during grid generation: " + exception.what()};
     }
   }

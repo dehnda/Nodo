@@ -77,7 +77,6 @@ protected:
     int elem_class = get_parameter<int>("element_class", 0);
 
     if (group_a_name.empty() || group_b_name.empty() || output_name.empty()) {
-      set_error("Group names cannot be empty");
       return {"Group names cannot be empty"};
     }
 
@@ -91,8 +90,7 @@ protected:
       auto* attr_b = result->get_point_attribute_typed<int>(group_b_name);
 
       if (!attr_a || !attr_b) {
-        set_error("One or both groups do not exist");
-        return {(std::string) "One or both groups do not exist"};
+        return {"One or both groups do not exist"};
       }
 
       group_a = &(*attr_a)[0];
@@ -131,8 +129,7 @@ protected:
       auto* attr_b = result->get_primitive_attribute_typed<int>(group_b_name);
 
       if (!attr_a || !attr_b) {
-        set_error("One or both groups do not exist");
-        return {(std::string) "One or both groups do not exist"};
+        return {"One or both groups do not exist"};
       }
 
       group_a = &(*attr_a)[0];

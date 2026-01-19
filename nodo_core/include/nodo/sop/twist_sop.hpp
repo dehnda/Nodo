@@ -61,8 +61,7 @@ protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input_geo = get_input_data(0);
     if (!input_geo) {
-      set_error("TwistSOP requires input geometry");
-      return {(std::string) "TwistSOP requires input geometry"};
+      return {"TwistSOP requires input geometry"};
     }
 
     // Get parameters
@@ -89,8 +88,7 @@ protected:
     // Get positions
     auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
-      set_error("TwistSOP requires position attribute 'P'");
-      return {(std::string) "TwistSOP requires position attribute 'P'"};
+      return {"TwistSOP requires position attribute 'P'"};
     }
 
     // Determine which axes to rotate

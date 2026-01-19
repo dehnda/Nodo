@@ -83,9 +83,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> MergeSOP::execute() {
 
   if (result_positions == nullptr) {
     std::cerr << "  ERROR: Failed to create position attribute\n";
-    set_error("Failed to create position attribute in result");
-    return {(std::string) "Failed to create position attribute in result"};
-  }
+    return {"Failed to create position attribute in result"};
+  };
 
   std::cerr << "  Got position attribute pointer\n";
 
@@ -144,8 +143,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> MergeSOP::execute() {
         result->add_primitive(result_prim_verts);
       } catch (const std::exception& e) {
         std::cerr << "      ERROR adding primitive " << prim_idx << ": " << e.what() << "\n";
-        set_error(std::string("Failed to add primitive: ") + e.what());
-        return {(std::string) "Failed to add primitive"};
+        return {"Failed to add primitive"};
       }
     }
 

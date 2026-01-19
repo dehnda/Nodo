@@ -10,8 +10,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> GeodesicSOP::execute() {
   // Get input
   auto input_data = get_input_data(0);
   if (!input_data) {
-    fmt::print("GeodesicSOP: No input geometry\n");
-    return {(std::string) "No input geometry"};
+    return {"GeodesicSOP: No input geometry"};
   }
 
   // Get parameters
@@ -47,8 +46,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> GeodesicSOP::execute() {
   auto result = processing::Geodesic::compute(*input_data, params, &error);
 
   if (!result) {
-    fmt::print("GeodesicSOP: Failed to compute geodesic distances: {}\n", error);
-    return {(std::string) "Failed to compute geodesic distances: " + error};
+    return {"Failed to compute geodesic distances: " + error};
   }
 
   return std::make_shared<core::GeometryContainer>(std::move(*result));

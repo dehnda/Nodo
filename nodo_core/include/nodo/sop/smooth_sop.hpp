@@ -81,8 +81,7 @@ protected:
     auto input = get_input_data(0);
 
     if (!input) {
-      set_error("No input geometry");
-      return {(std::string) "No input geometry"};
+      return {"No input geometry"};
     }
 
     // Get parameters
@@ -98,7 +97,6 @@ protected:
     auto result = processing::Smoothing::smooth(*input, params, &error);
 
     if (!result) {
-      set_error(error);
       return {(std::string)error};
     }
 

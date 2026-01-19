@@ -51,10 +51,7 @@ protected:
 
     // Check if index is valid
     if (index < 0 || index >= static_cast<int>(inputs.size())) {
-      set_error("Switch index " + std::to_string(index) + " out of range [0, " + std::to_string(inputs.size() - 1) +
-                "]");
-      return {(std::string) "Switch index " + std::to_string(index) + " out of range [0, " +
-              std::to_string(inputs.size() - 1) + "]"};
+      return {"Switch index " + std::to_string(index) + " out of range [0, " + std::to_string(inputs.size() - 1) + "]"};
     }
 
     // Return the selected input

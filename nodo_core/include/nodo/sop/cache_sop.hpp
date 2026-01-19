@@ -72,9 +72,8 @@ protected:
     // Otherwise, cook upstream and cache the result
     auto input = get_input_data(0);
     if (!input) {
-      set_error("Cache node requires input geometry");
       cached_geometry_.reset();
-      return {(std::string) "Cache node requires input geometry"};
+      return {"Cache node requires input geometry"};
     }
 
     // Cache the result if caching is enabled

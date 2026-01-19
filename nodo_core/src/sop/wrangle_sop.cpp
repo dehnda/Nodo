@@ -54,7 +54,7 @@ WrangleSOP::~WrangleSOP() = default;
 core::Result<std::shared_ptr<core::GeometryContainer>> WrangleSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
-    return {(std::string) "WrangleSOP requires input geometry"};
+    return {"WrangleSOP requires input geometry"};
   }
 
   // Get parameters

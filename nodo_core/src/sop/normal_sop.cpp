@@ -53,7 +53,7 @@ NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
 core::Result<std::shared_ptr<core::GeometryContainer>> NormalSOP::execute() {
   auto handle = get_input_handle(0);
   if (!handle.is_valid()) {
-    return {(std::string) "NormalSOP requires input geometry"};
+    return {"NormalSOP requires input geometry"};
   }
 
   auto& result = handle.write();

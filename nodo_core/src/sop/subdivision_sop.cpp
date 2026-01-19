@@ -29,8 +29,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> SubdivisionSOP::execute()
   auto input = get_input_data(0);
 
   if (!input) {
-    set_error("No input geometry");
-    return {(std::string) "No input geometry"};
+    return {"No input geometry"};
   }
 
   // Get parameters
@@ -58,7 +57,6 @@ core::Result<std::shared_ptr<core::GeometryContainer>> SubdivisionSOP::execute()
   auto result = processing::Subdivision::subdivide(*input, params, &error);
 
   if (!result) {
-    set_error(error);
     return {(std::string)error};
   }
 

@@ -28,13 +28,11 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BooleanSOP::execute() {
   auto input_b = get_input_data(1); // Port "1"
 
   if (!input_a) {
-    set_error("Missing input geometry A (port 0 not connected)");
-    return {(std::string) "Missing input geometry A (port 0 not connected)"};
+    return {"Missing input geometry A (port 0 not connected)"};
   }
 
   if (!input_b) {
-    set_error("Missing input geometry B (port 1 not connected)");
-    return {(std::string) "Missing input geometry B (port 1 not connected)"};
+    return {"Missing input geometry B (port 1 not connected)"};
   }
 
   // Get operation type parameter
@@ -54,15 +52,13 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BooleanSOP::execute() {
       result = geometry::BooleanOps::difference_geometries(*input_a, *input_b);
       break;
     default:
-      set_error("Invalid operation type: " + std::to_string(operation));
-      return {(std::string) "Invalid operation type: " + std::to_string(operation)};
+      return {"Invalid operation type: " + std::to_string(operation)};
   }
 
   // Check if operation succeeded
   if (!result.has_value()) {
     const auto& error = geometry::BooleanOps::last_error();
-    set_error("Boolean operation failed: " + error.message);
-    return {(std::string) "Boolean operation failed: " + error.message};
+    return {"Boolean operation failed: " + error.message};
   }
 
   return std::make_shared<core::GeometryContainer>(std::move(*result));

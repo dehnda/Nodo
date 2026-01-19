@@ -74,8 +74,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::exe
   // Get input geometry using COW handle
   auto handle = get_input_handle(0);
   if (!handle.is_valid()) {
-    set_error("No input geometry connected");
-    return {(std::string) "No input geometry connected"};
+    return {"No input geometry connected"};
   }
 
   // Get writable access (triggers COW if shared)
@@ -92,8 +91,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::exe
   // Apply noise displacement to P attribute
   auto* p_storage = output.get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!p_storage) {
-    set_error("Input geometry missing position attribute");
-    return {(std::string) "Input geometry missing position attribute"};
+    return {"Input geometry missing position attribute"};
   }
 
   auto p_span = p_storage->values_writable();

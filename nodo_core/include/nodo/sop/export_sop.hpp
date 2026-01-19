@@ -59,8 +59,7 @@ protected:
     // Get input geometry
     auto input = get_input_data(0);
     if (!input) {
-      set_error("No input geometry to export");
-      return {(std::string) "No input geometry to export"};
+      return {"No input geometry to export"};
     }
 
     const std::string file_path = get_parameter<std::string>("file_path", "");

@@ -69,15 +69,13 @@ protected:
     int iterations = get_parameter<int>("iterations", 1);
 
     if (group_name.empty()) {
-      set_error("Group name cannot be empty");
-      return {(std::string) "Group name cannot be empty"};
+      return {"Group name cannot be empty"};
     }
 
     if (elem_class == 0) { // Point groups
       auto* group_attr = result->get_point_attribute_typed<int>(group_name);
       if (!group_attr) {
-        set_error("Group '" + group_name + "' does not exist");
-        return {(std::string) "Group '" + group_name + "' does not exist"};
+        return {"Group '" + group_name + "' does not exist"};
       }
 
       for (int iter = 0; iter < iterations; ++iter) {
@@ -163,8 +161,7 @@ protected:
     } else { // Primitive groups
       auto* group_attr = result->get_primitive_attribute_typed<int>(group_name);
       if (!group_attr) {
-        set_error("Group '" + group_name + "' does not exist");
-        return {(std::string) "Group '" + group_name + "' does not exist"};
+        return {"Group '" + group_name + "' does not exist"};
       }
 
       for (int iter = 0; iter < iterations; ++iter) {

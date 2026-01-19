@@ -59,8 +59,7 @@ ExtrudeSOP::ExtrudeSOP(const std::string& name) : SOPNode(name, "Extrude") {
 core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
   auto input = get_input_data(0);
   if (input == nullptr) {
-    set_error("No input geometry");
-    return {(std::string) "No input geometry"};
+    return {"No input geometry"};
   }
 
   // Get parameters
@@ -74,8 +73,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
   // Get input positions
   const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
-    set_error("Input geometry has no position attribute");
-    return {(std::string) "Input geometry has no position attribute"};
+    return {"Input geometry has no position attribute"};
   }
 
   const auto& input_topology = input->topology();
@@ -83,8 +81,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
   const size_t input_prim_count = input_topology.primitive_count();
 
   if (input_prim_count == 0) {
-    set_error("Input geometry has no primitives to extrude");
-    return {(std::string) "Input geometry has no primitives to extrude"};
+    return {"Input geometry has no primitives to extrude"};
   }
 
   // Create result container
@@ -168,8 +165,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
   auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
-    set_error("Failed to create position attribute in result");
-    return {(std::string) "Failed to create position attribute in result"};
+    return {"Failed to create position attribute in result"};
   }
 
   // Copy original points first

@@ -73,7 +73,7 @@ protected:
     auto input_data = get_input_data(0);
     if (!input_data) {
       fmt::print("CurvatureSOP: No input geometry\n");
-      return {(std::string) "No input geometry"};
+      return {"No input geometry"};
     }
 
     // Get parameters
@@ -115,7 +115,7 @@ protected:
       return std::make_shared<core::GeometryContainer>(std::move(*result));
     } else {
       fmt::print("CurvatureSOP: Curvature computation failed\n");
-      return {(std::string) "Curvature computation failed"};
+      return {"Curvature computation failed"};
     }
   }
 };

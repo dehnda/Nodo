@@ -68,14 +68,12 @@ protected:
 
     // Check if file path is provided
     if (file_path.empty()) {
-      set_error("No file path specified");
-      return {(std::string) "No file path specified"};
+      return {"No file path specified"};
     }
 
     // Check if file exists
     if (!std::filesystem::exists(file_path)) {
-      set_error("File does not exist: " + file_path);
-      return {(std::string) "File does not exist: " + file_path};
+      return {"File does not exist: " + file_path};
     }
 
     // Determine file format by extension
@@ -91,17 +89,13 @@ protected:
       if (extension == ".obj") {
         auto imported = io::ObjImporter::import(file_path);
         if (!imported) {
-          set_error("Failed to import OBJ file: " + file_path);
-          return {(std::string) "Failed to import OBJ file: " + file_path};
+          return {"Failed to import OBJ file: " + file_path};
         }
         return std::make_shared<core::GeometryContainer>(std::move(*imported));
       } else {
-        set_error("Unsupported file format: " + extension + " (Supported: .obj)");
-        return {(std::string) "Unsupported file format: " + extension + " (Supported: .obj)"};
+        return {"Unsupported file format: " + extension + " (Supported: .obj)"};
       }
-
     } catch (const std::exception& e) {
-      set_error(std::string("File import error: ") + e.what());
       return {(std::string) "File import error: " + e.what()};
     }
   }

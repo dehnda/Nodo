@@ -43,8 +43,7 @@ protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("GroupDeleteSOP requires input geometry");
-      return {(std::string) "GroupDeleteSOP requires input geometry"};
+      return {"GroupDeleteSOP requires input geometry"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());

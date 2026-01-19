@@ -10,8 +10,7 @@ namespace nodo::sop {
 core::Result<std::shared_ptr<core::GeometryContainer>> BlastSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
-    set_error("BlastSOP requires input geometry");
-    return {(std::string) "BlastSOP requires input geometry"};
+    return {"BlastSOP requires input geometry"};
   }
 
   std::cerr << "\n=== BlastSOP::execute() ===\n";
@@ -67,8 +66,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BlastSOP::execute() {
   if (!negate) {
     auto result_opt = input->delete_elements(group_name, element_class, true);
     if (!result_opt.has_value()) {
-      set_error("Failed to delete elements from group");
-      return std::make_shared<core::GeometryContainer>(input->clone());
+      return {"Failed to delete elements from group"};
     }
     return std::make_shared<core::GeometryContainer>(std::move(result_opt.value()));
   }
@@ -113,8 +111,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BlastSOP::execute() {
   auto result_opt = result->delete_elements(temp_group, element_class, true);
   if (!result_opt.has_value()) {
     std::cerr << "ERROR: delete_elements failed!\n";
-    set_error("Failed to delete inverted elements");
-    return std::make_shared<core::GeometryContainer>(input->clone());
+    return {"Failed to delete inverted elements"};
   }
 
   std::cerr << "Result after deletion: " << result_opt->point_count() << " points, " << result_opt->primitive_count()

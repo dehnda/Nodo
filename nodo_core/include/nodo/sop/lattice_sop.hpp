@@ -86,8 +86,7 @@ protected:
     // Get positions
     auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
-      set_error("LatticeSOP requires position attribute 'P'");
-      return {(std::string) "LatticeSOP requires position attribute 'P'"};
+      return {"LatticeSOP requires position attribute 'P'"};
     }
 
     // Calculate bounding box if auto bounds

@@ -98,8 +98,7 @@ protected:
     // Get position attribute
     auto* positions = result->get_point_attribute_typed<core::Vec3f>("P");
     if (positions == nullptr) {
-      set_error("BendSOP requires position attribute 'P'");
-      return {(std::string) "BendSOP requires position attribute 'P'"};
+      return {"BendSOP requires position attribute 'P'"};
     }
 
     // Determine axis indices

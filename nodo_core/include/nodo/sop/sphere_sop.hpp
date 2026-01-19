@@ -84,8 +84,7 @@ protected:
       auto result = geometry::SphereGenerator::generate_uv_sphere(static_cast<double>(radius), segments, rings);
 
       if (!result.has_value()) {
-        set_error("Sphere generation failed");
-        return {(std::string) "Sphere generation failed"};
+        return {"Sphere generation failed"};
       }
 
       auto container = std::make_shared<core::GeometryContainer>(std::move(result.value()));
@@ -96,9 +95,7 @@ protected:
       }
 
       return container;
-
     } catch (const std::exception& exception) {
-      set_error("Exception during sphere generation: " + std::string(exception.what()));
       return {(std::string) "Exception during sphere generation: " + std::string(exception.what())};
     }
   }

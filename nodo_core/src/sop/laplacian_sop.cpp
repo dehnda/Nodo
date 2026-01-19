@@ -146,7 +146,7 @@ LaplacianSOP::LaplacianSOP(const std::string& name) : SOPNode(name, "Laplacian")
 core::Result<std::shared_ptr<core::GeometryContainer>> LaplacianSOP::execute() {
   auto handle = get_input_handle(0);
   if (!handle.is_valid()) {
-    return {(std::string) "No input geometry"};
+    return {"No input geometry"};
   }
 
   auto& output = handle.write();

@@ -118,7 +118,6 @@ protected:
       return container;
 
     } catch (const std::exception& exception) {
-      set_error("Exception during box generation: " + std::string(exception.what()));
       return {(std::string) "Exception during box generation: " + exception.what()};
     }
   }

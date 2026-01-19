@@ -73,8 +73,7 @@ protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     auto input = get_input_data(0);
     if (!input) {
-      set_error("SortSOP requires input geometry");
-      return {(std::string) "SortSOP requires input geometry"};
+      return {"SortSOP requires input geometry"};
     }
 
     // TODO: Implement full sorting with proper attribute handling

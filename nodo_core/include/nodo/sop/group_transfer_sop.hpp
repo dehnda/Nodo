@@ -63,13 +63,11 @@ protected:
     auto source = get_input_data(1);
 
     if (!input) {
-      set_error("GroupTransferSOP requires input geometry on port 0");
-      return {(std::string) "GroupTransferSOP requires input geometry on port 0"};
+      return {"GroupTransferSOP requires input geometry on port 0"};
     }
 
     if (!source) {
-      set_error("GroupTransferSOP requires source geometry on port 1");
-      return {(std::string) "GroupTransferSOP requires source geometry on port 1"};
+      return {"GroupTransferSOP requires source geometry on port 1"};
     }
 
     auto result = std::make_shared<core::GeometryContainer>(input->clone());

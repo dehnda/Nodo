@@ -1,6 +1,7 @@
 #include "nodo/processing/decimation.hpp"
 
 #include "nodo/core/math.hpp"
+#include "nodo/core/result.hpp"
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
 #include "nodo/processing/processing_common.hpp"
@@ -14,24 +15,19 @@ namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::processing {
 
-std::string Decimation::last_error_;
-
-std::optional<core::GeometryContainer> Decimation::decimate(const core::GeometryContainer& input,
-                                                            const DecimationParams& params) {
+core::Result<std::shared_ptr<core::GeometryContainer>> Decimation::decimate(const core::GeometryContainer& input,
+                                                                            const DecimationParams& params) {
   // Basic validation
   if (input.topology().point_count() < 4) {
-    set_error("Input mesh must have at least 4 vertices for decimation");
-    return std::nullopt;
+    return {"Input mesh must have at least 4 vertices for decimation"};
   }
 
   if (input.topology().primitive_count() < 1) {
-    set_error("Input mesh must have at least 1 primitive");
-    return std::nullopt;
+    return {"Input mesh must have at least 1 primitive"};
   }
 
   if (!input.has_point_attribute(attrs::P)) {
-    set_error("Input mesh missing position attribute 'P'");
-    return std::nullopt;
+    return {"Input mesh missing position attribute 'P'"};
   }
 
   try {
@@ -61,23 +57,11 @@ std::optional<core::GeometryContainer> Decimation::decimate(const core::Geometry
     // Convert back to Nodo format
     auto result = detail::PMPConverter::from_pmp(pmp_mesh, true);
 
-    // Clear any previous error
-    last_error_.clear();
-
-    return result;
+    return std::make_shared<core::GeometryContainer>(std::move(result));
 
   } catch (const std::exception& e) {
-    set_error(std::string("Decimation failed: ") + e.what());
-    return std::nullopt;
+    return {std::string("Decimation failed: ") + e.what()};
   }
-}
-
-const std::string& Decimation::get_last_error() {
-  return last_error_;
-}
-
-void Decimation::set_error(std::string error) {
-  last_error_ = std::move(error);
 }
 
 } // namespace nodo::processing

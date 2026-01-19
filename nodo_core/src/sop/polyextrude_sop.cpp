@@ -73,8 +73,7 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name) : SOPNode(name, "PolyExt
 core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::execute() {
   auto input = get_input_data(0);
   if (input == nullptr) {
-    set_error("No input geometry");
-    return {(std::string) "No input geometry"};
+    return {"No input geometry"};
   }
 
   // Get extrusion type
@@ -90,15 +89,13 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::execute()
     return extrude_points();
   }
 
-  set_error("Invalid extrusion type");
-  return {(std::string) "Invalid extrusion type"};
+  return {"Invalid extrusion type"};
 }
 
-std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
+core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_faces() {
   auto input = get_input_data(0);
   if (input == nullptr) {
-    set_error("No input geometry");
-    return nullptr;
+    return {"No input geometry"};
   }
 
   // Get parameters
@@ -109,16 +106,14 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   // Get input positions
   const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
-    set_error("Input geometry has no position attribute");
-    return nullptr;
+    return {"Input geometry has no position attribute"};
   }
 
   const auto& input_topology = input->topology();
   const size_t input_prim_count = input_topology.primitive_count();
 
   if (input_prim_count == 0) {
-    set_error("Input geometry has no primitives to extrude");
-    return nullptr;
+    return {"Input geometry has no primitives to extrude"};
   }
 
   // Create result container
@@ -173,8 +168,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
-    set_error("Failed to create position attribute in result");
-    return nullptr;
+    return {"Failed to create position attribute in result"};
   }
 
   size_t next_point_idx = 0;
@@ -329,11 +323,10 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_faces() {
   return result;
 }
 
-std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
+core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_edges() {
   auto input = get_input_data(0);
   if (input == nullptr) {
-    set_error("No input geometry");
-    return nullptr;
+    return {"No input geometry"};
   }
 
   // Get parameters
@@ -355,16 +348,14 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   // Get input positions
   const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
-    set_error("Input geometry has no position attribute");
-    return nullptr;
+    return {"Input geometry has no position attribute"};
   }
 
   const auto& input_topology = input->topology();
   const size_t input_prim_count = input_topology.primitive_count();
 
   if (input_prim_count == 0) {
-    set_error("Input geometry has no primitives to extrude");
-    return nullptr;
+    return {"Input geometry has no primitives to extrude"};
   }
 
   // Create result container
@@ -380,8 +371,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   }
 
   if (edge_count == 0) {
-    set_error("No edge primitives (2 vertices) found in input geometry");
-    return nullptr;
+    return {"No edge primitives (2 vertices) found in input geometry"};
   }
 
   // Calculate total points and vertices needed
@@ -406,8 +396,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
-    set_error("Failed to create position attribute in result");
-    return nullptr;
+    return {"Failed to create position attribute in result"};
   }
 
   size_t next_point_idx = 0;
@@ -593,11 +582,10 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_edges() {
   return result;
 }
 
-std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
+core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_points() {
   auto input = get_input_data(0);
   if (input == nullptr) {
-    set_error("No input geometry");
-    return nullptr;
+    return {"No input geometry"};
   }
 
   // Get parameters
@@ -618,16 +606,14 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   // Get input positions
   const auto* input_positions = input->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (input_positions == nullptr) {
-    set_error("Input geometry has no position attribute");
-    return nullptr;
+    return {"Input geometry has no position attribute"};
   }
 
   const auto& input_topology = input->topology();
   const size_t input_point_count = input_topology.point_count();
 
   if (input_point_count == 0) {
-    set_error("Input geometry has no points to extrude");
-    return nullptr;
+    return {"Input geometry has no points to extrude"};
   }
 
   // Create result container
@@ -647,8 +633,7 @@ std::shared_ptr<core::GeometryContainer> PolyExtrudeSOP::extrude_points() {
   auto* result_positions = result->get_point_attribute_typed<core::Vec3f>(attrs::P);
 
   if (result_positions == nullptr) {
-    set_error("Failed to create position attribute in result");
-    return nullptr;
+    return {"Failed to create position attribute in result"};
   }
 
   size_t vertex_offset = 0;

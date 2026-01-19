@@ -748,11 +748,10 @@ static std::shared_ptr<core::GeometryContainer> bevel_faces(const core::Geometry
 // ============================================================================
 // Main Execute Function
 // ============================================================================
-std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
+core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
   auto input = get_input_data(0);
   if (!input) {
-    set_error("No input geometry");
-    return nullptr;
+    return {"No input geometry"};
   }
 
   const float bevel_width = get_parameter<float>("width");
@@ -785,8 +784,7 @@ std::shared_ptr<core::GeometryContainer> BevelSOP::execute() {
       break;
 
     default:
-      set_error("Invalid bevel mode");
-      return nullptr;
+      return {"Invalid bevel mode"};
   }
 
   if (!result) {

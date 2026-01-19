@@ -101,7 +101,7 @@ protected:
 
     if (!result) {
       fmt::print("ParameterizeSOP: {}\n", error);
-      return {(std::string) "ParameterizeSOP: " + error};
+      return {"ParameterizeSOP: " + error};
     }
 
     return std::make_shared<core::GeometryContainer>(std::move(*result));

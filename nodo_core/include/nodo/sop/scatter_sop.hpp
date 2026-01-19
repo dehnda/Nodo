@@ -42,12 +42,12 @@ public:
     // Get input geometry from port 0 (execution engine uses numeric indices)
     auto input_data = get_input_data(0);
     if (input_data == nullptr) {
-      return {(std::string) "No input geometry"};
+      return {"No input geometry"};
     }
 
     auto* input_geo = input_data->get_point_attribute_typed<core::Vec3f>("P");
     if (input_geo == nullptr || input_geo->size() == 0) {
-      return {(std::string) "Input geometry has no position attribute"};
+      return {"Input geometry has no position attribute"};
     }
 
     // Get parameters

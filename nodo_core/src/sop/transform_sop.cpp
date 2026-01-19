@@ -40,8 +40,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> TransformSOP::execute() {
   // Get input geometry using COW handle (zero-copy for reads)
   auto handle = get_input_handle(0);
   if (!handle.is_valid()) {
-    set_error("No input geometry connected");
-    return {(std::string) "No input geometry connected"};
+    return {"No input geometry connected"};
   }
 
   // Get writable access - triggers COW only if shared
@@ -49,14 +48,12 @@ core::Result<std::shared_ptr<core::GeometryContainer>> TransformSOP::execute() {
 
   // Get point attribute for positions
   if (!output_container.has_point_attribute("P")) {
-    set_error("Input geometry has no position attribute");
-    return {(std::string) "Input geometry has no position attribute"};
+    return {"Input geometry has no position attribute"};
   }
 
   auto* p_attr = output_container.get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!p_attr) {
-    set_error("Position attribute has wrong type");
-    return {(std::string) "Position attribute has wrong type"};
+    return {"Position attribute has wrong type"};
   }
 
   // Read transform parameters (as Vector3)
