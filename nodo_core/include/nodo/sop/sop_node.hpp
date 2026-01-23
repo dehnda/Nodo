@@ -819,7 +819,7 @@ protected:
 
     std::string group_name = get_group_name();
 
-    // No filter - return original geometry
+    // No filter - return input directly (nodes must handle COW via handle.write())
     if (group_name.empty()) {
       return input;
     }

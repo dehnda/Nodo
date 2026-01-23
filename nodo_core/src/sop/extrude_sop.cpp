@@ -57,11 +57,13 @@ ExtrudeSOP::ExtrudeSOP(const std::string& name) : SOPNode(name, "Extrude") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
+  // Check input exists
   auto filter_input = apply_group_filter(0, core::ElementClass::PRIMITIVE, false);
   if (!filter_input.is_success()) {
     return {"No input geometry"};
   }
 
+  // Get input (will be original or filtered by group)
   const auto& input = filter_input.get_value();
 
   // Get parameters

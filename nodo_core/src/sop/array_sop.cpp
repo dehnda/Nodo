@@ -263,7 +263,7 @@ ArraySOP::create_radial_array(const core::GeometryContainer& input_geo, int coun
   const float angle_step = get_parameter<float>("angle_step", 60.0F);
 
   // Create output container
-  auto result = std::shared_ptr<core::GeometryContainer>();
+  auto result = std::make_shared<core::GeometryContainer>();
   const size_t total_points = input_point_count * count;
   const size_t total_vertices = input_geo.topology().vertex_count() * count;
 
@@ -345,7 +345,7 @@ ArraySOP::create_grid_array(const core::GeometryContainer& input_geo, int grid_w
   const float spacing_y = get_parameter<float>("grid_spacing_y", 1.0F);
 
   // Create output container
-  auto result = std::shared_ptr<core::GeometryContainer>();
+  auto result = std::make_shared<core::GeometryContainer>();
   const int total_copies = grid_width * grid_height;
   const size_t total_points = input_point_count * total_copies;
   const size_t total_vertices = input_geo.topology().vertex_count() * total_copies;

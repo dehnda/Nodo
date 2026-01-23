@@ -10,6 +10,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   // Create a simple quad as input
   auto input = std::make_shared<nodo::core::GeometryContainer>();
   input->set_point_count(4);
+  input->set_vertex_count(4); // Set vertex count before using vertices
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
   auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
@@ -53,6 +54,7 @@ TEST(ExtrudeSOPTest, ExtrudeWithInset) {
   // Create a simple triangle
   auto input = std::make_shared<nodo::core::GeometryContainer>();
   input->set_point_count(3);
+  input->set_vertex_count(3);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
   auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);
@@ -89,6 +91,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
   // Create a simple quad
   auto input = std::make_shared<nodo::core::GeometryContainer>();
   input->set_point_count(4);
+  input->set_vertex_count(4);
   input->add_point_attribute(attrs::P, nodo::core::AttributeType::VEC3F);
 
   auto* positions = input->get_point_attribute_typed<nodo::core::Vec3f>(attrs::P);

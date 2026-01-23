@@ -73,8 +73,9 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name) : SOPNode(name, "PolyExt
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::execute() {
-  auto filter_result = apply_group_filter(0, core::ElementClass::PRIMITIVE, false);
-  if (!filter_result.is_success()) {
+  // Check input exists
+  auto input_check = get_input_data(0);
+  if (!input_check) {
     return {"PolyExtrudeSOP requires input geometry"};
   }
 
@@ -82,13 +83,13 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::execute()
   const int extrusion_type = get_parameter<int>("extrusion_type", 0);
 
   if (extrusion_type == 0) {
-    return extrude_faces(filter_result.get_value());
+    return extrude_faces(input_check);
   }
   if (extrusion_type == 1) {
-    return extrude_edges(filter_result.get_value());
+    return extrude_edges(input_check);
   }
   if (extrusion_type == 2) {
-    return extrude_points(filter_result.get_value());
+    return extrude_points(input_check);
   }
 
   return {"Invalid extrusion type"};
