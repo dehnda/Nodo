@@ -69,12 +69,11 @@ public:
 
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
-    // Get input
-    auto input_data = get_input_data(0);
-    if (!input_data) {
-      fmt::print("CurvatureSOP: No input geometry\n");
-      return {"No input geometry"};
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
+      return {"CurvatureSOP: No input geometry."};
     }
+    const auto& input_data = filter_result.get_value();
 
     // Get parameters
     processing::CurvatureParams params;

@@ -76,10 +76,12 @@ public:
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry
-    auto input = get_input_data(0);
-    if (!input || input->point_count() == 0) {
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
       return {"Scatter Volume: Input geometry required"};
     }
+
+    const auto& input = filter_result.get_value();
 
     // Get parameters
     const int count = get_parameter<int>("count", 100);

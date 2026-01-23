@@ -2,6 +2,7 @@
 
 #include "nodo/core/math.hpp"
 #include "nodo/core/standard_attributes.hpp"
+#include "nodo/sop/wrangle_sop.hpp"
 
 #include <Eigen/Dense>
 
@@ -51,12 +52,12 @@ NormalSOP::NormalSOP(const std::string& name) : SOPNode(name, "Normal") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> NormalSOP::execute() {
-  auto handle = get_input_handle(0);
-  if (!handle.is_valid()) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, true);
+  if (!filter_result.is_success()) {
     return {"NormalSOP requires input geometry"};
   }
 
-  auto& result = handle.write();
+  auto& result = filter_result.get_value();
 
   int normal_type = get_parameter<int>("normal_type", 0);
   int weighting = get_parameter<int>("weighting", 0);
@@ -71,17 +72,17 @@ core::Result<std::shared_ptr<core::GeometryContainer>> NormalSOP::execute() {
 
   switch (normal_type) {
     case 0: // Vertex normals
-      compute_vertex_normals(result, weighting, cusp_angle, reverse);
+      compute_vertex_normals(*result, weighting, cusp_angle, reverse);
       break;
     case 1: // Face normals
-      compute_face_normals(result, reverse);
+      compute_face_normals(*result, reverse);
       break;
     case 2: // Point normals
-      compute_point_normals(result, weighting, cusp_angle, reverse);
+      compute_point_normals(*result, weighting, cusp_angle, reverse);
       break;
   }
 
-  return std::make_shared<core::GeometryContainer>(std::move(result));
+  return result;
 }
 
 void NormalSOP::compute_vertex_normals(core::GeometryContainer& geo, int weighting, float cusp_angle,

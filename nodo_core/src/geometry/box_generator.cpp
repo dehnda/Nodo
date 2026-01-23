@@ -182,7 +182,7 @@ std::optional<core::GeometryContainer> BoxGenerator::generate_from_bounds(const 
     topology.set_vertex_point(i, static_cast<int>(i));
   }
 
-  // Add primitives to topology (keep as quads)
+  // Add primitives to topology
   for (const auto& prim_verts : primitive_vertices) {
     topology.add_primitive(prim_verts);
   }

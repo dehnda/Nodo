@@ -693,7 +693,7 @@ Three-tier approach for data manipulation:
 
 ---
 
-**Phase 1 - Group Widget Semantic Fix:** 🔄 NEXT (1-2 days)
+**Phase 1 - Group Widget Semantic Fix:** ✅ COMPLETE
 
 **Problem:**
 - Base `SOPNode` has universal "group" parameter (filters which elements to operate on)
@@ -701,31 +701,34 @@ Three-tier approach for data manipulation:
 - Semantically correct but causes UX confusion - unclear what "group" means in different contexts
 
 **Solution:**
-- [ ] Rename base parameter: `"group"` → `"input_group"` in SOPNode constructor
-- [ ] Update all SOPs reading the group parameter (~40 nodes)
-  - [ ] Search codebase for `get_parameter("group")` calls
-  - [ ] Update to `get_parameter("input_group")`
-  - [ ] Verify each node's semantic intent (filter vs create)
-- [ ] Add parameter descriptions to clarify purpose:
+- [x] Rename base parameter: `"group"` → `"input_group"` in SOPNode constructor ✅
+- [x] Update all SOPs reading the group parameter (~40 nodes) ✅
+  - [x] Search codebase for `get_parameter("group")` calls ✅
+  - [x] Update to `get_parameter("input_group")` ✅
+  - [x] Verify each node's semantic intent (filter vs create) ✅
+- [x] Add parameter descriptions to clarify purpose: ✅
   - Base parameter: "Input Group - Limit operation to specific group (leave empty for all)"
   - GroupSOP: "Group Name - Name of the group to create/modify"
-- [ ] **Serialization migration** for backward compatibility:
-  - [ ] Add migration code in `graph_serializer.cpp`
-  - [ ] On load, detect old "group" parameter and rename to "input_group"
-  - [ ] Test loading old .nfg files (pre-migration format)
-- [ ] Update documentation and tooltips
+- [x] **Serialization migration** for backward compatibility: ✅
+  - [x] Add migration code in `graph_serializer.cpp` ✅
+  - [x] On load, detect old "group" parameter and rename to "input_group" ✅
+  - [x] Test loading old .nfg files (pre-migration format) ✅
+- [x] Update documentation and tooltips ✅
+- [x] Add missing Intersect operation to GroupSOP ✅
 
 **Technical Changes:**
-- `nodo_core/src/sopnode.cpp` - Constructor parameter rename
-- `nodo_core/src/sop_*.cpp` - Update ~40 SOPs reading group parameter
-- `nodo_core/src/graph_serializer.cpp` - Add parameter migration logic
-- Documentation updates
+- `nodo_core/src/sopnode.cpp` - Constructor parameter rename ✅
+- `nodo_core/src/sop_*.cpp` - Update ~40 SOPs reading group parameter ✅
+- `nodo_core/src/graph_serializer.cpp` - Add parameter migration logic ✅
+- `nodo_core/src/sop/group_sop.cpp` - Add Intersect operation ✅
+- Documentation updates ✅
 
 **Success Criteria:**
 - ✅ All nodes use consistent "input_group" naming
 - ✅ Clear distinction between filter groups and created groups
 - ✅ Old .nfg files load correctly with automatic migration
 - ✅ No semantic confusion in UI
+- ✅ GroupSOP has all 4 operations: Replace, Union (Add), Subtract (Remove), Intersect
 
 ---
 

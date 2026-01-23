@@ -1,26 +1,25 @@
 #include "nodo/core/geometry_container.hpp"
 
 #include "nodo/core/attribute_group.hpp"
+#include "nodo/core/result.hpp"
 
-#include <iostream>
 #include <unordered_set>
 
 namespace nodo::core {
 
-std::optional<GeometryContainer> GeometryContainer::delete_elements(const std::string& group_name,
-                                                                    ElementClass element_class,
-                                                                    bool delete_orphaned_points) const {
+Result<std::shared_ptr<GeometryContainer>> GeometryContainer::delete_elements(const std::string& group_name,
+                                                                              ElementClass element_class,
+                                                                              bool delete_orphaned_points) const {
   // Check if group exists
   if (!has_group(*this, group_name, element_class)) {
-    std::cerr << "GeometryContainer::delete_elements - Group '" << group_name << "' does not exist\n";
-    return std::nullopt;
+    return {"Group '" + group_name + "' does not exist on geometry"};
   }
 
   // Get elements to delete
   auto elements_to_delete = get_group_elements(*this, group_name, element_class);
   if (elements_to_delete.empty()) {
     // No elements to delete, return clone
-    return this->clone();
+    return {std::make_shared<GeometryContainer>(this->clone())};
   }
 
   // Convert to set for fast lookup
@@ -36,28 +35,72 @@ std::optional<GeometryContainer> GeometryContainer::delete_elements(const std::s
     return delete_points(delete_set);
   }
 
-  return std::nullopt;
+  return {"Invalid element class"};
 }
 
-std::optional<GeometryContainer> GeometryContainer::delete_primitives(const std::unordered_set<size_t>& delete_set,
-                                                                      bool delete_orphaned_points) const {
+Result<std::shared_ptr<GeometryContainer>>
+GeometryContainer::delete_primitives(const std::unordered_set<size_t>& delete_set, bool delete_orphaned_points) const {
   GeometryContainer result;
 
   // Step 1: Copy all points first
   result.set_point_count(point_count());
 
-  // Copy point positions (P attribute)
-  if (has_point_attribute("P")) {
-    auto src_P = get_point_attribute_typed<Eigen::Vector3f>("P");
-    result.add_point_attribute("P", AttributeType::VEC3F);
-    auto dst_P = result.get_point_attribute_typed<Eigen::Vector3f>("P");
+  // Copy all point attributes
+  for (const auto& attr_name : get_point_attribute_names()) {
+    auto* src_storage = get_point_attribute(attr_name);
+    if (!src_storage) {
+      continue;
+    }
 
-    for (size_t i = 0; i < point_count(); ++i) {
-      (*dst_P)[i] = (*src_P)[i];
+    const auto type = src_storage->descriptor().type();
+    result.add_point_attribute(attr_name, type, src_storage->descriptor().interpolation());
+
+    // Copy based on type
+    switch (type) {
+      case AttributeType::INT: {
+        auto* src = get_point_attribute_typed<int>(attr_name);
+        auto* dst = result.get_point_attribute_typed<int>(attr_name);
+        for (size_t i = 0; i < point_count(); ++i) {
+          (*dst)[i] = (*src)[i];
+        }
+        break;
+      }
+      case AttributeType::FLOAT: {
+        auto* src = get_point_attribute_typed<float>(attr_name);
+        auto* dst = result.get_point_attribute_typed<float>(attr_name);
+        for (size_t i = 0; i < point_count(); ++i) {
+          (*dst)[i] = (*src)[i];
+        }
+        break;
+      }
+      case AttributeType::VEC2F: {
+        auto* src = get_point_attribute_typed<Eigen::Vector2f>(attr_name);
+        auto* dst = result.get_point_attribute_typed<Eigen::Vector2f>(attr_name);
+        for (size_t i = 0; i < point_count(); ++i) {
+          (*dst)[i] = (*src)[i];
+        }
+        break;
+      }
+      case AttributeType::VEC3F: {
+        auto* src = get_point_attribute_typed<Eigen::Vector3f>(attr_name);
+        auto* dst = result.get_point_attribute_typed<Eigen::Vector3f>(attr_name);
+        for (size_t i = 0; i < point_count(); ++i) {
+          (*dst)[i] = (*src)[i];
+        }
+        break;
+      }
+      case AttributeType::VEC4F: {
+        auto* src = get_point_attribute_typed<Eigen::Vector4f>(attr_name);
+        auto* dst = result.get_point_attribute_typed<Eigen::Vector4f>(attr_name);
+        for (size_t i = 0; i < point_count(); ++i) {
+          (*dst)[i] = (*src)[i];
+        }
+        break;
+      }
+      default:
+        break;
     }
   }
-
-  // TODO: Copy other point attributes
 
   // Step 2: Copy primitives that are NOT in delete set
   size_t vertex_offset = 0;
@@ -87,10 +130,11 @@ std::optional<GeometryContainer> GeometryContainer::delete_primitives(const std:
     return remove_orphaned_points(result);
   }
 
-  return result;
+  return {std::make_shared<GeometryContainer>(result.clone())};
 }
 
-std::optional<GeometryContainer> GeometryContainer::delete_points(const std::unordered_set<size_t>& delete_set) const {
+Result<std::shared_ptr<GeometryContainer>>
+GeometryContainer::delete_points(const std::unordered_set<size_t>& delete_set) const {
   GeometryContainer result;
 
   // Step 1: Build point index mapping (old -> new)
@@ -104,22 +148,74 @@ std::optional<GeometryContainer> GeometryContainer::delete_points(const std::uno
     }
   }
 
-  // Step 2: Copy kept points
+  // Step 2: Copy all point attributes with remapping
   result.set_point_count(new_point_idx);
 
-  if (has_point_attribute("P")) {
-    auto src_P = get_point_attribute_typed<Eigen::Vector3f>("P");
-    result.add_point_attribute("P", AttributeType::VEC3F);
-    auto dst_P = result.get_point_attribute_typed<Eigen::Vector3f>("P");
+  for (const auto& attr_name : get_point_attribute_names()) {
+    auto* src_storage = get_point_attribute(attr_name);
+    if (!src_storage) {
+      continue;
+    }
 
-    for (size_t old_idx = 0; old_idx < point_count(); ++old_idx) {
-      if (point_remap[old_idx] >= 0) {
-        (*dst_P)[point_remap[old_idx]] = (*src_P)[old_idx];
+    const auto type = src_storage->descriptor().type();
+    result.add_point_attribute(attr_name, type, src_storage->descriptor().interpolation());
+
+    // Copy with remapping based on type
+    switch (type) {
+      case AttributeType::INT: {
+        auto* src = get_point_attribute_typed<int>(attr_name);
+        auto* dst = result.get_point_attribute_typed<int>(attr_name);
+        for (size_t old_idx = 0; old_idx < point_count(); ++old_idx) {
+          if (point_remap[old_idx] >= 0) {
+            (*dst)[point_remap[old_idx]] = (*src)[old_idx];
+          }
+        }
+        break;
       }
+      case AttributeType::FLOAT: {
+        auto* src = get_point_attribute_typed<float>(attr_name);
+        auto* dst = result.get_point_attribute_typed<float>(attr_name);
+        for (size_t old_idx = 0; old_idx < point_count(); ++old_idx) {
+          if (point_remap[old_idx] >= 0) {
+            (*dst)[point_remap[old_idx]] = (*src)[old_idx];
+          }
+        }
+        break;
+      }
+      case AttributeType::VEC2F: {
+        auto* src = get_point_attribute_typed<Eigen::Vector2f>(attr_name);
+        auto* dst = result.get_point_attribute_typed<Eigen::Vector2f>(attr_name);
+        for (size_t old_idx = 0; old_idx < point_count(); ++old_idx) {
+          if (point_remap[old_idx] >= 0) {
+            (*dst)[point_remap[old_idx]] = (*src)[old_idx];
+          }
+        }
+        break;
+      }
+      case AttributeType::VEC3F: {
+        auto* src = get_point_attribute_typed<Eigen::Vector3f>(attr_name);
+        auto* dst = result.get_point_attribute_typed<Eigen::Vector3f>(attr_name);
+        for (size_t old_idx = 0; old_idx < point_count(); ++old_idx) {
+          if (point_remap[old_idx] >= 0) {
+            (*dst)[point_remap[old_idx]] = (*src)[old_idx];
+          }
+        }
+        break;
+      }
+      case AttributeType::VEC4F: {
+        auto* src = get_point_attribute_typed<Eigen::Vector4f>(attr_name);
+        auto* dst = result.get_point_attribute_typed<Eigen::Vector4f>(attr_name);
+        for (size_t old_idx = 0; old_idx < point_count(); ++old_idx) {
+          if (point_remap[old_idx] >= 0) {
+            (*dst)[point_remap[old_idx]] = (*src)[old_idx];
+          }
+        }
+        break;
+      }
+      default:
+        break;
     }
   }
-
-  // TODO: Copy other point attributes with remapping
 
   // Step 3: Copy primitives, skipping those with deleted points
   size_t vertex_offset = 0;
@@ -155,10 +251,11 @@ std::optional<GeometryContainer> GeometryContainer::delete_points(const std::uno
     }
   }
 
-  return result;
+  return {std::make_shared<GeometryContainer>(result.clone())};
 }
 
-std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(const GeometryContainer& input) const {
+Result<std::shared_ptr<GeometryContainer>>
+GeometryContainer::remove_orphaned_points(const GeometryContainer& input) const {
   // Build set of used points
   std::unordered_set<size_t> used_points;
   for (size_t prim_idx = 0; prim_idx < input.primitive_count(); ++prim_idx) {
@@ -171,7 +268,7 @@ std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(const
 
   // If all points are used, return input as-is
   if (used_points.size() == input.point_count()) {
-    return input.clone();
+    return {std::make_shared<GeometryContainer>(input.clone())};
   }
 
   // Build point remapping
@@ -222,9 +319,7 @@ std::optional<GeometryContainer> GeometryContainer::remove_orphaned_points(const
     result.add_primitive(new_verts);
   }
 
-  std::cerr << "Removed " << (input.point_count() - new_point_idx) << " orphaned points\n";
-
-  return result;
+  return {std::make_shared<GeometryContainer>(result.clone())};
 }
 
 } // namespace nodo::core

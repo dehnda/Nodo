@@ -35,32 +35,32 @@ public:
                       InterpolationMode interpolation = InterpolationMode::LINEAR);
 
   // Getters
-  const std::string& name() const { return name_; }
-  AttributeType type() const { return type_; }
-  ElementClass owner() const { return owner_; }
-  InterpolationMode interpolation() const { return interpolation_; }
-  uint64_t version() const { return version_; }
+  [[nodiscard]] const std::string& name() const { return name_; }
+  [[nodiscard]] AttributeType type() const { return type_; }
+  [[nodiscard]] ElementClass owner() const { return owner_; }
+  [[nodiscard]] InterpolationMode interpolation() const { return interpolation_; }
+  [[nodiscard]] uint64_t version() const { return version_; }
 
   /**
    * @brief Get size of a single element in bytes
    */
-  size_t element_size() const { return attribute_traits::size_of(type_); }
+  [[nodiscard]] size_t element_size() const { return attribute_traits::size_of(type_); }
 
   /**
    * @brief Get number of scalar components
    */
-  size_t component_count() const { return attribute_traits::component_count(type_); }
+  [[nodiscard]] size_t component_count() const { return attribute_traits::component_count(type_); }
 
   /**
    * @brief Check if this attribute has a default value
    */
-  bool has_default() const { return has_default_; }
+  [[nodiscard]] bool has_default() const { return has_default_; }
 
   /**
    * @brief Get default value as raw bytes
    * @return Pointer to default value data, or nullptr if no default
    */
-  const void* default_value_ptr() const { return has_default_ ? default_value_.data() : nullptr; }
+  [[nodiscard]] const void* default_value_ptr() const { return has_default_ ? default_value_.data() : nullptr; }
 
   /**
    * @brief Set default value from raw bytes
@@ -99,24 +99,26 @@ public:
   }
 
   // Metadata flags
-  bool is_numeric() const { return attribute_traits::is_numeric(type_); }
-  bool is_vector() const { return attribute_traits::is_vector(type_); }
-  bool is_matrix() const { return attribute_traits::is_matrix(type_); }
+  [[nodiscard]] bool is_numeric() const { return attribute_traits::is_numeric(type_); }
+  [[nodiscard]] bool is_vector() const { return attribute_traits::is_vector(type_); }
+  [[nodiscard]] bool is_matrix() const { return attribute_traits::is_matrix(type_); }
 
   /**
    * @brief Get human-readable type name
    */
-  const char* type_name() const { return attribute_traits::type_name(type_); }
+  [[nodiscard]] const char* type_name() const { return attribute_traits::type_name(type_); }
 
   /**
    * @brief Get human-readable owner class name
    */
-  const char* owner_name() const { return attribute_traits::element_class_name(owner_); }
+  [[nodiscard]] const char* owner_name() const { return attribute_traits::element_class_name(owner_); }
 
   /**
    * @brief Get human-readable interpolation mode name
    */
-  const char* interpolation_name() const { return attribute_traits::interpolation_mode_name(interpolation_); }
+  [[nodiscard]] const char* interpolation_name() const {
+    return attribute_traits::interpolation_mode_name(interpolation_);
+  }
 
   /**
    * @brief Equality comparison (name only, for lookup)
@@ -126,7 +128,7 @@ public:
   /**
    * @brief Full equality (all fields)
    */
-  bool equals(const AttributeDescriptor& other) const {
+  [[nodiscard]] bool equals(const AttributeDescriptor& other) const {
     return name_ == other.name_ && type_ == other.type_ && owner_ == other.owner_ &&
            interpolation_ == other.interpolation_;
   }
@@ -159,8 +161,8 @@ private:
  */
 class AttributeDescriptorBuilder {
 public:
-  AttributeDescriptorBuilder(std::string name, AttributeType type, ElementClass owner)
-      : desc_(std::move(name), type, owner) {}
+  AttributeDescriptorBuilder(const std::string& name, AttributeType type, ElementClass owner)
+      : desc_(name, type, owner) {}
 
   AttributeDescriptorBuilder& interpolation(InterpolationMode mode) {
     desc_ = AttributeDescriptor(desc_.name(), desc_.type(), desc_.owner(), mode);
@@ -173,7 +175,7 @@ public:
     return *this;
   }
 
-  AttributeDescriptor build() const { return desc_; }
+  [[nodiscard]] AttributeDescriptor build() const { return desc_; }
 
 private:
   AttributeDescriptor desc_;

@@ -1537,6 +1537,11 @@ void MainWindow::onExecutionCompleted() {
   if (status_bar_widget_) {
     status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
   }
+
+  // Refresh group selectors to show newly created groups
+  if (property_panel_) {
+    property_panel_->refreshGroupSelectors();
+  }
 }
 
 // ============================================================================

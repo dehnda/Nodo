@@ -66,6 +66,7 @@ enum class NodeType {
 
   // Utility Operations
   Blast,
+  Delete,
   Sort,
 
   // Deformation

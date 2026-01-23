@@ -1,3 +1,4 @@
+#include "nodo/core/attribute_group.hpp"
 #include "nodo/processing/subdivision.hpp"
 #include "nodo/sop/subdivisions_sop.hpp"
 
@@ -25,18 +26,20 @@ SubdivisionSOP::SubdivisionSOP(const std::string& name) : SOPNode(name, "Subdivi
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> SubdivisionSOP::execute() {
-  // Get input geometry
-  auto input = get_input_data(0);
-
-  if (!input) {
-    return {"No input geometry"};
+  // Apply group filter if specified (keeps only grouped primitives)
+  auto filter_result = apply_group_filter(0, core::ElementClass::PRIMITIVE, false);
+  if (!filter_result.is_success()) {
+    return {filter_result.error().value()};
   }
+  const auto& input = filter_result.get_value();
+  // Get subdivision parameters
+  int subdivision_type = get_parameter<int>("subdivision_type", 0);
+  int subdivision_levels = get_parameter<int>("subdivision_levels", 1);
 
   // Get parameters
   processing::SubdivisionParams params;
 
-  int type_index = get_parameter<int>("subdivision_type", 0);
-  switch (type_index) {
+  switch (subdivision_type) {
     case 0:
       params.type = processing::SubdivisionType::CATMULL_CLARK;
       break;
@@ -50,7 +53,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> SubdivisionSOP::execute()
       params.type = processing::SubdivisionType::CATMULL_CLARK;
   }
 
-  params.levels = get_parameter<int>("subdivision_levels", 1);
+  params.levels = subdivision_levels;
 
   // Perform subdivision
   std::string error;

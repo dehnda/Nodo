@@ -78,12 +78,12 @@ public:
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input geometry
-    auto input = get_input_data(0);
-
-    if (!input) {
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
       return {"No input geometry"};
     }
 
+    const auto& input = filter_result.get_value();
     // Get parameters
     processing::SmoothingParams params;
     params.method = get_parameter<int>("method", 0);

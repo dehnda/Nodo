@@ -52,7 +52,7 @@ int SOPFactory::get_min_inputs(graph::NodeType type) {
   // Create a temporary instance to query its input requirements
   auto sop = create(type);
   if (sop) {
-    return sop->get_min_inputs();
+    return sop->get_input_config().min_count;
   }
   return 1; // Default fallback
 }
@@ -61,7 +61,7 @@ int SOPFactory::get_max_inputs(graph::NodeType type) {
   // Create a temporary instance to query its input requirements
   auto sop = create(type);
   if (sop) {
-    return sop->get_max_inputs();
+    return sop->get_input_config().max_count;
   }
   return 1; // Default fallback
 }
@@ -77,11 +77,17 @@ SOPNode::InputConfig SOPFactory::get_input_config(graph::NodeType type) {
 }
 
 std::string SOPFactory::get_display_name(graph::NodeType type) {
-  // Create a temporary instance and get its type name
-  // This avoids duplicating the display name in multiple places
-  auto sop = create(type);
-  if (sop) {
-    return sop->get_name();
+  // Get display name directly from registry metadata
+  // This avoids creating a temporary SOP with an empty name
+  ensureNodesRegistered();
+  const auto& registry = NodeRegistry::instance();
+  if (registry.isRegistered(type)) {
+    const auto& all_nodes = registry.getAllNodes();
+    for (const auto& metadata : all_nodes) {
+      if (metadata.type == type) {
+        return metadata.name;
+      }
+    }
   }
 
   // Fallback for non-SOP nodes

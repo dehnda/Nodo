@@ -2,10 +2,7 @@
 
 #include "nodo/core/attribute_group.hpp"
 #include "nodo/core/attribute_types.hpp"
-#include "nodo/core/math.hpp"
-#include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/pmp_converter.hpp"
-#include "nodo/processing/processing_common.hpp"
 
 #include <limits>
 
@@ -22,8 +19,9 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
     // Validate input
     auto validation_error = detail::PMPConverter::validate_for_pmp(input);
     if (!validation_error.empty()) {
-      if (error)
+      if (error != nullptr) {
         *error = validation_error;
+      }
       return std::nullopt;
     }
 
@@ -38,15 +36,15 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
     if (params.seed_group.empty()) {
       // No group specified - use all vertices as seeds
       fmt::print("Geodesic: seed_group is empty, using all {} vertices\n", pmp_mesh.n_vertices());
-      for (auto v : pmp_mesh.vertices()) {
-        seeds.push_back(v);
+      for (auto vertex : pmp_mesh.vertices()) {
+        seeds.push_back(vertex);
       }
     } else {
       // Get seed vertices from group
       fmt::print("Geodesic: Looking for group '{}'\n", params.seed_group);
 
       if (!core::has_group(input, params.seed_group, core::ElementClass::POINT)) {
-        if (error)
+        if (error != nullptr)
           *error = "Seed group '" + params.seed_group + "' not found";
         return std::nullopt;
       }
@@ -56,7 +54,7 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
       fmt::print("Geodesic: seed_group='{}' has {} members\n", params.seed_group, members.size());
 
       if (members.empty()) {
-        if (error)
+        if (error != nullptr)
           *error = "Seed group '" + params.seed_group +
                    "' is empty (0 points selected). Select at least one point "
                    "in the Group node";
@@ -73,7 +71,7 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
       fmt::print("Geodesic: converted {} members to {} seeds\n", members.size(), seeds.size());
 
       if (seeds.empty()) {
-        if (error)
+        if (error != nullptr)
           *error = "No valid seed vertices found in group (all indices out of "
                    "range). Group has " +
                    std::to_string(members.size()) + " members but mesh only has " +
@@ -86,9 +84,9 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
     if (params.method == GeodesicMethod::Dijkstra) {
       // Dijkstra method - fast, can limit distance/count
       // Check if mesh is triangulated
-      for (auto f : pmp_mesh.faces()) {
-        if (pmp_mesh.valence(f) != 3) {
-          if (error)
+      for (auto face : pmp_mesh.faces()) {
+        if (pmp_mesh.valence(face) != 3) {
+          if (error != nullptr)
             *error = "Dijkstra geodesic method requires triangle mesh. Use "
                      "Heat method for quad/polygon meshes, or triangulate "
                      "first with Subdivide/Remesh";
@@ -147,24 +145,24 @@ std::optional<core::GeometryContainer> Geodesic::compute(const core::GeometryCon
 
       // Copy distance values
       size_t idx = 0;
-      for (auto v : pmp_mesh.vertices()) {
-        dist_writable[idx] = geodesic_prop[v];
+      for (auto vertex : pmp_mesh.vertices()) {
+        dist_writable[idx] = geodesic_prop[vertex];
         ++idx;
       }
 
       fmt::print("Copied {} distance values to '{}' attribute\n", n_vertices, params.output_attribute);
     } else {
-      if (error)
+      if (error != nullptr)
         *error = "Failed to retrieve geodesic distances from computation. "
                  "PMP geodesic algorithm did not create 'geodesic:distance' "
                  "property.";
       return std::nullopt;
     }
 
-    return std::move(result);
+    return result;
 
   } catch (const std::exception& e) {
-    if (error)
+    if (error != nullptr)
       *error = std::string("Geodesic computation failed: ") + e.what();
     return std::nullopt;
   }

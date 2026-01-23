@@ -2,6 +2,7 @@
 
 #include "nodo/core/standard_attributes.hpp"
 #include "nodo/processing/decimation.hpp"
+#include "nodo/sop/wrangle_sop.hpp"
 
 namespace nodo::sop {
 
@@ -60,11 +61,11 @@ void DecimationSOP::initialize_parameters() {
 
 core::Result<std::shared_ptr<core::GeometryContainer>> DecimationSOP::execute() {
   // Get input geometry
-  auto input_container = get_input_data(0);
-  if (!input_container) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"No input geometry connected"};
   }
-
+  const auto& input_container = filter_result.get_value();
   // Check that input has triangular mesh
   if (!input_container->has_point_attribute("P")) {
     return {"Input geometry has no position attribute"};
@@ -92,7 +93,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> DecimationSOP::execute() 
   // Perform decimation
   auto result = processing::Decimation::decimate(*input_container, params);
 
-  if (result.isError()) {
+  if (result.is_error()) {
     return {"Decimation failed: "};
   }
 

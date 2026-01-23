@@ -37,10 +37,12 @@ ResampleSOP::ResampleSOP(const std::string& name) : SOPNode(name, "Resample") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> ResampleSOP::execute() {
-  auto input = get_input_data(0);
-  if (input == nullptr) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"No input geometry"};
   }
+
+  const auto& input = filter_result.get_value();
 
   // Get parameters
   const int mode = get_parameter<int>("mode", 0);

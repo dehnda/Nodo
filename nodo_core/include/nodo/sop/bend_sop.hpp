@@ -60,10 +60,11 @@ public:
 
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
-    auto input_geo = get_input_data(0);
-    if (!input_geo) {
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
       return {"BendSOP requires input geometry"};
     }
+    const auto& input_geo = filter_result.get_value();
 
     // Get parameters
     const float angle_deg = get_parameter<float>("angle", 90.0F);

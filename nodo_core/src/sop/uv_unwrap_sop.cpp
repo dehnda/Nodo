@@ -87,12 +87,12 @@ UVUnwrapSOP::UVUnwrapSOP(const std::string& name) : SOPNode(name, "UVUnwrap") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> UVUnwrapSOP::execute() {
-  auto input = get_input_data(0);
-  if (!input) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"UVUnwrapSOP requires input geometry"};
   }
 
-  auto result = std::make_shared<core::GeometryContainer>(input->clone());
+  auto result = filter_result.get_value();
 
   // Get parameters
   float max_chart_size = get_parameter<float>("max_chart_size", 0.0f);

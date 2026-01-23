@@ -2,6 +2,7 @@
 
 #include "nodo/core/attribute_group.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 namespace nodo::sop {
@@ -23,9 +24,9 @@ GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
   // Operation mode
   register_parameter(define_int_parameter("operation", 0)
                          .label("Operation")
-                         .options({"Create/Replace", "Add to Existing", "Remove from Existing"})
+                         .options({"Create/Replace", "Add to Existing", "Remove from Existing", "Intersect"})
                          .category("Group")
-                         .description("How to modify existing group (create, add, or remove)")
+                         .description("How to modify existing group (create, add, remove, or intersect)")
                          .build());
 
   // Selection method - dropdown
@@ -83,44 +84,29 @@ GroupSOP::GroupSOP(const std::string& name) : SOPNode(name, "Group") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> GroupSOP::execute() {
-  std::cerr << "GroupSOP::execute() called\n";
-
   // Get input
-  auto input = get_input_data(0);
-  if (input == nullptr) {
-    std::cerr << "  ERROR: No input geometry\n";
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"GroupSOP requires input geometry"};
   }
-
-  std::cerr << "  Input has " << input->point_count() << " points, " << input->primitive_count() << " primitives\n";
-  std::cerr << "  Input point_attributes().size() = " << input->point_attributes().size() << "\n";
-  std::cerr << "  Input point_attributes().attribute_count() = " << input->point_attributes().attribute_count() << "\n";
+  const auto& input = filter_result.get_value();
 
   // Get writable handle (COW)
   auto handle = get_input_handle(0);
   auto& result = handle.write();
 
-  std::cerr << "  Result has " << result.point_count() << " points, " << result.primitive_count() << " primitives\n";
-  std::cerr << "  Point attributes size: " << result.point_attributes().size() << "\n";
-
   // Get parameters
   std::string group_name = get_parameter<std::string>("group_name", "group1");
-  std::cerr << "  Group name: " << group_name << "\n";
 
   if (group_name.empty()) {
-    std::cerr << "  ERROR: Empty group name\n";
     return {"Group name cannot be empty"};
   }
 
   int elem_class_int = get_parameter<int>("element_class", 0);
   core::ElementClass elem_class = (elem_class_int == 0) ? core::ElementClass::POINT : core::ElementClass::PRIMITIVE;
 
-  std::cerr << "  Element class: " << (elem_class_int == 0 ? "Points" : "Primitives") << "\n";
-
   int selection_mode = get_parameter<int>("selection_mode", 0);
   int operation = get_parameter<int>("operation", 0);
-
-  std::cerr << "  Selection mode: " << selection_mode << ", Operation: " << operation << "\n";
 
   // Get element count
   size_t elem_count = (elem_class == core::ElementClass::POINT) ? result.point_count() : result.primitive_count();
@@ -198,23 +184,28 @@ core::Result<std::shared_ptr<core::GeometryContainer>> GroupSOP::execute() {
   }
 
   // Apply operation
-  std::cerr << "  Applying operation with " << selection.size() << " elements selected\n";
-
   if (operation == 0 || operation == 1) {
     // Create/Replace or Add
-    bool success = core::add_to_group(result, group_name, elem_class, selection);
-    std::cerr << "  add_to_group returned: " << (success ? "true" : "false") << "\n";
+    core::add_to_group(result, group_name, elem_class, selection);
   } else if (operation == 2) {
     // Remove
     core::remove_from_group(result, group_name, elem_class, selection);
+  } else if (operation == 3) {
+    // Intersect - keep only elements in both selection and existing group
+    auto existing_elements = core::get_group_elements(result, group_name, elem_class);
+    std::vector<size_t> intersection;
+
+    // Find elements that are in both selection and existing group
+    for (size_t elem : selection) {
+      if (std::find(existing_elements.begin(), existing_elements.end(), elem) != existing_elements.end()) {
+        intersection.push_back(elem);
+      }
+    }
+
+    // Clear the group and add only the intersection
+    core::clear_group(result, group_name, elem_class);
+    core::add_to_group(result, group_name, elem_class, intersection);
   }
-
-  // Verify group contents
-  auto group_elements = core::get_group_elements(result, group_name, elem_class);
-  std::cerr << "  Group '" << group_name << "' now contains " << group_elements.size() << " elements\n";
-
-  std::cerr << "  Group created successfully, returning result\n";
-  std::cerr << "  Result has " << result.point_count() << " points, " << result.primitive_count() << " primitives\n";
 
   return std::make_shared<core::GeometryContainer>(std::move(result));
 }

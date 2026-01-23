@@ -34,6 +34,7 @@ add_executable(nodo_tests
 
     # Graph & Execution
     test_nodes.cpp
+    test_node_naming.cpp
     test_execution_engine_bridge.cpp
     test_graph_serialization.cpp
     test_selective_execution.cpp
@@ -46,8 +47,10 @@ add_executable(nodo_tests
     # SOP Nodes - Modifiers
     test_array_sop.cpp
     test_boolean_sop.cpp
-    # test_extrude_sop.cpp  # TODO: Fix protected execute() access
+    test_delete_sop.cpp
+    test_extrude_sop.cpp
     test_polyextrude_edges.cpp
+    test_polyextrude_group_filtering.cpp
     test_noise_displacement.cpp
     test_wrangle_sop.cpp
     test_sop_group_filtering.cpp

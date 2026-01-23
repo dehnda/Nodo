@@ -50,13 +50,14 @@ CopyToPointsSOP::CopyToPointsSOP(const std::string& node_name) : SOPNode(node_na
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> CopyToPointsSOP::execute() {
-  // Get inputs (by index: 0 = points, 1 = template)
-  auto points_input = get_input_data(0);
-  auto template_input = get_input_data(1);
-
-  if (!points_input) {
-    return {"Missing 'points' input (port 0)"};
+  // Apply group filter to points input (keeps only grouped points)
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
+    return {"CopyToPointsSOP requires input geometry"};
   }
+  const auto& points_input = filter_result.get_value();
+
+  auto template_input = get_input_data(1);
 
   if (!template_input) {
     return {"Missing 'template' input (port 1)"};

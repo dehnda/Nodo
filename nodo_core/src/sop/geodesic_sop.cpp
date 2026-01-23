@@ -8,10 +8,12 @@ namespace nodo::sop {
 
 core::Result<std::shared_ptr<core::GeometryContainer>> GeodesicSOP::execute() {
   // Get input
-  auto input_data = get_input_data(0);
-  if (!input_data) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"GeodesicSOP: No input geometry"};
   }
+
+  const auto& input_data = filter_result.get_value();
 
   // Get parameters
   processing::GeodesicParams params;

@@ -17,6 +17,7 @@
 #include "nodo/sop/curvature_sop.hpp"
 #include "nodo/sop/cylinder_sop.hpp"
 #include "nodo/sop/decimation_sop.hpp"
+#include "nodo/sop/delete_sop.hpp"
 #include "nodo/sop/export_sop.hpp"
 #include "nodo/sop/extrude_sop.hpp"
 #include "nodo/sop/file_sop.hpp"
@@ -142,6 +143,7 @@ void registerAllNodes() {
   REG(Time, TimeSOP, "Time", "Utility", "Control time-dependent animations")
   REG(Output, OutputSOP, "Output", "Utility", "Mark geometry as final output")
   REG(Blast, BlastSOP, "Blast", "Utility", "Delete geometry by group")
+  REG(Delete, DeleteSOP, "Delete", "Utility", "Delete elements by group or pattern")
   REG(Sort, SortSOP, "Sort", "Utility", "Sort points or primitives")
 
 #undef REG

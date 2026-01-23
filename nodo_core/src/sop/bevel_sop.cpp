@@ -933,11 +933,13 @@ BevelSOP::BevelSOP(const std::string& name) : SOPNode(name, "Bevel") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
-  auto input = get_input_data(0);
-  if (!input) {
-    std::cerr << "BevelSOP: No input geometry\n";
-    return {"No input geometry"};
+  // Apply group filter if specified (keeps only grouped primitives)
+  auto filter_result = apply_group_filter(0, core::ElementClass::PRIMITIVE, false);
+  if (!filter_result.is_success()) {
+    return {"BevelSOP requires input geometry"};
   }
+  const auto& input = filter_result.get_value();
+
   float bevel_width = get_parameter<float>("width", BevelSOP::DEFAULT_WIDTH);
   int segments = get_parameter<int>("segments", BevelSOP::DEFAULT_SEGMENTS);
   float angle_threshold = get_parameter<float>("angle_limit", DEFAULT_ANGLE_LIMIT);
@@ -946,14 +948,10 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
   auto mode = static_cast<BevelType>(get_parameter<int>("mode", static_cast<int>(BevelType::Edge)));
   auto corner_style =
       static_cast<CornerStyle>(get_parameter<int>("corner_style", static_cast<int>(CornerStyle::ApexFan)));
-  std::cout << "\n=== Bevel SOP ===\n";
-  std::cout << "Input: " << input->point_count() << " pts, " << input->primitive_count() << " prims\n";
-  std::cout << "Width=" << bevel_width << " Segments=" << segments << " AngleLimit=" << angle_threshold
-            << " Mode=" << static_cast<int>(mode) << "\n";
+
   std::shared_ptr<core::GeometryContainer> result;
   switch (mode) {
     case BevelType::Vertex:
-      std::cout << "CornerStyle=" << static_cast<int>(corner_style) << "\n";
       result = bevel_vertices(*input, bevel_width, segments, angle_threshold, profile, corner_style, nullptr);
       break;
     case BevelType::Edge:
@@ -977,12 +975,9 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
       break;
     }
   }
-  if (result) {
-    std::cout << "Result: " << result->point_count() << " pts, " << result->primitive_count() << " prims\n";
-  } else {
+  if (!result) {
     return {"Bevel operation failed"};
   }
-  std::cout << "================================\n";
   return result;
 }
 

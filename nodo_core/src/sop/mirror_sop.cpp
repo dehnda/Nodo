@@ -84,10 +84,11 @@ core::Result<std::shared_ptr<core::GeometryContainer>> MirrorSOP::execute() {
                     get_parameter<float>("custom_normal_z", 0.0F));
 
   // Get input geometry
-  auto input_geo = get_input_data(0);
-  if (!input_geo) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"No input geometry connected"};
   }
+  const auto& input_geo = filter_result.get_value();
 
   if (input_geo->topology().point_count() == 0) {
     return {"Input geometry is empty"};

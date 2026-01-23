@@ -1,5 +1,7 @@
 #include "nodo/sop/polyextrude_sop.hpp"
 
+#include "nodo/core/attribute_group.hpp"
+
 namespace attrs = nodo::core::standard_attrs;
 
 namespace nodo::sop {
@@ -71,33 +73,29 @@ PolyExtrudeSOP::PolyExtrudeSOP(const std::string& name) : SOPNode(name, "PolyExt
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::execute() {
-  auto input = get_input_data(0);
-  if (input == nullptr) {
-    return {"No input geometry"};
+  auto filter_result = apply_group_filter(0, core::ElementClass::PRIMITIVE, false);
+  if (!filter_result.is_success()) {
+    return {"PolyExtrudeSOP requires input geometry"};
   }
 
   // Get extrusion type
   const int extrusion_type = get_parameter<int>("extrusion_type", 0);
 
   if (extrusion_type == 0) {
-    return extrude_faces();
+    return extrude_faces(filter_result.get_value());
   }
   if (extrusion_type == 1) {
-    return extrude_edges();
+    return extrude_edges(filter_result.get_value());
   }
   if (extrusion_type == 2) {
-    return extrude_points();
+    return extrude_points(filter_result.get_value());
   }
 
   return {"Invalid extrusion type"};
 }
 
-core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_faces() {
-  auto input = get_input_data(0);
-  if (input == nullptr) {
-    return {"No input geometry"};
-  }
-
+core::Result<std::shared_ptr<core::GeometryContainer>>
+PolyExtrudeSOP::extrude_faces(const std::shared_ptr<core::GeometryContainer>& input) {
   // Get parameters
   const float distance = get_parameter<float>("distance", 1.0F);
   const float inset = get_parameter<float>("inset", 0.0F);
@@ -116,6 +114,22 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_f
     return {"Input geometry has no primitives to extrude"};
   }
 
+  // Get primitives to process (respects group filter)
+  auto prims_to_process = get_grouped_primitive_indices(input.get());
+
+  // Check if group filtering resulted in no primitives
+  if (prims_to_process.empty()) {
+    std::string group_name = get_group_name();
+    if (!group_name.empty()) {
+      // Group filter is active but no primitives match
+      if (!core::has_group(*input, group_name, core::ElementClass::PRIMITIVE)) {
+        return {"Group '" + group_name + "' does not exist on input geometry"};
+      }
+      return {"Group '" + group_name + "' contains no primitives to extrude"};
+    }
+    return {"No primitives to extrude"};
+  }
+
   // Create result container
   auto result = std::make_shared<core::GeometryContainer>();
 
@@ -126,7 +140,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_f
   size_t total_points = 0;
   size_t total_vertices = 0;
 
-  for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+  for (size_t prim_idx : prims_to_process) {
     const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
@@ -181,8 +195,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_f
     }
   }
 
-  // Process each primitive
-  for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+  // Process each primitive (use same filtered list)
+  for (size_t prim_idx : prims_to_process) {
     const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
@@ -323,12 +337,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_f
   return result;
 }
 
-core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_edges() {
-  auto input = get_input_data(0);
-  if (input == nullptr) {
-    return {"No input geometry"};
-  }
-
+core::Result<std::shared_ptr<core::GeometryContainer>>
+PolyExtrudeSOP::extrude_edges(const std::shared_ptr<core::GeometryContainer>& input) {
   // Get parameters
   const float distance = get_parameter<float>("distance", 1.0F);
   const bool individual = get_parameter<int>("individual_faces", 1) != 0;
@@ -358,12 +368,27 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_e
     return {"Input geometry has no primitives to extrude"};
   }
 
+  // Get primitives to process (respects group filter)
+  auto prims_to_process = get_grouped_primitive_indices(input.get());
+
+  // Check if group filtering resulted in no primitives
+  if (prims_to_process.empty()) {
+    std::string group_name = get_group_name();
+    if (!group_name.empty()) {
+      if (!core::has_group(*input, group_name, core::ElementClass::PRIMITIVE)) {
+        return {"Group '" + group_name + "' does not exist on input geometry"};
+      }
+      return {"Group '" + group_name + "' contains no primitives to extrude"};
+    }
+    return {"No primitives to extrude"};
+  }
+
   // Create result container
   auto result = std::make_shared<core::GeometryContainer>();
 
-  // Count edge primitives (2 vertices)
+  // Count edge primitives (2 vertices) in the filtered set
   size_t edge_count = 0;
-  for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+  for (size_t prim_idx : prims_to_process) {
     const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     if (vert_indices.size() == 2) {
       edge_count++;
@@ -371,6 +396,10 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_e
   }
 
   if (edge_count == 0) {
+    std::string group_name = get_group_name();
+    if (!group_name.empty()) {
+      return {"Group '" + group_name + "' contains no edge primitives (2 vertices)"};
+    }
     return {"No edge primitives (2 vertices) found in input geometry"};
   }
 
@@ -437,7 +466,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_e
 
   if (individual) {
     // Individual mode: Each edge gets its own 4 points
-    for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+    for (size_t prim_idx : prims_to_process) {
       const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
 
       // Skip non-edge primitives
@@ -504,7 +533,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_e
     std::vector<int> point_edge_count(input_point_count, 0);
 
     // First pass: Accumulate extrusion directions for each point
-    for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+    for (size_t prim_idx : prims_to_process) {
       const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
 
       if (vert_indices.size() != 2) {
@@ -542,7 +571,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_e
     }
 
     // Second pass: Create quad primitives using shared points
-    for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
+    for (size_t prim_idx : prims_to_process) {
       const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
 
       if (vert_indices.size() != 2) {
@@ -582,12 +611,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_e
   return result;
 }
 
-core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_points() {
-  auto input = get_input_data(0);
-  if (input == nullptr) {
-    return {"No input geometry"};
-  }
-
+core::Result<std::shared_ptr<core::GeometryContainer>>
+PolyExtrudeSOP::extrude_points(const std::shared_ptr<core::GeometryContainer>& input) {
   // Get parameters
   const float distance = get_parameter<float>("distance", 1.0F);
   const int direction_mode = get_parameter<int>("edge_direction_mode", 0);
@@ -616,13 +641,27 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_p
     return {"Input geometry has no points to extrude"};
   }
 
+  // Get points to process (respects group filter)
+  auto points_to_process = get_grouped_point_indices(input.get());
+
+  if (points_to_process.empty()) {
+    std::string group_name = get_group_name();
+    if (!group_name.empty()) {
+      if (!core::has_group(*input, group_name, core::ElementClass::POINT)) {
+        return {"Group '" + group_name + "' does not exist on input geometry"};
+      }
+      return {"Group '" + group_name + "' contains no points to extrude"};
+    }
+    return {"No points in group to extrude"};
+  }
+
   // Create result container
   auto result = std::make_shared<core::GeometryContainer>();
 
   // For points: Create line segments from each point
   // Each point creates 2 points (original + extruded) and 1 edge primitive
-  const size_t total_points = input_point_count * 2;
-  const size_t total_vertices = input_point_count * 2; // Each edge has 2 vertices
+  const size_t total_points = points_to_process.size() * 2;
+  const size_t total_vertices = points_to_process.size() * 2; // Each edge has 2 vertices
 
   result->set_point_count(total_points);
   result->set_vertex_count(total_vertices);
@@ -648,14 +687,16 @@ core::Result<std::shared_ptr<core::GeometryContainer>> PolyExtrudeSOP::extrude_p
     extrude_dir = core::Vec3f(0.0F, 1.0F, 0.0F);
   }
 
-  // Process each point
-  for (size_t pt_idx = 0; pt_idx < input_point_count; ++pt_idx) {
+  // Process each point in the filtered set
+  size_t result_pt_offset = 0;
+  for (size_t pt_idx : points_to_process) {
     const core::Vec3f original_pos = (*input_positions)[pt_idx];
     const core::Vec3f extruded_pos = original_pos + extrude_dir * distance;
 
     // Create two points: original and extruded
-    const int p0 = static_cast<int>(pt_idx * 2);
-    const int p1 = static_cast<int>(pt_idx * 2 + 1);
+    const int p0 = static_cast<int>(result_pt_offset * 2);
+    const int p1 = static_cast<int>(result_pt_offset * 2 + 1);
+    result_pt_offset++;
 
     (*result_positions)[p0] = original_pos;
     (*result_positions)[p1] = extruded_pos;

@@ -87,10 +87,12 @@ public:
 
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
-    auto input = get_input_data(0);
-    if (!input) {
-      return {"AttributeCreate requires input geometry"};
+    // Apply group filter if specified (keeps only grouped points)
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
+      return {"AttributeCreateSOP: No input geometry"};
     }
+    const auto& input = filter_result.get_value();
 
     // Clone input
     auto output = std::make_shared<core::GeometryContainer>(input->clone());

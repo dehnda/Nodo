@@ -19,6 +19,9 @@ QWidget* GroupSelectorWidget::createControlWidget() {
   // Make it editable so users can type custom group names
   combo_box_->setEditable(true);
 
+  // Ensure dropdown shows on click
+  combo_box_->setInsertPolicy(QComboBox::NoInsert);
+
   // Allow empty selection (no group filter)
   combo_box_->addItem("(all)", "");
 
@@ -29,17 +32,30 @@ QWidget* GroupSelectorWidget::createControlWidget() {
     combo_box_->setCurrentIndex(0); // Select "(all)"
   }
 
-  // Enable auto-completion
-  combo_box_->setInsertPolicy(QComboBox::NoInsert);
+  // Configure completer for auto-completion while typing
   auto* completer = new QCompleter(combo_box_->model(), this);
   completer->setCaseSensitivity(Qt::CaseInsensitive);
   completer->setFilterMode(Qt::MatchContains);
+  completer->setCompletionMode(QCompleter::PopupCompletion);
   combo_box_->setCompleter(completer);
 
   updateComboBoxStyle();
 
   // Connect signals
+  // currentTextChanged: fires on every keystroke - only update internal state
   connect(combo_box_, &QComboBox::currentTextChanged, this, &GroupSelectorWidget::onCurrentTextChanged);
+
+  // activated: fires when user selects from dropdown - trigger execution
+  connect(combo_box_, QOverload<int>::of(&QComboBox::activated), this, [this](int) {
+    // User selected from dropdown - trigger execution immediately
+    emit valueChanged();
+    emit groupChangedSignal(getGroupName());
+    if (group_changed_callback_) {
+      group_changed_callback_(getGroupName());
+    }
+  });
+
+  // editingFinished: fires when user finishes typing - trigger execution
   connect(combo_box_->lineEdit(), &QLineEdit::editingFinished, this, &GroupSelectorWidget::onEditingFinished);
 
   return combo_box_;
@@ -170,12 +186,8 @@ void GroupSelectorWidget::onCurrentTextChanged(const QString& text) {
     group_name_ = text;
   }
 
-  emit valueChanged(); // BaseParameterWidget signal
-  emit groupChangedSignal(getGroupName());
-
-  if (group_changed_callback_) {
-    group_changed_callback_(getGroupName());
-  }
+  // Don't trigger execution on every keystroke - only update internal state
+  // Execution will happen on editingFinished or combo selection
 }
 
 void GroupSelectorWidget::onEditingFinished() {
@@ -187,6 +199,7 @@ void GroupSelectorWidget::onEditingFinished() {
     group_name_ = text;
   }
 
+  // Now trigger execution since editing is complete
   emit valueChanged(); // BaseParameterWidget signal
   emit groupChangedSignal(getGroupName());
 

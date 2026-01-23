@@ -307,16 +307,7 @@ public:
   /**
    * @brief Mark node as dirty (needs recomputation)
    */
-  void mark_dirty() {
-    if (state_ == ExecutionState::CLEAN) {
-      state_ = ExecutionState::DIRTY;
-
-      // Invalidate output port caches
-      for (const auto& port : output_ports_.get_all_ports()) {
-        port->invalidate_cache();
-      }
-    }
-  }
+  void mark_dirty() { state_ = ExecutionState::DIRTY; }
 
   auto isNodeClean() const -> bool { return state_ == ExecutionState::CLEAN; }
 
@@ -385,9 +376,10 @@ public:
    */
   std::shared_ptr<core::GeometryContainer> cook() {
     // Return cached result if clean
-    if (isNodeClean()) {
-      return getCachedOutput();
-    }
+    // TODO check the whole process on how we mark dirty and clean
+    // if (isNodeClean()) {
+    //   return getCachedOutput();
+    // }
 
     auto cook_start = std::chrono::steady_clock::now();
     setComputingState();
@@ -407,7 +399,7 @@ public:
       // Execute the node-specific computation
       auto result = executeAndHandleErrors();
 
-      if (result.isError()) {
+      if (result.is_error()) {
         set_error(*result.error());
         cook_duration_ =
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
@@ -426,22 +418,6 @@ public:
       return nullptr;
     }
   }
-
-  /**
-   * @brief Get minimum number of required inputs
-   * Override in derived classes to specify input requirements
-   * @return Minimum inputs (0 for generators, 1 for modifiers, etc.)
-   * @deprecated Use get_input_config() instead
-   */
-  virtual int get_min_inputs() const { return get_input_config().min_count; }
-
-  /**
-   * @brief Get maximum number of allowed inputs
-   * Override in derived classes to specify input limits
-   * @return Maximum inputs (-1 for unlimited)
-   * @deprecated Use get_input_config() instead
-   */
-  virtual int get_max_inputs() const { return get_input_config().max_count; }
 
   /**
    * @brief Get input configuration for this node type
@@ -693,6 +669,70 @@ protected:
   }
 
   /**
+   * @brief Get indices of points in the active group
+   * @param geometry Geometry to check
+   * @return Vector of point indices (all points if no group filter)
+   */
+  std::vector<size_t> get_grouped_point_indices(const core::GeometryContainer* geometry) const {
+    std::vector<size_t> indices;
+    std::string group_name = get_group_name();
+
+    if (group_name.empty()) {
+      // No filter - return all point indices
+      indices.reserve(geometry->point_count());
+      for (size_t i = 0; i < geometry->point_count(); ++i) {
+        indices.push_back(i);
+      }
+    } else {
+      // Return only points in the group
+      indices = core::get_group_elements(*geometry, group_name, core::ElementClass::POINT);
+    }
+    return indices;
+  }
+
+  /**
+   * @brief Get indices of primitives in the active group
+   * @param geometry Geometry to check
+   * @return Vector of primitive indices (all primitives if no group filter)
+   */
+  std::vector<size_t> get_grouped_primitive_indices(const core::GeometryContainer* geometry) const {
+    std::vector<size_t> indices;
+    std::string group_name = get_group_name();
+
+    if (group_name.empty()) {
+      // No filter - return all primitive indices
+      indices.reserve(geometry->primitive_count());
+      for (size_t i = 0; i < geometry->primitive_count(); ++i) {
+        indices.push_back(i);
+      }
+    } else {
+      // Return only primitives in the group
+      indices = core::get_group_elements(*geometry, group_name, core::ElementClass::PRIMITIVE);
+    }
+    return indices;
+  }
+
+  /**
+   * @brief Check if a specific primitive should be processed (is in active group)
+   * @param geometry Geometry to check
+   * @param prim_idx Primitive index
+   * @return True if primitive should be processed
+   */
+  bool should_process_primitive(const core::GeometryContainer* geometry, size_t prim_idx) const {
+    return is_in_active_group(geometry, core::ElementClass::PRIMITIVE, prim_idx);
+  }
+
+  /**
+   * @brief Check if a specific point should be processed (is in active group)
+   * @param geometry Geometry to check
+   * @param point_idx Point index
+   * @return True if point should be processed
+   */
+  bool should_process_point(const core::GeometryContainer* geometry, size_t point_idx) const {
+    return is_in_active_group(geometry, core::ElementClass::POINT, point_idx);
+  }
+
+  /**
    * @brief Check if element is in the active group (works with attr_class
    * parameter)
    * @param geo Geometry container
@@ -744,7 +784,80 @@ protected:
         break;
       }
     }
+
     return false;
+  }
+
+  /**
+   * @brief Apply group filter to input geometry (keep only grouped elements)
+   *
+   * Helper method that filters input geometry based on the input_group parameter.
+   * Call this at the start of execute() to work only on grouped elements.
+   * Returns a geometry containing ONLY the elements in the specified group.
+   *
+   * @param port_index Input port index (default 0)
+   * @param element_class Element class to filter (POINT or PRIMITIVE)
+   * @param delete_orphaned_points If true, remove points not used by remaining primitives (only for PRIMITIVE
+   * filtering)
+   * @return Filtered geometry, or original if no group specified, or error if group doesn't exist
+   *
+   * Example usage:
+   * @code
+   * auto filtered = apply_group_filter(0, core::ElementClass::PRIMITIVE);
+   * if (!filtered) return filtered.error();
+   * auto input = filtered.value();
+   * // Now process input which only contains grouped elements
+   * @endcode
+   */
+  core::Result<std::shared_ptr<core::GeometryContainer>>
+  apply_group_filter(int port_index = 0, core::ElementClass element_class = core::ElementClass::PRIMITIVE,
+                     bool delete_orphaned_points = false) const {
+    auto input = get_input_data(port_index);
+    if (!input) {
+      return {"No input geometry"};
+    }
+
+    std::string group_name = get_group_name();
+
+    // No filter - return original geometry
+    if (group_name.empty()) {
+      return input;
+    }
+
+    // Check if group exists
+    if (!core::has_group(*input, group_name, element_class)) {
+      return {"Group '" + group_name + "' does not exist on input geometry"};
+    }
+
+    // Check if group is empty
+    auto elements = core::get_group_elements(*input, group_name, element_class);
+    if (elements.empty()) {
+      return {"Group '" + group_name + "' is empty"};
+    }
+
+    // Create inverted group (elements NOT in the group)
+    auto result_copy = std::make_shared<core::GeometryContainer>(input->clone());
+    std::string inverted_group = "__inverted_" + group_name;
+
+    // Create inverted group
+    core::create_group(*result_copy, inverted_group, element_class);
+    size_t elem_count =
+        (element_class == core::ElementClass::POINT) ? result_copy->point_count() : result_copy->primitive_count();
+
+    // Add all non-grouped elements to inverted group
+    for (size_t i = 0; i < elem_count; ++i) {
+      if (!core::is_in_group(*input, group_name, element_class, i)) {
+        core::add_to_group(*result_copy, inverted_group, element_class, i);
+      }
+    }
+
+    // Delete the inverted group (keeping only original group)
+    auto filtered = result_copy->delete_elements(inverted_group, element_class, delete_orphaned_points);
+    if (!filtered) {
+      return {"Failed to filter by group '" + group_name + "'"};
+    }
+
+    return filtered;
   }
 
 private:

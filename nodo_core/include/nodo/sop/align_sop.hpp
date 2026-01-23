@@ -56,10 +56,12 @@ public:
 
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
-    auto input = get_input_data(0);
-    if (!input) {
-      return {"Align requires input geometry"};
+    // Apply group filter if specified (keeps only grouped points)
+    auto input_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!input_result.is_success()) {
+      return {input_result.error().value()};
     }
+    const auto& input = input_result.get_value();
 
     // Clone input
     auto output = std::make_shared<core::GeometryContainer>(input->clone());

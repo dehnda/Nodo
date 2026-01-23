@@ -813,6 +813,27 @@ void PropertyPanel::refreshFromCurrentNode() {
   }
 }
 
+void PropertyPanel::refreshGroupSelectors() {
+  // Refresh all group selector widgets in the current property panel
+  if (current_graph_node_ == nullptr || current_graph_ == nullptr || content_layout_ == nullptr) {
+    return;
+  }
+
+  // Iterate through all widgets in the content layout
+  for (int i = 0; i < content_layout_->count(); ++i) {
+    QWidget* widget = content_layout_->itemAt(i)->widget();
+    if (widget == nullptr) {
+      continue;
+    }
+
+    // Check if this widget is a GroupSelectorWidget
+    if (auto* group_widget = dynamic_cast<nodo_studio::widgets::GroupSelectorWidget*>(widget)) {
+      // Refresh this group selector with latest groups from input geometries
+      populateGroupWidget(group_widget, current_graph_node_, current_graph_);
+    }
+  }
+}
+
 void PropertyPanel::pushParameterChange(nodo::graph::GraphNode* node, nodo::graph::NodeGraph* graph,
                                         const std::string& param_name,
                                         const nodo::sop::SOPNode::ParameterValue& new_value) {

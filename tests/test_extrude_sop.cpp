@@ -34,7 +34,7 @@ TEST(ExtrudeSOPTest, BasicExtrude) {
   extrude_node.set_distance(1.0);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // Should have more points than input (original + extruded)
@@ -74,7 +74,7 @@ TEST(ExtrudeSOPTest, ExtrudeWithInset) {
   extrude_node.set_parameter("inset", 0.2F);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // Should have more points (inset creates new bottom points + extruded top
@@ -113,7 +113,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
   extrude_node.set_parameter("direction_z", 0.0F);
   extrude_node.set_input_data(0, input);
 
-  auto result = extrude_node.execute();
+  auto result = extrude_node.cook();
   ASSERT_NE(result, nullptr);
 
   // Should still create proper extruded geometry
@@ -123,7 +123,7 @@ TEST(ExtrudeSOPTest, UniformDirection) {
 
 TEST(ExtrudeSOPTest, NoInput) {
   nodo::sop::ExtrudeSOP extrude_node("test_extrude_no_input");
-  auto result = extrude_node.execute();
+  auto result = extrude_node.cook();
 
   // Should return nullptr and set error
   EXPECT_EQ(result, nullptr);

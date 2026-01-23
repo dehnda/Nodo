@@ -1,5 +1,7 @@
 #pragma once
 
+#include "nodo/core/result.hpp"
+
 #include "attribute_set.hpp"
 #include "element_topology.hpp"
 #include "standard_attributes.hpp"
@@ -108,8 +110,8 @@ public:
    * This creates a new container without the specified elements, preserving all
    * attributes.
    */
-  std::optional<GeometryContainer> delete_elements(const std::string& group_name, ElementClass element_class,
-                                                   bool delete_orphaned_points = true) const;
+  Result<std::shared_ptr<GeometryContainer>> delete_elements(const std::string& group_name, ElementClass element_class,
+                                                             bool delete_orphaned_points = true) const;
 
   // ============================================================================
   // Attribute Management - Point Attributes
@@ -117,6 +119,10 @@ public:
 
   bool add_point_attribute(std::string_view name, AttributeType type,
                            InterpolationMode interpolation = InterpolationMode::LINEAR) {
+    // Ensure point_attrs_ has correct element_count before adding attribute
+    if (point_attrs_.size() != point_count()) {
+      point_attrs_.resize(point_count());
+    }
     return point_attrs_.add_attribute(name, type, interpolation);
   }
 
@@ -146,6 +152,10 @@ public:
 
   bool add_vertex_attribute(std::string_view name, AttributeType type,
                             InterpolationMode interpolation = InterpolationMode::LINEAR) {
+    // Ensure vertex_attrs_ has correct element_count before adding attribute
+    if (vertex_attrs_.size() != vertex_count()) {
+      vertex_attrs_.resize(vertex_count());
+    }
     return vertex_attrs_.add_attribute(name, type, interpolation);
   }
 
@@ -175,6 +185,11 @@ public:
 
   bool add_primitive_attribute(std::string_view name, AttributeType type,
                                InterpolationMode interpolation = InterpolationMode::LINEAR) {
+    // Ensure primitive_attrs_ has correct element_count before adding attribute
+    // This handles cases where primitives were added directly to topology
+    if (primitive_attrs_.size() != primitive_count()) {
+      primitive_attrs_.resize(primitive_count());
+    }
     return primitive_attrs_.add_attribute(name, type, interpolation);
   }
 
@@ -390,12 +405,12 @@ private:
   AttributeSet detail_attrs_{ElementClass::DETAIL};
 
   // Helper methods for delete_elements
-  std::optional<GeometryContainer> delete_primitives(const std::unordered_set<size_t>& delete_set,
-                                                     bool delete_orphaned_points) const;
+  Result<std::shared_ptr<GeometryContainer>> delete_primitives(const std::unordered_set<size_t>& delete_set,
+                                                               bool delete_orphaned_points) const;
 
-  std::optional<GeometryContainer> delete_points(const std::unordered_set<size_t>& delete_set) const;
+  Result<std::shared_ptr<GeometryContainer>> delete_points(const std::unordered_set<size_t>& delete_set) const;
 
-  std::optional<GeometryContainer> remove_orphaned_points(const GeometryContainer& input) const;
+  Result<std::shared_ptr<GeometryContainer>> remove_orphaned_points(const GeometryContainer& input) const;
 };
 
 } // namespace nodo::core

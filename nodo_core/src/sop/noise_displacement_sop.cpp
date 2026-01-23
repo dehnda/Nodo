@@ -72,13 +72,13 @@ NoiseDisplacementSOP::NoiseDisplacementSOP(const std::string& name) : SOPNode(na
 
 core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::execute() {
   // Get input geometry using COW handle
-  auto handle = get_input_handle(0);
-  if (!handle.is_valid()) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, true);
+  if (!filter_result.is_success()) {
     return {"No input geometry connected"};
   }
 
   // Get writable access (triggers COW if shared)
-  auto& output = handle.write();
+  auto& output = filter_result.get_value();
 
   // Read parameters from parameter system
   const float amplitude = get_parameter<float>("amplitude", 0.1F);
@@ -89,7 +89,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::exe
   const int seed = get_parameter<int>("seed", 42);
 
   // Apply noise displacement to P attribute
-  auto* p_storage = output.get_point_attribute_typed<core::Vec3f>(attrs::P);
+  auto* p_storage = output->get_point_attribute_typed<core::Vec3f>(attrs::P);
   if (!p_storage) {
     return {"Input geometry missing position attribute"};
   }
@@ -97,7 +97,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::exe
   auto p_span = p_storage->values_writable();
 
   // Create temporary shared_ptr for group checking (no-op deleter)
-  std::shared_ptr<core::GeometryContainer> geo_ptr(&output, [](core::GeometryContainer*) {});
+  std::shared_ptr<core::GeometryContainer> geo_ptr(output.get(), [](core::GeometryContainer*) {});
 
   for (size_t i = 0; i < p_span.size(); ++i) {
     // Skip points not in group filter
@@ -123,7 +123,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> NoiseDisplacementSOP::exe
     p_span[i] = vertex + displacement_direction * (noise_value * amplitude);
   }
 
-  return std::make_shared<core::GeometryContainer>(std::move(output));
+  return output;
 }
 
 float NoiseDisplacementSOP::fractal_noise(float pos_x, float pos_y, float pos_z, int seed,

@@ -57,6 +57,9 @@ public:
   // Refresh the property panel to reflect current parameter values
   void refreshFromCurrentNode();
 
+  // Refresh group selectors with latest available groups from input geometries
+  void refreshGroupSelectors();
+
   // Set undo stack for parameter change commands
   void setUndoStack(nodo::studio::UndoStack* undo_stack) { undo_stack_ = undo_stack; }
 

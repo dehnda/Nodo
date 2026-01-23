@@ -52,8 +52,8 @@ WrangleSOP::WrangleSOP(const std::string& node_name)
 WrangleSOP::~WrangleSOP() = default;
 
 core::Result<std::shared_ptr<core::GeometryContainer>> WrangleSOP::execute() {
-  auto input = get_input_data(0);
-  if (!input) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"WrangleSOP requires input geometry"};
   }
 
@@ -71,26 +71,26 @@ core::Result<std::shared_ptr<core::GeometryContainer>> WrangleSOP::execute() {
   }
 
   // Get writable access (triggers COW if shared)
-  auto& result = handle.write();
+  auto& result = filter_result.get_value();
 
   // Execute based on mode
   RunOver mode = static_cast<RunOver>(run_over_mode);
   switch (mode) {
     case RunOver::POINTS:
-      execute_points_mode(&result);
+      execute_points_mode(result.get());
       break;
     case RunOver::PRIMITIVES:
-      execute_primitives_mode(&result);
+      execute_primitives_mode(result.get());
       break;
     case RunOver::VERTICES:
-      execute_vertices_mode(&result);
+      execute_vertices_mode(result.get());
       break;
     case RunOver::DETAIL:
-      execute_detail_mode(&result);
+      execute_detail_mode(result.get());
       break;
   }
 
-  return std::make_shared<core::GeometryContainer>(std::move(result));
+  return result;
 }
 
 bool WrangleSOP::compile_expression(const std::string& expr_code) {

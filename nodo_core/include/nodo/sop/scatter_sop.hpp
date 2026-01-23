@@ -39,11 +39,12 @@ public:
    * Uses new GeometryContainer attribute system
    */
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
-    // Get input geometry from port 0 (execution engine uses numeric indices)
-    auto input_data = get_input_data(0);
-    if (input_data == nullptr) {
-      return {"No input geometry"};
+    // Apply group filter if specified (keeps only grouped primitives)
+    auto filter_result = apply_group_filter(0, core::ElementClass::PRIMITIVE, false);
+    if (!filter_result.is_success()) {
+      return {"ScatterSOP requires input geometry"};
     }
+    const auto& input_data = filter_result.get_value();
 
     auto* input_geo = input_data->get_point_attribute_typed<core::Vec3f>("P");
     if (input_geo == nullptr || input_geo->size() == 0) {

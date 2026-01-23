@@ -299,8 +299,7 @@ std::optional<NodeGraph> GraphSerializer::deserialize_from_json(const std::strin
                 sop->set_parameter(param_name, param_json["value"].get<bool>());
               } else if ((param_type == "string" || param_type == "code") && param_json["value"].is_string()) {
                 sop->set_parameter(param_name, param_json["value"].get<std::string>());
-              } else if (param_type == "vector3" && param_json["value"].is_array() &&
-                         param_json["value"].size() >= 3) {
+              } else if (param_type == "vector3" && param_json["value"].is_array() && param_json["value"].size() >= 3) {
                 Eigen::Vector3f vec;
                 vec.x() = param_json["value"][0].get<float>();
                 vec.y() = param_json["value"][1].get<float>();
@@ -546,6 +545,8 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
       return "GroupTransfer";
     case NodeType::Blast:
       return "Blast";
+    case NodeType::Delete:
+      return "Delete";
     case NodeType::Sort:
       return "Sort";
     case NodeType::Bend:
@@ -658,6 +659,8 @@ std::optional<NodeType> GraphSerializer::string_to_node_type(const std::string& 
     return NodeType::GroupTransfer;
   if (type_str == "Blast")
     return NodeType::Blast;
+  if (type_str == "Delete")
+    return NodeType::Delete;
   if (type_str == "Sort")
     return NodeType::Sort;
   if (type_str == "Bend")

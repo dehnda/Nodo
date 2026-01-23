@@ -130,12 +130,12 @@ ArraySOP::ArraySOP(const std::string& name) : SOPNode(name, "Array") {
 }
 
 core::Result<std::shared_ptr<core::GeometryContainer>> ArraySOP::execute() {
-  // Get input geometry from "mesh" port
-  auto input_geo = get_input_data("0");
-
-  if (!input_geo) {
-    return {"No input geometry connected"};
+  // Apply group filter if specified (keeps only grouped points)
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
+    return {"ArraySOP requires input geometry"};
   }
+  const auto& input_geo = filter_result.get_value();
 
   const size_t point_count = input_geo->topology().point_count();
 
@@ -168,7 +168,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ArraySOP::execute() {
   }
 
   // Check if operation succeeded
-  if (result->isError()) {
+  if (result->is_error()) {
     return {"Array operation failed"};
   }
 

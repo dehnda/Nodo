@@ -38,20 +38,20 @@ TransformSOP::TransformSOP(const std::string& name) : SOPNode(name, "Transform")
 
 core::Result<std::shared_ptr<core::GeometryContainer>> TransformSOP::execute() {
   // Get input geometry using COW handle (zero-copy for reads)
-  auto handle = get_input_handle(0);
-  if (!handle.is_valid()) {
+  auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+  if (!filter_result.is_success()) {
     return {"No input geometry connected"};
   }
 
   // Get writable access - triggers COW only if shared
-  auto& output_container = handle.write();
+  const auto& output_container = filter_result.get_value();
 
   // Get point attribute for positions
-  if (!output_container.has_point_attribute("P")) {
+  if (!output_container->has_point_attribute("P")) {
     return {"Input geometry has no position attribute"};
   }
 
-  auto* p_attr = output_container.get_point_attribute_typed<Eigen::Vector3f>("P");
+  auto* p_attr = output_container->get_point_attribute_typed<Eigen::Vector3f>("P");
   if (!p_attr) {
     return {"Position attribute has wrong type"};
   }
@@ -97,7 +97,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> TransformSOP::execute() {
   const Eigen::Vector3d translation(translate_x, translate_y, translate_z);
 
   // Create temporary shared_ptr for group checking (doesn't copy, just wraps)
-  std::shared_ptr<core::GeometryContainer> geo_ptr(&output_container, [](core::GeometryContainer*) {
+  std::shared_ptr<core::GeometryContainer> geo_ptr(output_container.get(), [](core::GeometryContainer*) {
     // No-op deleter since we don't own this memory
   });
 
@@ -116,8 +116,8 @@ core::Result<std::shared_ptr<core::GeometryContainer>> TransformSOP::execute() {
   }
 
   // Transform N attribute if present (rotation only, no scale or translation)
-  if (output_container.has_point_attribute("N")) {
-    auto* n_attr = output_container.get_point_attribute_typed<Eigen::Vector3f>("N");
+  if (output_container->has_point_attribute("N")) {
+    auto* n_attr = output_container->get_point_attribute_typed<Eigen::Vector3f>("N");
     if (n_attr) {
       auto normals_span = n_attr->values_writable();
       for (size_t i = 0; i < normals_span.size(); ++i) {
@@ -133,8 +133,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> TransformSOP::execute() {
     }
   }
 
-  // Return as shared_ptr (move handle's data out)
-  return std::make_shared<core::GeometryContainer>(std::move(output_container));
+  return output_container;
 }
 
 Eigen::Matrix4d TransformSOP::build_transform_matrix() const {

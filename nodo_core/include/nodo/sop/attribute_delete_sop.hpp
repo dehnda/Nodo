@@ -45,11 +45,11 @@ public:
 
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
-    auto input = get_input_data(0);
-    if (!input) {
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
       return {"AttributeDelete requires input geometry"};
     }
-
+    const auto& input = filter_result.get_value();
     // Clone input
     auto output = std::make_shared<core::GeometryContainer>(input->clone());
 

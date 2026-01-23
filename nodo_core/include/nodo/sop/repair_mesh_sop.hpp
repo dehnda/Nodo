@@ -59,11 +59,12 @@ public:
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override {
     // Get input
-    auto input_data = get_input_data(0);
-    if (!input_data) {
-      fmt::print("RepairMeshSOP: No input geometry\n");
+    auto filter_result = apply_group_filter(0, core::ElementClass::POINT, false);
+    if (!filter_result.is_success()) {
       return {"No input geometry"};
     }
+
+    const auto& input_data = filter_result.get_value();
 
     // Get parameters
     processing::HoleFillingParams params;
@@ -79,12 +80,9 @@ protected:
     auto result = processing::HoleFilling::fill_holes(*input_data, params);
 
     if (result) {
-      fmt::print("RepairMeshSOP: Repair complete\n");
       return std::make_shared<core::GeometryContainer>(std::move(*result));
-    } else {
-      fmt::print("RepairMeshSOP: Repair failed\n");
-      return {"Repair failed"};
     }
+    return {"Repair failed"};
   }
 };
 

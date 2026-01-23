@@ -18,11 +18,11 @@ Checks: >
   -cppcoreguidelines-owning-memory,
   modernize-*,
   -modernize-return-braced-init-list,
+  - modernize-use-trailing-return-type
   performance-*,
   portability-*,
   readability-*,
   -readability-magic-numbers,
-  -readability-identifier-length,
   -readability-function-cognitive-complexity,
   -readability-else-after-return
 
@@ -30,27 +30,23 @@ WarningsAsErrors: ''
 
 # Naming conventions matching current codebase
 CheckOptions:
-  # Variables and functions: snake_case
+  # Variables, functions, and methods: snake_case
   - key: readability-identifier-naming.VariableCase
     value: lower_case
   - key: readability-identifier-naming.FunctionCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.MethodCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.ClassMethodCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.PrivateMethodCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.ProtectedMethodCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.StaticMethodCase
-    value: camelBack
+    value: lower_case
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
-  - key: readability-identifier-naming.PrivateMemberSuffix
-    value: '_'
-  - key: readability-identifier-naming.ProtectedMemberSuffix
-    value: '_'
 
   # Classes, structs, enums: PascalCase
   - key: readability-identifier-naming.ClassCase

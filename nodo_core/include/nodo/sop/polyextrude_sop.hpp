@@ -65,17 +65,20 @@ private:
   /**
    * @brief Extrude polygon faces (3+ vertices)
    */
-  core::Result<std::shared_ptr<core::GeometryContainer>> extrude_faces();
+  core::Result<std::shared_ptr<core::GeometryContainer>>
+  extrude_faces(const std::shared_ptr<core::GeometryContainer>& input);
 
   /**
    * @brief Extrude edges (2 vertices)
    */
-  core::Result<std::shared_ptr<core::GeometryContainer>> extrude_edges();
+  core::Result<std::shared_ptr<core::GeometryContainer>>
+  extrude_edges(const std::shared_ptr<core::GeometryContainer>& input);
 
   /**
    * @brief Extrude points (create line segments from points)
    */
-  core::Result<std::shared_ptr<core::GeometryContainer>> extrude_points();
+  core::Result<std::shared_ptr<core::GeometryContainer>>
+  extrude_points(const std::shared_ptr<core::GeometryContainer>& input);
 
   float distance_ = 1.0F;
   float inset_ = 0.0F;

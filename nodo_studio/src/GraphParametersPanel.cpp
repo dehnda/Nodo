@@ -309,7 +309,7 @@ bool GraphParametersPanel::eventFilter(QObject* obj, QEvent* event) {
       } else if (mouse_event->button() == Qt::RightButton) {
         // Right click - show context menu
         select_parameter(param_name.toStdString());
-        show_context_menu(mouse_event->globalPos());
+        show_context_menu(mouse_event->globalPosition().toPoint());
         return true;
       }
     }

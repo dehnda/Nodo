@@ -69,34 +69,6 @@ bool create_group(GeometryContainer& container, std::string_view group_name, Ele
       return false;
   }
 
-  if (success) {
-    // Debug: verify the attribute was sized correctly
-    IAttributeStorage* group_attr = nullptr;
-    size_t expected_size = 0;
-
-    switch (element_class) {
-      case ElementClass::POINT:
-        group_attr = container.get_point_attribute(attr_name);
-        expected_size = container.point_count();
-        break;
-      case ElementClass::PRIMITIVE:
-        group_attr = container.get_primitive_attribute(attr_name);
-        expected_size = container.primitive_count();
-        break;
-      case ElementClass::VERTEX:
-        group_attr = container.get_vertex_attribute(attr_name);
-        expected_size = container.vertex_count();
-        break;
-      case ElementClass::DETAIL:
-        break;
-    }
-
-    if (group_attr) {
-      std::cerr << "create_group: Created '" << attr_name << "' with size=" << group_attr->size() << " (expected "
-                << expected_size << ")\n";
-    }
-  }
-
   return success;
 }
 
@@ -176,28 +148,19 @@ bool add_to_group(GeometryContainer& container, std::string_view group_name, Ele
   }
 
   if (!group_attr) {
-    std::cerr << "add_to_group: group_attr is NULL for '" << attr_name << "'\n";
     return false;
   }
 
-  std::cerr << "add_to_group: group_attr size=" << group_attr->size() << ", indices to add=" << element_indices.size()
-            << "\n";
-
   auto* int_storage = dynamic_cast<AttributeStorage<int>*>(group_attr);
   if (!int_storage) {
-    std::cerr << "add_to_group: failed to cast to int storage\n";
     return false;
   }
 
   auto values = int_storage->values_writable();
-  std::cerr << "add_to_group: values size=" << values.size() << "\n";
 
   for (size_t idx : element_indices) {
     if (idx < values.size()) {
       values[idx] = 1;
-      std::cerr << "  Setting group[" << idx << "] = 1\n";
-    } else {
-      std::cerr << "  Skipping idx " << idx << " (out of range)\n";
     }
   }
 
