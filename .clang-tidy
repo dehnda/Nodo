@@ -18,13 +18,14 @@ Checks: >
   -cppcoreguidelines-owning-memory,
   modernize-*,
   -modernize-return-braced-init-list,
-  - modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
   performance-*,
   portability-*,
   readability-*,
   -readability-magic-numbers,
   -readability-function-cognitive-complexity,
-  -readability-else-after-return
+  -readability-else-after-return,
+  -readability-uppercase-literal-suffix
 
 WarningsAsErrors: ''
 
@@ -47,6 +48,14 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
+
+  # Allow single-letter parameter names (for math, loops, coordinates)
+  - key: readability-identifier-length.MinimumParameterNameLength
+    value: '1'
+  - key: readability-identifier-length.MinimumVariableNameLength
+    value: '1'
+  - key: readability-identifier-length.MinimumLoopCounterNameLength
+    value: '1'
 
   # Classes, structs, enums: PascalCase
   - key: readability-identifier-naming.ClassCase
