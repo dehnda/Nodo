@@ -33,7 +33,7 @@ BaseParameterWidget::BaseParameterWidget(const QString& label, const QString& de
                                        "  letter-spacing: 0px; "
                                        "}")
                                    .arg(COLOR_TEXT_PRIMARY));
-  label_widget_->setFixedWidth(110); // Match HTML design
+  label_widget_->setFixedWidth(70);
   label_widget_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
   label_layout->addWidget(label_widget_);

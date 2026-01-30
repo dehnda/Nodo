@@ -309,18 +309,18 @@ public:
    */
   void mark_dirty() { state_ = ExecutionState::DIRTY; }
 
-  auto isNodeClean() const -> bool { return state_ == ExecutionState::CLEAN; }
+  auto is_node_clean() const -> bool { return state_ == ExecutionState::CLEAN; }
 
-  auto getCachedOutput() const -> std::shared_ptr<core::GeometryContainer> {
+  auto get_cached_output() const -> std::shared_ptr<core::GeometryContainer> {
     if (main_output_->is_cache_valid()) {
       return main_output_->get_data();
     }
     return nullptr;
   }
 
-  auto setComputingState() -> void { state_ = ExecutionState::COMPUTING; }
+  auto set_computing_state() -> void { state_ = ExecutionState::COMPUTING; }
 
-  auto preCookInputs() -> void {
+  auto precook_inputs() -> void {
     // Prevent recursive cooking
     if (state_ == ExecutionState::COMPUTING) {
       last_error_ = "Circular dependency detected in node: " + node_name_;
@@ -329,7 +329,7 @@ public:
     }
 
     auto cook_start = std::chrono::steady_clock::now();
-    setComputingState();
+    set_computing_state();
     last_error_.clear();
 
     try {
@@ -344,16 +344,12 @@ public:
     }
   }
 
-  auto getPassthroughResult() const -> std::shared_ptr<core::GeometryContainer> {
-    auto input = get_input_data(0);
-    if (!input || is_pass_through()) {
-      return nullptr;
-    }
-
-    return input;
+  auto get_passt_through_result() const -> std::shared_ptr<core::GeometryContainer> {
+    // Simply return the first input geometry (can be nullptr if no input connected)
+    return get_input_data(0);
   }
 
-  auto executeAndHandleErrors() -> core::Result<std::shared_ptr<core::GeometryContainer>> {
+  auto execute_and_handle_errors() -> core::Result<std::shared_ptr<core::GeometryContainer>> {
     try {
       auto result = execute();
       return result;
@@ -362,7 +358,7 @@ public:
     }
   }
 
-  auto updateCacheAndState(std::shared_ptr<core::GeometryContainer> result) -> void {
+  auto update_cache_and_state(std::shared_ptr<core::GeometryContainer> result) -> void {
     // Update output port cache
     main_output_->set_data(std::move(result));
     state_ = ExecutionState::CLEAN;
@@ -382,14 +378,14 @@ public:
     // }
 
     auto cook_start = std::chrono::steady_clock::now();
-    setComputingState();
+    set_computing_state();
 
     try {
       // Cook input dependencies first
-      preCookInputs();
+      precook_inputs();
 
       if (is_pass_through()) {
-        auto result = getPassthroughResult();
+        auto result = get_passt_through_result();
         // Calulate duration for pass-through case
         cook_duration_ =
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
@@ -397,7 +393,7 @@ public:
       }
 
       // Execute the node-specific computation
-      auto result = executeAndHandleErrors();
+      auto result = execute_and_handle_errors();
 
       if (result.is_error()) {
         set_error(*result.error());
@@ -406,7 +402,7 @@ public:
         return nullptr;
       }
 
-      updateCacheAndState(*result.value());
+      update_cache_and_state(*result.value());
       cook_duration_ =
           std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - cook_start);
       return *result.value();

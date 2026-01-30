@@ -53,21 +53,21 @@ public:
 
     // Subdivision parameters
     register_parameter(define_int_parameter("width_segments", DEFAULT_SEGMENTS)
-                           .label("Width Segments")
+                           .label("Width")
                            .range(1, 100)
                            .category("Subdivisions")
                            .description("Number of subdivisions along width (X)")
                            .build());
 
     register_parameter(define_int_parameter("height_segments", DEFAULT_SEGMENTS)
-                           .label("Height Segments")
+                           .label("Height")
                            .range(1, 100)
                            .category("Subdivisions")
                            .description("Number of subdivisions along height (Y)")
                            .build());
 
     register_parameter(define_int_parameter("depth_segments", DEFAULT_SEGMENTS)
-                           .label("Depth Segments")
+                           .label("Depth")
                            .range(1, 100)
                            .category("Subdivisions")
                            .description("Number of subdivisions along depth (Z)")
