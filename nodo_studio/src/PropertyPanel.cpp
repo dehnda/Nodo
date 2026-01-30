@@ -894,13 +894,19 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
     // Set up final callback for slider release (full update with undo)
     float_widget->setValueChangedCallback([this, node, graph, param_def, float_widget](double new_value) {
       if (float_widget->isExpressionMode()) {
-        // TODO: Implement expression handling for SOPs
-        // For now, just set directly without undo
+        // Store expression string and evaluated value
         if (auto* sop = node->get_sop()) {
+          QString expr = float_widget->getExpression();
+          if (!expr.isEmpty()) {
+            sop->set_parameter_expression(param_def.name, expr.toStdString());
+          }
           sop->set_parameter(param_def.name, static_cast<float>(new_value));
         }
       } else {
-        // Use undo command for regular value changes
+        // Clear expression and use literal value
+        if (auto* sop = node->get_sop()) {
+          sop->clear_parameter_expression(param_def.name);
+        }
         pushParameterChange(node, graph, param_def.name, static_cast<float>(new_value));
       }
 
@@ -918,12 +924,19 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
     // Set up final callback for slider release (full update with undo)
     int_widget->setValueChangedCallback([this, node, graph, param_def, int_widget](int new_value) {
       if (int_widget->isExpressionMode()) {
-        // TODO: Implement expression handling for SOPs
+        // Store expression string and evaluated value
         if (auto* sop = node->get_sop()) {
+          QString expr = int_widget->getExpression();
+          if (!expr.isEmpty()) {
+            sop->set_parameter_expression(param_def.name, expr.toStdString());
+          }
           sop->set_parameter(param_def.name, new_value);
         }
       } else {
-        // Use undo command for regular value changes
+        // Clear expression and use literal value
+        if (auto* sop = node->get_sop()) {
+          sop->clear_parameter_expression(param_def.name);
+        }
         pushParameterChange(node, graph, param_def.name, new_value);
       }
 
@@ -934,12 +947,19 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
       Eigen::Vector3f new_value(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 
       if (vec3_widget->isExpressionMode()) {
-        // TODO: Implement expression handling for SOPs
+        // Store expression string and evaluated value
         if (auto* sop = node->get_sop()) {
+          QString expr = vec3_widget->getExpression();
+          if (!expr.isEmpty()) {
+            sop->set_parameter_expression(param_def.name, expr.toStdString());
+          }
           sop->set_parameter(param_def.name, new_value);
         }
       } else {
-        // Use undo command for regular value changes
+        // Clear expression and use literal value
+        if (auto* sop = node->get_sop()) {
+          sop->clear_parameter_expression(param_def.name);
+        }
         pushParameterChange(node, graph, param_def.name, new_value);
       }
 
@@ -1146,6 +1166,24 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
               : nodo_studio::ParameterWidgetFactory::createWidget(*param_def, content_widget_);
       if (widget != nullptr) {
         widget->setMinimumHeight(36); // Ensure minimum height
+        
+        // M3.3: Restore expression if stored
+        if (auto* sop = node->get_sop()) {
+          if (sop->has_parameter_expression(param_def->name)) {
+            std::string expr = sop->get_parameter_expression(param_def->name);
+            if (auto* float_widget = dynamic_cast<nodo_studio::widgets::FloatWidget*>(widget)) {
+              float_widget->setExpressionMode(true);
+              float_widget->setExpression(QString::fromStdString(expr));
+            } else if (auto* int_widget = dynamic_cast<nodo_studio::widgets::IntWidget*>(widget)) {
+              int_widget->setExpressionMode(true);
+              int_widget->setExpression(QString::fromStdString(expr));
+            } else if (auto* vec3_widget = dynamic_cast<nodo_studio::widgets::Vector3Widget*>(widget)) {
+              vec3_widget->setExpressionMode(true);
+              vec3_widget->setExpression(QString::fromStdString(expr));
+            }
+          }
+        }
+        
         connectParameterWidget(widget, *param_def, node, graph);
         content_layout_->insertWidget(content_layout_->count() - 1, widget);
       }
@@ -1173,6 +1211,23 @@ void PropertyPanel::buildFromNode(nodo::graph::GraphNode* node, nodo::graph::Nod
               ? nodo_studio::ParameterWidgetFactory::createWidget(*param_def, value_it->second, content_widget_)
               : nodo_studio::ParameterWidgetFactory::createWidget(*param_def, content_widget_);
       if (widget != nullptr) {
+        // M3.3: Restore expression if stored
+        if (auto* sop = node->get_sop()) {
+          if (sop->has_parameter_expression(param_def->name)) {
+            std::string expr = sop->get_parameter_expression(param_def->name);
+            if (auto* float_widget = dynamic_cast<nodo_studio::widgets::FloatWidget*>(widget)) {
+              float_widget->setExpressionMode(true);
+              float_widget->setExpression(QString::fromStdString(expr));
+            } else if (auto* int_widget = dynamic_cast<nodo_studio::widgets::IntWidget*>(widget)) {
+              int_widget->setExpressionMode(true);
+              int_widget->setExpression(QString::fromStdString(expr));
+            } else if (auto* vec3_widget = dynamic_cast<nodo_studio::widgets::Vector3Widget*>(widget)) {
+              vec3_widget->setExpressionMode(true);
+              vec3_widget->setExpression(QString::fromStdString(expr));
+            }
+          }
+        }
+        
         connectParameterWidget(widget, *param_def, node, graph);
         content_layout_->insertWidget(content_layout_->count() - 1, widget);
       }

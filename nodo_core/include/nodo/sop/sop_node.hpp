@@ -45,6 +45,7 @@ public:
   // Parameter types for node configuration
   using ParameterValue = std::variant<int, float, double, bool, std::string, Eigen::Vector3f>;
   using ParameterMap = std::unordered_map<std::string, ParameterValue>;
+  using ExpressionMap = std::unordered_map<std::string, std::string>; // param_name -> expression_string
 
   /**
    * @brief Parameter definition with UI metadata (schema)
@@ -187,6 +188,9 @@ private:
   // Parameter schema (definitions with metadata)
   std::vector<ParameterDefinition> parameter_definitions_;
 
+  // M3.3: Expression strings for parameters (param_name -> expression_string)
+  ExpressionMap parameter_expressions_;
+
 protected:
   // Port management
   PortCollection input_ports_;
@@ -303,6 +307,43 @@ public:
    * @brief Get parameter map (current values)
    */
   const ParameterMap& get_parameters() const { return parameters_; }
+
+  /**
+   * @brief Set parameter expression (M3.3 expression support)
+   */
+  void set_parameter_expression(const std::string& name, const std::string& expression) {
+    parameter_expressions_[name] = expression;
+    mark_dirty();
+  }
+
+  /**
+   * @brief Get parameter expression (M3.3 expression support)
+   */
+  std::string get_parameter_expression(const std::string& name) const {
+    auto it = parameter_expressions_.find(name);
+    return (it != parameter_expressions_.end()) ? it->second : "";
+  }
+
+  /**
+   * @brief Check if parameter has expression (M3.3 expression support)
+   */
+  bool has_parameter_expression(const std::string& name) const {
+    auto it = parameter_expressions_.find(name);
+    return it != parameter_expressions_.end() && !it->second.empty();
+  }
+
+  /**
+   * @brief Clear parameter expression and return to literal mode
+   */
+  void clear_parameter_expression(const std::string& name) {
+    parameter_expressions_.erase(name);
+    mark_dirty();
+  }
+
+  /**
+   * @brief Get all parameter expressions
+   */
+  const ExpressionMap& get_parameter_expressions() const { return parameter_expressions_; }
 
   /**
    * @brief Mark node as dirty (needs recomputation)

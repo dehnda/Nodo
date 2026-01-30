@@ -101,6 +101,9 @@ bool ExecutionEngine::execute_graph(NodeGraph& graph) {
 
     // TODO: Implement expression resolution for SOPNode directly
     // For now, SOPs use their default parameter values
+    
+    // M3.3: Evaluate parameter expressions before execution
+    evaluate_parameter_expressions(sop, graph, node_id);
 
     // Transfer pass-through flag from GraphNode to SOP
     sop->set_pass_through(node->is_pass_through());
@@ -246,6 +249,107 @@ void ExecutionEngine::notify_error(const std::string& error, int node_id) {
   if (host_interface_ != nullptr) {
     std::string error_msg = "Node " + std::to_string(node_id) + ": " + error;
     host_interface_->log("error", error_msg);
+  }
+}
+
+void ExecutionEngine::evaluate_parameter_expressions(sop::SOPNode* sop, NodeGraph& graph, int node_id) {
+  if (!sop) {
+    return;
+  }
+
+  // Get parameter expressions
+  const auto& expressions = sop->get_parameter_expressions();
+  if (expressions.empty()) {
+    return; // No expressions to evaluate
+  }
+
+  // Get current parameter definitions to know types
+  const auto& param_defs = sop->get_parameter_definitions();
+  const auto& current_params = sop->get_parameters();
+
+  // Create resolver with node context for ch() and $ references
+  ParameterExpressionResolver resolver(graph, nullptr, node_id);
+
+  // Evaluate each expression and update the parameter value
+  for (const auto& [param_name, expression] : expressions) {
+    if (expression.empty()) {
+      continue;
+    }
+
+    // Find parameter definition to know the type
+    auto def_it = std::find_if(param_defs.begin(), param_defs.end(),
+                                [&param_name](const sop::SOPNode::ParameterDefinition& def) {
+                                  return def.name == param_name;
+                                });
+
+    if (def_it == param_defs.end()) {
+      continue; // Parameter not found in definitions
+    }
+
+    // Create a resolver that can access same-node parameters
+    std::vector<graph::NodeParameter> node_params;
+    for (const auto& [name, value] : current_params) {
+      graph::NodeParameter np(name, 0); // Type will be set below
+      
+      if (std::holds_alternative<int>(value)) {
+        np.type = graph::NodeParameter::Type::Int;
+        np.int_value = std::get<int>(value);
+      } else if (std::holds_alternative<float>(value)) {
+        np.type = graph::NodeParameter::Type::Float;
+        np.float_value = std::get<float>(value);
+      } else if (std::holds_alternative<double>(value)) {
+        np.type = graph::NodeParameter::Type::Float;
+        np.float_value = static_cast<float>(std::get<double>(value));
+      } else if (std::holds_alternative<bool>(value)) {
+        np.type = graph::NodeParameter::Type::Bool;
+        np.bool_value = std::get<bool>(value);
+      } else if (std::holds_alternative<std::string>(value)) {
+        np.type = graph::NodeParameter::Type::String;
+        np.string_value = std::get<std::string>(value);
+      } else if (std::holds_alternative<Eigen::Vector3f>(value)) {
+        np.type = graph::NodeParameter::Type::Vector3;
+        const auto& vec = std::get<Eigen::Vector3f>(value);
+        np.vector3_value = {vec.x(), vec.y(), vec.z()};
+      }
+      
+      node_params.push_back(np);
+    }
+
+    ParameterExpressionResolver param_resolver(graph, &node_params, node_id);
+
+    // Evaluate expression based on parameter type
+    switch (def_it->type) {
+      case sop::SOPNode::ParameterDefinition::Type::Float: {
+        auto result = param_resolver.resolve_float(expression);
+        if (result.has_value()) {
+          sop->set_parameter(param_name, result.value());
+        }
+        break;
+      }
+
+      case sop::SOPNode::ParameterDefinition::Type::Int: {
+        auto result = param_resolver.resolve_int(expression);
+        if (result.has_value()) {
+          sop->set_parameter(param_name, result.value());
+        }
+        break;
+      }
+
+      case sop::SOPNode::ParameterDefinition::Type::Vector3: {
+        // For now, evaluate as float and apply to all components
+        // TODO: Support per-component expressions
+        auto result = param_resolver.resolve_float(expression);
+        if (result.has_value()) {
+          Eigen::Vector3f vec(result.value(), result.value(), result.value());
+          sop->set_parameter(param_name, vec);
+        }
+        break;
+      }
+
+      default:
+        // Other types don't support expressions yet
+        break;
+    }
   }
 }
 

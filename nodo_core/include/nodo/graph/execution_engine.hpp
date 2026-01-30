@@ -116,8 +116,12 @@ private:
   void notify_error(const std::string& error, int node_id);
 
   /**
-   * @brief Transfer parameters from GraphNode to SOPNode
+   * @brief Evaluate parameter expressions and update SOP parameter values
+   * @param sop The SOPNode to evaluate expressions for
+   * @param graph The node graph (for resolving references)
+   * @param node_id The node ID (for context)
    */
+  void evaluate_parameter_expressions(sop::SOPNode* sop, NodeGraph& graph, int node_id);
 };
 
 } // namespace nodo::graph
