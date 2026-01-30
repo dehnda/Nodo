@@ -29,10 +29,15 @@ void SceneFileManager::newScene() {
 bool SceneFileManager::openScene() {
   using nodo::graph::GraphSerializer;
 
-  QString file_path = QFileDialog::getOpenFileName(parent_, "Open Node Graph", "", "Nodo Graph (*.nfg);;All Files (*)");
-
+  QString file_path = current_file_path_;
+  
+  // If no file path is set, prompt the user to select one
   if (file_path.isEmpty()) {
-    return false; // User cancelled
+    file_path = QFileDialog::getOpenFileName(parent_, "Open Node Graph", "", "Nodo Graph (*.nfg);;All Files (*)");
+    
+    if (file_path.isEmpty()) {
+      return false; // User cancelled
+    }
   }
 
   auto loaded_graph = GraphSerializer::load_from_file(file_path.toStdString());
