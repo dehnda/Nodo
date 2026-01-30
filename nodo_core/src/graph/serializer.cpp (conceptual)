@@ -1,0 +1,3 @@
+// 1. It iterates through parameter_definitions_ (from SOPNode base)
+// 2. It reads current values from parameters_ map
+// 3. It serializes based on the ParameterDefinition::Type

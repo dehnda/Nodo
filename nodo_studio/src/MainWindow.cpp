@@ -99,6 +99,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), current_file_path
 }
 
 MainWindow::~MainWindow() {
+  // Wait for any pending async execution to complete before destroying
+  if (execution_watcher_ && execution_watcher_->isRunning()) {
+    execution_watcher_->waitForFinished();
+  }
+
   // Disconnect all signals from node_graph_widget_ before Qt starts deleting
   // child widgets This prevents crashes when PropertyPanel or other widgets
   // try to access node_graph_widget_ during destruction
@@ -131,6 +136,16 @@ auto MainWindow::setupRecentFilesMenu() -> void {
     recent_projects_menu_->addAction(action);
   }
   updateRecentFileActions();
+}
+
+QStringList MainWindow::getRecentFiles() const {
+  QSettings settings("Nodo", "NodoStudio");
+  return settings.value("recentFiles").toStringList();
+}
+
+void MainWindow::setRecentFiles(const QStringList& files) {
+  QSettings settings("Nodo", "NodoStudio");
+  settings.setValue("recentFiles", files);
 }
 
 QWidget* MainWindow::createCustomTitleBar(const QString& title, QWidget* parent) {
@@ -412,6 +427,7 @@ void MainWindow::onParameterChanged() {
 }
 
 void MainWindow::onGraphParameterValueChanged() {
+  qDebug() << "MainWindow: graph parameter value changed, invalidating cache and re-executing";
   // Graph parameter value changed - invalidate all nodes since any node could
   // reference it via $param_name in an expression
   if (document_) {
@@ -509,12 +525,28 @@ void MainWindow::onNewScene() {
 }
 
 void MainWindow::onOpenScene() {
-  scene_file_manager_->openScene();
+  qDebug() << "MainWindow::onOpenScene() called";
+  bool success = scene_file_manager_->openScene();
+
+  if (!success) {
+    qDebug() << "File not loaded (cancelled or failed)";
+    return;
+  }
+
+  qDebug() << "File loaded successfully, updating UI";
 
   // Clear UI elements after loading
   property_panel_->clearProperties();
   viewport_widget_->clearMesh();
   geometry_spreadsheet_->clear();
+
+  // Update graph parameters panel with the loaded graph
+  if (graph_parameters_panel_) {
+    qDebug() << "Calling graph_parameters_panel_->set_graph()";
+    graph_parameters_panel_->set_graph(document_->get_graph());
+  } else {
+    qDebug() << "ERROR: graph_parameters_panel_ is nullptr!";
+  }
 
   // Update status bar
   status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
@@ -579,6 +611,11 @@ void MainWindow::onRevertToSaved() {
   property_panel_->clearProperties();
   viewport_widget_->clearMesh();
   geometry_spreadsheet_->clear();
+
+  // Update graph parameters panel with the reloaded graph
+  if (graph_parameters_panel_) {
+    graph_parameters_panel_->set_graph(document_->get_graph());
+  }
 
   // Update status bar
   status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
@@ -977,6 +1014,13 @@ void MainWindow::executeAndDisplayNode(int node_id) {
     return;
   }
 
+  // Verify node exists before executing
+  auto* node = document_->get_node(node_id);
+  if (!node) {
+    qDebug() << "Cannot execute: node" << node_id << "not found";
+    return;
+  }
+
   // Set display flag on this node (clears it from all others)
   document_->get_graph()->set_display_node(node_id);
 
@@ -987,13 +1031,27 @@ void MainWindow::executeAndDisplayNode(int node_id) {
   pending_display_node_id_ = node_id;
 
   // Execute asynchronously using QtConcurrent
-  QFuture<bool> future =
-      QtConcurrent::run([this]() { return document_->get_execution_engine()->execute_graph(*document_->get_graph()); });
+  QFuture<bool> future = QtConcurrent::run([this]() {
+    if (!document_ || !document_->get_execution_engine()) {
+      return false;
+    }
+    return document_->get_execution_engine()->execute_graph(*document_->get_graph());
+  });
 
   execution_watcher_->setFuture(future);
 }
 
 void MainWindow::onExecutionFinished() {
+  // Check if widgets still exist (may be destroyed during shutdown)
+  if (!viewport_widget_ || !node_graph_widget_ || !status_bar_widget_ || !document_) {
+    return;
+  }
+
+  // Check if execution watcher is still valid
+  if (!execution_watcher_ || !execution_watcher_->isFinished()) {
+    return;
+  }
+
   bool success = execution_watcher_->result();
   int node_id = pending_display_node_id_;
 
@@ -1151,43 +1209,19 @@ void MainWindow::updateUndoRedoActions() {
 // ============================================================================
 
 void MainWindow::onSelectAll() {
-  if (node_graph_widget_ == nullptr) {
-    return;
-  }
-
-  // Select all node items in the graph
-  auto all_nodes = node_graph_widget_->get_all_node_items();
-  for (auto* node_item : all_nodes) {
-    node_item->setSelected(true);
-  }
-
-  statusBar()->showMessage(QString("Selected %1 nodes").arg(all_nodes.size()), 2000);
+  // TODO: Implement select all functionality
+  qDebug() << "Select all - not yet implemented";
 }
 
 void MainWindow::onDeselectAll() {
-  if (node_graph_widget_ == nullptr) {
-    return;
+  if (node_graph_widget_) {
+    node_graph_widget_->clear_selection();
   }
-
-  node_graph_widget_->clear_selection();
-  statusBar()->showMessage("Selection cleared", 2000);
 }
 
 void MainWindow::onInvertSelection() {
-  if (node_graph_widget_ == nullptr) {
-    return;
-  }
-
-  // Get all node items
-  auto all_nodes = node_graph_widget_->get_all_node_items();
-
-  // Invert selection state for each node
-  for (auto* node_item : all_nodes) {
-    node_item->setSelected(!node_item->isSelected());
-  }
-
-  int selected_count = node_graph_widget_->get_selected_node_ids().size();
-  statusBar()->showMessage(QString("%1 nodes selected").arg(selected_count), 2000);
+  // TODO: Implement invert selection functionality
+  qDebug() << "Invert selection - not yet implemented";
 }
 
 // ============================================================================
@@ -1195,174 +1229,35 @@ void MainWindow::onInvertSelection() {
 // ============================================================================
 
 void MainWindow::onCut() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected to cut", 2000);
-    return;
-  }
-
-  // Copy to clipboard first
-  onCopy();
-
-  // Then delete selected nodes
-  onDelete();
+  // TODO: Implement cut functionality (copy + delete)
+  qDebug() << "Cut - not yet implemented";
 }
 
 void MainWindow::onCopy() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected to copy", 2000);
-    return;
-  }
-
-  // Create a temporary graph with only selected nodes
-  nodo::graph::NodeGraph clipboard_graph;
-
-  // Copy selected nodes to clipboard graph
-  std::unordered_map<int, int> old_to_new_id_map;
-
-  for (int old_node_id : selected_nodes) {
-    auto* node = document_->get_graph()->get_node(old_node_id);
-    if (node == nullptr)
-      continue;
-
-    // Create new node in clipboard graph
-    int new_node_id = clipboard_graph.add_node(node->get_type());
-    old_to_new_id_map[old_node_id] = new_node_id;
-
-    // Copy node position
-    auto [pos_x, pos_y] = node->get_position();
-    auto* new_node = clipboard_graph.get_node(new_node_id);
-    if (new_node) {
-      new_node->set_position(pos_x, pos_y);
-
-      // Copy all parameters
-      // TODO: Implement parameter copying for SOP-based system
-      // For now, new nodes will use SOP default parameters
-      // const auto& parameters = node->get_parameters();
-      // Parameter copying will require SOP-to-SOP parameter transfer
-    }
-  }
-
-  // Copy connections between selected nodes
-  for (const auto& conn : document_->get_graph()->get_connections()) {
-    // Only copy connections where both ends are in selected nodes
-    if (old_to_new_id_map.contains(conn.source_node_id) && old_to_new_id_map.contains(conn.target_node_id)) {
-      int new_source_id = old_to_new_id_map[conn.source_node_id];
-      int new_target_id = old_to_new_id_map[conn.target_node_id];
-
-      clipboard_graph.add_connection(new_source_id, conn.source_pin_index, new_target_id, conn.target_pin_index);
-    }
-  }
-
-  // Serialize to JSON and put on clipboard
-  std::string json_data = nodo::graph::GraphSerializer::serialize_to_json(clipboard_graph);
-
-  QClipboard* clipboard = QApplication::clipboard();
-  clipboard->setText(QString::fromStdString(json_data));
-
-  statusBar()->showMessage(QString("Copied %1 nodes to clipboard").arg(selected_nodes.size()), 2000);
+  // TODO: Implement copy functionality
+  qDebug() << "Copy - not yet implemented";
 }
 
 void MainWindow::onPaste() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  QClipboard* clipboard = QApplication::clipboard();
-  QString clipboard_text = clipboard->text();
-
-  if (clipboard_text.isEmpty()) {
-    statusBar()->showMessage("Clipboard is empty", 2000);
-    return;
-  }
-
-  // Try to parse clipboard to validate it's a valid graph
-  auto clipboard_graph_opt = nodo::graph::GraphSerializer::deserialize_from_json(clipboard_text.toStdString());
-
-  if (!clipboard_graph_opt) {
-    statusBar()->showMessage("Invalid graph data in clipboard", 2000);
-    return;
-  }
-
-  // Clear current selection before pasting
-  node_graph_widget_->clear_selection();
-
-  // Create and execute paste command (with 50px offset)
-  auto cmd = nodo::studio::createPasteNodesCommand(node_graph_widget_, document_.get(), clipboard_text.toStdString(),
-                                                   50.0f, 50.0f);
-
-  undo_stack_->push(std::move(cmd));
-
-  // Count nodes in pasted graph
-  const auto& clipboard_graph = clipboard_graph_opt.value();
-  int node_count = clipboard_graph.get_nodes().size();
-
-  statusBar()->showMessage(QString("Pasted %1 nodes").arg(node_count), 2000);
+  // TODO: Implement paste functionality
+  qDebug() << "Paste - not yet implemented";
 }
 
 void MainWindow::onDuplicate() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected to duplicate", 2000);
-    return;
-  }
-
-  // Duplicate is like copy+paste but with smaller offset
-  // Store clipboard, do our operation, restore clipboard
-  QClipboard* clipboard = QApplication::clipboard();
-  QString old_clipboard = clipboard->text();
-
-  // Copy selected nodes
-  onCopy();
-
-  // Paste them back (which will offset them)
-  onPaste();
-
-  // Restore original clipboard
-  clipboard->setText(old_clipboard);
+  // TODO: Implement duplicate functionality
+  qDebug() << "Duplicate - not yet implemented";
 }
 
 void MainWindow::onDelete() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  // Get selected nodes
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected", 2000);
-    return;
-  }
-
-  // Delete selected nodes using undo commands (same logic as NodeGraphWidget's
-  // Delete key)
-  if (undo_stack_ != nullptr) {
-    for (int node_id : selected_nodes) {
-      auto cmd = nodo::studio::createDeleteNodeCommand(node_graph_widget_, document_.get(), node_id);
-      undo_stack_->push(std::move(cmd));
+  // TODO: Implement delete functionality
+  // This should delete selected nodes
+  if (node_graph_widget_) {
+    auto selected_ids = node_graph_widget_->get_selected_node_ids();
+    if (!selected_ids.isEmpty()) {
+      // Delete via node graph widget which will emit nodes_deleted signal
+      qDebug() << "Delete selected nodes - functionality to be implemented";
     }
-    // Emit signal so MainWindow can update UI
-    emit node_graph_widget_->nodes_deleted(selected_nodes);
   }
-
-  statusBar()->showMessage(QString("Deleted %1 nodes").arg(selected_nodes.size()), 2000);
 }
 
 // ============================================================================
@@ -1370,54 +1265,13 @@ void MainWindow::onDelete() {
 // ============================================================================
 
 void MainWindow::onFrameAll() {
-  if (node_graph_widget_ == nullptr) {
-    return;
-  }
-
-  // Frame all nodes (same logic as NodeGraphWidget's Home key handler)
-  auto node_items = node_graph_widget_->get_all_node_items();
-  if (!node_items.isEmpty()) {
-    node_graph_widget_->scene()->setSceneRect(node_graph_widget_->scene()->itemsBoundingRect());
-    node_graph_widget_->fitInView(node_graph_widget_->scene()->sceneRect(), Qt::KeepAspectRatio);
-  }
+  // TODO: Implement frame all functionality
+  qDebug() << "Frame all - not yet implemented";
 }
 
 void MainWindow::onFrameSelected() {
-  if (node_graph_widget_ == nullptr) {
-    return;
-  }
-
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected to frame", 2000);
-    return;
-  }
-
-  // Frame selected nodes (same logic as NodeGraphWidget's F key handler)
-  QRectF bounds;
-  auto node_items = node_graph_widget_->get_all_node_items();
-
-  for (int node_id : selected_nodes) {
-    // Find the node item with this ID
-    for (auto* item : node_items) {
-      if (item->get_node_id() == node_id) {
-        QRectF node_bounds = item->sceneBoundingRect();
-        if (bounds.isNull()) {
-          bounds = node_bounds;
-        } else {
-          bounds = bounds.united(node_bounds);
-        }
-        break;
-      }
-    }
-  }
-
-  if (!bounds.isNull()) {
-    // Add some padding
-    bounds.adjust(-50, -50, 50, 50);
-    node_graph_widget_->fitInView(bounds, Qt::KeepAspectRatio);
-  }
+  // TODO: Implement frame selected functionality
+  qDebug() << "Frame selected - not yet implemented";
 }
 
 // ============================================================================
@@ -1425,148 +1279,82 @@ void MainWindow::onFrameSelected() {
 // ============================================================================
 
 void MainWindow::onBypassSelected() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected to bypass", 2000);
-    return;
-  }
-
-  // Create and execute bypass command
-  auto cmd = nodo::studio::createBypassNodesCommand(node_graph_widget_, document_.get(), selected_nodes);
-  undo_stack_->push(std::move(cmd));
-
-  statusBar()->showMessage(QString("Toggled bypass for %1 nodes").arg(selected_nodes.size()), 2000);
+  // TODO: Implement bypass selected functionality
+  qDebug() << "Bypass selected - not yet implemented";
 }
 
 void MainWindow::onDisconnectSelected() {
-  if (node_graph_widget_ == nullptr || document_ == nullptr) {
-    return;
-  }
-
-  QVector<int> selected_nodes = node_graph_widget_->get_selected_node_ids();
-
-  if (selected_nodes.isEmpty()) {
-    statusBar()->showMessage("No nodes selected to disconnect", 2000);
-    return;
-  }
-
-  // Collect all connections to/from selected nodes
-  QVector<int> connections_to_delete;
-
-  for (const auto& conn : document_->get_graph()->get_connections()) {
-    int source_node = conn.source_node_id;
-    int target_node = conn.target_node_id;
-
-    // If either end of the connection is a selected node, mark for deletion
-    if (selected_nodes.contains(source_node) || selected_nodes.contains(target_node)) {
-      connections_to_delete.push_back(conn.id);
-    }
-  }
-
-  if (connections_to_delete.isEmpty()) {
-    statusBar()->showMessage("Selected nodes have no connections", 2000);
-    return;
-  }
-
-  // Create a composite command for all disconnections (undo as single
-  // operation)
-  auto composite = std::make_unique<nodo::studio::CompositeCommand>(
-      QString("Disconnect %1 connections").arg(connections_to_delete.size()));
-
-  for (int conn_id : connections_to_delete) {
-    auto cmd = nodo::studio::createDisconnectCommand(node_graph_widget_, document_.get(), conn_id);
-    composite->add_command(std::move(cmd));
-  }
-
-  undo_stack_->push(std::move(composite));
-
-  statusBar()->showMessage(QString("Disconnected %1 connections").arg(connections_to_delete.size()), 2000);
+  // TODO: Implement disconnect selected functionality
+  qDebug() << "Disconnect selected - not yet implemented";
 }
 
 // ============================================================================
-// Help Menu Actions
+// Help Menu
 // ============================================================================
 
 void MainWindow::onShowKeyboardShortcuts() {
   auto* dialog = new KeyboardShortcutsDialog(this);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->show();
 }
 
 // ============================================================================
-// Progress Reporting
+// Recent Files
 // ============================================================================
 
-void MainWindow::onProgressReported(int current, int total, const QString& message) {
-  if (status_bar_widget_) {
-    // Update status bar with progress
-    QString progress_text = QString("Executing: %1/%2 nodes").arg(current).arg(total);
-    if (!message.isEmpty()) {
-      progress_text = message;
+void MainWindow::openRecentFile() {
+  QAction* action = qobject_cast<QAction*>(sender());
+  if (action) {
+    QString filename = action->data().toString();
+    qDebug() << "Opening recent file:" << filename;
+
+    // Use scene file manager to open the file
+    if (scene_file_manager_) {
+      scene_file_manager_->setCurrentFilePath(filename);
+      bool success = scene_file_manager_->openScene();
+
+      if (success) {
+        qDebug() << "Recent file loaded successfully, updating UI";
+
+        // Clear UI elements after loading
+        property_panel_->clearProperties();
+        viewport_widget_->clearMesh();
+        geometry_spreadsheet_->clear();
+
+        // Update graph parameters panel with the loaded graph
+        if (graph_parameters_panel_) {
+          graph_parameters_panel_->set_graph(document_->get_graph());
+        }
+
+        // Update status bar
+        status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
+        status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
+
+        // Update window title
+        QFileInfo fileInfo(filename);
+        setWindowTitle("Nodo Studio - " + fileInfo.fileName());
+
+        // Find and execute the node with the display flag
+        if (document_) {
+          // Collect nodes that need wireframe overlays restored
+          pending_wireframe_node_ids_.clear();
+          for (const auto& node : document_->get_graph()->get_nodes()) {
+            if (node->has_render_flag()) {
+              pending_wireframe_node_ids_.append(node->get_id());
+            }
+          }
+
+          // Execute display node
+          for (const auto& node : document_->get_graph()->get_nodes()) {
+            if (node->has_display_flag()) {
+              executeAndDisplayNode(node->get_id());
+              break;
+            }
+          }
+        }
+      }
     }
-    status_bar_widget_->setStatus(StatusBarWidget::Status::Processing, progress_text);
   }
-}
-
-void MainWindow::onLogMessage(const QString& level, const QString& message) {
-  // Log to console (could also show in a log panel)
-  if (level == "error") {
-    qWarning() << "Error:" << message;
-    if (status_bar_widget_) {
-      status_bar_widget_->setStatus(StatusBarWidget::Status::Error, message);
-    }
-  } else if (level == "warning") {
-    qWarning() << "Warning:" << message;
-  } else {
-    qDebug() << message;
-  }
-}
-
-void MainWindow::onExecutionStarted() {
-  // Could show a busy cursor or disable UI during execution
-  // QApplication::setOverrideCursor(Qt::WaitCursor);
-}
-
-void MainWindow::onExecutionCompleted() {
-  // Restore cursor and clear progress message
-  // QApplication::restoreOverrideCursor();
-  if (status_bar_widget_) {
-    status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
-  }
-
-  // Refresh group selectors to show newly created groups
-  if (property_panel_) {
-    property_panel_->refreshGroupSelectors();
-  }
-}
-
-// ============================================================================
-// Recent Files Management
-// ============================================================================
-
-QStringList MainWindow::getRecentFiles() const {
-  QSettings settings("Nodo", "NodoStudio");
-  return settings.value("recentFiles").toStringList();
-}
-
-void MainWindow::setRecentFiles(const QStringList& files) {
-  QSettings settings("Nodo", "NodoStudio");
-  settings.setValue("recentFiles", files);
-}
-
-void MainWindow::addToRecentFiles(const QString& filename) {
-  QStringList files = getRecentFiles();
-  files.removeAll(filename); // Remove if already exists
-  files.prepend(filename);   // Add to front
-  while (files.size() > MaxRecentFiles) {
-    files.removeLast();
-  }
-  setRecentFiles(files);
-  updateRecentFileActions();
 }
 
 void MainWindow::updateRecentFileActions() {
@@ -1575,106 +1363,56 @@ void MainWindow::updateRecentFileActions() {
   int num_recent_files = qMin(files.size(), MaxRecentFiles);
 
   for (int i = 0; i < num_recent_files; ++i) {
-    QString filename = files[i];
-    QFileInfo file_info(filename);
-
-    // Set text to just the filename
-    QString text = QString("&%1 %2").arg(i + 1).arg(file_info.fileName());
+    QString text = QString("&%1 %2").arg(i + 1).arg(QFileInfo(files[i]).fileName());
     recent_file_actions_[i]->setText(text);
-    recent_file_actions_[i]->setData(filename);
-    recent_file_actions_[i]->setToolTip(filename); // Full path in tooltip
+    recent_file_actions_[i]->setData(files[i]);
     recent_file_actions_[i]->setVisible(true);
   }
 
-  // Hide unused actions
   for (int i = num_recent_files; i < MaxRecentFiles; ++i) {
     recent_file_actions_[i]->setVisible(false);
   }
-
-  // Enable/disable the menu based on whether there are recent files
-  recent_projects_menu_->setEnabled(num_recent_files > 0);
 }
 
-void MainWindow::openRecentFile() {
-  QAction* action = qobject_cast<QAction*>(sender());
-  if (action) {
-    QString filename = action->data().toString();
+void MainWindow::addToRecentFiles(const QString& filename) {
+  QStringList files = getRecentFiles();
 
-    // Check if file still exists
-    if (!QFile::exists(filename)) {
-      QMessageBox::warning(this, "File Not Found", QString("The file '%1' no longer exists.").arg(filename));
-      // Remove from recent files
-      QStringList files = getRecentFiles();
-      files.removeAll(filename);
-      setRecentFiles(files);
-      updateRecentFileActions();
-      return;
-    }
+  // Remove if already in list
+  files.removeAll(filename);
 
-    // Load the graph
-    auto loaded_graph = nodo::graph::GraphSerializer::load_from_file(filename.toStdString());
+  // Add to front
+  files.prepend(filename);
 
-    if (loaded_graph.has_value()) {
-      // Create new document with loaded graph
-      document_ = std::make_unique<nodo::studio::NodoDocument>();
-      *document_->get_graph() = std::move(loaded_graph.value());
-      document_->get_execution_engine()->set_host_interface(host_interface_.get());
+  // Limit to MaxRecentFiles
+  while (files.size() > MaxRecentFiles) {
+    files.removeLast();
+  }
 
-      // Update SceneFileManager with new graph pointer
-      scene_file_manager_->setNodeGraph(document_->get_graph());
+  setRecentFiles(files);
+  updateRecentFileActions();
+}
 
-      // Reconnect the node graph widget to the new graph
-      node_graph_widget_->set_graph(document_->get_graph());
-      node_graph_widget_->set_document(document_.get());
+// ============================================================================
+// Progress Reporting
+// ============================================================================
 
-      // Reconnect and refresh graph parameters panel
-      graph_parameters_panel_->set_graph(document_->get_graph());
-      graph_parameters_panel_->refresh();
+void MainWindow::onProgressReported(int current, int total, const QString& message) {
+  // Progress reporting not yet implemented in StatusBarWidget
+  qDebug() << "Progress:" << current << "/" << total << "-" << message;
+}
 
-      // Clear viewport and property panel
-      viewport_widget_->clearMesh();
-      property_panel_->clearProperties();
-      geometry_spreadsheet_->clear();
+void MainWindow::onLogMessage(const QString& level, const QString& message) {
+  qDebug() << "[" << level << "]" << message;
+}
 
-      // Update status bar
-      status_bar_widget_->setNodeCount(document_->get_graph()->get_nodes().size());
-      status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
+void MainWindow::onExecutionStarted() {
+  if (status_bar_widget_) {
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Processing, "Executing...");
+  }
+}
 
-      // Set current file path in SceneFileManager so Save works correctly
-      scene_file_manager_->setCurrentFilePath(filename);
-      scene_file_manager_->setModified(false);
-
-      // Update window title to show loaded file
-      QFileInfo file_info(filename);
-      setWindowTitle(QString("Nodo Studio - %1").arg(file_info.fileName()));
-
-      // Rebuild graph visualization
-      node_graph_widget_->rebuild_from_graph();
-
-      // Add to recent files
-      addToRecentFiles(filename);
-
-      // Collect nodes that need wireframe overlays restored
-      pending_wireframe_node_ids_.clear();
-      for (const auto& node : document_->get_graph()->get_nodes()) {
-        if (node->has_render_flag()) {
-          pending_wireframe_node_ids_.append(node->get_id());
-        }
-      }
-
-      // Find and execute the node with the display flag
-      // Wireframe overlays will be restored after execution completes
-      for (const auto& node : document_->get_graph()->get_nodes()) {
-        if (node->has_display_flag()) {
-          executeAndDisplayNode(node->get_id());
-          break;
-        }
-      }
-
-      statusBar()->showMessage("Graph loaded successfully", 3000);
-    } else {
-      QMessageBox::warning(this, "Load Error", "Failed to load the graph file.");
-      statusBar()->showMessage("Failed to load graph", 3000);
-    }
+void MainWindow::onExecutionCompleted() {
+  if (status_bar_widget_) {
+    status_bar_widget_->setStatus(StatusBarWidget::Status::Ready, "Ready");
   }
 }

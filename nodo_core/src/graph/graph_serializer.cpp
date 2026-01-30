@@ -55,6 +55,14 @@ std::string GraphSerializer::serialize_to_json(const NodeGraph& graph) {
           param_json["category"] = def.category;
           param_json["ui_hint"] = def.ui_hint;
 
+          // Serialize expression if present (M3.3)
+          if (node->get_sop()) {
+            std::string expr = node->get_sop()->get_parameter_expression(def.name);
+            if (!expr.empty()) {
+              param_json["expression"] = expr;
+            }
+          }
+
           // Find current value
           auto value_it = param_values.find(def.name);
           if (value_it != param_values.end()) {
@@ -290,6 +298,14 @@ std::optional<NodeGraph> GraphSerializer::deserialize_from_json(const std::strin
               std::string param_name = param_json["name"];
               std::string param_type = param_json["type"];
 
+              // Deserialize expression if present (M3.3)
+              if (param_json.contains("expression") && param_json["expression"].is_string()) {
+                std::string expr = param_json["expression"].get<std::string>();
+                if (!expr.empty()) {
+                  sop->set_parameter_expression(param_name, expr);
+                }
+              }
+
               // Deserialize value based on type
               if (param_type == "float" && param_json["value"].is_number()) {
                 sop->set_parameter(param_name, param_json["value"].get<float>());
@@ -366,14 +382,19 @@ std::optional<NodeGraph> GraphSerializer::deserialize_from_json(const std::strin
 
       // Deserialize graph parameters (M3.2)
       if (j.contains("graph_parameters") && j["graph_parameters"].is_array()) {
+        std::cout << "[GraphSerializer] Found graph_parameters array with " << j["graph_parameters"].size()
+                  << " parameters\n";
         for (const auto& param_json : j["graph_parameters"]) {
           if (!param_json.contains("name") || !param_json.contains("type") || !param_json.contains("value")) {
+            std::cout << "[GraphSerializer] Skipping parameter - missing required fields\n";
             continue;
           }
 
           std::string name = param_json["name"];
           std::string type_str = param_json["type"];
           std::string description = param_json.value("description", "");
+
+          std::cout << "[GraphSerializer] Loading parameter: " << name << " (type: " << type_str << ")\n";
 
           GraphParameter::Type type = GraphParameter::string_to_type(type_str);
           GraphParameter param(name, type, description);
@@ -410,7 +431,12 @@ std::optional<NodeGraph> GraphSerializer::deserialize_from_json(const std::strin
           }
 
           graph.add_graph_parameter(param);
+          std::cout << "[GraphSerializer] Added parameter: " << name << "\n";
         }
+        std::cout << "[GraphSerializer] Total graph parameters after loading: " << graph.get_graph_parameters().size()
+                  << "\n";
+      } else {
+        std::cout << "[GraphSerializer] No graph_parameters field found in JSON\n";
       }
     }
 
@@ -573,6 +599,8 @@ std::string GraphSerializer::node_type_to_string(NodeType type) {
       return "RepairMesh";
     case NodeType::Decimate:
       return "Decimate";
+    case NodeType::Fuse:
+      return "Fuse";
     default:
       return "Unknown";
   }
@@ -687,6 +715,8 @@ std::optional<NodeType> GraphSerializer::string_to_node_type(const std::string& 
     return NodeType::RepairMesh;
   if (type_str == "Decimate")
     return NodeType::Decimate;
+  if (type_str == "Fuse")
+    return NodeType::Fuse;
   return std::nullopt;
 }
 

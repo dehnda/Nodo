@@ -31,7 +31,7 @@ public:
 
   // Scene operations
   void newScene();
-  void openScene();
+  bool openScene();
   bool saveScene();
   bool saveSceneAs();
   void revertToSaved();

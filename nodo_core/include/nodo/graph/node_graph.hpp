@@ -65,6 +65,7 @@ enum class NodeType {
   GroupTransfer,
 
   // Utility Operations
+  Fuse,
   Blast,
   Delete,
   Sort,

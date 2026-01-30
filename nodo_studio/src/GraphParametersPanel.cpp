@@ -145,14 +145,17 @@ void GraphParametersPanel::create_actions() {
 }
 
 void GraphParametersPanel::set_graph(nodo::graph::NodeGraph* graph) {
+  qDebug() << "GraphParametersPanel::set_graph() called with graph:" << graph;
   graph_ = graph;
   refresh();
 }
 
 void GraphParametersPanel::refresh() {
+  qDebug() << "GraphParametersPanel::refresh() called";
   clear_parameters();
 
   if (graph_ == nullptr) {
+    qDebug() << "  graph_ is nullptr, showing empty state";
     show_empty_state();
     update_action_states();
     return;
@@ -160,7 +163,10 @@ void GraphParametersPanel::refresh() {
 
   const auto& parameters = graph_->get_graph_parameters();
 
+  qDebug() << "  Graph has" << parameters.size() << "parameters";
+
   if (parameters.empty()) {
+    qDebug() << "  parameters empty, showing empty state";
     show_empty_state();
     update_action_states();
     return;
@@ -289,9 +295,12 @@ void GraphParametersPanel::refresh() {
       widget->installEventFilter(this);
       widget->setProperty("parameter_name", QString::fromStdString(param.get_name()));
       content_layout_->insertWidget(content_layout_->count() - 1, widget);
+      widget->setVisible(true); // Ensure widget is visible
+      qDebug() << "  Created widget for parameter:" << QString::fromStdString(param.get_name());
     }
   }
 
+  qDebug() << "  Refresh complete, calling update_action_states()";
   update_action_states();
 }
 
@@ -421,7 +430,8 @@ void GraphParametersPanel::show_empty_state() {
   content_layout_->insertWidget(0, empty_container);
 }
 
-void GraphParametersPanel::on_parameter_value_changed(const std::string& /*param_name*/) {
+void GraphParametersPanel::on_parameter_value_changed(const std::string& param_name) {
+  qDebug() << "GraphParametersPanel: parameter" << QString::fromStdString(param_name) << "value changed";
   emit parameters_changed();
   emit parameter_value_changed(); // Specific signal for value changes
 }

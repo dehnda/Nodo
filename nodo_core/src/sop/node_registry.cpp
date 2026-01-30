@@ -10,7 +10,6 @@ NodeRegistry& NodeRegistry::instance() {
 }
 
 void NodeRegistry::registerNode(graph::NodeType type, const NodeMetadata& metadata) {
-  std::cout << "[NodeRegistry] Registering node: " << metadata.name << " (type: " << static_cast<int>(type) << ")\n";
   registry_[type] = metadata;
 }
 
@@ -27,11 +26,9 @@ bool NodeRegistry::isRegistered(graph::NodeType type) const {
 }
 
 std::vector<NodeMetadata> NodeRegistry::getAllNodes() const {
-  std::cout << "[NodeRegistry] getAllNodes() called - registry has " << registry_.size() << " nodes\n";
   std::vector<NodeMetadata> nodes;
   nodes.reserve(registry_.size());
   for (const auto& [type, metadata] : registry_) {
-    std::cout << "  - " << metadata.name << "\n";
     nodes.push_back(metadata);
   }
   return nodes;

@@ -143,14 +143,17 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
   //   sides
   size_t total_new_points = input_point_count;
   size_t total_vertices = 0;
+  size_t valid_poly_count = 0;
 
   for (size_t prim_idx = 0; prim_idx < input_prim_count; ++prim_idx) {
     const auto& vert_indices = input_topology.get_primitive_vertices(prim_idx);
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 3) {
-      continue;
+      continue; // Skip non-polygon primitives (points, lines)
     }
+
+    valid_poly_count++;
 
     if (inset > 0.0001F) {
       total_new_points += num_verts * 2; // bottom inset + top extruded
@@ -160,6 +163,12 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
 
     // Bottom face + top face + side quads
     total_vertices += num_verts + num_verts + (num_verts * 4);
+  }
+
+  // Check if we have any valid polygons to extrude
+  if (valid_poly_count == 0) {
+    return {"Input geometry contains no polygon primitives (faces with 3+ vertices) to extrude. "
+            "Use PolyExtrude node for extruding edges or points."};
   }
 
   // Create result container with pre-calculated sizes
@@ -187,7 +196,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> ExtrudeSOP::execute() {
     const size_t num_verts = vert_indices.size();
 
     if (num_verts < 3) {
-      continue; // Skip degenerate primitives
+      continue; // Skip non-polygon primitives (points, lines)
     }
 
     // Determine extrusion direction for this face

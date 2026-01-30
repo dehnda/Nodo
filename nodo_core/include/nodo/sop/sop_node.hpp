@@ -851,7 +851,7 @@ protected:
                      bool delete_orphaned_points = false) const {
     auto input = get_input_data(port_index);
     if (!input) {
-      return {"No input geometry"};
+      return {"No input geometry connected"};
     }
 
     std::string group_name = get_group_name();

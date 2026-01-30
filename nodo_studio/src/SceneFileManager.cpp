@@ -26,18 +26,23 @@ void SceneFileManager::newScene() {
   is_modified_ = false;
 }
 
-void SceneFileManager::openScene() {
+bool SceneFileManager::openScene() {
   using nodo::graph::GraphSerializer;
 
   QString file_path = QFileDialog::getOpenFileName(parent_, "Open Node Graph", "", "Nodo Graph (*.nfg);;All Files (*)");
 
   if (file_path.isEmpty()) {
-    return; // User cancelled
+    return false; // User cancelled
   }
 
   auto loaded_graph = GraphSerializer::load_from_file(file_path.toStdString());
 
   if (loaded_graph.has_value()) {
+    // Clear execution cache before loading new graph
+    if (execution_engine_) {
+      execution_engine_->clear_cache();
+    }
+
     // Replace the current node graph with the loaded one
     if (node_graph_) {
       *node_graph_ = std::move(loaded_graph.value());
@@ -54,8 +59,10 @@ void SceneFileManager::openScene() {
 
     // Add to recent files
     addToRecentFiles(file_path);
+    return true;
   } else {
     QMessageBox::warning(parent_, "Load Failed", "Failed to load node graph from file.");
+    return false;
   }
 }
 

@@ -1,3 +1,4 @@
+#include "nodo/sop/fuse_sop.hpp"
 #include "nodo/sop/node_registry.hpp"
 #include "nodo/sop/sop_factory.hpp"
 
@@ -137,6 +138,7 @@ void registerAllNodes() {
   REG(GroupTransfer, GroupTransferSOP, "Group Transfer", "Group", "Transfer groups between geometries")
 
   // Utility nodes
+  REG(Fuse, FuseSOP, "Fuse", "Utility", "Merge nearby points within threshold")
   REG(Switch, SwitchSOP, "Switch", "Utility", "Choose between multiple inputs")
   REG(Null, NullSOP, "Null", "Utility", "Pass-through node for organization")
   REG(Cache, CacheSOP, "Cache", "Utility", "Cache geometry to avoid recompute")

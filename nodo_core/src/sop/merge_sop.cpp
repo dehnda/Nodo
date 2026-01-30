@@ -26,10 +26,6 @@ core::Result<std::shared_ptr<core::GeometryContainer>> MergeSOP::execute() {
   // Collect all connected inputs
   std::vector<std::shared_ptr<core::GeometryContainer>> inputs;
 
-  for (size_t i = 0; i < inputs.size(); ++i) {
-    inputs[i] = apply_group_filter(i, core::ElementClass::POINT, false).get_value();
-  }
-
   for (int i = 0; i < 4; ++i) {
     auto input = get_input_data(i);
     if (input != nullptr) {

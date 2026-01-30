@@ -76,6 +76,7 @@ set(NODO_CORE_SOURCES
     src/sop/curvature_sop.cpp
     src/sop/decimation_sop.cpp
     src/sop/extrude_sop.cpp
+    src/sop/fuse_sop.cpp
     src/sop/geodesic_sop.cpp
     src/sop/group_sop.cpp
     src/sop/laplacian_sop.cpp

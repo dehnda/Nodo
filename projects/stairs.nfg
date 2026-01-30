@@ -1,0 +1,890 @@
+{
+  "connections": [
+    {
+      "id": 1,
+      "source_node": 1,
+      "source_pin": 0,
+      "target_node": 2,
+      "target_pin": 0
+    },
+    {
+      "id": 2,
+      "source_node": 3,
+      "source_pin": 0,
+      "target_node": 4,
+      "target_pin": 0
+    },
+    {
+      "id": 3,
+      "source_node": 2,
+      "source_pin": 0,
+      "target_node": 5,
+      "target_pin": 0
+    },
+    {
+      "id": 4,
+      "source_node": 4,
+      "source_pin": 0,
+      "target_node": 5,
+      "target_pin": 0
+    },
+    {
+      "id": 5,
+      "source_node": 9,
+      "source_pin": 0,
+      "target_node": 10,
+      "target_pin": 0
+    },
+    {
+      "id": 6,
+      "source_node": 5,
+      "source_pin": 0,
+      "target_node": 8,
+      "target_pin": 0
+    },
+    {
+      "id": 7,
+      "source_node": 8,
+      "source_pin": 0,
+      "target_node": 11,
+      "target_pin": 0
+    },
+    {
+      "id": 8,
+      "source_node": 11,
+      "source_pin": 0,
+      "target_node": 9,
+      "target_pin": 0
+    }
+  ],
+  "graph_parameters": [
+    {
+      "description": "",
+      "name": "step_height",
+      "type": "float",
+      "value": 0.25
+    },
+    {
+      "description": "",
+      "name": "step_depth",
+      "type": "float",
+      "value": 0.5
+    },
+    {
+      "description": "",
+      "name": "step_count",
+      "type": "int",
+      "value": 5
+    },
+    {
+      "description": "",
+      "name": "step_width",
+      "type": "float",
+      "value": 0.4000000059604645
+    }
+  ],
+  "nodes": [
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 1,
+      "name": "Line",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start X",
+          "name": "start_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start Y",
+          "name": "start_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start Z",
+          "name": "start_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End X",
+          "name": "end_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 5.0
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End Y",
+          "name": "end_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End Z",
+          "name": "end_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Line",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Segments",
+          "name": "segments",
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        }
+      ],
+      "position": [
+        -199.281005859375,
+        -66.75206756591797
+      ],
+      "render_flag": false,
+      "type": "Line"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 2,
+      "name": "PolyExtrude",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Extrusion",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Extrusion Type",
+          "name": "extrusion_type",
+          "string_options": [
+            "Faces",
+            "Edges",
+            "Points"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        },
+        {
+          "category": "Extrusion",
+          "expression": "$step_height",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Distance",
+          "name": "distance",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.25
+        },
+        {
+          "category": "Extrusion",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Inset",
+          "name": "inset",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Extrusion",
+          "label": "Individual Elements",
+          "name": "individual_faces",
+          "type": "bool",
+          "ui_hint": "",
+          "value": true
+        },
+        {
+          "category": "Edge Extrusion",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Edge Direction",
+          "name": "edge_direction_mode",
+          "string_options": [
+            "Auto (Perpendicular)",
+            "Custom Direction"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction X",
+          "name": "edge_direction_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Y",
+          "name": "edge_direction_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.30000001192092896
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Z",
+          "name": "edge_direction_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        }
+      ],
+      "position": [
+        -115.0,
+        160.22314453125
+      ],
+      "render_flag": false,
+      "type": "PolyExtrude"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 3,
+      "name": "Line1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start X",
+          "name": "start_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Start Point",
+          "expression": "$step_height",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start Y",
+          "name": "start_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.25
+        },
+        {
+          "category": "Start Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Start Z",
+          "name": "start_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End X",
+          "name": "end_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 5.0
+        },
+        {
+          "category": "End Point",
+          "expression": "$step_height",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End Y",
+          "name": "end_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.25
+        },
+        {
+          "category": "End Point",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "End Z",
+          "name": "end_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Line",
+          "int_max": 1000,
+          "int_min": 1,
+          "label": "Segments",
+          "name": "segments",
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        }
+      ],
+      "position": [
+        293.4214782714844,
+        -87.58677673339844
+      ],
+      "render_flag": false,
+      "type": "Line"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 4,
+      "name": "PolyExtrude1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Extrusion",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Extrusion Type",
+          "name": "extrusion_type",
+          "string_options": [
+            "Faces",
+            "Edges",
+            "Points"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        },
+        {
+          "category": "Extrusion",
+          "expression": "$step_depth",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Distance",
+          "name": "distance",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.5
+        },
+        {
+          "category": "Extrusion",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Inset",
+          "name": "inset",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Extrusion",
+          "label": "Individual Elements",
+          "name": "individual_faces",
+          "type": "bool",
+          "ui_hint": "",
+          "value": true
+        },
+        {
+          "category": "Edge Extrusion",
+          "int_max": 1,
+          "int_min": 0,
+          "label": "Edge Direction",
+          "name": "edge_direction_mode",
+          "string_options": [
+            "Auto (Perpendicular)",
+            "Custom Direction"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction X",
+          "name": "edge_direction_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Y",
+          "name": "edge_direction_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 1.0
+        },
+        {
+          "category": "Edge Extrusion",
+          "float_max": 1.0,
+          "float_min": -1.0,
+          "label": "Direction Z",
+          "name": "edge_direction_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        }
+      ],
+      "position": [
+        211.40127563476563,
+        158.9834747314453
+      ],
+      "render_flag": false,
+      "type": "PolyExtrude"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 5,
+      "name": "Merge",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Merge",
+          "int_max": 4,
+          "int_min": 1,
+          "label": "Number of Inputs",
+          "name": "num_inputs",
+          "type": "int",
+          "ui_hint": "",
+          "value": 2
+        }
+      ],
+      "position": [
+        55.760318756103516,
+        358.8925476074219
+      ],
+      "render_flag": false,
+      "type": "Merge"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": true,
+      "id": 8,
+      "name": "Array",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Array",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Array Type",
+          "name": "array_type",
+          "string_options": [
+            "Linear",
+            "Radial",
+            "Grid"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 0
+        },
+        {
+          "category": "Array",
+          "int_max": 100,
+          "int_min": 1,
+          "label": "Count",
+          "name": "count",
+          "type": "int",
+          "ui_hint": "",
+          "value": 5
+        },
+        {
+          "category": "Linear",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Offset X",
+          "name": "linear_offset_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Linear",
+          "expression": "$step_height",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Offset Y",
+          "name": "linear_offset_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.25
+        },
+        {
+          "category": "Linear",
+          "expression": "$step_depth",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Offset Z",
+          "name": "linear_offset_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.5
+        },
+        {
+          "category": "Radial",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Center X",
+          "name": "radial_center_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Radial",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Center Y",
+          "name": "radial_center_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Radial",
+          "float_max": 100.0,
+          "float_min": -100.0,
+          "label": "Center Z",
+          "name": "radial_center_z",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Radial",
+          "float_max": 100.0,
+          "float_min": 0.0,
+          "label": "Radius",
+          "name": "radial_radius",
+          "type": "float",
+          "ui_hint": "",
+          "value": 2.0
+        },
+        {
+          "category": "Radial",
+          "float_max": 360.0,
+          "float_min": 0.0,
+          "label": "Angle Step",
+          "name": "angle_step",
+          "type": "float",
+          "ui_hint": "",
+          "value": 60.0
+        },
+        {
+          "category": "Grid",
+          "int_max": 50,
+          "int_min": 1,
+          "label": "Grid Width",
+          "name": "grid_width",
+          "type": "int",
+          "ui_hint": "",
+          "value": 3
+        },
+        {
+          "category": "Grid",
+          "int_max": 50,
+          "int_min": 1,
+          "label": "Grid Height",
+          "name": "grid_height",
+          "type": "int",
+          "ui_hint": "",
+          "value": 3
+        },
+        {
+          "category": "Grid",
+          "float_max": 100.0,
+          "float_min": 0.01,
+          "label": "Spacing X",
+          "name": "grid_spacing_x",
+          "type": "float",
+          "ui_hint": "",
+          "value": 1.0
+        },
+        {
+          "category": "Grid",
+          "float_max": 100.0,
+          "float_min": 0.01,
+          "label": "Spacing Y",
+          "name": "grid_spacing_y",
+          "type": "float",
+          "ui_hint": "",
+          "value": 1.0
+        }
+      ],
+      "position": [
+        59.5573844909668,
+        520.718994140625
+      ],
+      "render_flag": false,
+      "type": "Array"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 9,
+      "name": "UV Unwrap",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Charts",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Max Chart Size",
+          "name": "max_chart_size",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.0
+        },
+        {
+          "category": "Charts",
+          "float_max": 10.0,
+          "float_min": 0.10000000149011612,
+          "label": "Max Cost",
+          "name": "max_cost",
+          "type": "float",
+          "ui_hint": "",
+          "value": 2.0
+        },
+        {
+          "category": "Charts",
+          "int_max": 10,
+          "int_min": 1,
+          "label": "Max Iterations",
+          "name": "max_iterations",
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        },
+        {
+          "category": "Seams",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Normal Deviation Weight",
+          "name": "normal_deviation_weight",
+          "type": "float",
+          "ui_hint": "",
+          "value": 2.0
+        },
+        {
+          "category": "Seams",
+          "float_max": 2000.0,
+          "float_min": 0.0,
+          "label": "Normal Seam Weight",
+          "name": "normal_seam_weight",
+          "type": "float",
+          "ui_hint": "",
+          "value": 4.0
+        },
+        {
+          "category": "Seams",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Roundness Weight",
+          "name": "roundness_weight",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.009999999776482582
+        },
+        {
+          "category": "Seams",
+          "float_max": 20.0,
+          "float_min": 0.0,
+          "label": "Straightness Weight",
+          "name": "straightness_weight",
+          "type": "float",
+          "ui_hint": "",
+          "value": 6.0
+        },
+        {
+          "category": "Seams",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Texture Seam Weight",
+          "name": "texture_seam_weight",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.5
+        },
+        {
+          "category": "Packing",
+          "int_max": 4096,
+          "int_min": 256,
+          "label": "Resolution",
+          "name": "resolution",
+          "type": "int",
+          "ui_hint": "",
+          "value": 1024
+        },
+        {
+          "category": "Packing",
+          "float_max": 16.0,
+          "float_min": 0.0,
+          "label": "Padding",
+          "name": "padding",
+          "type": "float",
+          "ui_hint": "",
+          "value": 2.0
+        }
+      ],
+      "position": [
+        58.438011169433594,
+        847.7272338867188
+      ],
+      "render_flag": false,
+      "type": "UVUnwrap"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 10,
+      "name": "Export",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Export",
+          "label": "File Path",
+          "name": "file_path",
+          "type": "string",
+          "ui_hint": "filepath_save",
+          "value": "/home/daniel/projects/Nodo/projects/stair_test.obj"
+        },
+        {
+          "category": "Export",
+          "int_max": 100,
+          "int_min": 0,
+          "label": "Export Now",
+          "name": "export_now",
+          "type": "int",
+          "ui_hint": "button",
+          "value": 0
+        }
+      ],
+      "position": [
+        56.818180084228516,
+        1005.1652221679688
+      ],
+      "render_flag": false,
+      "type": "Export"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 11,
+      "name": "Fuse",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Fuse",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Threshold",
+          "name": "threshold",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.009999999776482582
+        }
+      ],
+      "position": [
+        64.73704528808594,
+        685.9130249023438
+      ],
+      "render_flag": false,
+      "type": "Fuse"
+    }
+  ],
+  "version": "1.0"
+}
