@@ -89,6 +89,7 @@ set(NODO_CORE_SOURCES
     src/sop/repair_mesh_sop.cpp
     src/sop/resample_sop.cpp
     src/sop/scatter_sop.cpp
+    src/sop/switch_sop.cpp
     src/sop/sop_factory.cpp
     src/sop/register_all_nodes.cpp
     src/sop/node_registry.cpp

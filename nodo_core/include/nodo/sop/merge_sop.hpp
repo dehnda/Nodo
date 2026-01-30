@@ -17,12 +17,13 @@ namespace nodo::sop {
 class MergeSOP : public SOPNode {
 public:
   static constexpr int NODE_VERSION = 1;
+  static constexpr int MAX_INPUTS = -1; // Unlimited inputs
 
   explicit MergeSOP(const std::string& node_name = "merge");
 
   // Multi-input node - requires at least 1 input, accepts unlimited
   // Single wide input pin that accepts multiple connections
-  InputConfig get_input_config() const override { return InputConfig(InputType::MULTI_DYNAMIC, 1, -1, 1); }
+  InputConfig get_input_config() const override { return {InputType::MULTI_DYNAMIC, 1, MAX_INPUTS, 1}; }
 
 protected:
   core::Result<std::shared_ptr<core::GeometryContainer>> execute() override;
