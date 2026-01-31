@@ -55,6 +55,20 @@
       "source_pin": 0,
       "target_node": 9,
       "target_pin": 0
+    },
+    {
+      "id": 9,
+      "source_node": 5,
+      "source_pin": 0,
+      "target_node": 12,
+      "target_pin": 0
+    },
+    {
+      "id": 10,
+      "source_node": 12,
+      "source_pin": 0,
+      "target_node": 13,
+      "target_pin": 0
     }
   ],
   "graph_parameters": [
@@ -524,7 +538,7 @@
     },
     {
       "bypass_flag": false,
-      "display_flag": true,
+      "display_flag": false,
       "id": 8,
       "name": "Array",
       "parameters": [
@@ -884,6 +898,139 @@
       ],
       "render_flag": false,
       "type": "Fuse"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": false,
+      "id": 12,
+      "name": "Fuse1",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Fuse",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Threshold",
+          "name": "threshold",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.009999999776482582
+        }
+      ],
+      "position": [
+        400.0,
+        514.0
+      ],
+      "render_flag": false,
+      "type": "Fuse"
+    },
+    {
+      "bypass_flag": false,
+      "display_flag": true,
+      "id": 13,
+      "name": "Bevel",
+      "parameters": [
+        {
+          "category": "Universal",
+          "label": "Group",
+          "name": "input_group",
+          "type": "group_selector",
+          "ui_hint": "",
+          "value": ""
+        },
+        {
+          "category": "Bevel",
+          "float_max": 10.0,
+          "float_min": 0.0,
+          "label": "Width",
+          "name": "width",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.10000000149011612
+        },
+        {
+          "category": "Bevel",
+          "int_max": 16,
+          "int_min": 1,
+          "label": "Segments",
+          "name": "segments",
+          "type": "int",
+          "ui_hint": "",
+          "value": 3
+        },
+        {
+          "category": "Bevel",
+          "float_max": 1.0,
+          "float_min": 0.0,
+          "label": "Profile",
+          "name": "profile",
+          "type": "float",
+          "ui_hint": "",
+          "value": 0.5
+        },
+        {
+          "category": "Bevel",
+          "int_max": 3,
+          "int_min": 0,
+          "label": "Mode",
+          "name": "mode",
+          "string_options": [
+            "Vertex",
+            "Edge",
+            "Face",
+            "EdgeVertex"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 1
+        },
+        {
+          "category": "Bevel",
+          "int_max": 2,
+          "int_min": 0,
+          "label": "Corner Style",
+          "name": "corner_style",
+          "string_options": [
+            "ApexFan",
+            "RingStart",
+            "Grid"
+          ],
+          "type": "int",
+          "ui_hint": "",
+          "value": 0
+        },
+        {
+          "category": "Bevel",
+          "label": "Clamp Overlap",
+          "name": "clamp_overlap",
+          "type": "bool",
+          "ui_hint": "",
+          "value": true
+        },
+        {
+          "category": "Limits",
+          "float_max": 180.0,
+          "float_min": 0.0,
+          "label": "Angle Limit",
+          "name": "angle_limit",
+          "type": "float",
+          "ui_hint": "",
+          "value": 30.0
+        }
+      ],
+      "position": [
+        515.0,
+        697.0
+      ],
+      "render_flag": false,
+      "type": "Bevel"
     }
   ],
   "version": "1.0"

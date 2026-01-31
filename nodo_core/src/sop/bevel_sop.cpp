@@ -198,7 +198,8 @@ static void recompute_primitive_normals(core::GeometryContainer& geo) {
 // Edge bevel (quad and multi-seg stub)
 static void add_chamfer_quad_for_edge(core::GeometryContainer& geo,
                                       core::AttributeStorage<Eigen::Vector3f>* positions_attr,
-                                      const std::vector<Eigen::Vector3f>& prim_normals, const EdgeKey& edge_key,
+                                      const std::vector<Eigen::Vector3f>& prim_normals,
+                                      const std::vector<Eigen::Vector3f>& prim_centroids, const EdgeKey& edge_key,
                                       const EdgeInfo& info, float bevel_width) {
   if (positions_attr == nullptr || info.faces.size() != 2)
     return;
@@ -208,10 +209,42 @@ static void add_chamfer_quad_for_edge(core::GeometryContainer& geo,
   const Eigen::Vector3f& pos_b = (*positions_attr)[point_index_b];
   const Eigen::Vector3f& normal_face_a = prim_normals[info.faces[0]];
   const Eigen::Vector3f& normal_face_b = prim_normals[info.faces[1]];
-  Eigen::Vector3f a_offset_face_a = pos_a + bevel_width * normal_face_a;
-  Eigen::Vector3f b_offset_face_a = pos_b + bevel_width * normal_face_a;
-  Eigen::Vector3f b_offset_face_b = pos_b + bevel_width * normal_face_b;
-  Eigen::Vector3f a_offset_face_b = pos_a + bevel_width * normal_face_b;
+  const Eigen::Vector3f& centroid_a = prim_centroids[info.faces[0]];
+  const Eigen::Vector3f& centroid_b = prim_centroids[info.faces[1]];
+
+  // Edge direction for computing in-face offset directions
+  Eigen::Vector3f edge_dir = (pos_b - pos_a);
+  if (edge_dir.norm() < EPS_VERY_TINY)
+    return;
+  edge_dir.normalize();
+
+  // Edge midpoint for direction checking
+  Eigen::Vector3f edge_mid = (pos_a + pos_b) * HALF;
+
+  // Compute in-face offset directions (perpendicular to edge, lying in face plane)
+  // The cross product of face_normal x edge_dir gives a vector in the face plane,
+  // perpendicular to the edge
+  Eigen::Vector3f offset_dir_a = normal_face_a.cross(edge_dir);
+  Eigen::Vector3f offset_dir_b = normal_face_b.cross(edge_dir);
+  if (offset_dir_a.norm() < EPS_VERY_TINY || offset_dir_b.norm() < EPS_VERY_TINY)
+    return;
+  offset_dir_a.normalize();
+  offset_dir_b.normalize();
+
+  // Ensure offset directions point away from face centroids (outward from the mesh)
+  Eigen::Vector3f to_centroid_a = (centroid_a - edge_mid).normalized();
+  Eigen::Vector3f to_centroid_b = (centroid_b - edge_mid).normalized();
+  if (offset_dir_a.dot(to_centroid_a) > 0.0F)
+    offset_dir_a = -offset_dir_a;
+  if (offset_dir_b.dot(to_centroid_b) > 0.0F)
+    offset_dir_b = -offset_dir_b;
+
+  // Create the 4 bevel points: offset from edge endpoints into each face
+  Eigen::Vector3f a_offset_face_a = pos_a + bevel_width * offset_dir_a;
+  Eigen::Vector3f b_offset_face_a = pos_b + bevel_width * offset_dir_a;
+  Eigen::Vector3f b_offset_face_b = pos_b + bevel_width * offset_dir_b;
+  Eigen::Vector3f a_offset_face_b = pos_a + bevel_width * offset_dir_b;
+
   size_t base_point = geo.point_count();
   geo.set_point_count(base_point + 4);
   positions_attr = geo.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
@@ -233,10 +266,11 @@ static void add_chamfer_quad_for_edge(core::GeometryContainer& geo,
 static void add_chamfer_strip_for_edge(core::GeometryContainer& geo,
                                        core::AttributeStorage<Eigen::Vector3f>*& positions_attr,
                                        const core::AttributeStorage<Eigen::Vector3f>* /*input_positions*/,
-                                       const std::vector<Eigen::Vector3f>& prim_normals, const EdgeKey& edge_key,
+                                       const std::vector<Eigen::Vector3f>& prim_normals,
+                                       const std::vector<Eigen::Vector3f>& prim_centroids, const EdgeKey& edge_key,
                                        const EdgeInfo& info, int segments, float bevel_width, float profile,
                                        bool /*clamp*/) {
-  // Build a rounded strip by interpolating normals between the two faces.
+  // Build a rounded strip by interpolating offset directions between the two faces.
   if (positions_attr == nullptr || info.faces.size() != 2 || segments < 1 || bevel_width <= 0.0F) {
     return;
   }
@@ -249,11 +283,39 @@ static void add_chamfer_strip_for_edge(core::GeometryContainer& geo,
   Eigen::Vector3f normal_face_0 = prim_normals[info.faces[0]];
   Eigen::Vector3f normal_face_1 = prim_normals[info.faces[1]];
   if (normal_face_0.norm() < EPS_VERY_TINY || normal_face_1.norm() < EPS_VERY_TINY) {
-    add_chamfer_quad_for_edge(geo, positions_attr, prim_normals, edge_key, info, bevel_width);
+    add_chamfer_quad_for_edge(geo, positions_attr, prim_normals, prim_centroids, edge_key, info, bevel_width);
     return;
   }
   normal_face_0.normalize();
   normal_face_1.normalize();
+
+  const Eigen::Vector3f& centroid_0 = prim_centroids[info.faces[0]];
+  const Eigen::Vector3f& centroid_1 = prim_centroids[info.faces[1]];
+
+  // Edge direction for computing in-face offset directions
+  Eigen::Vector3f edge_dir = (pos_b - pos_a);
+  if (edge_dir.norm() < EPS_VERY_TINY)
+    return;
+  edge_dir.normalize();
+
+  // Edge midpoint for direction checking
+  Eigen::Vector3f edge_mid = (pos_a + pos_b) * HALF;
+
+  // Compute in-face offset directions for each face
+  Eigen::Vector3f offset_dir_0 = normal_face_0.cross(edge_dir);
+  Eigen::Vector3f offset_dir_1 = normal_face_1.cross(edge_dir);
+  if (offset_dir_0.norm() < EPS_VERY_TINY || offset_dir_1.norm() < EPS_VERY_TINY)
+    return;
+  offset_dir_0.normalize();
+  offset_dir_1.normalize();
+
+  // Ensure offset directions point away from face centroids (outward from the mesh)
+  Eigen::Vector3f to_centroid_0 = (centroid_0 - edge_mid).normalized();
+  Eigen::Vector3f to_centroid_1 = (centroid_1 - edge_mid).normalized();
+  if (offset_dir_0.dot(to_centroid_0) > 0.0F)
+    offset_dir_0 = -offset_dir_0;
+  if (offset_dir_1.dot(to_centroid_1) > 0.0F)
+    offset_dir_1 = -offset_dir_1;
 
   // Precompute strip points: for each slice s in [0..segments], two points
   // (a_s, b_s)
@@ -262,15 +324,15 @@ static void add_chamfer_strip_for_edge(core::GeometryContainer& geo,
   for (int segment_index = 0; segment_index <= segments; ++segment_index) {
     float param_t = static_cast<float>(segment_index) / static_cast<float>(segments);
     float t_shaped = shape_profile_t(param_t, profile);
-    // Interpolate normals (simple lerp then normalize)
-    Eigen::Vector3f blended_normal = ((1.0F - t_shaped) * normal_face_0) + (t_shaped * normal_face_1);
-    if (blended_normal.norm() < EPS_VERY_TINY) {
-      blended_normal = normal_face_0; // fallback
+    // Interpolate offset directions (simple lerp then normalize)
+    Eigen::Vector3f blended_offset = ((1.0F - t_shaped) * offset_dir_0) + (t_shaped * offset_dir_1);
+    if (blended_offset.norm() < EPS_VERY_TINY) {
+      blended_offset = offset_dir_0; // fallback
     } else {
-      blended_normal.normalize();
+      blended_offset.normalize();
     }
-    Eigen::Vector3f offset_a = pos_a + bevel_width * blended_normal;
-    Eigen::Vector3f offset_b = pos_b + bevel_width * blended_normal;
+    Eigen::Vector3f offset_a = pos_a + bevel_width * blended_offset;
+    Eigen::Vector3f offset_b = pos_b + bevel_width * blended_offset;
     strip_points.push_back(offset_a);
     strip_points.push_back(offset_b);
   }
@@ -728,21 +790,15 @@ static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::Geometry
     std::cerr << "Edge Bevel: Missing position attribute P\n";
     return nullptr;
   }
-  const auto* positions_attr = input.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
-  if (positions_attr == nullptr) {
+  const auto* input_positions = input.get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+  if (input_positions == nullptr) {
     std::cerr << "Edge Bevel: Position attribute retrieval failed\n";
     return nullptr;
   }
-  auto result = std::make_shared<core::GeometryContainer>(input.clone());
-  result->ensure_position_attribute();
-  auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
-  if (result_positions == nullptr) {
-    std::cerr << "Edge Bevel: Failed to access result positions\n";
-    return result;
-  }
+
   std::vector<Eigen::Vector3f> prim_normals;
   std::vector<Eigen::Vector3f> prim_centroids;
-  compute_prim_normals_centroids(input, positions_attr, prim_normals, prim_centroids);
+  compute_prim_normals_centroids(input, input_positions, prim_normals, prim_centroids);
   std::map<EdgeKey, EdgeInfo> edge_map;
   build_edge_map(input, edge_map);
   auto sharp_edges = find_sharp_edges(edge_map, prim_normals, angle_threshold);
@@ -750,53 +806,231 @@ static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::Geometry
     std::cout << "Edge Bevel: No sharp edges above threshold (" << angle_threshold << "°)\n";
     return std::make_shared<core::GeometryContainer>(input.clone());
   }
+
+  // Build result geometry from scratch
+  auto result = std::make_shared<core::GeometryContainer>();
+  result->add_point_attribute(core::standard_attrs::P, core::AttributeType::VEC3F);
+
+  // Track which (point, face) pairs need beveled positions
+  // Key: (original_point_index, face_index) -> new_point_index in result
+  std::map<std::pair<int, int>, int> beveled_point_map;
+
+  // Track which edges are being beveled for quick lookup
+  std::set<EdgeKey> beveled_edge_set(sharp_edges.begin(), sharp_edges.end());
+
+  // First pass: compute beveled positions and create new points
+  // For each sharp edge, compute the offset directions and create beveled points
+  struct BeveledEdgeData {
+    EdgeKey edge;
+    int face_0;
+    int face_1;
+    Eigen::Vector3f offset_dir_0;
+    Eigen::Vector3f offset_dir_1;
+    float width;
+  };
+  std::vector<BeveledEdgeData> beveled_edges_data;
+
   for (const auto& edge_key : sharp_edges) {
     const EdgeInfo& info = edge_map[edge_key];
     if (info.faces.size() != 2)
       continue;
-    int segs = std::max(1, segments);
+
+    const Eigen::Vector3f& pos_a = (*input_positions)[edge_key.point_index_a];
+    const Eigen::Vector3f& pos_b = (*input_positions)[edge_key.point_index_b];
+
     float width_for_edge = bevel_width;
     if (clamp_overlap) {
-      const Eigen::Vector3f& pos_a = (*positions_attr)[edge_key.point_index_a];
-      const Eigen::Vector3f& pos_b = (*positions_attr)[edge_key.point_index_b];
       float edge_len = (pos_b - pos_a).norm();
       width_for_edge = std::min(width_for_edge, (HALF * edge_len) - CLAMP_EPS);
       width_for_edge = std::max(width_for_edge, 0.0F);
     }
-    if (segs == 1) {
-      add_chamfer_quad_for_edge(*result, result_positions, prim_normals, edge_key, info, width_for_edge);
-      // Record endpoints for corner stitching
-      if (corner_reuse != nullptr) {
-        // Points were appended last 4; stash mapping per original corner per
-        // face
-        int p_base = static_cast<int>(result->point_count() - 4);
-        corner_reuse->map[edge_key.point_index_a][info.faces[0]] = p_base + 0;
-        corner_reuse->map[edge_key.point_index_b][info.faces[0]] = p_base + 1;
-        corner_reuse->map[edge_key.point_index_b][info.faces[1]] = p_base + 2;
-        corner_reuse->map[edge_key.point_index_a][info.faces[1]] = p_base + 3;
+
+    Eigen::Vector3f edge_dir = (pos_b - pos_a);
+    if (edge_dir.norm() < EPS_VERY_TINY)
+      continue;
+    edge_dir.normalize();
+
+    Eigen::Vector3f edge_mid = (pos_a + pos_b) * HALF;
+
+    Eigen::Vector3f normal_0 = prim_normals[info.faces[0]];
+    Eigen::Vector3f normal_1 = prim_normals[info.faces[1]];
+    if (normal_0.norm() < EPS_VERY_TINY || normal_1.norm() < EPS_VERY_TINY)
+      continue;
+    normal_0.normalize();
+    normal_1.normalize();
+
+    // Compute in-face offset directions
+    Eigen::Vector3f offset_dir_0 = normal_0.cross(edge_dir);
+    Eigen::Vector3f offset_dir_1 = normal_1.cross(edge_dir);
+    if (offset_dir_0.norm() < EPS_VERY_TINY || offset_dir_1.norm() < EPS_VERY_TINY)
+      continue;
+    offset_dir_0.normalize();
+    offset_dir_1.normalize();
+
+    // Ensure offset directions point toward face centroids (into the face, away from edge)
+    Eigen::Vector3f to_centroid_0 = (prim_centroids[info.faces[0]] - edge_mid).normalized();
+    Eigen::Vector3f to_centroid_1 = (prim_centroids[info.faces[1]] - edge_mid).normalized();
+    if (offset_dir_0.dot(to_centroid_0) < 0.0F)
+      offset_dir_0 = -offset_dir_0;
+    if (offset_dir_1.dot(to_centroid_1) < 0.0F)
+      offset_dir_1 = -offset_dir_1;
+
+    beveled_edges_data.push_back({edge_key, info.faces[0], info.faces[1], offset_dir_0, offset_dir_1, width_for_edge});
+  }
+
+  // Create a mapping from original points to result points for non-beveled cases
+  std::map<int, int> original_to_result_point;
+
+  // Helper to get or create a point in result geometry
+  auto get_or_create_point = [&](int orig_point, int face_index) -> int {
+    // Check if this point is on a beveled edge for this face
+    for (const auto& bed : beveled_edges_data) {
+      if ((bed.edge.point_index_a == orig_point || bed.edge.point_index_b == orig_point) &&
+          (bed.face_0 == face_index || bed.face_1 == face_index)) {
+        // This point needs a beveled position for this face
+        auto key = std::make_pair(orig_point, face_index);
+        auto it = beveled_point_map.find(key);
+        if (it != beveled_point_map.end()) {
+          return it->second;
+        }
+        // Create new beveled point
+        const Eigen::Vector3f& orig_pos = (*input_positions)[orig_point];
+        Eigen::Vector3f offset_dir = (face_index == bed.face_0) ? bed.offset_dir_0 : bed.offset_dir_1;
+        Eigen::Vector3f beveled_pos = orig_pos + bed.width * offset_dir;
+
+        int new_point = static_cast<int>(result->point_count());
+        result->set_point_count(new_point + 1);
+        auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+        (*result_positions)[new_point] = beveled_pos;
+        beveled_point_map[key] = new_point;
+
+        if (corner_reuse != nullptr) {
+          corner_reuse->map[orig_point][face_index] = new_point;
+        }
+        return new_point;
       }
+    }
+    // Not a beveled point for this face - use original position
+    auto it = original_to_result_point.find(orig_point);
+    if (it != original_to_result_point.end()) {
+      return it->second;
+    }
+    int new_point = static_cast<int>(result->point_count());
+    result->set_point_count(new_point + 1);
+    auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+    (*result_positions)[new_point] = (*input_positions)[orig_point];
+    original_to_result_point[orig_point] = new_point;
+    return new_point;
+  };
+
+  // Recreate all original faces with beveled points where needed
+  for (size_t prim_i = 0; prim_i < input.primitive_count(); ++prim_i) {
+    const auto& prim_verts = input.topology().get_primitive_vertices(prim_i);
+    std::vector<int> new_prim_verts;
+    new_prim_verts.reserve(prim_verts.size());
+
+    for (int vert : prim_verts) {
+      int orig_point = input.topology().get_vertex_point(vert);
+      int new_point = get_or_create_point(orig_point, static_cast<int>(prim_i));
+
+      int new_vert = static_cast<int>(result->vertex_count());
+      result->set_vertex_count(new_vert + 1);
+      result->topology().set_vertex_point(new_vert, new_point);
+      new_prim_verts.push_back(new_vert);
+    }
+    result->add_primitive(new_prim_verts);
+  }
+
+  // Now create bevel strips for each beveled edge
+  auto* result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+
+  for (const auto& bed : beveled_edges_data) {
+    // Get the beveled points for this edge
+    auto key_a_0 = std::make_pair(bed.edge.point_index_a, bed.face_0);
+    auto key_b_0 = std::make_pair(bed.edge.point_index_b, bed.face_0);
+    auto key_a_1 = std::make_pair(bed.edge.point_index_a, bed.face_1);
+    auto key_b_1 = std::make_pair(bed.edge.point_index_b, bed.face_1);
+
+    int pt_a_0 = beveled_point_map[key_a_0];
+    int pt_b_0 = beveled_point_map[key_b_0];
+    int pt_a_1 = beveled_point_map[key_a_1];
+    int pt_b_1 = beveled_point_map[key_b_1];
+
+    const Eigen::Vector3f& pos_a_0 = (*result_positions)[pt_a_0];
+    const Eigen::Vector3f& pos_b_0 = (*result_positions)[pt_b_0];
+    const Eigen::Vector3f& pos_a_1 = (*result_positions)[pt_a_1];
+    const Eigen::Vector3f& pos_b_1 = (*result_positions)[pt_b_1];
+
+    int segs = std::max(1, segments);
+
+    if (segs == 1) {
+      // Single quad connecting the beveled edges
+      size_t base_vert = result->vertex_count();
+      result->set_vertex_count(base_vert + 4);
+      result->topology().set_vertex_point(static_cast<int>(base_vert + 0), pt_a_0);
+      result->topology().set_vertex_point(static_cast<int>(base_vert + 1), pt_b_0);
+      result->topology().set_vertex_point(static_cast<int>(base_vert + 2), pt_b_1);
+      result->topology().set_vertex_point(static_cast<int>(base_vert + 3), pt_a_1);
+      result->add_primitive({static_cast<int>(base_vert + 0), static_cast<int>(base_vert + 1),
+                             static_cast<int>(base_vert + 2), static_cast<int>(base_vert + 3)});
     } else {
-      size_t before_points = result->point_count();
-      add_chamfer_strip_for_edge(*result, result_positions, positions_attr, prim_normals, edge_key, info, segs,
-                                 width_for_edge, profile, clamp_overlap);
-      if (corner_reuse != nullptr) {
-        // First slice offsets: two points added at indices before_points and
-        // before_points+1
-        if (result->point_count() >= before_points + 2) {
-          corner_reuse->map[edge_key.point_index_a][info.faces[0]] = static_cast<int>(before_points + 0);
-          corner_reuse->map[edge_key.point_index_b][info.faces[0]] = static_cast<int>(before_points + 1);
+      // Multi-segment strip: interpolate offset directions for rounded bevel
+      std::vector<int> strip_points_a;
+      std::vector<int> strip_points_b;
+      strip_points_a.reserve(segs + 1);
+      strip_points_b.reserve(segs + 1);
+
+      // Get original edge positions
+      const Eigen::Vector3f& orig_pos_a = (*input_positions)[bed.edge.point_index_a];
+      const Eigen::Vector3f& orig_pos_b = (*input_positions)[bed.edge.point_index_b];
+
+      for (int s = 0; s <= segs; ++s) {
+        float t = static_cast<float>(s) / static_cast<float>(segs);
+        float t_shaped = shape_profile_t(t, profile);
+
+        if (s == 0) {
+          strip_points_a.push_back(pt_a_0);
+          strip_points_b.push_back(pt_b_0);
+        } else if (s == segs) {
+          strip_points_a.push_back(pt_a_1);
+          strip_points_b.push_back(pt_b_1);
+        } else {
+          // Interpolate offset directions (not positions) for rounded effect
+          Eigen::Vector3f blended_dir = ((1.0F - t_shaped) * bed.offset_dir_0) + (t_shaped * bed.offset_dir_1);
+          if (blended_dir.norm() < EPS_VERY_TINY) {
+            blended_dir = bed.offset_dir_0;
+          } else {
+            blended_dir.normalize();
+          }
+
+          // Apply blended offset to original edge positions
+          Eigen::Vector3f interp_a = orig_pos_a + bed.width * blended_dir;
+          Eigen::Vector3f interp_b = orig_pos_b + bed.width * blended_dir;
+
+          int new_pt_a = static_cast<int>(result->point_count());
+          result->set_point_count(new_pt_a + 2);
+          result_positions = result->get_point_attribute_typed<Eigen::Vector3f>(core::standard_attrs::P);
+          (*result_positions)[new_pt_a] = interp_a;
+          (*result_positions)[new_pt_a + 1] = interp_b;
+          strip_points_a.push_back(new_pt_a);
+          strip_points_b.push_back(new_pt_a + 1);
         }
-        // Last slice offsets: two points at end of strip
-        size_t expected_points = static_cast<size_t>((segments + 1) * 2);
-        if (result->point_count() >= before_points + expected_points) {
-          size_t last_a = before_points + static_cast<size_t>((2 * segments) + 0);
-          size_t last_b = before_points + static_cast<size_t>((2 * segments) + 1);
-          corner_reuse->map[edge_key.point_index_a][info.faces[1]] = static_cast<int>(last_a);
-          corner_reuse->map[edge_key.point_index_b][info.faces[1]] = static_cast<int>(last_b);
-        }
+      }
+
+      // Create quads for the strip
+      for (int s = 0; s < segs; ++s) {
+        size_t base_vert = result->vertex_count();
+        result->set_vertex_count(base_vert + 4);
+        result->topology().set_vertex_point(static_cast<int>(base_vert + 0), strip_points_a[s]);
+        result->topology().set_vertex_point(static_cast<int>(base_vert + 1), strip_points_b[s]);
+        result->topology().set_vertex_point(static_cast<int>(base_vert + 2), strip_points_b[s + 1]);
+        result->topology().set_vertex_point(static_cast<int>(base_vert + 3), strip_points_a[s + 1]);
+        result->add_primitive({static_cast<int>(base_vert + 0), static_cast<int>(base_vert + 1),
+                               static_cast<int>(base_vert + 2), static_cast<int>(base_vert + 3)});
       }
     }
   }
+
   recompute_primitive_normals(*result);
   return result;
 }
