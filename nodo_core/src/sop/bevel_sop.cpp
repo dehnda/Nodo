@@ -269,7 +269,7 @@ static void add_chamfer_strip_for_edge(core::GeometryContainer& geo,
                                        const std::vector<Eigen::Vector3f>& prim_normals,
                                        const std::vector<Eigen::Vector3f>& prim_centroids, const EdgeKey& edge_key,
                                        const EdgeInfo& info, int segments, float bevel_width, float profile,
-                                       bool /*clamp*/) {
+                                       bool /*clamp*/, bool invert_direction) {
   // Build a rounded strip by interpolating offset directions between the two faces.
   if (positions_attr == nullptr || info.faces.size() != 2 || segments < 1 || bevel_width <= 0.0F) {
     return;
@@ -309,13 +309,24 @@ static void add_chamfer_strip_for_edge(core::GeometryContainer& geo,
   offset_dir_0.normalize();
   offset_dir_1.normalize();
 
-  // Ensure offset directions point away from face centroids (outward from the mesh)
+  // Control offset direction based on invert_direction flag
+  // When invert_direction is false: point away from centroids (outward)
+  // When invert_direction is true: point toward centroids (inward)
   Eigen::Vector3f to_centroid_0 = (centroid_0 - edge_mid).normalized();
   Eigen::Vector3f to_centroid_1 = (centroid_1 - edge_mid).normalized();
-  if (offset_dir_0.dot(to_centroid_0) > 0.0F)
-    offset_dir_0 = -offset_dir_0;
-  if (offset_dir_1.dot(to_centroid_1) > 0.0F)
-    offset_dir_1 = -offset_dir_1;
+  if (!invert_direction) {
+    // Outward: ensure offset directions point away from face centroids
+    if (offset_dir_0.dot(to_centroid_0) > 0.0F)
+      offset_dir_0 = -offset_dir_0;
+    if (offset_dir_1.dot(to_centroid_1) > 0.0F)
+      offset_dir_1 = -offset_dir_1;
+  } else {
+    // Inward: ensure offset directions point toward face centroids
+    if (offset_dir_0.dot(to_centroid_0) < 0.0F)
+      offset_dir_0 = -offset_dir_0;
+    if (offset_dir_1.dot(to_centroid_1) < 0.0F)
+      offset_dir_1 = -offset_dir_1;
+  }
 
   // Precompute strip points: for each slice s in [0..segments], two points
   // (a_s, b_s)
@@ -781,7 +792,7 @@ static void add_vertex_bevel_patch_ringstart(core::GeometryContainer& geo,
 // Bevel modes
 static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::GeometryContainer& input, float bevel_width,
                                                             int segments, float angle_threshold, float profile,
-                                                            bool clamp_overlap,
+                                                            bool clamp_overlap, bool invert_direction,
                                                             CornerReuseMap* corner_reuse = nullptr) {
   std::cout << "\n=== Edge Bevel Mode ===\n";
   if (bevel_width <= 0.0F || segments < 1)
@@ -826,6 +837,8 @@ static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::Geometry
     int face_1;
     Eigen::Vector3f offset_dir_0;
     Eigen::Vector3f offset_dir_1;
+    Eigen::Vector3f normal_0;
+    Eigen::Vector3f normal_1;
     float width;
   };
   std::vector<BeveledEdgeData> beveled_edges_data;
@@ -867,7 +880,9 @@ static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::Geometry
     offset_dir_0.normalize();
     offset_dir_1.normalize();
 
-    // Ensure offset directions point toward face centroids (into the face, away from edge)
+    // Always ensure offset directions point toward face centroids (inward)
+    // This ensures edge vertices are always in the same position
+    // The invert_direction flag only affects intermediate vertices
     Eigen::Vector3f to_centroid_0 = (prim_centroids[info.faces[0]] - edge_mid).normalized();
     Eigen::Vector3f to_centroid_1 = (prim_centroids[info.faces[1]] - edge_mid).normalized();
     if (offset_dir_0.dot(to_centroid_0) < 0.0F)
@@ -875,7 +890,8 @@ static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::Geometry
     if (offset_dir_1.dot(to_centroid_1) < 0.0F)
       offset_dir_1 = -offset_dir_1;
 
-    beveled_edges_data.push_back({edge_key, info.faces[0], info.faces[1], offset_dir_0, offset_dir_1, width_for_edge});
+    beveled_edges_data.push_back(
+        {edge_key, info.faces[0], info.faces[1], offset_dir_0, offset_dir_1, normal_0, normal_1, width_for_edge});
   }
 
   // Create a mapping from original points to result points for non-beveled cases
@@ -995,17 +1011,55 @@ static std::shared_ptr<core::GeometryContainer> bevel_edges(const core::Geometry
           strip_points_a.push_back(pt_a_1);
           strip_points_b.push_back(pt_b_1);
         } else {
-          // Interpolate offset directions (not positions) for rounded effect
-          Eigen::Vector3f blended_dir = ((1.0F - t_shaped) * bed.offset_dir_0) + (t_shaped * bed.offset_dir_1);
-          if (blended_dir.norm() < EPS_VERY_TINY) {
-            blended_dir = bed.offset_dir_0;
-          } else {
-            blended_dir.normalize();
-          }
+          // Intermediate vertices: blend between face planes
+          Eigen::Vector3f interp_a;
+          Eigen::Vector3f interp_b;
 
-          // Apply blended offset to original edge positions
-          Eigen::Vector3f interp_a = orig_pos_a + bed.width * blended_dir;
-          Eigen::Vector3f interp_b = orig_pos_b + bed.width * blended_dir;
+          if (!invert_direction) {
+            // Inward: interpolate offset directions for rounded chamfer
+            Eigen::Vector3f blended_dir = ((1.0F - t_shaped) * bed.offset_dir_0) + (t_shaped * bed.offset_dir_1);
+            if (blended_dir.norm() < EPS_VERY_TINY) {
+              blended_dir = bed.offset_dir_0;
+            } else {
+              blended_dir.normalize();
+            }
+            interp_a = orig_pos_a + bed.width * blended_dir;
+            interp_b = orig_pos_b + bed.width * blended_dir;
+          } else {
+            // Outward: same distance from orig as inward, but curve bulges outward
+            // First get the normalized blended direction (same as inward)
+            Eigen::Vector3f blended_dir = ((1.0F - t_shaped) * bed.offset_dir_0) + (t_shaped * bed.offset_dir_1);
+            float blend_len = blended_dir.norm();
+            if (blend_len < EPS_VERY_TINY) {
+              blended_dir = bed.offset_dir_0;
+              blend_len = 1.0F;
+            } else {
+              blended_dir /= blend_len; // normalize
+            }
+
+            // Base position at distance=width from orig (same as inward)
+            Eigen::Vector3f base_radial_a = orig_pos_a + bed.width * blended_dir;
+            Eigen::Vector3f base_radial_b = orig_pos_b + bed.width * blended_dir;
+
+            // Compute outward normal (perpendicular to edge, pointing into the bevel)
+            // Negate the average of face normals to get the inward direction
+            Eigen::Vector3f outward_normal = -(bed.normal_0 + bed.normal_1);
+            if (outward_normal.norm() < EPS_VERY_TINY) {
+              outward_normal = -bed.normal_0;
+            } else {
+              outward_normal.normalize();
+            }
+
+            // The deviation amount: how much the normalized blend differs from linear
+            // Linear blend has length blend_len, normalized has length 1.0
+            // Deviation = width * (1.0 - blend_len)
+            float radial_deviation = bed.width * (1.0F - blend_len);
+
+            // Offset perpendicular to radial direction by 2x deviation
+            // to create symmetric bulge on opposite side
+            interp_a = base_radial_a + 2.0F * radial_deviation * outward_normal;
+            interp_b = base_radial_b + 2.0F * radial_deviation * outward_normal;
+          }
 
           int new_pt_a = static_cast<int>(result->point_count());
           result->set_point_count(new_pt_a + 2);
@@ -1158,6 +1212,11 @@ BevelSOP::BevelSOP(const std::string& name) : SOPNode(name, "Bevel") {
                          .category("Bevel")
                          .description("Prevent self-overlap")
                          .build());
+  register_parameter(define_bool_parameter("invert_direction", false)
+                         .label("Invert Direction")
+                         .category("Bevel")
+                         .description("Invert bevel direction (outward vs inward)")
+                         .build());
   register_parameter(define_float_parameter("angle_limit", DEFAULT_ANGLE_LIMIT)
                          .label("Angle Limit")
                          .category("Limits")
@@ -1178,6 +1237,7 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
   int segments = get_parameter<int>("segments", BevelSOP::DEFAULT_SEGMENTS);
   float angle_threshold = get_parameter<float>("angle_limit", DEFAULT_ANGLE_LIMIT);
   bool clamp_overlap = get_parameter<bool>("clamp_overlap", true);
+  bool invert_direction = get_parameter<bool>("invert_direction", false);
   float profile = get_parameter<float>("profile", BevelSOP::DEFAULT_PROFILE);
   auto mode = static_cast<BevelType>(get_parameter<int>("mode", static_cast<int>(BevelType::Edge)));
   auto corner_style =
@@ -1189,14 +1249,15 @@ core::Result<std::shared_ptr<core::GeometryContainer>> BevelSOP::execute() {
       result = bevel_vertices(*input, bevel_width, segments, angle_threshold, profile, corner_style, nullptr);
       break;
     case BevelType::Edge:
-      result = bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap);
+      result = bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap, invert_direction);
       break;
     case BevelType::Face:
       result = bevel_faces(*input, bevel_width, segments, angle_threshold);
       break;
     case BevelType::EdgeVertex: {
       CornerReuseMap reuse;
-      auto after_edges = bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap, &reuse);
+      auto after_edges =
+          bevel_edges(*input, bevel_width, segments, angle_threshold, profile, clamp_overlap, invert_direction, &reuse);
       if (!after_edges) {
         return {"Edge bevel failed during EdgeVertex operation"};
       }
