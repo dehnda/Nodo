@@ -3,6 +3,7 @@
 #include "BaseParameterWidget.h"
 
 #include <QPlainTextEdit>
+#include <QTimer>
 
 #include <functional>
 
@@ -44,6 +45,7 @@ public:
 
   // Callback support
   void setTextChangedCallback(std::function<void(const QString&)> callback);
+  void setEditingFinishedCallback(std::function<void(const QString&)> callback);
 
 signals:
   void textChangedSignal(const QString& text);
@@ -61,7 +63,11 @@ private:
 
   QPlainTextEdit* text_edit_{nullptr};
 
+  QTimer* debounce_timer_{nullptr};
+  static constexpr int DEBOUNCE_MS = 500;
+
   std::function<void(const QString&)> text_changed_callback_;
+  std::function<void(const QString&)> editing_finished_callback_;
 };
 
 } // namespace widgets

@@ -4,6 +4,7 @@
 #include "nodo/core/geometry_container.hpp"
 #include "nodo/core/standard_attributes.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <regex>
 #include <set>
@@ -374,21 +375,27 @@ std::vector<std::string> WrangleSOP::parse_channel_references(const std::string&
 
 // Update dynamic channel parameters based on expression
 void WrangleSOP::update_channel_parameters(const std::vector<std::string>& channels) {
-  // Update the active channel list - this will control which parameters appear
-  // Note: We don't actually remove parameter definitions, but the GraphNode
-  // sync will rebuild the parameter list based on current definitions
+  // Remove stale ch parameter definitions that are no longer in the expression
+  auto& defs = mutable_parameter_definitions();
+  defs.erase(std::remove_if(defs.begin(), defs.end(),
+                 [&](const ParameterDefinition& def) {
+                   return def.category == "Channels" &&
+                          std::find(channels.begin(), channels.end(), def.name) == channels.end();
+                 }),
+             defs.end());
+
+  // Update the active channel list
   channel_params_ = channels;
 
-  // Add new channel parameters
+  // Add or update channel parameters
   for (const auto& channel_name : channels) {
-    // Check if parameter already exists (may have been set by
-    // transfer_parameters)
+    // Preserve existing value if the parameter was already set
     float existing_value = 0.0F;
     if (has_parameter(channel_name)) {
       existing_value = get_parameter<float>(channel_name, 0.0F);
     }
 
-    // Register parameter definition (or update if exists)
+    // register_parameter is idempotent - updates in place if already exists
     register_parameter(define_float_parameter(channel_name, existing_value)
                            .label(channel_name)
                            .range(-10.0F, 10.0F)

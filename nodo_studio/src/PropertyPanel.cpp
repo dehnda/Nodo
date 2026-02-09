@@ -808,9 +808,29 @@ void PropertyPanel::setGraphNode(nodo::graph::GraphNode* node, nodo::graph::Node
 
 void PropertyPanel::refreshFromCurrentNode() {
   // Refresh the property panel using the currently displayed node
-  if (current_graph_node_ != nullptr && current_graph_ != nullptr) {
-    buildFromNode(current_graph_node_, current_graph_);
+  if (current_graph_node_ == nullptr || current_graph_ == nullptr) {
+    return;
   }
+
+  // If any child widget has focus (e.g. user is typing in code editor),
+  // defer the rebuild until focus leaves the panel to avoid destroying
+  // the widget mid-edit and losing focus/cursor position.
+  QWidget* focused = focusWidget();
+  if (focused != nullptr && isAncestorOf(focused)) {
+    if (!deferred_refresh_connected_) {
+      deferred_refresh_connected_ = true;
+      connect(qApp, &QApplication::focusChanged, this, [this](QWidget* /*old*/, QWidget* now) {
+        if (deferred_refresh_pending_ && (now == nullptr || !isAncestorOf(now))) {
+          deferred_refresh_pending_ = false;
+          buildFromNode(current_graph_node_, current_graph_);
+        }
+      });
+    }
+    deferred_refresh_pending_ = true;
+    return;
+  }
+
+  buildFromNode(current_graph_node_, current_graph_);
 }
 
 void PropertyPanel::refreshGroupSelectors() {
@@ -1038,10 +1058,10 @@ void PropertyPanel::connectParameterWidget(nodo_studio::widgets::BaseParameterWi
       emit parameterChanged();
     });
   } else if (auto* multiline_widget = dynamic_cast<nodo_studio::widgets::MultiLineTextWidget*>(widget)) {
-    multiline_widget->setTextChangedCallback([this, node, graph, param_def](const QString& new_value) {
-      // Use undo command for parameter changes
+    // Use debounced editing-finished callback for graph execution to avoid
+    // losing focus on every keystroke (the full UI rebuilds on parameterChanged)
+    multiline_widget->setEditingFinishedCallback([this, node, graph, param_def](const QString& new_value) {
       pushParameterChange(node, graph, param_def.name, new_value.toStdString());
-
       emit parameterChanged();
     });
   } else if (auto* group_widget = dynamic_cast<nodo_studio::widgets::GroupSelectorWidget*>(widget)) {

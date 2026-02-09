@@ -60,6 +60,10 @@ void MultiLineTextWidget::setTextChangedCallback(std::function<void(const QStrin
   text_changed_callback_ = std::move(callback);
 }
 
+void MultiLineTextWidget::setEditingFinishedCallback(std::function<void(const QString&)> callback) {
+  editing_finished_callback_ = std::move(callback);
+}
+
 QWidget* MultiLineTextWidget::createControlWidget() {
   // Don't wrap in a widget - return the text edit directly
   // Create multi-line text editor
@@ -102,6 +106,16 @@ QWidget* MultiLineTextWidget::createControlWidget() {
         }
     )");
 
+  // Set up debounce timer for deferred parameter commit
+  debounce_timer_ = new QTimer(this);
+  debounce_timer_->setSingleShot(true);
+  debounce_timer_->setInterval(DEBOUNCE_MS);
+  connect(debounce_timer_, &QTimer::timeout, this, [this]() {
+    if (editing_finished_callback_) {
+      editing_finished_callback_(text_);
+    }
+  });
+
   // Connect signals
   connect(text_edit_, &QPlainTextEdit::textChanged, this, &MultiLineTextWidget::onTextChanged);
 
@@ -117,6 +131,12 @@ void MultiLineTextWidget::onTextChanged() {
 
     if (text_changed_callback_) {
       text_changed_callback_(text_);
+    }
+
+    // Restart debounce timer — the editing_finished_callback_ fires
+    // only after the user stops typing for DEBOUNCE_MS milliseconds
+    if (debounce_timer_ != nullptr) {
+      debounce_timer_->start();
     }
   }
 }

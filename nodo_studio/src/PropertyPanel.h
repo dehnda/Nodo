@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QApplication>
 #include <QLabel>
 #include <QScrollArea>
 #include <QTimer>
@@ -111,6 +112,10 @@ private:
   QTimer* slider_update_timer_ = nullptr;
   std::function<void()> pending_slider_callback_;
   bool has_pending_update_ = false;
+
+  // Deferred refresh: skip rebuild while user is editing (e.g. code editor has focus)
+  bool deferred_refresh_pending_ = false;
+  bool deferred_refresh_connected_ = false;
 
   // Helper methods for building UI
   void clearLayout();

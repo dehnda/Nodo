@@ -9,6 +9,7 @@
 
 #include <Eigen/Dense>
 
+#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -197,6 +198,11 @@ protected:
   PortCollection output_ports_;
 
   // Main output port (most nodes have one primary output)
+
+  /**
+   * @brief Get mutable access to parameter definitions for subclass management
+   */
+  std::vector<ParameterDefinition>& mutable_parameter_definitions() { return parameter_definitions_; }
   NodePort* main_output_ = nullptr;
 
 public:
@@ -540,9 +546,18 @@ protected:
 
   /**
    * @brief Register a parameter definition and initialize its value
+   *
+   * If a definition with the same name already exists, it is updated in place
+   * rather than appended, preventing duplicate parameter definitions.
    */
   void register_parameter(const ParameterDefinition& def) {
-    parameter_definitions_.push_back(def);
+    auto it = std::find_if(parameter_definitions_.begin(), parameter_definitions_.end(),
+                           [&](const ParameterDefinition& existing) { return existing.name == def.name; });
+    if (it != parameter_definitions_.end()) {
+      *it = def;
+    } else {
+      parameter_definitions_.push_back(def);
+    }
     parameters_[def.name] = def.default_value;
   }
 
